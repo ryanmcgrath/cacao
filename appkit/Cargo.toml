@@ -1,0 +1,18 @@
+[package]
+name = "appkit"
+version = "0.1.0"
+authors = ["Ryan McGrath <ryan@rymc.io>"]
+edition = "2018"
+build = "build.rs"
+
+[dependencies]
+appkit-derive = { path = "../appkit-derive" }
+block = "0.1.6"
+cocoa = "0.20.0"
+core-foundation = "0.7"
+core-graphics = "0.19.0"
+dispatch = "0.2.0"
+lazy_static = "1"
+objc = "0.2.7"
+objc_id = "0.1.1"
+uuid = { version = "0.8", features = ["v4"] }
