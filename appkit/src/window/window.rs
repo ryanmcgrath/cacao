@@ -26,9 +26,18 @@ pub struct WindowInner {
     pub toolbar: Option<Toolbar>
 }
 
-pub mod WindowTitleVisibility {
-    pub const Visible: usize = 0;
-    pub const Hidden: usize = 1;
+pub enum WindowTitleVisibility {
+    Visible,
+    Hidden
+}
+
+impl From<WindowTitleVisibility> for usize {
+    fn from(visibility: WindowTitleVisibility) -> usize {
+        match visibility {
+            WindowTitleVisibility::Visible => 0,
+            WindowTitleVisibility::Hidden => 1
+        }
+    }
 }
 
 impl WindowInner {

@@ -7,7 +7,7 @@ pub(crate) static WEBVIEW_CONTROLLER_PTR: &str = "rstWebViewControllerPtr";
 pub mod action;
 
 pub(crate) mod controller;
-pub(crate) mod process_pool;
+//pub(crate) mod process_pool;
 
 pub mod traits;
 pub use traits::{WebViewController};

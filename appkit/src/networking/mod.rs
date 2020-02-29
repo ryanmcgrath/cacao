@@ -4,7 +4,7 @@
 use cocoa::base::id;
 use objc_id::Id;
 
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{msg_send, sel, sel_impl};
 use objc::runtime::Object;
 
 use crate::utils::str_from;

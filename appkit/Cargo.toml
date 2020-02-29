@@ -16,3 +16,6 @@ lazy_static = "1"
 objc = "0.2.7"
 objc_id = "0.1.1"
 uuid = { version = "0.8", features = ["v4"] }
+
+[features]
+enable-webview-downloading = []

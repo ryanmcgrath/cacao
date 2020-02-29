@@ -9,10 +9,15 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::{Object, Sel};
 use objc_id::ShareId;
 
-use crate::events::NSEventModifierFlag;
+use crate::events::EventModifierFlag;
 
 /// Internal method (shorthand) for generating `NSMenuItem` holders.
-fn make_menu_item(title: &str, key: Option<&str>, action: Option<Sel>, modifier: Option<NSUInteger>) -> MenuItem {
+fn make_menu_item(
+    title: &str,
+    key: Option<&str>,
+    action: Option<Sel>,
+    modifiers: Option<&[EventModifierFlag]>
+) -> MenuItem {
     unsafe {
         let cls = class!(NSMenuItem);
         let alloc: id = msg_send![cls, alloc];
@@ -29,9 +34,16 @@ fn make_menu_item(title: &str, key: Option<&str>, action: Option<Sel>, modifier:
             None => msg_send![alloc, initWithTitle:title action:nil keyEquivalent:key]
         });
 
-        if let Some(modifier) = modifier {
-            let _: () = msg_send![&*item, setKeyEquivalentModifierMask:modifier];
-        };
+        if let Some(modifiers) = modifiers {
+            let mut key_mask: NSUInteger = 0;
+
+            for modifier in modifiers {
+                let y: NSUInteger = modifier.into();
+                key_mask = key_mask | y;
+            }
+
+            let _: () = msg_send![&*item, setKeyEquivalentModifierMask:key_mask];
+        }
 
         MenuItem::Action(item)
     }
@@ -108,7 +120,7 @@ impl MenuItem {
             "Hide Others",
             Some("h"),
             Some(sel!(hide:)),
-            Some(NSEventModifierFlag::Command | NSEventModifierFlag::Option)
+            Some(&[EventModifierFlag::Command, EventModifierFlag::Option])
         )
     }
 
@@ -143,7 +155,7 @@ impl MenuItem {
             "Enter Full Screen",
             Some("f"),
             Some(sel!(toggleFullScreen:)),
-            Some(NSEventModifierFlag::Command | NSEventModifierFlag::Control)
+            Some(&[EventModifierFlag::Command, EventModifierFlag::Control])
         )
     }
 

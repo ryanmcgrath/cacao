@@ -12,10 +12,10 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use cocoa::base::{id, nil, YES, NO};
-use cocoa::foundation::{NSRect, NSPoint, NSSize, NSString};
+use cocoa::foundation::NSString;
 
 use objc_id::ShareId;
-use objc::runtime::{Class, Object, Sel, BOOL};
+use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::ViewController;

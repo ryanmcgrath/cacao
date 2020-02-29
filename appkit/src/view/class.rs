@@ -9,7 +9,7 @@
 
 use std::sync::Once;
 
-use cocoa::base::{id, nil, YES, NO};
+use cocoa::base::{id, nil, YES};
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};

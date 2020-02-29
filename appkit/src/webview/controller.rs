@@ -11,12 +11,12 @@ use cocoa::base::{id, nil, YES, NO};
 use cocoa::foundation::{NSRect, NSPoint, NSSize, NSString, NSArray, NSInteger};
 
 use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel, BOOL};
+use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::ViewController;
 use crate::view::class::register_view_class;
-use crate::webview::action::{NavigationAction, NavigationResponse, OpenPanelParameters};
+use crate::webview::action::{NavigationAction, NavigationResponse};
 use crate::webview::{WEBVIEW_VAR, WEBVIEW_CONFIG_VAR, WEBVIEW_CONTROLLER_PTR};
 use crate::webview::traits::WebViewController;
 use crate::utils::str_from;
@@ -136,12 +136,9 @@ extern fn decide_policy_for_response<T: WebViewController + 'static>(this: &Obje
     };
 
     let response = NavigationResponse::new(response);
-    webview.policy_for_navigation_response(response, |policy| {
-        // This is very sketch and should be heavily checked. :|
-        unsafe {
-            let handler = handler as *const Block<(NSInteger,), c_void>;
-            (*handler).call((policy.into(),));
-        }
+    webview.policy_for_navigation_response(response, |policy| unsafe {
+        let handler = handler as *const Block<(NSInteger,), c_void>;
+        (*handler).call((policy.into(),));
     });
 }
 
@@ -153,28 +150,29 @@ extern fn run_open_panel<T: WebViewController + 'static>(this: &Object, _: Sel, 
         &*webview
     };
 
-    webview.run_open_panel(params.into(), move |urls| {
-        // This is very sketch and should be heavily checked. :|
-        unsafe {
-            let handler = handler as *const Block<(id,), c_void>;
+    webview.run_open_panel(params.into(), move |urls| unsafe {
+        let handler = handler as *const Block<(id,), c_void>;
 
-            match urls {
-                Some(u) => {
-                    let nsurls: Vec<id> = u.iter().map(|s| {
-                        let s = NSString::alloc(nil).init_str(&s);
-                        msg_send![class!(NSURL), URLWithString:s]
-                    }).collect();
+        match urls {
+            Some(u) => {
+                let nsurls: Vec<id> = u.iter().map(|s| {
+                    let s = NSString::alloc(nil).init_str(&s);
+                    msg_send![class!(NSURL), URLWithString:s]
+                }).collect();
 
-                    let array = NSArray::arrayWithObjects(nil, &nsurls);
-                    (*handler).call((array,));
-                },
+                let array = NSArray::arrayWithObjects(nil, &nsurls);
+                (*handler).call((array,));
+            },
 
-                None => { (*handler).call((nil,)); }
-            }
+            None => { (*handler).call((nil,)); }
         }
     });
 }
 
+/// Called when a download has been initiated in the WebView, and when the navigation policy
+/// response is upgraded to BecomeDownload. Only called when explicitly linked since it's a private
+/// API.
+#[cfg(feature = "enable-webview-downloading")]
 extern fn handle_download<T: WebViewController + 'static>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
     let webview = unsafe {
         let ptr: usize = *this.get_ivar(WEBVIEW_CONTROLLER_PTR);
@@ -182,7 +180,7 @@ extern fn handle_download<T: WebViewController + 'static>(this: &Object, _: Sel,
         &*webview
     };
 
-    let handler = handler as *const Block<(BOOL, id), c_void>; 
+    let handler = handler as *const Block<(objc::runtime::BOOL, id), c_void>; 
     let filename = str_from(suggested_filename);
 
     webview.run_save_panel(filename, move |can_overwrite, path| unsafe {
@@ -190,7 +188,6 @@ extern fn handle_download<T: WebViewController + 'static>(this: &Object, _: Sel,
             let _: () = msg_send![download, cancel];
         }
 
-        println!("Saving to Path: {:?}", path);
         let path = NSString::alloc(nil).init_str(&path.unwrap());
         
         (*handler).call((match can_overwrite {
@@ -236,6 +233,7 @@ pub fn register_controller_class<
         // WKDownloadDelegate is a private class on macOS that handles downloading (saving) files.
         // It's absurd that this is still private in 2020. This probably couldn't get into the app
         // store, so... screw it, fine for now.
+        #[cfg(feature = "enable-webview-downloading")]
         decl.add_method(sel!(_download:decideDestinationWithSuggestedFilename:completionHandler:), handle_download::<T> as extern fn(&Object, _, id, id, usize));
 
         VIEW_CLASS = decl.register();

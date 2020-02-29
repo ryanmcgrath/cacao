@@ -1,10 +1,10 @@
 //! Implements wrappers around `WKNavigationAction` and `WKNavigationActionPolicy`.
 
-use cocoa::base::{id, nil, YES, NO};
+use cocoa::base::{id, YES, NO};
 use cocoa::foundation::NSInteger;
 
-use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::BOOL;
+use objc::{msg_send, sel, sel_impl};
 
 use crate::networking::URLRequest;
 
@@ -73,8 +73,8 @@ impl NavigationResponse {
     pub fn new(response: id) -> Self {
         NavigationResponse {
             can_show_mime_type: unsafe {
-                let canShow: BOOL = msg_send![response, canShowMIMEType];
-                if canShow == YES { true } else { false }
+                let can_show: BOOL = msg_send![response, canShowMIMEType];
+                if can_show == YES { true } else { false }
             }
         }
     }

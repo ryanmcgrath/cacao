@@ -4,7 +4,6 @@
 use std::sync::Once;
 
 use cocoa::base::{id, nil};
-use cocoa::foundation::NSString;
 use cocoa::appkit::{NSRunningApplication};
 
 use objc_id::Id;
@@ -25,7 +24,7 @@ pub trait AppDelegate {
     fn did_finish_launching(&self) {}
     fn did_become_active(&self) {}
 
-    fn on_message(&self, message: Self::Message) {}
+    fn on_message(&self, _message: Self::Message) {}
 }
 
 /// A wrapper for `NSApplication`. It holds (retains) pointers for the Objective-C runtime, 

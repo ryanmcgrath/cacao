@@ -4,14 +4,13 @@
 
 use block::ConcreteBlock;
 
-use cocoa::base::{id, nil, YES, NO, BOOL};
-use cocoa::foundation::{NSInteger, NSUInteger, NSString};
+use cocoa::base::{id, nil, YES, NO};
+use cocoa::foundation::{NSInteger, NSString};
 
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::file_panel::enums::ModalResponse;
 use crate::utils::str_from;
 
 #[derive(Debug)]

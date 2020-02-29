@@ -1,14 +1,12 @@
 //! A wrapper for `WKWebViewConfiguration`. It aims to (mostly) cover
 //! the important pieces of configuring and updating a WebView configuration.
 
-use cocoa::base::{id, nil, YES, NO};
+use cocoa::base::{id, nil, YES};
 use cocoa::foundation::NSString;
 
 use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-
-use crate::webview::process_pool::register_process_pool;
 
 /// Whether a script should be injected at the start or end of the document load.
 pub enum InjectAt {

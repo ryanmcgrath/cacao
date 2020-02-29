@@ -4,18 +4,18 @@
 pub trait OpenSaveController {
     /// Called when the user has entered a filename (typically, during saving). `confirmed`
     /// indicates whether or not they hit the save button.
-    fn user_entered_filename(&self, filename: &str, confirmed: bool) {}
+    fn user_entered_filename(&self, _filename: &str, _confirmed: bool) {}
 
     /// Notifies you that the panel selection changed.
     fn panel_selection_did_change(&self) {}
 
     /// Notifies you that the user changed directories.
-    fn did_change_to_directory(&self, url: &str) {}
+    fn did_change_to_directory(&self, _url: &str) {}
 
     /// Notifies you that the Save panel is about to expand or collapse because the user 
     /// clicked the disclosure triangle that displays or hides the file browser.
-    fn will_expand(&self, expanding: bool) {}
+    fn will_expand(&self, _expanding: bool) {}
 
     /// Determine whether the specified URL should be enabled in the Open panel.
-    fn should_enable_url(&self, url: &str) -> bool { true }
+    fn should_enable_url(&self, _url: &str) -> bool { true }
 }

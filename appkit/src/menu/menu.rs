@@ -1,6 +1,6 @@
 //! Wraps NSMenu and handles instrumenting necessary delegate pieces.
 
-use cocoa::base::{id, nil, YES};
+use cocoa::base::{id, nil};
 use cocoa::foundation::NSString;
 
 use objc_id::Id;

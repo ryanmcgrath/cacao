@@ -4,8 +4,8 @@
 
 use block::ConcreteBlock;
 
-use cocoa::base::{id, nil, YES, NO, BOOL};
-use cocoa::foundation::{NSInteger, NSUInteger};
+use cocoa::base::{id, YES, NO};
+use cocoa::foundation::NSInteger;
 
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;

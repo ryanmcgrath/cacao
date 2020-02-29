@@ -3,11 +3,11 @@
 
 use std::sync::Once;
 
-use cocoa::base::{id, nil, YES, NO};
+use cocoa::base::id;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, sel, sel_impl};
 
 use crate::window::WindowController;
 
@@ -30,7 +30,7 @@ pub(crate) fn register_window_controller_class<T: WindowController + 'static>() 
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
-        let superclass = Class::get("NSWindowController").unwrap();
+        let superclass = class!(NSWindowController);
         let mut decl = ClassDecl::new("RSTWindowController", superclass).unwrap();
 
         decl.add_ivar::<usize>(WINDOW_CONTROLLER_PTR);
