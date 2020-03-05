@@ -14,7 +14,7 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::ViewController;
+use crate::view::ViewController;
 use crate::view::class::register_view_class;
 use crate::webview::action::{NavigationAction, NavigationResponse};
 use crate::webview::{WEBVIEW_VAR, WEBVIEW_CONFIG_VAR, WEBVIEW_CONTROLLER_PTR};
@@ -27,7 +27,9 @@ extern fn load_view<T: ViewController + WebViewController>(this: &mut Object, _:
         let configuration: id = *this.get_ivar(WEBVIEW_CONFIG_VAR);
 
         // Technically private!
+        #[cfg(feature = "enable-webview-downloading")]
         let process_pool: id = msg_send![configuration, processPool];
+        #[cfg(feature = "enable-webview-downloading")]
         let _: () = msg_send![process_pool, _setDownloadDelegate:&*this];
 
         let zero = NSRect::new(NSPoint::new(0., 0.), NSSize::new(1000., 600.));
@@ -42,23 +44,7 @@ extern fn load_view<T: ViewController + WebViewController>(this: &mut Object, _:
         // Clean this up to be safe, as WKWebView makes a copy and we don't need it anymore.
         (*this).set_ivar(WEBVIEW_CONFIG_VAR, nil);
 
-        // Note that we put this in a backing NSView to handle an edge case - if someone sets the
-        // WKWebView as the content view of a window, and the inspector is able to be activated,
-        // it'll try to (at first) add the inspector to the parent view of the WKWebView... which
-        // is undefined behavior.
-        let view: id = msg_send![register_view_class(), new];
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
-        let _: () = msg_send![view, setFrame:zero];
-        let _: () = msg_send![view, addSubview:webview];
-
-        let constraint = class!(NSLayoutConstraint);
-        let constraints = NSArray::arrayWithObjects(nil, &vec![
-            msg_send![constraint, constraintWithItem:webview attribute:7 relatedBy:0 toItem:view attribute:7 multiplier:1.0 constant:0.0],
-            msg_send![constraint, constraintWithItem:webview attribute:8 relatedBy:0 toItem:view attribute:8 multiplier:1.0 constant:0.0],
-        ]);
-
-        let _: () = msg_send![constraint, activateConstraints:constraints];
-        let _: () = msg_send![this, setView:view]; 
+        let _: () = msg_send![this, setView:webview]; 
     }
 }
 

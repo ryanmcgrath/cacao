@@ -9,11 +9,15 @@
 
 use std::sync::Once;
 
-use cocoa::base::{id, nil, YES};
+use cocoa::base::{id, nil, YES, NO};
+use cocoa::foundation::{NSUInteger};
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
+
+use crate::view::VIEW_CONTROLLER_PTR;
+use crate::view::traits::ViewController;
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
 extern fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
@@ -31,9 +35,53 @@ extern fn update_layer(this: &Object, _: Sel) {
     }
 }
 
+/// Called when a drag/drop operation has entered this view.
+extern fn dragging_entered<T: ViewController>(this: &mut Object, _: Sel, _: id) -> NSUInteger {
+    unsafe {
+        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
+        let view = ptr as *const T;
+        (*view).dragging_entered().into()
+    }
+}
+
+/// Called when a drag/drop operation has entered this view.
+extern fn prepare_for_drag_operation<T: ViewController>(this: &mut Object, _: Sel, _: id) -> BOOL {
+    unsafe {
+        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
+        let view = ptr as *const T;
+
+        match (*view).prepare_for_drag_operation() {
+            true => YES,
+            false => NO
+        }
+    }
+}
+
+/// Called when a drag/drop operation has entered this view.
+extern fn perform_drag_operation<T: ViewController>(this: &mut Object, _: Sel, _: id) -> BOOL {
+    unsafe {
+        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
+        let view = ptr as *const T;
+
+        match (*view).perform_drag_operation() {
+            true => YES,
+            false => NO
+        }
+    }
+}
+
+/// Called when a drag/drop operation has entered this view.
+extern fn dragging_exited<T: ViewController>(this: &mut Object, _: Sel, _: id) {
+    unsafe {
+        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
+        let view = ptr as *const T;
+        (*view).dragging_exited();
+    }
+}
+
 /// Injects an `NSView` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_view_class() -> *const Class {
+pub(crate) fn register_view_class<T: ViewController>() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
 
@@ -41,10 +89,19 @@ pub(crate) fn register_view_class() -> *const Class {
         let superclass = Class::get("NSView").unwrap();
         let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
 
+        // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
+        // move.
+        decl.add_ivar::<usize>(VIEW_CONTROLLER_PTR);
+        
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
-        decl.add_method(sel!(requiresConstraintBasedLayout), enforce_normalcy as extern fn(&Object, _) -> BOOL);
         decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern fn(&Object, _) -> BOOL);
         decl.add_method(sel!(updateLayer), update_layer as extern fn(&Object, _));
+
+        // Drag and drop operations (e.g, accepting files)
+        decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger);
+        decl.add_method(sel!(prepareForDragOperation:), prepare_for_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
+        decl.add_method(sel!(performDragOperation:), perform_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
+        decl.add_method(sel!(draggingExited:), dragging_exited::<T> as extern fn (&mut Object, _, _));
         
         VIEW_CLASS = decl.register();
     });

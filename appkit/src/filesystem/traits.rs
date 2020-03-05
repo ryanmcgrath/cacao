@@ -1,6 +1,5 @@
 //! A trait that you can implement to handle open and save file dialogs. This more or less maps
 //! over to `NSOpenPanel` and `NSSavePanel` handling.
-
 pub trait OpenSaveController {
     /// Called when the user has entered a filename (typically, during saving). `confirmed`
     /// indicates whether or not they hit the save button.
@@ -18,4 +17,11 @@ pub trait OpenSaveController {
 
     /// Determine whether the specified URL should be enabled in the Open panel.
     fn should_enable_url(&self, _url: &str) -> bool { true }
+}
+
+/// A trait you can implement for working with the underlying filesystem. This is important,
+/// notably, because sandboxed applications have different working restrictions surrounding what
+/// they can access.
+pub trait FileManagerController {
+
 }

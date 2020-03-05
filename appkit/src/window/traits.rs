@@ -58,13 +58,7 @@ pub trait WindowWrapper {
 /// Lifecycle events for anything that `impl Window`'s. These map to the standard Cocoa
 /// lifecycle methods, but mix in a few extra things to handle offering configuration tools
 /// in lieu of subclasses.
-pub trait WindowController {
-    /// `NSWindow` has a lovely usability feature wherein it'll cache the position in
-    /// `UserDefaults` when a window closes. This is generally nice for a lot of cases (e.g,
-    /// documents) but needs a key to work with. A blank key, the default, will not cache - so
-    /// you can implement this and return your own key per window delegate to cache accordingly.
-    fn autosave_name(&self) -> &str { "" }
-    
+pub trait WindowController {    
     /// The framework offers a standard, modern `NSWindow` by default - but sometimes you want
     /// something else. Implement this and return your desired Window configuration.
     fn config(&self) -> WindowConfig { WindowConfig::default() }

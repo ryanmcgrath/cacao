@@ -20,27 +20,23 @@ pub use objc_id::ShareId;
 pub use objc::runtime::Object;
 pub use cocoa::base::id;
 
-pub trait ViewWrapper {
-    fn get_handle(&self) -> Option<ShareId<Object>>;
-}
-
-pub trait ViewController {
-    fn did_load(&self);
-}
-
 pub mod alert;
 pub mod app;
-pub mod events;
-pub mod menu;
 pub mod button;
-pub mod file_panel;
-pub mod toolbar;
-pub mod notifications;
-pub mod webview;
-pub mod view;
-pub mod window;
+pub mod collection_view;
+pub mod dragdrop;
+pub mod events;
+pub mod filesystem;
+pub mod geometry;
+pub mod menu;
 pub mod networking;
+pub mod notifications;
+pub mod pasteboard;
+pub mod toolbar;
 pub mod utils;
+pub mod view;
+pub mod webview;
+pub mod window;
 
 pub mod prelude {
     pub use crate::app::{App, AppDelegate};
@@ -59,7 +55,7 @@ pub mod prelude {
         WebView, WebViewConfig, WebViewController
     };
 
-    pub use crate::{ViewController, ViewWrapper};
+    pub use crate::view::{View, ViewController, ViewWrapper};
 
     pub use appkit_derive::{
         WindowWrapper

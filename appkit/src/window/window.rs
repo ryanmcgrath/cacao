@@ -5,13 +5,13 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use cocoa::base::{id, nil, YES, NO};
-use cocoa::foundation::NSString;
+use cocoa::foundation::{NSSize, NSString};
 
 use objc_id::Id;
 use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
 
-use crate::{ViewController, ViewWrapper};
+use crate::view::{ViewController, ViewWrapper};
 use crate::toolbar::{Toolbar, ToolbarDelegate};
 use crate::window::WindowController;
 use crate::window::controller::{register_window_controller_class};
@@ -55,8 +55,6 @@ impl WindowInner {
     ///
     /// APPKIT!
     pub fn configure<T: WindowController + 'static>(&mut self, window_controller: &T) {
-        let autosave_name = window_controller.autosave_name();
-        
         let window = window_controller.config().0;
 
         self.controller = Some(unsafe {
@@ -67,12 +65,6 @@ impl WindowInner {
             
             let window: id = msg_send![controller, window];
             let _: () = msg_send![window, setDelegate:controller]; 
-            
-            // Now we need to make sure to re-apply the NSAutoSaveName, as initWithWindow
-            // strips it... for some reason. We want it applied as it does nice things like
-            // save the window position in the Defaults database, which is what users expect.
-            let autosave = NSString::alloc(nil).init_str(autosave_name);
-            let _: () = msg_send![window, setFrameAutosaveName:autosave]; 
 
             Id::from_ptr(controller)
         });
@@ -122,6 +114,31 @@ impl WindowInner {
                     true => YES,
                     false => NO
                 }];
+            }
+        }
+    }
+
+    /// Used for setting this Window autosave name.
+    pub fn set_autosave_name(&mut self, name: &str) {
+         if let Some(controller) = &self.controller {
+            unsafe {
+                let window: id = msg_send![*controller, window];
+
+                // Now we need to make sure to re-apply the NSAutoSaveName, as initWithWindow
+                // strips it... for some reason. We want it applied as it does nice things like
+                // save the window position in the Defaults database, which is what users expect.
+                let autosave = NSString::alloc(nil).init_str(name);
+                let _: () = msg_send![window, setFrameAutosaveName:autosave]; 
+            }
+        }       
+    }
+
+    pub fn set_minimum_content_size<F: Into<f64>>(&self, width: F, height: F) {
+        if let Some(controller) = &self.controller {
+            unsafe {
+                let size = NSSize::new(width.into(), height.into());
+                let window: id = msg_send![*controller, window];
+                let _: () = msg_send![window, setMinSize:size];
             }
         }
     }
@@ -227,6 +244,18 @@ impl Window {
     pub fn set_titlebar_appears_transparent(&self, transparent: bool) {
         let window = self.0.borrow();
         window.set_titlebar_appears_transparent(transparent);
+    }
+
+    /// Set the window autosave name, which preserves things like position across restarts.
+    pub fn set_autosave_name(&self, name: &str) {
+        let mut window = self.0.borrow_mut();
+        window.set_autosave_name(name);
+    }
+
+    /// Sets the window's smallest size it can shrink to.
+    pub fn set_minimum_content_size<F: Into<f64>>(&self, width: F, height: F) {
+        let window = self.0.borrow_mut();
+        window.set_minimum_content_size(width, height);
     }
 
     /// Sets the Toolbar for this window. Note that this takes ownership of the toolbar! 
