@@ -4,6 +4,9 @@
 
 use cocoa::foundation::NSUInteger;
 
+use objc::runtime::Object;
+use objc_id::Id;
+
 /// Represents operations that can happen for a given drag/drop scenario.
 pub enum DragOperation {
     /// No drag operations are allowed.
@@ -44,4 +47,14 @@ impl From<DragOperation> for NSUInteger {
             DragOperation::Delete => 32
         }
     }
+}
+
+/// A wrapper for `NSDraggingInfo`. As this is a protocol/type you should never create yourself,
+/// this only provides getters - merely a Rust-y way to grab what you need.
+pub struct DragInfo {
+    pub info: Id<Object>
+}
+
+impl DragInfo {
+    
 }

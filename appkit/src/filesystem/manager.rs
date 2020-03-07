@@ -5,7 +5,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use cocoa::base::{id, nil, NO};
-use cocoa::foundation::{NSInteger, NSUInteger};
+use cocoa::foundation::NSUInteger;
 
 use objc_id::Id;
 use objc::runtime::Object;

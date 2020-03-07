@@ -1,9 +1,5 @@
 //! A wrapper for WKWebview and associated configurations and properties.
 
-pub(crate) static WEBVIEW_CONFIG_VAR: &str = "rstWebViewConfig";
-pub(crate) static WEBVIEW_VAR: &str = "rstWebView";
-pub(crate) static WEBVIEW_CONTROLLER_PTR: &str = "rstWebViewControllerPtr";
-
 pub mod action;
 
 pub(crate) mod controller;

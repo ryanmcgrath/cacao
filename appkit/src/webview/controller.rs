@@ -14,10 +14,9 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::view::ViewController;
-use crate::view::class::register_view_class;
+use crate::constants::{WEBVIEW_VAR, WEBVIEW_CONFIG_VAR, WEBVIEW_CONTROLLER_PTR};
+use crate::view::traits::ViewController;
 use crate::webview::action::{NavigationAction, NavigationResponse};
-use crate::webview::{WEBVIEW_VAR, WEBVIEW_CONFIG_VAR, WEBVIEW_CONTROLLER_PTR};
 use crate::webview::traits::WebViewController;
 use crate::utils::str_from;
 

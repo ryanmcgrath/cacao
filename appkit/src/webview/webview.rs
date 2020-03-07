@@ -18,10 +18,11 @@ use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::constants::{WEBVIEW_VAR, WEBVIEW_CONFIG_VAR, WEBVIEW_CONTROLLER_PTR};
 use crate::view::ViewController;
-use crate::webview::{WEBVIEW_VAR, WEBVIEW_CONFIG_VAR, WEBVIEW_CONTROLLER_PTR, WebViewController};
-use crate::webview::controller::register_controller_class;
 use crate::webview::config::{WebViewConfig, InjectAt};
+use crate::webview::controller::register_controller_class;
+use crate::webview::traits::WebViewController;
 
 #[derive(Default)]
 pub struct WebViewInner {

@@ -14,9 +14,9 @@ use cocoa::foundation::{NSUInteger};
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{msg_send, sel, sel_impl};
 
-use crate::view::VIEW_CONTROLLER_PTR;
+use crate::constants::{BACKGROUND_COLOR, VIEW_CONTROLLER_PTR};
 use crate::view::traits::ViewController;
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
@@ -24,9 +24,10 @@ extern fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
     return YES;
 }
 
+/// Used for handling background colors in layer backed views (which is the default here).
 extern fn update_layer(this: &Object, _: Sel) {
     unsafe {
-        let background_color: id = msg_send![class!(NSColor), redColor];
+        let background_color: id = *this.get_ivar(BACKGROUND_COLOR);
         if background_color != nil {
             let layer: id = msg_send![this, layer];
             let cg: id = msg_send![background_color, CGColor];
@@ -92,6 +93,7 @@ pub(crate) fn register_view_class<T: ViewController>() -> *const Class {
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.
         decl.add_ivar::<usize>(VIEW_CONTROLLER_PTR);
+        decl.add_ivar::<id>(BACKGROUND_COLOR);
         
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
         decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern fn(&Object, _) -> BOOL);

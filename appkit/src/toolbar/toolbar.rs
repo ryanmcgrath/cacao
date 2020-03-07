@@ -11,12 +11,11 @@ use cocoa::foundation::{NSArray, NSString};
 use objc_id::Id;
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
-use objc::{msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel, sel_impl};
 
+use crate::constants::TOOLBAR_PTR;
 use crate::toolbar::item::ToolbarItem;
 use crate::utils::str_from;
-
-static TOOLBAR_PTR: &str = "rstToolbarPtr";
 
 /// A trait that you can implement to have your struct/etc act as an `NSToolbarDelegate`.
 pub trait ToolbarDelegate {
@@ -30,8 +29,8 @@ pub trait ToolbarDelegate {
     fn item_for(&self, _identifier: &str) -> ToolbarItem;
 }
 
-/// A wrapper for `NSWindow`. Holds (retains) pointers for the Objective-C runtime 
-/// where our `NSWindow` and associated delegate live.
+/// A wrapper for `NSToolbar`. Holds (retains) pointers for the Objective-C runtime 
+/// where our `NSToolbar` and associated delegate live.
 pub struct Toolbar {
     pub inner: Id<Object>,
     pub objc_delegate: Id<Object>,
@@ -44,7 +43,7 @@ impl Toolbar {
     pub fn new<D: ToolbarDelegate + 'static>(identifier: &str, delegate: D) -> Self {
         let inner = unsafe {
             let identifier = NSString::alloc(nil).init_str(identifier);
-            let alloc: id = msg_send![Class::get("NSToolbar").unwrap(), alloc];
+            let alloc: id = msg_send![class!(NSToolbar), alloc];
             let toolbar: id = msg_send![alloc, initWithIdentifier:identifier];
             Id::from_ptr(toolbar)
         };
@@ -112,7 +111,7 @@ fn register_delegate_class<D: ToolbarDelegate>() -> *const Class {
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
-        let superclass = Class::get("NSObject").unwrap();
+        let superclass = class!(NSObject);
         let mut decl = ClassDecl::new("RSTToolbarDelegate", superclass).unwrap();
         
         // For callbacks

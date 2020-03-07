@@ -4,14 +4,15 @@
 use std::sync::Once;
 
 use cocoa::base::{id, nil, YES, NO};
-use cocoa::foundation::{NSRect, NSUInteger};
+use cocoa::foundation::{NSRect};
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::constants::VIEW_CONTROLLER_PTR;
 use crate::geometry::Rect;
-use crate::view::{VIEW_CONTROLLER_PTR, ViewController};
+use crate::view::ViewController;
 use crate::view::class::register_view_class;
 
 /// Loads and configures ye old NSView for this controller.
@@ -31,7 +32,7 @@ pub fn register_controller_class<T: ViewController + 'static>() -> *const Class 
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
-        let superclass = Class::get("NSViewController").unwrap();
+        let superclass = class!(NSViewController);
         let mut decl = ClassDecl::new("RSTViewController", superclass).unwrap();
 
         decl.add_ivar::<usize>(VIEW_CONTROLLER_PTR);

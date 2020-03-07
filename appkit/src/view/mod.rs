@@ -1,6 +1,4 @@
 
-pub(crate) static VIEW_CONTROLLER_PTR: &str = "rstViewControllerPtr";
-
 pub(crate) mod class;
 pub(crate) mod controller;
 

@@ -11,12 +11,12 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::constants::APP_PTR;
 use crate::menu::Menu;
 
 mod events;
 use events::register_app_class;
 
-static APP_PTR: &str = "rstAppPtr";
 
 pub trait AppDelegate {
     type Message: Send + Sync;
