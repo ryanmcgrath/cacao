@@ -6,7 +6,7 @@ edition = "2018"
 build = "build.rs"
 
 [dependencies]
-appkit-derive = { path = "../appkit-derive" }
+appkit-derive = { path = "../derives" }
 block = "0.1.6"
 cocoa = "0.20.0"
 core-foundation = "0.7"
