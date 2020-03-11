@@ -15,8 +15,10 @@ use cocoa::foundation::{NSUInteger};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{msg_send, sel, sel_impl};
+use objc_id::Id;
 
 use crate::constants::{BACKGROUND_COLOR, VIEW_CONTROLLER_PTR};
+use crate::dragdrop::DragInfo;
 use crate::view::traits::ViewController;
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
@@ -37,21 +39,25 @@ extern fn update_layer(this: &Object, _: Sel) {
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern fn dragging_entered<T: ViewController>(this: &mut Object, _: Sel, _: id) -> NSUInteger {
+extern fn dragging_entered<T: ViewController>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     unsafe {
         let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
         let view = ptr as *const T;
-        (*view).dragging_entered().into()
+        (*view).dragging_entered(DragInfo {
+            info: Id::from_ptr(info)
+        }).into()
     }
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern fn prepare_for_drag_operation<T: ViewController>(this: &mut Object, _: Sel, _: id) -> BOOL {
+extern fn prepare_for_drag_operation<T: ViewController>(this: &mut Object, _: Sel, info: id) -> BOOL {
     unsafe {
         let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
         let view = ptr as *const T;
 
-        match (*view).prepare_for_drag_operation() {
+        match (*view).prepare_for_drag_operation(DragInfo {
+            info: Id::from_ptr(info)
+        }) {
             true => YES,
             false => NO
         }
@@ -59,12 +65,14 @@ extern fn prepare_for_drag_operation<T: ViewController>(this: &mut Object, _: Se
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern fn perform_drag_operation<T: ViewController>(this: &mut Object, _: Sel, _: id) -> BOOL {
+extern fn perform_drag_operation<T: ViewController>(this: &mut Object, _: Sel, info: id) -> BOOL {
     unsafe {
         let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
         let view = ptr as *const T;
 
-        match (*view).perform_drag_operation() {
+        match (*view).perform_drag_operation(DragInfo {
+            info: Id::from_ptr(info)
+        }) {
             true => YES,
             false => NO
         }
@@ -72,11 +80,25 @@ extern fn perform_drag_operation<T: ViewController>(this: &mut Object, _: Sel, _
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern fn dragging_exited<T: ViewController>(this: &mut Object, _: Sel, _: id) {
+extern fn conclude_drag_operation<T: ViewController>(this: &mut Object, _: Sel, info: id) {
     unsafe {
         let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
         let view = ptr as *const T;
-        (*view).dragging_exited();
+
+        (*view).conclude_drag_operation(DragInfo {
+            info: Id::from_ptr(info)
+        });
+    }
+}
+
+/// Called when a drag/drop operation has entered this view.
+extern fn dragging_exited<T: ViewController>(this: &mut Object, _: Sel, info: id) {
+    unsafe {
+        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
+        let view = ptr as *const T;
+        (*view).dragging_exited(DragInfo {
+            info: Id::from_ptr(info)
+        });
     }
 }
 
@@ -103,6 +125,7 @@ pub(crate) fn register_view_class<T: ViewController>() -> *const Class {
         decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger);
         decl.add_method(sel!(prepareForDragOperation:), prepare_for_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
         decl.add_method(sel!(performDragOperation:), perform_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
+        decl.add_method(sel!(concludeDragOperation:), conclude_drag_operation::<T> as extern fn (&mut Object, _, _));
         decl.add_method(sel!(draggingExited:), dragging_exited::<T> as extern fn (&mut Object, _, _));
         
         VIEW_CLASS = decl.register();

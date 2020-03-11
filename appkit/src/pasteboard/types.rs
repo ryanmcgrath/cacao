@@ -7,10 +7,19 @@ use cocoa::foundation::NSString;
 /// Constants for the standard system pasteboard names.
 #[derive(Debug, Copy, Clone)]
 pub enum PasteboardName {
+    /// The dragging/dropping pasteboard.
     Drag,
+
+    /// The find pasteboard.
     Find,
+
+    /// The font pasteboard.
     Font,
+
+    /// The general pasteboard.
     General,
+
+    /// The ruler pasteboard.
     Ruler
 }
 
@@ -19,11 +28,11 @@ impl PasteboardName {
     pub fn to_nsstring(&self) -> id {
         unsafe {
             NSString::alloc(nil).init_str(match self {
-                PasteboardName::Drag => "",
-                PasteboardName::Find => "",
-                PasteboardName::Font => "",
-                PasteboardName::General => "",
-                PasteboardName::Ruler => ""
+                PasteboardName::Drag => "Apple CFPasteboard drag",
+                PasteboardName::Find => "Apple CFPasteboard find",
+                PasteboardName::Font => "Apple CFPasteboard font",
+                PasteboardName::General => "Apple CFPasteboard general",
+                PasteboardName::Ruler => "Apple CFPasteboard ruler"
             })
         }
     }

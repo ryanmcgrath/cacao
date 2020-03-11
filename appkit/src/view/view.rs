@@ -3,7 +3,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use cocoa::base::{id, nil, YES, NO};
+use cocoa::base::{id, nil, YES};
 use cocoa::foundation::NSArray;
 
 use objc_id::ShareId;
@@ -84,5 +84,11 @@ impl View {
     pub fn set_background_color(&self, color: Color) {
         let view = self.0.borrow();
         view.set_background_color(color);
+    }
+}
+
+impl std::fmt::Debug for View {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "View ({:p})", self)
     }
 }

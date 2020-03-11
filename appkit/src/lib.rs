@@ -27,6 +27,7 @@ pub mod color;
 pub mod collection_view;
 pub mod constants;
 pub mod dragdrop;
+pub mod error;
 pub mod events;
 pub mod filesystem;
 pub mod geometry;
@@ -39,6 +40,9 @@ pub mod utils;
 pub mod view;
 pub mod webview;
 pub mod window;
+
+// We re-export these so that they can be used without increasing build times.
+pub use url;
 
 pub mod prelude {
     pub use crate::app::{App, AppDelegate};
@@ -60,6 +64,6 @@ pub mod prelude {
     pub use crate::view::{View, ViewController, ViewWrapper};
 
     pub use appkit_derive::{
-        WindowWrapper
+        WindowWrapper, ViewWrapper
     };
 }

@@ -5,7 +5,10 @@
 use cocoa::foundation::NSUInteger;
 
 use objc::runtime::Object;
+use objc::{msg_send, sel, sel_impl};
 use objc_id::Id;
+
+use crate::pasteboard::Pasteboard;
 
 /// Represents operations that can happen for a given drag/drop scenario.
 pub enum DragOperation {
@@ -56,5 +59,13 @@ pub struct DragInfo {
 }
 
 impl DragInfo {
-    
+    /// Returns a wrapped Pasteboard instance, enabling you to get the contents of whatever is
+    /// being pasted/dragged/dropped/etc.
+    ///
+    /// Note: in general, you should not store pasteboards.
+    pub fn get_pasteboard(&self) -> Pasteboard {
+        unsafe {
+            Pasteboard::with(msg_send![&*self.info, draggingPasteboard])
+        }
+    }
 }

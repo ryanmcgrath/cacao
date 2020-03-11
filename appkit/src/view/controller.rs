@@ -3,7 +3,7 @@
 
 use std::sync::Once;
 
-use cocoa::base::{id, nil, YES, NO};
+use cocoa::base::{id, NO};
 use cocoa::foundation::{NSRect};
 
 use objc::declare::ClassDecl;
