@@ -49,7 +49,7 @@ pub mod prelude {
     
     pub use crate::menu::{Menu, MenuItem};
     pub use crate::notifications::{Notification, NotificationCenter, NotificationAuthOption};
-    pub use crate::toolbar::{Toolbar, ToolbarController};
+    pub use crate::toolbar::{Toolbar, ToolbarController, ToolbarHandle};
 
     pub use crate::networking::URLRequest;
 

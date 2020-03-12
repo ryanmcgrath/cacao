@@ -90,11 +90,11 @@ impl WindowHandle {
     }
 
     /// Used for setting a toolbar on this window. 
-    pub fn set_toolbar<TB: ToolbarController>(&self, toolbar: &Toolbar<TB>) {
+    pub fn set_toolbar<TC: ToolbarController>(&self, toolbar: &Toolbar<TC>) {
         if let Some(controller) = &self.0 {
             unsafe {
                 let window: id = msg_send![*controller, window];
-                let _: () = msg_send![window, setToolbar:&*toolbar.objc_controller];
+                let _: () = msg_send![window, setToolbar:&*toolbar.objc_controller.0];
             }
         }
     }

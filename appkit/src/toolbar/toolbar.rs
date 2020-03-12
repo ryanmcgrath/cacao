@@ -5,26 +5,33 @@
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::Once;
 
 use cocoa::base::{id, nil};
-use cocoa::foundation::{NSArray, NSString};
+use cocoa::foundation::NSString;
 
 use objc_id::ShareId;
-use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{msg_send, sel, sel_impl};
 
 use crate::constants::TOOLBAR_PTR;
+use crate::toolbar::class::register_toolbar_class;
+use crate::toolbar::handle::ToolbarHandle;
 use crate::toolbar::traits::ToolbarController;
-use crate::utils::{load, str_from};
+use crate::toolbar::types::{ToolbarDisplayMode, ToolbarSizeMode};
 
 /// A wrapper for `NSToolbar`. Holds (retains) pointers for the Objective-C runtime 
 /// where our `NSToolbar` and associated delegate live.
 pub struct Toolbar<T> {
+    /// A pointer that we "forget" until dropping this struct. This allows us to keep the retain
+    /// count of things appropriate until the Toolbar is done.
     internal_callback_ptr: *const RefCell<T>,
+
+    /// An internal identifier used by the toolbar. We cache it here in case users want it.
     pub identifier: String,
-    pub objc_controller: ShareId<Object>,
+
+    /// The Objective-C runtime controller (the toolbar, really - it does double duty).
+    pub objc_controller: ToolbarHandle,
+
+    /// The user supplied controller.
     pub controller: Rc<RefCell<T>>
 }
 
@@ -41,7 +48,7 @@ impl<T> Toolbar<T> where T: ToolbarController + 'static {
         };
 
         let objc_controller = unsafe {
-            let delegate_class = register_delegate_class::<T>();
+            let delegate_class = register_toolbar_class::<T>();
             let identifier = NSString::alloc(nil).init_str(&identifier);
             let alloc: id = msg_send![delegate_class, alloc];
             let toolbar: id = msg_send![alloc, initWithIdentifier:identifier];
@@ -52,95 +59,49 @@ impl<T> Toolbar<T> where T: ToolbarController + 'static {
             ShareId::from_ptr(toolbar)
         };
 
+        {
+            let mut c = controller.borrow_mut();
+            (*c).did_load(ToolbarHandle(objc_controller.clone()));
+        }
+
         Toolbar {
             internal_callback_ptr: internal_callback_ptr,
             identifier: identifier,
-            objc_controller: objc_controller,
+            objc_controller: ToolbarHandle(objc_controller),
             controller: controller
         }
+    }
+
+    /// Indicates whether the toolbar shows the separator between the toolbar and the main window
+    /// contents.
+    pub fn set_shows_baseline_separator(&self, shows: bool) {
+        self.objc_controller.set_shows_baseline_separator(shows);
+    }
+
+    /// Sets the toolbar's display mode.
+    pub fn set_display_mode(&self, mode: ToolbarDisplayMode) {
+        self.objc_controller.set_display_mode(mode);
+    }
+
+    /// Sets the toolbar's size mode.
+    pub fn set_size_mode(&self, mode: ToolbarSizeMode) {
+        self.objc_controller.set_size_mode(mode);
+    }
+
+    /// Set whether the toolbar is visible or not.
+    pub fn set_visible(&self, visibility: bool) {
+        self.objc_controller.set_visible(visibility);
     }
 }
 
 impl<T> Drop for Toolbar<T> {
     /// A bit of extra cleanup for delegate callback pointers.
+    /// Note: this currently doesn't check to see if it needs to be removed from a Window it's
+    /// attached to. In theory this is fine... in practice (and in Rust) it might be wonky, so
+    /// worth circling back on at some point.
     fn drop(&mut self) {
         unsafe {
             let _ = Rc::from_raw(self.internal_callback_ptr);
         }
     }
-}
-
-/// Loops back to the delegate.
-extern fn allowed_item_identifiers<T: ToolbarController>(this: &Object, _: Sel, _: id) -> id {
-    let toolbar = load::<T>(this, TOOLBAR_PTR);
-
-    unsafe {
-        let identifiers = {
-            let t = toolbar.borrow();
-
-            (*t).allowed_item_identifiers().iter().map(|identifier| {
-                NSString::alloc(nil).init_str(identifier)
-            }).collect::<Vec<id>>()
-        };
-
-        Rc::into_raw(toolbar);
-        NSArray::arrayWithObjects(nil, &identifiers)
-    }
-}
-
-/// Loops back to the delegate.
-extern fn default_item_identifiers<T: ToolbarController>(this: &Object, _: Sel, _: id) -> id {
-    let toolbar = load::<T>(this, TOOLBAR_PTR);
-
-    unsafe {
-        let identifiers = {
-            let t = toolbar.borrow();
-            
-            (*t).default_item_identifiers().iter().map(|identifier| {
-                NSString::alloc(nil).init_str(identifier)
-            }).collect::<Vec<id>>()
-        };
-
-        Rc::into_raw(toolbar);
-        NSArray::arrayWithObjects(nil, &identifiers)
-    }
-}
-
-/// Loops back to the delegate.
-extern fn item_for_identifier<T: ToolbarController>(this: &Object, _: Sel, _: id, identifier: id, _: id) -> id {
-    let toolbar = load::<T>(this, TOOLBAR_PTR);
-    let identifier = str_from(identifier);
-    
-    let mut item = {
-        let t = toolbar.borrow();
-        let item = (*t).item_for(identifier);
-        item
-    };
-
-    Rc::into_raw(toolbar);
-    &mut *item.inner
-}
-
-/// Registers an `NSObject` subclass, and configures it to hold some ivars for various things we need
-/// to store.
-fn register_delegate_class<T: ToolbarController>() -> *const Class {
-    static mut TOOLBAR_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSToolbar);
-        let mut decl = ClassDecl::new("RSTToolbar", superclass).unwrap();
-        
-        // For callbacks
-        decl.add_ivar::<usize>(TOOLBAR_PTR);
-
-        // Add callback methods
-        decl.add_method(sel!(toolbarAllowedItemIdentifiers:), allowed_item_identifiers::<T> as extern fn(&Object, _, _) -> id);
-        decl.add_method(sel!(toolbarDefaultItemIdentifiers:), default_item_identifiers::<T> as extern fn(&Object, _, _) -> id);
-        decl.add_method(sel!(toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:), item_for_identifier::<T> as extern fn(&Object, _, _, _, _) -> id);
-
-        TOOLBAR_CLASS = decl.register();
-    });
-
-    unsafe { TOOLBAR_CLASS }
 }

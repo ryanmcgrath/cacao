@@ -93,7 +93,7 @@ impl<T> Window<T> where T: WindowController + 'static {
     }
 
     /// Sets the toolbar for this window.
-    pub fn set_toolbar<TB: ToolbarController>(&self, toolbar: &Toolbar<TB>) {
+    pub fn set_toolbar<TC: ToolbarController + 'static>(&self, toolbar: &Toolbar<TC>) {
         self.objc_controller.set_toolbar(toolbar);
     }
 

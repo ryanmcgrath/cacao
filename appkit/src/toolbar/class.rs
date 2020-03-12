@@ -1,0 +1,91 @@
+//! Handles the Objective-C functionality for the Toolbar module.
+
+use std::rc::Rc;
+use std::sync::Once;
+
+use cocoa::base::{id, nil};
+use cocoa::foundation::{NSArray, NSString};
+
+use objc::declare::ClassDecl;
+use objc::runtime::{Class, Object, Sel};
+use objc::{class, sel, sel_impl};
+
+use crate::constants::TOOLBAR_PTR;
+use crate::toolbar::traits::ToolbarController;
+use crate::utils::{load, str_from};
+
+/// Retrieves and passes the allowed item identifiers for this toolbar.
+extern fn allowed_item_identifiers<T: ToolbarController>(this: &Object, _: Sel, _: id) -> id {
+    let toolbar = load::<T>(this, TOOLBAR_PTR);
+
+    unsafe {
+        let identifiers = {
+            let t = toolbar.borrow();
+
+            (*t).allowed_item_identifiers().iter().map(|identifier| {
+                NSString::alloc(nil).init_str(identifier)
+            }).collect::<Vec<id>>()
+        };
+
+        Rc::into_raw(toolbar);
+        NSArray::arrayWithObjects(nil, &identifiers)
+    }
+}
+
+/// Retrieves and passes the default item identifiers for this toolbar.
+extern fn default_item_identifiers<T: ToolbarController>(this: &Object, _: Sel, _: id) -> id {
+    let toolbar = load::<T>(this, TOOLBAR_PTR);
+
+    unsafe {
+        let identifiers = {
+            let t = toolbar.borrow();
+            
+            (*t).default_item_identifiers().iter().map(|identifier| {
+                NSString::alloc(nil).init_str(identifier)
+            }).collect::<Vec<id>>()
+        };
+
+        Rc::into_raw(toolbar);
+        NSArray::arrayWithObjects(nil, &identifiers)
+    }
+}
+
+/// Loads the controller, grabs whatever item is for this identifier, and returns what the
+/// Objective-C runtime needs.
+extern fn item_for_identifier<T: ToolbarController>(this: &Object, _: Sel, _: id, identifier: id, _: id) -> id {
+    let toolbar = load::<T>(this, TOOLBAR_PTR);
+    let identifier = str_from(identifier);
+    
+    let mut item = {
+        let t = toolbar.borrow();
+        let item = (*t).item_for(identifier);
+        item
+    };
+
+    Rc::into_raw(toolbar);
+    &mut *item.inner
+}
+
+/// Registers a `NSToolbar` subclass, and configures it to hold some ivars for various things we need
+/// to store. We use it as our delegate as well, just to cut down on moving pieces.
+pub(crate) fn register_toolbar_class<T: ToolbarController>() -> *const Class {
+    static mut TOOLBAR_CLASS: *const Class = 0 as *const Class;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| unsafe {
+        let superclass = class!(NSToolbar);
+        let mut decl = ClassDecl::new("RSTToolbar", superclass).unwrap();
+        
+        // For callbacks
+        decl.add_ivar::<usize>(TOOLBAR_PTR);
+
+        // Add callback methods
+        decl.add_method(sel!(toolbarAllowedItemIdentifiers:), allowed_item_identifiers::<T> as extern fn(&Object, _, _) -> id);
+        decl.add_method(sel!(toolbarDefaultItemIdentifiers:), default_item_identifiers::<T> as extern fn(&Object, _, _) -> id);
+        decl.add_method(sel!(toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:), item_for_identifier::<T> as extern fn(&Object, _, _, _, _) -> id);
+
+        TOOLBAR_CLASS = decl.register();
+    });
+
+    unsafe { TOOLBAR_CLASS }
+}
