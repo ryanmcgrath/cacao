@@ -7,7 +7,6 @@
 //! for in the modern era. It also implements a few helpers for things like setting a background
 //! color, and enforcing layer backing by default.
 
-use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::Once;
 
@@ -22,6 +21,8 @@ use objc_id::Id;
 use crate::constants::{BACKGROUND_COLOR, VIEW_CONTROLLER_PTR};
 use crate::dragdrop::DragInfo;
 use crate::view::traits::ViewController;
+use crate::utils::load;
+
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
 extern fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
@@ -42,106 +43,84 @@ extern fn update_layer(this: &Object, _: Sel) {
 
 /// Called when a drag/drop operation has entered this view.
 extern fn dragging_entered<T: ViewController>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
-    unsafe {
-        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view_ptr = ptr as *const RefCell<T>;
-        let view = Rc::from_raw(view_ptr);
-        
-        let response = {
-            let v = view.borrow();
-            
-            (*v).dragging_entered(DragInfo {
-                info: Id::from_ptr(info)
-            }).into()
-        };
+    let view = load::<T>(this, VIEW_CONTROLLER_PTR);
 
-        Rc::into_raw(view); 
-        response
-    }
+    let response = {
+        let v = view.borrow();
+
+        (*v).dragging_entered(DragInfo {
+            info: unsafe { Id::from_ptr(info) }
+        }).into()
+    };
+
+    Rc::into_raw(view);
+    response
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn prepare_for_drag_operation<T: ViewController>(this: &mut Object, _: Sel, info: id) -> BOOL {
-    unsafe {
-        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view_ptr = ptr as *const RefCell<T>;
-        let view = Rc::from_raw(view_ptr);
+    let view = load::<T>(this, VIEW_CONTROLLER_PTR);
+    
+    let response = {
+        let v = view.borrow();
         
-        let response = {
-            let v = view.borrow();
-            
-            match (*v).prepare_for_drag_operation(DragInfo {
-                info: Id::from_ptr(info)
-            }) {
-                true => YES,
-                false => NO
-            }
-        };
+        match (*v).prepare_for_drag_operation(DragInfo {
+            info: unsafe { Id::from_ptr(info) }
+        }) {
+            true => YES,
+            false => NO
+        }
+    };
 
-        Rc::into_raw(view); 
-        response
-    }
+    Rc::into_raw(view); 
+    response
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn perform_drag_operation<T: ViewController>(this: &mut Object, _: Sel, info: id) -> BOOL {
-    unsafe {
-        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view_ptr = ptr as *const RefCell<T>;
-        let view = Rc::from_raw(view_ptr);
+    let view = load::<T>(this, VIEW_CONTROLLER_PTR);
         
-        let response = {
-            let v = view.borrow();
-            
-            match (*v).perform_drag_operation(DragInfo {
-                info: Id::from_ptr(info)
-            }) {
-                true => YES,
-                false => NO
-            }
-        };
+    let response = {
+        let v = view.borrow();
+        
+        match (*v).perform_drag_operation(DragInfo {
+            info: unsafe { Id::from_ptr(info) }
+        }) {
+            true => YES,
+            false => NO
+        }
+    };
 
-        Rc::into_raw(view); 
-        response
-    }
+    Rc::into_raw(view); 
+    response
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn conclude_drag_operation<T: ViewController>(this: &mut Object, _: Sel, info: id) {
-    unsafe {
-        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view_ptr = ptr as *const RefCell<T>;
-        let view = Rc::from_raw(view_ptr);
-        
-        let response = {
-            let v = view.borrow();
-            (*v).conclude_drag_operation(DragInfo {
-                info: Id::from_ptr(info)
-            });           
-        };
+    let view = load::<T>(this, VIEW_CONTROLLER_PTR);
 
-        Rc::into_raw(view); 
-        response
+    {
+        let v = view.borrow();
+        (*v).conclude_drag_operation(DragInfo {
+            info: unsafe { Id::from_ptr(info) }
+        });           
     }
+
+    Rc::into_raw(view); 
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn dragging_exited<T: ViewController>(this: &mut Object, _: Sel, info: id) {
-    unsafe {
-        let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view_ptr = ptr as *const RefCell<T>;
-        let view = Rc::from_raw(view_ptr);
+    let view = load::<T>(this, VIEW_CONTROLLER_PTR);
         
-        let response = {
-            let v = view.borrow();
-            (*v).dragging_exited(DragInfo {
-                info: Id::from_ptr(info)
-            });
-        };
-
-        Rc::into_raw(view); 
-        response
+    {
+        let v = view.borrow();
+        (*v).dragging_exited(DragInfo {
+            info: unsafe { Id::from_ptr(info) }
+        });
     }
+
+    Rc::into_raw(view); 
 }
 
 /// Injects an `NSView` subclass, with some callback and pointer ivars for what we

@@ -4,8 +4,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use cocoa::base::{id, nil, YES, NO};
-use cocoa::foundation::{NSSize, NSString};
+use cocoa::base::{id, nil};
 
 use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;

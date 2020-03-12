@@ -1,6 +1,7 @@
 //! Everything useful for the `WindowController`. Handles injecting an `NSWindowController` subclass
 //! into the Objective C runtime, which loops back to give us lifecycle methods.
 
+use std::rc::Rc;
 use std::sync::Once;
 
 use cocoa::base::id;
@@ -9,18 +10,21 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel, sel_impl};
 
+use crate::constants::WINDOW_CONTROLLER_PTR;
+use crate::utils::load;
 use crate::window::WindowController;
-
-static WINDOW_CONTROLLER_PTR: &str = "rstWindowController";
 
 /// Called when an `NSWindow` receives a `windowWillClose:` event.
 /// Good place to clean up memory and what not.
 extern fn will_close<T: WindowController>(this: &Object, _: Sel, _: id) {
-    unsafe {
-        let window_ptr: usize = *this.get_ivar(WINDOW_CONTROLLER_PTR);
-        let window = window_ptr as *const T;
+    let window = load::<T>(this, WINDOW_CONTROLLER_PTR);
+
+    {
+        let window = window.borrow();
         (*window).will_close();
     }
+
+    Rc::into_raw(window);
 }
 
 /// Injects an `NSWindowController` subclass, with some callback and pointer ivars for what we
