@@ -2,58 +2,8 @@
 //! module. There's a few different ones, and it's just... cleaner, if
 //! it's organized here.
 
+use crate::window::handle::WindowHandle;
 use crate::window::WindowConfig;
-
-/// `WindowController` is a trait that handles providing higher level methods
-/// that map into platform specific methods. Typically, you won't want to (or at least, won't need
-/// to) implement this yourself - simply derive `WindowWrapper` and it'll work for you.
-///
-/// By deriving or implementing this, you get usable methods on your struct - for example:
-///
-/// ```
-/// use appkit::{AppDelegate, Window, WindowController, WindowWrapper};
-///
-/// #[derive(Default, WindowWrapper)]
-/// struct MyWindow {
-///     window: Window
-/// }
-///
-/// impl WindowController for MyWindow {
-///     // The default implementation is actually okay!
-/// }
-/// 
-/// #[derive(Default)]
-/// struct MyApp {
-///     window: MyWindow
-/// }
-///
-/// impl AppDelegate for MyApp {
-///     fn did_finish_launching(&mut self) {
-///         window.show();
-///     }
-/// }
-///
-/// fn main() {
-///     let app = App::new("com.myapp.lol", MyApp::default());
-///     app.run();
-/// }
-/// ```
-pub trait WindowWrapper {
-    /// Sets the title for the underlying window.
-    fn set_title(&self, title: &str);
-
-    /// Calls through to the NSWindow show method (technically, `[NSWindowController showWindow:]`.
-    /// Notable, this handles passing the implementing entity as the delegate, ensuring that
-    /// callbacks work appropriately.
-    ///
-    /// We're technically setting the delegate later than is ideal, but in practice it works fine
-    /// in most cases due to the underlying implementation of `NSWindow` deferring things until
-    /// needed.
-    fn show(&self);
-
-    /// Calls through to the native NSwindow close implementation.
-    fn close(&self);
-}
 
 /// Lifecycle events for anything that `impl Window`'s. These map to the standard Cocoa
 /// lifecycle methods, but mix in a few extra things to handle offering configuration tools
@@ -67,7 +17,7 @@ pub trait WindowController {
     /// to set up your views and what not.
     ///
     /// If you're coming from the web, you can think of this as `DOMContentLoaded`.
-    fn did_load(&self) {}
+    fn did_load(&mut self, _window: WindowHandle) {}
 
     /// Fires when a window is going to close. You might opt to, say, clean up things here -
     /// perhaps you have a long running task, or something that should be removed.

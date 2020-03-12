@@ -17,14 +17,15 @@ use crate::menu::Menu;
 mod events;
 use events::register_app_class;
 
-
-pub trait AppDelegate {
+pub trait Dispatcher {
     type Message: Send + Sync;
 
+    fn on_message(&self, _message: Self::Message) {}
+}
+
+pub trait AppDelegate {
     fn did_finish_launching(&self) {}
     fn did_become_active(&self) {}
-
-    fn on_message(&self, _message: Self::Message) {}
 }
 
 /// A wrapper for `NSApplication`. It holds (retains) pointers for the Objective-C runtime, 
@@ -60,7 +61,7 @@ impl App {
     }
 }
 
-impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate<Message = M> {
+impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher<Message = M> {
     /// Dispatches a message by grabbing the `sharedApplication`, getting ahold of the delegate,
     /// and passing back through there. All messages are currently dispatched on the main thread.
     pub fn dispatch(message: M) {

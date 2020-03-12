@@ -7,6 +7,8 @@
 //! for in the modern era. It also implements a few helpers for things like setting a background
 //! color, and enforcing layer backing by default.
 
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::Once;
 
 use cocoa::base::{id, nil, YES, NO};
@@ -42,10 +44,19 @@ extern fn update_layer(this: &Object, _: Sel) {
 extern fn dragging_entered<T: ViewController>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     unsafe {
         let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view = ptr as *const T;
-        (*view).dragging_entered(DragInfo {
-            info: Id::from_ptr(info)
-        }).into()
+        let view_ptr = ptr as *const RefCell<T>;
+        let view = Rc::from_raw(view_ptr);
+        
+        let response = {
+            let v = view.borrow();
+            
+            (*v).dragging_entered(DragInfo {
+                info: Id::from_ptr(info)
+            }).into()
+        };
+
+        Rc::into_raw(view); 
+        response
     }
 }
 
@@ -53,14 +64,22 @@ extern fn dragging_entered<T: ViewController>(this: &mut Object, _: Sel, info: i
 extern fn prepare_for_drag_operation<T: ViewController>(this: &mut Object, _: Sel, info: id) -> BOOL {
     unsafe {
         let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view = ptr as *const T;
+        let view_ptr = ptr as *const RefCell<T>;
+        let view = Rc::from_raw(view_ptr);
+        
+        let response = {
+            let v = view.borrow();
+            
+            match (*v).prepare_for_drag_operation(DragInfo {
+                info: Id::from_ptr(info)
+            }) {
+                true => YES,
+                false => NO
+            }
+        };
 
-        match (*view).prepare_for_drag_operation(DragInfo {
-            info: Id::from_ptr(info)
-        }) {
-            true => YES,
-            false => NO
-        }
+        Rc::into_raw(view); 
+        response
     }
 }
 
@@ -68,14 +87,22 @@ extern fn prepare_for_drag_operation<T: ViewController>(this: &mut Object, _: Se
 extern fn perform_drag_operation<T: ViewController>(this: &mut Object, _: Sel, info: id) -> BOOL {
     unsafe {
         let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view = ptr as *const T;
+        let view_ptr = ptr as *const RefCell<T>;
+        let view = Rc::from_raw(view_ptr);
+        
+        let response = {
+            let v = view.borrow();
+            
+            match (*v).perform_drag_operation(DragInfo {
+                info: Id::from_ptr(info)
+            }) {
+                true => YES,
+                false => NO
+            }
+        };
 
-        match (*view).perform_drag_operation(DragInfo {
-            info: Id::from_ptr(info)
-        }) {
-            true => YES,
-            false => NO
-        }
+        Rc::into_raw(view); 
+        response
     }
 }
 
@@ -83,11 +110,18 @@ extern fn perform_drag_operation<T: ViewController>(this: &mut Object, _: Sel, i
 extern fn conclude_drag_operation<T: ViewController>(this: &mut Object, _: Sel, info: id) {
     unsafe {
         let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view = ptr as *const T;
+        let view_ptr = ptr as *const RefCell<T>;
+        let view = Rc::from_raw(view_ptr);
+        
+        let response = {
+            let v = view.borrow();
+            (*v).conclude_drag_operation(DragInfo {
+                info: Id::from_ptr(info)
+            });           
+        };
 
-        (*view).conclude_drag_operation(DragInfo {
-            info: Id::from_ptr(info)
-        });
+        Rc::into_raw(view); 
+        response
     }
 }
 
@@ -95,10 +129,18 @@ extern fn conclude_drag_operation<T: ViewController>(this: &mut Object, _: Sel, 
 extern fn dragging_exited<T: ViewController>(this: &mut Object, _: Sel, info: id) {
     unsafe {
         let ptr: usize = *this.get_ivar(VIEW_CONTROLLER_PTR);
-        let view = ptr as *const T;
-        (*view).dragging_exited(DragInfo {
-            info: Id::from_ptr(info)
-        });
+        let view_ptr = ptr as *const RefCell<T>;
+        let view = Rc::from_raw(view_ptr);
+        
+        let response = {
+            let v = view.borrow();
+            (*v).dragging_exited(DragInfo {
+                info: Id::from_ptr(info)
+            });
+        };
+
+        Rc::into_raw(view); 
+        response
     }
 }
 

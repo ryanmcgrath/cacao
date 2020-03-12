@@ -5,13 +5,20 @@ use objc::runtime::Object;
 use objc_id::ShareId;
 
 use crate::dragdrop::{DragInfo, DragOperation};
+use crate::view::ViewHandle;
 
-pub trait ViewWrapper {
-    fn get_handle(&self) -> Option<ShareId<Object>>;
+pub trait Node {
+    fn get_backing_node(&self) -> Option<ShareId<Object>>;
 }
 
 pub trait ViewController {
-    fn did_load(&self);
+    /// Where possible, we try to respect the lazy-ish-loading of macOS/iOS systems. This hook
+    /// notifies you when the `View` has actually loaded into memory, and you're free to do things
+    /// with it.
+    ///
+    /// Note that you can trigger the view to load earlier, if need be... and in many cases it's
+    /// fine. This is a platform-specific detail you may want to read up on. :)
+    fn did_load(&mut self, _view: ViewHandle) {}
 
     /// Invoked when the dragged image enters destination bounds or frame; returns dragging operation to perform.
     fn dragging_entered(&self, _info: DragInfo) -> DragOperation { DragOperation::None }

@@ -45,7 +45,7 @@ pub mod window;
 pub use url;
 
 pub mod prelude {
-    pub use crate::app::{App, AppDelegate};
+    pub use crate::app::{App, AppDelegate, Dispatcher};
     
     pub use crate::menu::{Menu, MenuItem};
     pub use crate::notifications::{Notification, NotificationCenter, NotificationAuthOption};
@@ -54,14 +54,14 @@ pub mod prelude {
     pub use crate::networking::URLRequest;
 
     pub use crate::window::{
-        Window, WindowWrapper as WinWrapper, WindowController
+        Window, WindowController, WindowHandle
     };
 
     pub use crate::webview::{
         WebView, WebViewConfig, WebViewController
     };
 
-    pub use crate::view::{View, ViewController, ViewWrapper};
+    pub use crate::view::{View, ViewHandle, ViewController};
 
     pub use appkit_derive::{
         WindowWrapper, ViewWrapper

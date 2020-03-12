@@ -8,3 +8,4 @@ pub(crate) static VIEW_CONTROLLER_PTR: &str = "rstViewControllerPtr";
 pub(crate) static WEBVIEW_CONFIG_VAR: &str = "rstWebViewConfig";
 pub(crate) static WEBVIEW_VAR: &str = "rstWebView";
 pub(crate) static WEBVIEW_CONTROLLER_PTR: &str = "rstWebViewControllerPtr";
+pub(crate) static WINDOW_CONTROLLER_PTR: &str = "rstWindowController";

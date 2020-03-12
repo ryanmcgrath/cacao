@@ -1,7 +1,8 @@
 //! A wrapper for `NSViewController`. Uses interior mutability to 
 
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::ops::Deref;
+use std::rc::Rc;
 
 use cocoa::base::{id, nil, YES};
 use cocoa::foundation::NSArray;
@@ -13,29 +14,30 @@ use objc::{msg_send, sel, sel_impl};
 use crate::color::Color;
 use crate::constants::{BACKGROUND_COLOR, VIEW_CONTROLLER_PTR};
 use crate::pasteboard::PasteboardType;
-use crate::view::traits::ViewController;
+use crate::view::traits::{Node, ViewController};
 use crate::view::controller::register_controller_class;
 
-#[derive(Default)]
-pub struct ViewInner {
-    pub controller: Option<ShareId<Object>>
-}
+/// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
+/// instead of a stock `View` for easier recordkeeping, since it'll need to hold the `View` on that
+/// side anyway.
+#[derive(Debug, Default, Clone)]
+pub struct ViewHandle(Option<ShareId<Object>>);
 
-impl ViewInner {
-    pub fn configure<T: ViewController + 'static>(&mut self, controller: &T) {
-        self.controller = Some(unsafe {
-            let view_controller: id = msg_send![register_controller_class::<T>(), new];
-            (&mut *view_controller).set_ivar(VIEW_CONTROLLER_PTR, controller as *const T as usize);
-            
-            let view: id = msg_send![view_controller, view];
-            (&mut *view).set_ivar(VIEW_CONTROLLER_PTR, controller as *const T as usize);
-            
-            ShareId::from_ptr(view_controller)
-        });
+impl ViewHandle {
+    /// Call this to set the background color for the backing layer.
+    pub fn set_background_color(&self, color: Color) {
+        if let Some(controller) = &self.0 {
+            unsafe {
+                let view: id = msg_send![*controller, view];
+                (*view).set_ivar(BACKGROUND_COLOR, color.into_platform_specific_color());
+                let _: () = msg_send![view, setNeedsDisplay:YES];
+            }
+        }
     }
 
+    /// Register this view for drag and drop operations.
     pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        if let Some(controller) = &self.controller {
+        if let Some(controller) = &self.0 {
             unsafe {
                 let types = NSArray::arrayWithObjects(nil, &types.iter().map(|t| {
                     t.to_nsstring()
@@ -46,49 +48,78 @@ impl ViewInner {
             }
         }
     }
-
-    pub fn set_background_color(&self, color: Color) {
-        if let Some(controller) = &self.controller {
-            unsafe {
-                let view: id = msg_send![*controller, view];
-                (*view).set_ivar(BACKGROUND_COLOR, color.into_platform_specific_color());
-                let _: () = msg_send![view, setNeedsDisplay:YES];
-            }
-        }
-    }
 }
 
-#[derive(Default)]
-pub struct View(Rc<RefCell<ViewInner>>);
+/// A `View` wraps two different controllers - one on the Objective-C/Cocoa side, which forwards
+/// calls into your supplied `ViewController` trait object. This involves heap allocation, but all
+/// of Cocoa is essentially Heap'd, so... well, enjoy.
+#[derive(Clone)]
+pub struct View<T> {
+    internal_callback_ptr: *const RefCell<T>,
+    pub objc_controller: ViewHandle,
+    pub controller: Rc<RefCell<T>>
+}
 
-impl View {
-    pub fn configure<T: ViewController + 'static>(&self, controller: &T) {
+impl<T> View<T> where T: ViewController + 'static {
+    /// Allocates and configures a `ViewController` in the Objective-C/Cocoa runtime that maps over
+    /// to your supplied view controller.
+    pub fn new(controller: T) -> Self {
+        let controller = Rc::new(RefCell::new(controller));
+        
+        let internal_callback_ptr = {
+            let cloned = Rc::clone(&controller);
+            Rc::into_raw(cloned)
+        };
+
+        let inner = unsafe {
+            let view_controller: id = msg_send![register_controller_class::<T>(), new];
+            (&mut *view_controller).set_ivar(VIEW_CONTROLLER_PTR, internal_callback_ptr as usize);
+            
+            let view: id = msg_send![view_controller, view];
+            (&mut *view).set_ivar(VIEW_CONTROLLER_PTR, internal_callback_ptr as usize);
+            
+            ShareId::from_ptr(view_controller)
+        };
+
         {
-            let mut view = self.0.borrow_mut();
-            view.configure(controller);
+            let mut vc = controller.borrow_mut();
+            (*vc).did_load(ViewHandle(Some(inner.clone())));
         }
 
-        controller.did_load();
+        View {
+            internal_callback_ptr: internal_callback_ptr,
+            objc_controller: ViewHandle(Some(inner)),
+            controller: controller
+        }
     }
 
-    pub fn get_handle(&self) -> Option<ShareId<Object>> {
-        let view = self.0.borrow();
-        view.controller.clone()
+    pub fn set_background_color(&self, color: Color) {
+        self.objc_controller.set_background_color(color);
     }
 
     pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        let view = self.0.borrow();
-        view.register_for_dragged_types(types);
-    }
-
-    pub fn set_background_color(&self, color: Color) {
-        let view = self.0.borrow();
-        view.set_background_color(color);
+        self.objc_controller.register_for_dragged_types(types);
     }
 }
 
-impl std::fmt::Debug for View {
+impl<T> Node for View<T> {
+    /// Returns the Objective-C object used for handling the view heirarchy.
+    fn get_backing_node(&self) -> Option<ShareId<Object>> {
+        self.objc_controller.0.clone()
+    }
+}
+
+impl<T> std::fmt::Debug for View<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "View ({:p})", self)
+    }
+}
+
+impl<T> Drop for View<T> {
+    /// A bit of extra cleanup for delegate callback pointers.
+    fn drop(&mut self) {
+        unsafe {
+            let _ = Rc::from_raw(self.internal_callback_ptr);
+        }
     }
 }

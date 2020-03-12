@@ -103,7 +103,7 @@ impl WebView {
             webview.configure(controller);
         }
 
-        controller.did_load();
+        //controller.did_load();
     }
 
     pub fn get_handle(&self) -> Option<ShareId<Object>> {
