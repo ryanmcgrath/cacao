@@ -1,7 +1,6 @@
 //! A wrapper for `NSViewController`. Uses interior mutability to 
 
 use std::cell::RefCell;
-use std::ops::Deref;
 use std::rc::Rc;
 
 use cocoa::base::{id, nil, YES};

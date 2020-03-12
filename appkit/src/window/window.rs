@@ -10,7 +10,7 @@ use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::constants::WINDOW_CONTROLLER_PTR;
-use crate::toolbar::{Toolbar, ToolbarDelegate};
+use crate::toolbar::{Toolbar, ToolbarController};
 use crate::view::traits::Node;
 use crate::window::handle::WindowHandle;
 use crate::window::traits::WindowController;
@@ -90,6 +90,11 @@ impl<T> Window<T> where T: WindowController + 'static {
     /// Sets the title for this window.
     pub fn set_title(&self, title: &str) {
         self.objc_controller.set_title(title.into());
+    }
+
+    /// Sets the toolbar for this window.
+    pub fn set_toolbar<TB: ToolbarController>(&self, toolbar: &Toolbar<TB>) {
+        self.objc_controller.set_toolbar(toolbar);
     }
 
     /// Sets the content view controller for the window.

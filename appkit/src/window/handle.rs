@@ -13,8 +13,7 @@ use objc_id::ShareId;
 
 use crate::view::traits::Node;
 
-//use crate::toolbar::traits::ToolbarDelegate;
-
+use crate::toolbar::{Toolbar, ToolbarController};
 
 #[derive(Debug, Default, Clone)]
 pub struct WindowHandle(pub Option<ShareId<Object>>);
@@ -90,24 +89,15 @@ impl WindowHandle {
         }
     }
 
-    /// Used for setting a toolbar on this window. Note that this takes ownership of whatever
-    /// `ToolbarDelegate` you pass! The underlying `NSToolbar` is a bit... old, and it's just
-    /// easier to do things this way.
-    ///
-    /// If you find yourself in a position where you need your toolbar after the fact, you 
-    /// probably have bigger issues.
-    //pub fn set_toolbar<T: ToolbarDelegate + 'static>(&mut self, identifier: &str, toolbar: T) {
-        /*let toolbar = Toolbar::new(identifier, toolbar);
-        
+    /// Used for setting a toolbar on this window. 
+    pub fn set_toolbar<TB: ToolbarController>(&self, toolbar: &Toolbar<TB>) {
         if let Some(controller) = &self.0 {
             unsafe {
                 let window: id = msg_send![*controller, window];
-                let _: () = msg_send![window, setToolbar:&*toolbar.inner];
+                let _: () = msg_send![window, setToolbar:&*toolbar.objc_controller];
             }
         }
-
-        self.toolbar = Some(toolbar);*/
-    //}
+    }
 
     /// Used for setting the content view controller for this window.
     pub fn set_content_view_controller<T: Node + 'static>(&self, view_controller: &T) {

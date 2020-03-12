@@ -14,21 +14,23 @@ use crate::button::Button;
 
 /// A wrapper for `NSWindow`. Holds (retains) pointers for the Objective-C runtime 
 /// where our `NSWindow` and associated delegate live.
-pub struct ToolbarItem<'a> {
-    pub identifier: &'a str,
+pub struct ToolbarItem {
+    pub identifier: String,
     pub inner: Id<Object>,
     pub button: Option<Button>
 }
 
-impl<'a> ToolbarItem<'a> {
+impl ToolbarItem {
     /// Creates a new `NSWindow` instance, configures it appropriately (e.g, titlebar appearance),
     /// injects an `NSObject` delegate wrapper, and retains the necessary Objective-C runtime
     /// pointers.
-    pub fn new(identifier: &'a str) -> Self {
+    pub fn new<S: Into<String>>(identifier: S) -> Self {
+        let identifier = identifier.into();
+
         let inner = unsafe {
-            let identifier = NSString::alloc(nil).init_str(identifier);
+            let identifr = NSString::alloc(nil).init_str(&identifier);
             let alloc: id = msg_send![class!(NSToolbarItem), alloc];
-            let item: id = msg_send![alloc, initWithItemIdentifier:identifier];
+            let item: id = msg_send![alloc, initWithItemIdentifier:identifr];
             Id::from_ptr(item)
         };
 
@@ -39,6 +41,7 @@ impl<'a> ToolbarItem<'a> {
         }
     }
 
+    /// Sets the title for this item.
     pub fn set_title(&mut self, title: &str) {
         unsafe {
             let title = NSString::alloc(nil).init_str(title);
@@ -46,6 +49,7 @@ impl<'a> ToolbarItem<'a> {
         }
     }
 
+    /// Sets and takes ownership of the button for this item.
     pub fn set_button(&mut self, button: Button) {
         button.set_bezel_style(11);
 
@@ -56,6 +60,7 @@ impl<'a> ToolbarItem<'a> {
         self.button = Some(button);
     }
 
+    /// Sets the minimum size for this button.
     pub fn set_min_size(&mut self, width: f64, height: f64) {
         unsafe {
             let size = NSSize::new(width.into(), height.into());
@@ -63,6 +68,7 @@ impl<'a> ToolbarItem<'a> {
         }
     }
 
+    /// Sets the maximum size for this button.
     pub fn set_max_size(&mut self, width: f64, height: f64) {
         unsafe {
             let size = NSSize::new(width.into(), height.into());
