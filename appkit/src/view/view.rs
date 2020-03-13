@@ -162,6 +162,22 @@ impl<T> View<T> where T: ViewController + 'static {
         self.objc_controller.register_for_dragged_types(types);
     }
 
+    pub fn top(&self) -> &LayoutAnchorY {
+        &self.objc_controller.top
+    }
+
+    pub fn leading(&self) -> &LayoutAnchorX {
+        &self.objc_controller.leading
+    }
+
+    pub fn trailing(&self) -> &LayoutAnchorX {
+        &self.objc_controller.trailing
+    }
+
+    pub fn bottom(&self) -> &LayoutAnchorY {
+        &self.objc_controller.bottom
+    }
+
     pub fn width(&self) -> &LayoutAnchorDimension {
         &self.objc_controller.width
     }

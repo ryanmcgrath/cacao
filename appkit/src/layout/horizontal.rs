@@ -27,7 +27,7 @@ impl LayoutAnchorX {
     pub fn constraint_equal_to(&self, anchor_to: &LayoutAnchorX) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintEqualToAnchor:&*to]
+                msg_send![*from, constraintEqualToAnchor:&*to.clone()]
             }),
 
             _ => { panic!("Attempted to create horizontal constraints with an uninitialized anchor!"); }

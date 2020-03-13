@@ -27,7 +27,8 @@ impl LayoutAnchorY {
     pub fn constraint_equal_to(&self, anchor_to: &LayoutAnchorY) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintEqualToAnchor:&*to]
+                let b: id = msg_send![*from, constraintEqualToAnchor:&*to.clone()];
+                b
             }),
 
             _ => { panic!("Attempted to create vertical constraints with an uninitialized anchor!"); }
