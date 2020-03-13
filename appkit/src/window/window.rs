@@ -10,8 +10,8 @@ use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::constants::WINDOW_CONTROLLER_PTR;
+use crate::layout::traits::Layout;
 use crate::toolbar::{Toolbar, ToolbarController};
-use crate::view::traits::Node;
 use crate::window::handle::WindowHandle;
 use crate::window::traits::WindowController;
 use crate::window::controller::register_window_controller_class;
@@ -98,7 +98,7 @@ impl<T> Window<T> where T: WindowController + 'static {
     }
 
     /// Sets the content view controller for the window.
-    pub fn set_content_view_controller<VC: Node + 'static>(&self, view_controller: &VC) {
+    pub fn set_content_view_controller<VC: Layout + 'static>(&self, view_controller: &VC) {
         self.objc_controller.set_content_view_controller(view_controller);
     }
 

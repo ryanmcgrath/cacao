@@ -1,15 +1,7 @@
 //! Various traits used for Views.
 
-use objc::runtime::Object;
-
-use objc_id::ShareId;
-
 use crate::dragdrop::{DragInfo, DragOperation};
 use crate::view::ViewHandle;
-
-pub trait Node {
-    fn get_backing_node(&self) -> Option<ShareId<Object>>;
-}
 
 pub trait ViewController {
     /// Where possible, we try to respect the lazy-ish-loading of macOS/iOS systems. This hook

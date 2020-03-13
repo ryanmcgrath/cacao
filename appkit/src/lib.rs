@@ -31,6 +31,7 @@ pub mod error;
 pub mod events;
 pub mod filesystem;
 pub mod geometry;
+pub mod layout;
 pub mod menu;
 pub mod networking;
 pub mod notifications;
@@ -47,6 +48,8 @@ pub use url;
 pub mod prelude {
     pub use crate::app::{App, AppDelegate, Dispatcher};
     
+    pub use crate::layout::LayoutConstraint;
+
     pub use crate::menu::{Menu, MenuItem};
     pub use crate::notifications::{Notification, NotificationCenter, NotificationAuthOption};
     pub use crate::toolbar::{Toolbar, ToolbarController, ToolbarHandle};

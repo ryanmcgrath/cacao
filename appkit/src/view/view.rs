@@ -12,22 +12,68 @@ use objc::{msg_send, sel, sel_impl};
 
 use crate::color::Color;
 use crate::constants::{BACKGROUND_COLOR, VIEW_CONTROLLER_PTR};
+use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
-use crate::view::traits::{Node, ViewController};
 use crate::view::controller::register_controller_class;
+use crate::view::traits::ViewController;
 
 /// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
 /// instead of a stock `View` for easier recordkeeping, since it'll need to hold the `View` on that
 /// side anyway.
 #[derive(Debug, Default, Clone)]
-pub struct ViewHandle(Option<ShareId<Object>>);
+pub struct ViewHandle {
+    /// A pointer to the Objective-C runtime view controller.
+    pub objc: Option<ShareId<Object>>,
+
+    /// A pointer to the Objective-C runtime top layout constraint.
+    pub top: LayoutAnchorY,
+
+    /// A pointer to the Objective-C runtime leading layout constraint.
+    pub leading: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime trailing layout constraint.
+    pub trailing: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime bottom layout constraint.
+    pub bottom: LayoutAnchorY,
+
+    /// A pointer to the Objective-C runtime width layout constraint.
+    pub width: LayoutAnchorDimension,
+
+    /// A pointer to the Objective-C runtime height layout constraint.
+    pub height: LayoutAnchorDimension,
+
+    /// A pointer to the Objective-C runtime center X layout constraint.
+    pub center_x: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime center Y layout constraint.
+    pub center_y: LayoutAnchorY
+}
 
 impl ViewHandle {
+    pub(crate) fn new(object: ShareId<Object>) -> Self {
+        let view: id = unsafe {
+            msg_send![&*object, view]
+        };
+
+        ViewHandle {
+            objc: Some(object),
+            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
+            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
+            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
+            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
+            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
+            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
+            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
+            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
+        }
+    }
+
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color(&self, color: Color) {
-        if let Some(controller) = &self.0 {
+        if let Some(objc) = &self.objc {
             unsafe {
-                let view: id = msg_send![*controller, view];
+                let view: id = msg_send![*objc, view];
                 (*view).set_ivar(BACKGROUND_COLOR, color.into_platform_specific_color());
                 let _: () = msg_send![view, setNeedsDisplay:YES];
             }
@@ -36,14 +82,28 @@ impl ViewHandle {
 
     /// Register this view for drag and drop operations.
     pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        if let Some(controller) = &self.0 {
+        if let Some(objc) = &self.objc {
             unsafe {
                 let types = NSArray::arrayWithObjects(nil, &types.iter().map(|t| {
                     t.to_nsstring()
                 }).collect::<Vec<id>>());
 
-                let view: id = msg_send![*controller, view];
+                let view: id = msg_send![*objc, view];
                 let _: () = msg_send![view, registerForDraggedTypes:types];
+            }
+        }
+    }
+
+    pub fn add_subview<T: Layout>(&self, subview: &T) {
+        if let Some(this) = &self.objc {
+            if let Some(subview_controller) = subview.get_backing_node() {
+                unsafe {
+                    let _: () = msg_send![*this, addChildViewController:&*subview_controller];
+
+                    let subview: id = msg_send![&*subview_controller, view];
+                    let view: id = msg_send![*this, view];
+                    let _: () = msg_send![view, addSubview:subview]; 
+                }
             }
         }
     }
@@ -80,14 +140,16 @@ impl<T> View<T> where T: ViewController + 'static {
             ShareId::from_ptr(view_controller)
         };
 
+        let handle = ViewHandle::new(inner);
+
         {
             let mut vc = controller.borrow_mut();
-            (*vc).did_load(ViewHandle(Some(inner.clone())));
+            (*vc).did_load(handle.clone());
         }
 
         View {
             internal_callback_ptr: internal_callback_ptr,
-            objc_controller: ViewHandle(Some(inner)),
+            objc_controller: handle,
             controller: controller
         }
     }
@@ -99,12 +161,24 @@ impl<T> View<T> where T: ViewController + 'static {
     pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
         self.objc_controller.register_for_dragged_types(types);
     }
+
+    pub fn width(&self) -> &LayoutAnchorDimension {
+        &self.objc_controller.width
+    }
+
+    pub fn height(&self) -> &LayoutAnchorDimension {
+        &self.objc_controller.height
+    }
 }
 
-impl<T> Node for View<T> {
+impl<T> Layout for View<T> {
     /// Returns the Objective-C object used for handling the view heirarchy.
     fn get_backing_node(&self) -> Option<ShareId<Object>> {
-        self.objc_controller.0.clone()
+        self.objc_controller.objc.clone()
+    }
+
+    fn add_subview<V: Layout>(&self, subview: &V) {
+        self.objc_controller.add_subview(subview);
     }
 }
 

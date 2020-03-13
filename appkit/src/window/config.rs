@@ -35,7 +35,7 @@ impl Default for WindowConfig {
             let dimensions = NSRect::new(NSPoint::new(0., 0.), NSSize::new(800., 600.));
 
             let style = WindowStyle::Resizable | WindowStyle::Miniaturizable | WindowStyle::UnifiedTitleAndToolbar |
-                WindowStyle::Closable | WindowStyle::Titled | WindowStyle::FullSizeContentView;
+                WindowStyle::Closable | WindowStyle::Titled;
 
             let alloc: id = msg_send![class!(NSWindow), alloc];
             let window: id = msg_send![alloc, initWithContentRect:dimensions styleMask:style backing:2 as NSUInteger defer:YES];

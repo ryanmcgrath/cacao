@@ -30,15 +30,32 @@ impl Color {
     /// green, blue and alpha channels in that order, and all values will be
     /// clamped to the 0.0 ... 1.0 range.
     #[inline]
-    pub fn new<T: Into<f32>>(red: T, green: T, blue: T, alpha: T) -> Self {
-        Self::from_u8s(
-            clamp_unit_f32(red.into()),
-            clamp_unit_f32(green.into()),
-            clamp_unit_f32(blue.into()),
-            clamp_unit_f32(alpha.into()),
+    pub fn from_floats(red: f32, green: f32, blue: f32, alpha: f32) -> Self {
+        Self::new(
+            clamp_unit_f32(red),
+            clamp_unit_f32(green),
+            clamp_unit_f32(blue),
+            clamp_unit_f32(alpha),
         )
     }
 
+    /// Returns a transparent color.
+    #[inline]
+    pub fn transparent() -> Self {
+        Self::new(0, 0, 0, 0)
+    }
+
+    /// Same thing, but with `u8` values instead of floats in the 0 to 1 range.
+    #[inline]
+    pub fn new(red: u8, green: u8, blue: u8, alpha: u8) -> Self {
+        Color {
+            red: red,
+            green: green,
+            blue: blue,
+            alpha: alpha,
+        }
+    }
+    
     /// Maps to NS/UIColor.
     pub fn into_platform_specific_color(&self) -> id {
         let red = self.red as CGFloat / 255.0;
@@ -48,23 +65,6 @@ impl Color {
        
         unsafe {
             msg_send![class!(NSColor), colorWithRed:red green:green blue:blue alpha:alpha]
-        }
-    }
-
-    /// Returns a transparent color.
-    #[inline]
-    pub fn transparent() -> Self {
-        Self::new(0., 0., 0., 0.)
-    }
-
-    /// Same thing, but with `u8` values instead of floats in the 0 to 1 range.
-    #[inline]
-    pub fn from_u8s(red: u8, green: u8, blue: u8, alpha: u8) -> Self {
-        Color {
-            red: red,
-            green: green,
-            blue: blue,
-            alpha: alpha,
         }
     }
 
@@ -91,18 +91,45 @@ impl Color {
     pub fn alpha_f32(&self) -> f32 {
         self.alpha as f32 / 255.0
     }
+    
+    /// Parse a <color> value, per CSS Color Module Level 3.
+    ///
+    /// FIXME(#2) Deprecated CSS2 System Colors are not supported yet.
+    #[cfg(feature="parser")]
+    pub fn parse_with<'i, 't, ComponentParser>(
+        component_parser: &ComponentParser,
+        input: &mut Parser<'i, 't>,
+    ) -> Result<Color, ParseError<'i, ComponentParser::Error>>
+    where
+        ComponentParser: ColorComponentParser<'i>,
+    {
+        // FIXME: remove clone() when lifetimes are non-lexical
+        let location = input.current_source_location();
+        let token = input.next()?.clone();
+        match token {
+            Token::Hash(ref value) | Token::IDHash(ref value) => {
+                Color::parse_hash(value.as_bytes())
+            }
+            Token::Ident(ref value) => parse_color_keyword(&*value),
+            Token::Function(ref name) => {
+                return input.parse_nested_block(|arguments| {
+                    parse_color_function(component_parser, &*name, arguments)
+                })
+            }
+            _ => Err(()),
+        }
+        .map_err(|()| location.new_unexpected_token_error(token))
+    }
 }
 
-/// A less-verbose way of specifying a generic color, without alpha.
 #[inline]
-pub fn rgb<T: Into<f32>>(red: T, green: T, blue: T) -> Color {
-    rgba(red.into(), green.into(), blue.into(), 1.)
+pub fn rgb(red: u8, green: u8, blue: u8) -> Color {
+    rgba(red, green, blue, 255)
 }
 
-/// A less-verbose way of specifying a generic color, with alpha.
 #[inline]
-pub fn rgba<T: Into<f32>>(red: T, green: T, blue: T, alpha: T) -> Color {
-    Color::new(red.into(), green.into(), blue.into(), alpha.into())
+pub fn rgba(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
+    Color::new(red, green, blue, alpha)
 }
 
 fn clamp_unit_f32(val: f32) -> u8 {

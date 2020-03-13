@@ -11,7 +11,7 @@ use objc::{msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::view::traits::Node;
+use crate::layout::traits::Layout;
 
 use crate::toolbar::{Toolbar, ToolbarController};
 
@@ -100,7 +100,7 @@ impl WindowHandle {
     }
 
     /// Used for setting the content view controller for this window.
-    pub fn set_content_view_controller<T: Node + 'static>(&self, view_controller: &T) {
+    pub fn set_content_view_controller<T: Layout + 'static>(&self, view_controller: &T) {
         if let Some(controller) = &self.0 {
             unsafe {
                 if let Some(vc) = view_controller.get_backing_node() {
