@@ -1,6 +1,5 @@
 //! Implements `Color`. Heavily based on the `Color` module in Servo's CSS parser, but tweaked
-//! for (what I believe) is a friendlier API, and to separate out the parsing into a separate
-//! module.
+//! for (what I believe) is a friendlier API.
 
 use cocoa::base::id;
 use core_graphics::base::CGFloat;
@@ -90,36 +89,7 @@ impl Color {
     #[inline]
     pub fn alpha_f32(&self) -> f32 {
         self.alpha as f32 / 255.0
-    }
-    
-    /// Parse a <color> value, per CSS Color Module Level 3.
-    ///
-    /// FIXME(#2) Deprecated CSS2 System Colors are not supported yet.
-    #[cfg(feature="parser")]
-    pub fn parse_with<'i, 't, ComponentParser>(
-        component_parser: &ComponentParser,
-        input: &mut Parser<'i, 't>,
-    ) -> Result<Color, ParseError<'i, ComponentParser::Error>>
-    where
-        ComponentParser: ColorComponentParser<'i>,
-    {
-        // FIXME: remove clone() when lifetimes are non-lexical
-        let location = input.current_source_location();
-        let token = input.next()?.clone();
-        match token {
-            Token::Hash(ref value) | Token::IDHash(ref value) => {
-                Color::parse_hash(value.as_bytes())
-            }
-            Token::Ident(ref value) => parse_color_keyword(&*value),
-            Token::Function(ref name) => {
-                return input.parse_nested_block(|arguments| {
-                    parse_color_function(component_parser, &*name, arguments)
-                })
-            }
-            _ => Err(()),
-        }
-        .map_err(|()| location.new_unexpected_token_error(token))
-    }
+    }    
 }
 
 #[inline]
