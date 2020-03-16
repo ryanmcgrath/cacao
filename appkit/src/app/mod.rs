@@ -10,7 +10,7 @@ use objc::{class, msg_send, sel, sel_impl};
 
 mod class;
 pub mod traits;
-pub mod types;
+pub mod enums;
 
 use crate::constants::APP_PTR;
 use crate::menu::Menu;

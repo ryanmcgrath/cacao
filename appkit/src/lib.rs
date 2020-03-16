@@ -38,6 +38,7 @@ pub mod notifications;
 pub mod pasteboard;
 pub mod printing;
 pub mod toolbar;
+pub mod user_activity;
 pub mod utils;
 pub mod view;
 pub mod webview;

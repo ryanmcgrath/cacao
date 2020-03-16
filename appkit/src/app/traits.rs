@@ -3,13 +3,13 @@
 
 use url::Url;
 
-use crate::app::types::{TerminateResponse, PrintResponse};
+use crate::app::enums::{TerminateResponse, PrintResponse};
 use crate::error::AppKitError;
 use crate::menu::Menu;
-use crate::printing::types::PrintSettings;
+use crate::printing::settings::PrintSettings;
+use crate::user_activity::UserActivity;
 
 pub struct CKShareMetaData;
-pub struct UserActivity;
 
 /// Controllers interested in processing messages can implement this to respond to messages as
 /// they're dispatched. All messages come in on the main thread.
@@ -109,14 +109,16 @@ pub trait AppController {
     /// Fired when the user is going to continue an activity.
     fn will_continue_user_activity(&self, _activity_type: &str) -> bool { false }
 
-    /// Fired when data for continuing an activity is available.
-    fn continue_user_activity(&self, _activity: UserActivity) -> bool { false }
+    /// Fired when data for continuing an activity is available. Currently, the
+    /// `restoration_handler` is not used, but there to communicate intent with what this API will
+    /// eventually be doing.
+    fn continue_user_activity<F: Fn()>(&self, _activity: UserActivity, _restoration_handler: F) -> bool { false }
 
     /// Fired when the activity could not be continued.
-    fn did_fail_to_continue_user_activity(&self, _activity: UserActivity, _error: AppKitError) {}
+    fn failed_to_continue_user_activity(&self, _activity_type: &str, _error: AppKitError) {}
 
     /// Fired after the user activity object has been updated.
-    fn did_update_user_activity(&self, _activity: UserActivity) {}
+    fn updated_user_activity(&self, _activity: UserActivity) {}
 
     /// Fires after the user accepted a CloudKit sharing invitation associated with your
     /// application. 

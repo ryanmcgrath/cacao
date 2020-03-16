@@ -2,8 +2,11 @@
 //! creates a custom `NSApplication` subclass that currently does nothing; this is meant as a hook
 //! for potential future use.
 
-use std::unreachable;
+use std::ffi::c_void;
 use std::sync::Once;
+use std::unreachable;
+
+use block::Block;
 
 use cocoa::base::{id, nil, BOOL, YES, NO};
 use cocoa::foundation::{NSUInteger};
@@ -18,9 +21,11 @@ use crate::app::traits::AppController;
 use crate::constants::APP_PTR;
 use crate::error::AppKitError;
 use crate::printing::PrintSettings;
-use crate::utils::str_from;
+use crate::user_activity::UserActivity;
+use crate::utils::{map_nsarray, str_from};
 
-/// A handy method for grabbing our `AppController` from the pointer.
+/// A handy method for grabbing our `AppController` from the pointer. This is different from our
+/// standard `utils` version as this doesn't require `RefCell` backing.
 fn app<T: AppController>(this: &Object) -> &T {
     unsafe {
         let app_ptr: usize = *this.get_ivar(APP_PTR);
@@ -113,14 +118,18 @@ extern fn should_handle_reopen<T: AppController>(this: &Object, _: Sel, _: id, h
 }
 
 /// Fires when the application delegate receives a `applicationDockMenu:` request.
-extern fn dock_menu<T: AppController>(_this: &Object, _: Sel, _: id) -> id {
-    nil
+extern fn dock_menu<T: AppController>(this: &Object, _: Sel, _: id) -> id {
+    // @TODO: Confirm this is safe to do and not leaky.
+    match app::<T>(this).dock_menu() {
+        Some(mut menu) => &mut *menu.inner,
+        None => nil
+    }
 }
 
 /// Fires when the application delegate receives a `application:willPresentError:` notification.
 extern fn will_present_error<T: AppController>(this: &Object, _: Sel, _: id, error: id) -> id {
     let error = AppKitError::new(error);
-    app::<T>(this).will_present_error(*error).into_nserror()
+    app::<T>(this).will_present_error(error).into_nserror()
 }
 
 /// Fires when the application receives a `applicationDidChangeScreenParameters:` notification.
@@ -130,30 +139,44 @@ extern fn did_change_screen_parameters<T: AppController>(this: &Object, _: Sel, 
 
 /// Fires when the application receives a `application:willContinueUserActivityWithType:`
 /// notification.
-extern fn will_continue_user_activity_with_type<T: AppController>(_this: &Object, _: Sel, _: id, activity_type: id) -> BOOL {
+extern fn will_continue_user_activity_with_type<T: AppController>(this: &Object, _: Sel, _: id, activity_type: id) -> BOOL {
     let activity = str_from(activity_type);
-    NO
 
-    /*match app::<T>(this).will_continue_user_activity_with_type(activity) {
+    match app::<T>(this).will_continue_user_activity(activity) {
         true => YES,
         false => NO
-    }*/
+    }
 }
 
 /// Fires when the application receives a `application:continueUserActivity:restorationHandler:` notification.
-extern fn continue_user_activity<T: AppController>(_this: &Object, _: Sel, _: id, _: id, _: id) -> BOOL {
-    NO
+extern fn continue_user_activity<T: AppController>(this: &Object, _: Sel, _: id, activity: id, handler: id) -> BOOL {
+    // @TODO: This needs to support restorable objects, but it involves a larger question about how
+    // much `NSObject` wrapping we want to do here. For now, pass the handler for whenever it's
+    // useful. 
+    let activity = UserActivity::with_inner(activity);
+
+    match app::<T>(this).continue_user_activity(activity, || unsafe {
+        let handler = handler as *const Block<(id,), c_void>;
+        (*handler).call((nil,));        
+    }) {
+        true => YES,
+        false => NO
+    }
 }
 
 /// Fires when the application receives a
 /// `application:didFailToContinueUserActivityWithType:error:` message.
-extern fn failed_to_continue_user_activity<T: AppController>(_this: &Object, _: Sel, _: id, activity_type: id, error: id) {
-
+extern fn failed_to_continue_user_activity<T: AppController>(this: &Object, _: Sel, _: id, activity_type: id, error: id) {
+    app::<T>(this).failed_to_continue_user_activity(
+        str_from(activity_type),
+        AppKitError::new(error)
+    );
 }
 
 /// Fires when the application receives a `application:didUpdateUserActivity:` message.
-extern fn did_update_user_activity<T: AppController>(_this: &Object, _: Sel, _: id, _: id) {
-
+extern fn did_update_user_activity<T: AppController>(this: &Object, _: Sel, _: id, activity: id) {
+    let activity = UserActivity::with_inner(activity);
+    app::<T>(this).updated_user_activity(activity);
 }
 
 /// Fires when the application receives a `application:didRegisterForRemoteNotificationsWithDeviceToken:` message.
@@ -179,26 +202,13 @@ extern fn accepted_cloudkit_share<T: AppController>(_this: &Object, _: Sel, _: i
 
 /// Fires when the application receives an `application:openURLs` message.
 extern fn open_urls<T: AppController>(this: &Object, _: Sel, _: id, file_urls: id) {
-    app::<T>(this).open_urls(unsafe {
-        let count: usize = msg_send![file_urls, count];
-        let mut urls: Vec<Url> = Vec::with_capacity(count);
+    let urls = map_nsarray(file_urls, |url| unsafe {
+        let absolute_string = msg_send![url, absoluteString];
+        let uri = str_from(absolute_string);
+        Url::parse(uri)
+    }).into_iter().filter_map(|url| url.ok()).collect();
 
-        let mut index = 0;
-        loop {
-            let url: id = msg_send![file_urls, objectAtIndex:index];
-            let absolute_string: id = msg_send![url, absoluteString];
-            let uri = str_from(absolute_string);
-
-            if let Ok(u) = Url::parse(uri) {
-                urls.push(u);
-            }
-            
-            index += 1;
-            if index == count { break; }
-        }
-
-        urls
-    });
+    app::<T>(this).open_urls(urls);
 }
 
 /// Fires when the application receives an `application:openFileWithoutUI:` message.
@@ -250,11 +260,22 @@ extern fn print_file<T: AppController>(this: &Object, _: Sel, _: id, file: id) -
 /// Fired when the application receives an `application:printFiles:withSettings:showPrintPanels:`
 /// message.
 extern fn print_files<T: AppController>(this: &Object, _: Sel, _: id, files: id, settings: id, show_print_panels: BOOL) -> NSUInteger {
-    app::<T>(this).print_files(vec![], PrintSettings::default(), match show_print_panels {
+    let files = map_nsarray(files, |file| {
+        str_from(file).to_string()
+    });
+
+    let settings = PrintSettings::with_inner(settings);
+
+    app::<T>(this).print_files(files, settings, match show_print_panels {
         YES => true,
         NO => false,
         _ => { unreachable!(); }
     }).into()
+}
+
+/// Called when the application's occlusion state has changed.
+extern fn did_change_occlusion_state<T: AppController>(this: &Object, _: Sel, _: id) {
+    app::<T>(this).occlusion_state_changed();
 }
 
 /// Called when the application receives an `application:delegateHandlesKey:` message.
@@ -314,6 +335,7 @@ pub(crate) fn register_app_controller_class<T: AppController>() -> *const Class 
 
         // Managing the Screen
         decl.add_method(sel!(applicationDidChangeScreenParameters:), did_change_screen_parameters::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(applicationDidChangeOcclusionState:), did_change_occlusion_state::<T> as extern fn(&Object, _, _));
 
         // User Activities
         decl.add_method(sel!(application:willContinueUserActivityWithType:), will_continue_user_activity_with_type::<T> as extern fn(&Object, _, _, id) -> BOOL);

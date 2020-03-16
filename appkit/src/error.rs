@@ -26,7 +26,7 @@ impl AppKitError {
     /// Given an `NSError` (i.e, an id reference) we'll pull out the relevant information and
     /// configure this. We pull out the information as it makes the error thread safe this way,
     /// which is... easier, in some cases.
-    pub fn new(error: id) -> Box<Self> {
+    pub fn new(error: id) -> Self {
         let (code, domain, description) = unsafe {
             let code: usize = msg_send![error, code];
             let domain: id = msg_send![error, domain];
@@ -35,11 +35,15 @@ impl AppKitError {
             (code, domain, description)
         };
 
-        Box::new(AppKitError {
+        AppKitError {
             code: code,
             domain: str_from(domain).to_string(),
             description: str_from(description).to_string()
-        })
+        }
+    }
+
+    pub fn boxed(error: id) -> Box<Self> {
+        Box::new(AppKitError::new(error))
     }
 
     /// Used for cases where we need to return an `NSError` back to the system (e.g, top-level

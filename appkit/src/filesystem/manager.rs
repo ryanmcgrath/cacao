@@ -83,7 +83,7 @@ impl FileManager {
             let error: id = nil;
             let result: BOOL = msg_send![&**manager, moveItemAtURL:from_url toURL:to_url error:&error];
             if result == NO {
-                return Err(AppKitError::new(error));
+                return Err(AppKitError::new(error).into());
             }
         }
 

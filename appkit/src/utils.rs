@@ -27,6 +27,28 @@ pub fn str_from(nsstring: id) -> &'static str {
     }
 }
 
+/// A utility method for mapping over NSArray instances. There's a number of places where we want
+/// or need this functionality to provide Rust interfaces - this tries to do it in a way where the
+/// `Vec` doesn't need to resize after being allocated.
+pub fn map_nsarray<T, F>(array: id, transform: F) -> Vec<T>
+where F: Fn(id) -> T {
+    let count: usize = unsafe { msg_send![array, count] };
+
+    let mut ret: Vec<T> = Vec::with_capacity(count);
+    let mut index = 0;
+
+    loop {
+        let file: id = unsafe { msg_send![array, objectAtIndex:index] };
+        ret.push(transform(file));
+            
+        index += 1;
+        if index == count { break }
+    }
+
+    ret
+}
+
+
 /// Used for moving a pointer back into an Rc, so we can work with the object held behind it. Note
 /// that it's very important to make sure you reverse this when you're done (using
 /// `Rc::into_raw()`) otherwise you'll cause problems due to the `Drop` logic.
