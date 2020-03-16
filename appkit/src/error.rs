@@ -6,8 +6,9 @@
 use std::error;
 use std::fmt;
 
-use cocoa::base::id;
-use objc::{msg_send, sel, sel_impl};
+use cocoa::base::{id, nil};
+use cocoa::foundation::{NSInteger, NSString};
+use objc::{class, msg_send, sel, sel_impl};
 
 use crate::utils::str_from;
 
@@ -39,6 +40,17 @@ impl AppKitError {
             domain: str_from(domain).to_string(),
             description: str_from(description).to_string()
         })
+    }
+
+    /// Used for cases where we need to return an `NSError` back to the system (e.g, top-level
+    /// error handling). We just create a new `NSError` so the `AppKitError` crate can be mostly
+    /// thread safe.
+    pub fn into_nserror(self) -> id {
+        unsafe {
+            let domain = NSString::alloc(nil).init_str(&self.domain);
+            let code = self.code as NSInteger;
+            msg_send![class!(NSError), errorWithDomain:domain code:code userInfo:nil]
+        }
     }
 }
 

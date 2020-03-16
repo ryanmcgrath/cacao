@@ -36,6 +36,7 @@ pub mod menu;
 pub mod networking;
 pub mod notifications;
 pub mod pasteboard;
+pub mod printing;
 pub mod toolbar;
 pub mod utils;
 pub mod view;
@@ -46,7 +47,7 @@ pub mod window;
 pub use url;
 
 pub mod prelude {
-    pub use crate::app::{App, AppDelegate, Dispatcher};
+    pub use crate::app::{App, AppController, Dispatcher};
     
     pub use crate::layout::LayoutConstraint;
 

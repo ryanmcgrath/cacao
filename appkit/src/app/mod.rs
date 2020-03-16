@@ -1,32 +1,21 @@
 //! A wrapper for `NSApplicationDelegate` on macOS. Handles looping back events and providing a very janky
 //! messaging architecture.
 
-use std::sync::Once;
-
 use cocoa::base::{id, nil};
 use cocoa::appkit::{NSRunningApplication};
 
 use objc_id::Id;
-use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
+use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+
+mod class;
+pub mod traits;
+pub mod types;
 
 use crate::constants::APP_PTR;
 use crate::menu::Menu;
-
-mod events;
-use events::register_app_class;
-
-pub trait Dispatcher {
-    type Message: Send + Sync;
-
-    fn on_message(&self, _message: Self::Message) {}
-}
-
-pub trait AppDelegate {
-    fn did_finish_launching(&self) {}
-    fn did_become_active(&self) {}
-}
+use class::{register_app_class, register_app_controller_class};
+pub use traits::{AppController, Dispatcher};
 
 /// A wrapper for `NSApplication`. It holds (retains) pointers for the Objective-C runtime, 
 /// which is where our application instance lives. It also injects an `NSObject` subclass,
@@ -61,7 +50,7 @@ impl App {
     }
 }
 
-impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher<Message = M> {
+impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppController + Dispatcher<Message = M> {
     /// Dispatches a message by grabbing the `sharedApplication`, getting ahold of the delegate,
     /// and passing back through there. All messages are currently dispatched on the main thread.
     pub fn dispatch(message: M) {
@@ -97,7 +86,7 @@ impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher
         let app_delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
-            let delegate_class = register_delegate_class::<T>();
+            let delegate_class = register_app_controller_class::<T>();
             let delegate: id = msg_send![delegate_class, new];
             let delegate_ptr: *const T = &*app_delegate;
             (&mut *delegate).set_ivar(APP_PTR, delegate_ptr as usize);
@@ -114,7 +103,7 @@ impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher
     }
 
     /// Kicks off the NSRunLoop for the NSApplication instance. This blocks when called.
-    /// If you're wondering where to go from here... you need an `AppDelegate` that implements
+    /// If you're wondering where to go from here... you need an `AppController` that implements
     /// `did_finish_launching`. :)
     pub fn run(&self) {
         unsafe {
@@ -123,47 +112,5 @@ impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher
             let shared_app: id = msg_send![class!(RSTApplication), sharedApplication];
             let _: () = msg_send![shared_app, run];
         }
-    }
-}
-
-/// Fires when the Application Delegate receives a `applicationDidFinishLaunching` notification.
-extern fn did_finish_launching<D: AppDelegate>(this: &Object, _: Sel, _: id) {
-    unsafe {
-        let app_ptr: usize = *this.get_ivar(APP_PTR);
-        let app = app_ptr as *const D;
-        (*app).did_finish_launching();
-    };
-}
-
-/// Fires when the Application Delegate receives a `applicationDidBecomeActive` notification.
-extern fn did_become_active<D: AppDelegate>(this: &Object, _: Sel, _: id) {
-    unsafe {
-        let app_ptr: usize = *this.get_ivar(APP_PTR);
-        let app = app_ptr as *const D;
-        (*app).did_become_active();
-    }
-}
-
-/// Registers an `NSObject` application delegate, and configures it for the various callbacks and
-/// pointers we need to have.
-fn register_delegate_class<D: AppDelegate>() -> *const Class {
-    static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = Class::get("NSObject").unwrap();
-        let mut decl = ClassDecl::new("RSTAppDelegate", superclass).unwrap();
-
-        decl.add_ivar::<usize>(APP_PTR);
-
-        // Add callback methods
-        decl.add_method(sel!(applicationDidFinishLaunching:), did_finish_launching::<D> as extern fn(&Object, _, _));
-        decl.add_method(sel!(applicationDidBecomeActive:), did_become_active::<D> as extern fn(&Object, _, _));
-
-        DELEGATE_CLASS = decl.register();
-    });
-
-    unsafe {
-        DELEGATE_CLASS
     }
 }
