@@ -19,4 +19,5 @@ uuid = { version = "0.8", features = ["v4"] }
 url = "2.1.1"
 
 [features]
+user-notifications = []
 enable-webview-downloading = []

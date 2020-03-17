@@ -34,7 +34,10 @@ pub mod geometry;
 pub mod layout;
 pub mod menu;
 pub mod networking;
+
+#[cfg(feature = "user-notifications")]
 pub mod notifications;
+
 pub mod pasteboard;
 pub mod printing;
 pub mod toolbar;
@@ -53,7 +56,10 @@ pub mod prelude {
     pub use crate::layout::LayoutConstraint;
 
     pub use crate::menu::{Menu, MenuItem};
+
+    #[cfg(feature = "user-notifications")]
     pub use crate::notifications::{Notification, NotificationCenter, NotificationAuthOption};
+
     pub use crate::toolbar::{Toolbar, ToolbarController, ToolbarHandle};
 
     pub use crate::networking::URLRequest;

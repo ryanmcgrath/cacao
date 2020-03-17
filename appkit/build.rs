@@ -7,6 +7,8 @@ fn main() {
     if std::env::var("TARGET").unwrap().contains("-apple") {
         println!("cargo:rustc-link-lib=framework=Security");
         println!("cargo:rustc-link-lib=framework=WebKit");
+
+        #[cfg(feature = "user-notifications")]
         println!("cargo:rustc-link-lib=framework=UserNotifications");
     }
 }
