@@ -23,6 +23,10 @@ pub use cocoa::base::id;
 pub mod alert;
 pub mod app;
 pub mod button;
+
+#[cfg(feature = "user-notifications")]
+pub mod cloudkit;
+
 pub mod color;
 pub mod collection_view;
 pub mod constants;

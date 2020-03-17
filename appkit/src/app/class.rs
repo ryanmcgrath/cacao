@@ -24,6 +24,9 @@ use crate::printing::PrintSettings;
 use crate::user_activity::UserActivity;
 use crate::utils::{map_nsarray, str_from};
 
+#[cfg(feature = "cloudkit")]
+use crate::cloudkit::share::CKShareMetaData;
+
 /// A handy method for grabbing our `AppController` from the pointer. This is different from our
 /// standard `utils` version as this doesn't require `RefCell` backing.
 fn app<T: AppController>(this: &Object) -> &T {
@@ -196,8 +199,10 @@ extern fn did_receive_remote_notification<T: AppController>(_this: &Object, _: S
 
 /// Fires when the application receives a `application:userDidAcceptCloudKitShareWithMetadata:`
 /// message.
-extern fn accepted_cloudkit_share<T: AppController>(_this: &Object, _: Sel, _: id, _: id) {
-
+#[cfg(feature = "cloudkit")]
+extern fn accepted_cloudkit_share<T: AppController>(_this: &Object, _: Sel, _: id, metadata: id) {
+    let share = CKShareMetaData::with_inner(metadata);
+    app::<T>(this).user_accepted_cloudkit_share(share);
 }
 
 /// Fires when the application receives an `application:openURLs` message.
@@ -349,6 +354,7 @@ pub(crate) fn register_app_controller_class<T: AppController>() -> *const Class 
         decl.add_method(sel!(application:didReceiveRemoteNotification:), did_receive_remote_notification::<T> as extern fn(&Object, _, _, id));
 
         // CloudKit
+        #[cfg(feature = "cloudkit")]
         decl.add_method(sel!(application:userDidAcceptCloudKitShareWithMetadata:), accepted_cloudkit_share::<T> as extern fn(&Object, _, _, id));
 
         // Opening Files

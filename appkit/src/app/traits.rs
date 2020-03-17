@@ -9,7 +9,8 @@ use crate::menu::Menu;
 use crate::printing::settings::PrintSettings;
 use crate::user_activity::UserActivity;
 
-pub struct CKShareMetaData;
+#[cfg(feature = "user-notifications")]
+use crate::cloudkit::share::CKShareMetaData;
 
 /// Controllers interested in processing messages can implement this to respond to messages as
 /// they're dispatched. All messages come in on the main thread.
@@ -122,6 +123,7 @@ pub trait AppController {
 
     /// Fires after the user accepted a CloudKit sharing invitation associated with your
     /// application. 
+    #[cfg(feature = "cloudkit")]
     fn user_accepted_cloudkit_share(&self, _share_metadata: CKShareMetaData) {}
    
     /// Fired when you have a list of `Url`'s to open. This is best explained by quoting the Apple
