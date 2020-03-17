@@ -1,9 +1,9 @@
 //! Implements `Color`. Heavily based on the `Color` module in Servo's CSS parser, but tweaked
 //! for (what I believe) is a friendlier API.
 
-use cocoa::base::id;
-use core_graphics::base::CGFloat;
 use objc::{class, msg_send, sel, sel_impl};
+
+use crate::foundation::{id, CGFloat};
 
 /// A color with red, green, blue, and alpha components, in a byte each.
 #[derive(Clone, Copy, PartialEq, Debug)]

@@ -3,13 +3,11 @@
 //!
 //! UNFORTUNATELY, this is a very old and janky API. So... yeah.
 
-use cocoa::base::{id, nil};
-use cocoa::foundation::{NSSize, NSString};
-
 use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::foundation::{id, CGSize, NSString};
 use crate::button::Button;
 
 /// A wrapper for `NSWindow`. Holds (retains) pointers for the Objective-C runtime 
@@ -28,7 +26,7 @@ impl ToolbarItem {
         let identifier = identifier.into();
 
         let inner = unsafe {
-            let identifr = NSString::alloc(nil).init_str(&identifier);
+            let identifr = NSString::new(&identifier);
             let alloc: id = msg_send![class!(NSToolbarItem), alloc];
             let item: id = msg_send![alloc, initWithItemIdentifier:identifr];
             Id::from_ptr(item)
@@ -44,7 +42,7 @@ impl ToolbarItem {
     /// Sets the title for this item.
     pub fn set_title(&mut self, title: &str) {
         unsafe {
-            let title = NSString::alloc(nil).init_str(title);
+            let title = NSString::new(title);
             let _: () = msg_send![&*self.inner, setTitle:title];
         }
     }
@@ -63,7 +61,7 @@ impl ToolbarItem {
     /// Sets the minimum size for this button.
     pub fn set_min_size(&mut self, width: f64, height: f64) {
         unsafe {
-            let size = NSSize::new(width.into(), height.into());
+            let size = CGSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.inner, setMinSize:size];
         }
     }
@@ -71,7 +69,7 @@ impl ToolbarItem {
     /// Sets the maximum size for this button.
     pub fn set_max_size(&mut self, width: f64, height: f64) {
         unsafe {
-            let size = NSSize::new(width.into(), height.into());
+            let size = CGSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.inner, setMaxSize:size];
         }
     }

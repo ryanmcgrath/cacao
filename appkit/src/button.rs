@@ -3,13 +3,12 @@
 
 use std::sync::Once;
 
-use cocoa::base::{id, nil};
-use cocoa::foundation::{NSString};
-
 use objc_id::Id;
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel, sel_impl};
+
+use crate::foundation::{nil, NSString};
 
 /// A wrapper for `NSButton`. Holds (retains) pointers for the Objective-C runtime 
 /// where our `NSButton` lives.
@@ -21,10 +20,9 @@ impl Button {
     /// Creates a new `NSButton` instance, configures it appropriately,
     /// and retains the necessary Objective-C runtime pointer.
     pub fn new(text: &str) -> Self {
+        let title = NSString::new(text);
         let inner = unsafe {
-            let title = NSString::alloc(nil).init_str(text);
-            let button: id = msg_send![register_class(), buttonWithTitle:title target:nil action:nil];
-            Id::from_ptr(button)
+            Id::from_ptr(msg_send![register_class(), buttonWithTitle:title target:nil action:nil])
         };
 
         Button {
@@ -47,7 +45,7 @@ fn register_class() -> *const Class {
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
-        let superclass = Class::get("NSButton").unwrap();
+        let superclass = class!(NSButton);
         let decl = ClassDecl::new("RSTButton", superclass).unwrap(); 
         VIEW_CLASS = decl.register();
     });

@@ -1,6 +1,6 @@
 //! Wrapper methods for various geometry types (rects, sizes, ec).
 
-use cocoa::foundation::{NSRect, NSPoint, NSSize};
+use crate::foundation::{CGRect, CGPoint, CGSize};
 
 /// A struct that represents a box - top, left, width and height.
 pub struct Rect {
@@ -29,11 +29,11 @@ impl Rect {
     }
 }
 
-impl From<Rect> for NSRect {
-    fn from(rect: Rect) -> NSRect {
-        NSRect::new(
-             NSPoint::new(rect.top, rect.left),
-             NSSize::new(rect.width, rect.height)
+impl From<Rect> for CGRect {
+    fn from(rect: Rect) -> CGRect {
+        CGRect::new(
+             &CGPoint::new(rect.top, rect.left),
+             &CGSize::new(rect.width, rect.height)
         )
     }
 }

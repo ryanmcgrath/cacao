@@ -1,13 +1,11 @@
 //! A wrapper for the underlying `NSToolbar`, which is safe to clone and pass around. We do this to
 //! provide a uniform and expectable API.
 
-use cocoa::base::{YES, NO};
-use cocoa::foundation::{NSUInteger};
-
 use objc::{msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
+use crate::foundation::{YES, NO, NSUInteger};
 use crate::toolbar::types::{ToolbarDisplayMode, ToolbarSizeMode};
 
 #[derive(Clone, Debug)]

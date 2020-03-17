@@ -2,12 +2,11 @@
 //! across the codebase, hence why they're here - they're not currently exhaustive, so feel free to
 //! tinker and pull request.
 
-use cocoa::foundation::NSUInteger;
-
 use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
 use objc_id::Id;
 
+use crate::foundation::NSUInteger;
 use crate::pasteboard::Pasteboard;
 
 /// Represents operations that can happen for a given drag/drop scenario.

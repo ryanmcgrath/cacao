@@ -2,12 +2,11 @@
 //! given view should layout along the x-axis. Of note: the only thing that can't be protected
 //! against is mixing/matching incorrect left/leading and right/trailing anchors. Be careful!
 
-use cocoa::base::id;
-
 use objc::{msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
+use crate::foundation::id;
 use crate::layout::constraint::LayoutConstraint;
 
 /// A wrapper for `NSLayoutAnchor`. You should never be creating this yourself - it's more of a

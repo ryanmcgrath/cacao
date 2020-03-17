@@ -1,9 +1,10 @@
 //! Represents settings for printing items. Backed by an `NSDictionary` in Objective-C, this struct
 //! aims to make it easier to query/process printing operations.
 
-use cocoa::base::id;
 use objc::runtime::Object;
 use objc_id::ShareId;
+
+use crate::foundation::id;
 
 /// `PrintSettings` represents options used in printing, typically passed to you by the
 /// application/user.

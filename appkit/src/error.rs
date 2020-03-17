@@ -6,11 +6,9 @@
 use std::error;
 use std::fmt;
 
-use cocoa::base::{id, nil};
-use cocoa::foundation::{NSInteger, NSString};
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::utils::str_from;
+use crate::foundation::{id, nil, NSInteger, NSString};
 
 /// A wrapper around pieces of data extracted from `NSError`. This could be improved: right now, it
 /// allocates `String` instances when theoretically it could be avoided, and we might be erasing
@@ -29,16 +27,16 @@ impl AppKitError {
     pub fn new(error: id) -> Self {
         let (code, domain, description) = unsafe {
             let code: usize = msg_send![error, code];
-            let domain: id = msg_send![error, domain];
-            let description: id = msg_send![error, localizedDescription];
+            let domain = NSString::wrap(msg_send![error, domain]);
+            let description = NSString::wrap(msg_send![error, localizedDescription]);
 
             (code, domain, description)
         };
 
         AppKitError {
             code: code,
-            domain: str_from(domain).to_string(),
-            description: str_from(description).to_string()
+            domain: domain.to_str().to_string(),
+            description: description.to_str().to_string()
         }
     }
 
@@ -51,7 +49,7 @@ impl AppKitError {
     /// thread safe.
     pub fn into_nserror(self) -> id {
         unsafe {
-            let domain = NSString::alloc(nil).init_str(&self.domain);
+            let domain = NSString::new(&self.domain);
             let code = self.code as NSInteger;
             msg_send![class!(NSError), errorWithDomain:domain code:code userInfo:nil]
         }

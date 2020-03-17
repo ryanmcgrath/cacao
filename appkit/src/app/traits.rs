@@ -3,13 +3,14 @@
 
 use url::Url;
 
-use crate::app::enums::{TerminateResponse, PrintResponse};
+use crate::app::enums::TerminateResponse;
 use crate::error::AppKitError;
 use crate::menu::Menu;
+use crate::printing::enums::PrintResponse;
 use crate::printing::settings::PrintSettings;
 use crate::user_activity::UserActivity;
 
-#[cfg(feature = "user-notifications")]
+#[cfg(feature = "cloudkit")]
 use crate::cloudkit::share::CKShareMetaData;
 
 /// Controllers interested in processing messages can implement this to respond to messages as
@@ -120,6 +121,18 @@ pub trait AppController {
 
     /// Fired after the user activity object has been updated.
     fn updated_user_activity(&self, _activity: UserActivity) {}
+
+    /// Fired when you've successfully registered for remote notifications with APNS.
+    fn registered_for_remote_notifications(&self, _token: &str) {
+        
+    }
+
+    /// Fired after you've received a push notification from APNS.
+    //fn did_receive_remote_notification(&self, notification: PushNotification) {}
+
+    /// Fired if there was a failure to register for remote notifications with APNS - e.g,
+    /// connection issues or something.
+    fn failed_to_register_for_remote_notifications(&self, _error: AppKitError) {}
 
     /// Fires after the user accepted a CloudKit sharing invitation associated with your
     /// application. 

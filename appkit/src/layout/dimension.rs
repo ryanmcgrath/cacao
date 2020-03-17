@@ -1,13 +1,11 @@
 //! A wrapper for `NSLayoutAnchorDimension`, which is typically used to handle `width` and `height`
 //! values for how a given view should layout.
 
-use cocoa::base::id;
-use core_graphics::base::CGFloat;
-
 use objc::{msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
+use crate::foundation::{id, CGFloat};
 use crate::layout::constraint::LayoutConstraint;
 
 /// A wrapper for `NSLayoutAnchor`. You should never be creating this yourself - it's more of a

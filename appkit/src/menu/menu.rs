@@ -1,12 +1,10 @@
 //! Wraps NSMenu and handles instrumenting necessary delegate pieces.
 
-use cocoa::base::{id, nil};
-use cocoa::foundation::NSString;
-
 use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::foundation::{id, NSString};
 use crate::menu::item::MenuItem;
 
 /// A struct that represents an `NSMenu`. It takes ownership of items, and handles instrumenting
@@ -23,7 +21,7 @@ impl Menu {
         let inner = unsafe {
             let cls = class!(NSMenu);
             let alloc: id = msg_send![cls, alloc];
-            let title = NSString::alloc(nil).init_str(title);
+            let title = NSString::new(title);
             let inner: id = msg_send![alloc, initWithTitle:title];
             Id::from_ptr(inner)
         };

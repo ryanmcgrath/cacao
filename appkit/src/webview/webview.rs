@@ -11,13 +11,11 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use cocoa::base::{id, nil, YES, NO};
-use cocoa::foundation::NSString;
-
 use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::foundation::{id, nil, YES, NO, NSString};
 use crate::constants::{WEBVIEW_VAR, WEBVIEW_CONFIG_VAR, WEBVIEW_CONTROLLER_PTR};
 use crate::view::ViewController;
 use crate::webview::config::{WebViewConfig, InjectAt};

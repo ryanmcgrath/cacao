@@ -9,13 +9,13 @@ use std::ffi::c_void;
 
 use block::Block;
 
-use cocoa::base::{id, nil, YES, NO};
 use cocoa::foundation::{NSRect, NSPoint, NSSize, NSString, NSArray, NSInteger};
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::foundation::{id, nil, YES, NO};
 use crate::webview::traits::WebViewController;
 
 extern fn download_delegate(this: &Object, _: Sel) -> id {

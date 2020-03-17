@@ -1,9 +1,6 @@
 //! A wrapper for `NSApplicationDelegate` on macOS. Handles looping back events and providing a very janky
 //! messaging architecture.
 
-use cocoa::base::{id, nil};
-use cocoa::appkit::{NSRunningApplication};
-
 use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
@@ -12,6 +9,7 @@ mod class;
 pub mod traits;
 pub mod enums;
 
+use crate::foundation::{id, AutoReleasePool};
 use crate::constants::APP_PTR;
 use crate::menu::Menu;
 use class::{register_app_class, register_app_controller_class};
@@ -24,6 +22,7 @@ pub struct App<T = (), M = ()> {
     pub inner: Id<Object>,
     pub objc_delegate: Id<Object>,
     pub delegate: Box<T>,
+    pub pool: AutoReleasePool,
     _t: std::marker::PhantomData<M>
 }
 
@@ -51,35 +50,17 @@ impl App {
 }
 
 impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppController + Dispatcher<Message = M> {
-    /// Dispatches a message by grabbing the `sharedApplication`, getting ahold of the delegate,
-    /// and passing back through there. All messages are currently dispatched on the main thread.
-    pub fn dispatch(message: M) {
-        let queue = dispatch::Queue::main();
-        
-        queue.exec_async(move || unsafe {
-            let app: id = msg_send![register_app_class(), sharedApplication];
-            let app_delegate: id = msg_send![app, delegate];
-            let delegate_ptr: usize = *(*app_delegate).get_ivar(APP_PTR);
-            let delegate = delegate_ptr as *const T;
-            (&*delegate).on_message(message);
-        });
-    }
-
     /// Creates an NSAutoReleasePool, configures various NSApplication properties (e.g, activation
     /// policies), injects an `NSObject` delegate wrapper, and retains everything on the
     /// Objective-C side of things.
     pub fn new(_bundle_id: &str, delegate: T) -> Self {
         // set_bundle_id(bundle_id);
         
-        let _pool = unsafe {
-            //msg_send![class!(
-            cocoa::foundation::NSAutoreleasePool::new(nil)
-        };
+        let pool = AutoReleasePool::new();
 
         let inner = unsafe {
             let app: id = msg_send![register_app_class(), sharedApplication];
             let _: () = msg_send![app, setActivationPolicy:0];
-            //app.setActivationPolicy_(cocoa::appkit::NSApplicationActivationPolicyRegular);
             Id::from_ptr(app)
         };
         
@@ -98,8 +79,23 @@ impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppController + Dispatch
             objc_delegate: objc_delegate,
             inner: inner,
             delegate: app_delegate,
+            pool: pool,
             _t: std::marker::PhantomData
         }
+    }
+    
+    /// Dispatches a message by grabbing the `sharedApplication`, getting ahold of the delegate,
+    /// and passing back through there. All messages are currently dispatched on the main thread.
+    pub fn dispatch(message: M) {
+        let queue = dispatch::Queue::main();
+        
+        queue.exec_async(move || unsafe {
+            let app: id = msg_send![register_app_class(), sharedApplication];
+            let app_delegate: id = msg_send![app, delegate];
+            let delegate_ptr: usize = *(*app_delegate).get_ivar(APP_PTR);
+            let delegate = delegate_ptr as *const T;
+            (&*delegate).on_message(message);
+        });
     }
 
     /// Kicks off the NSRunLoop for the NSApplication instance. This blocks when called.
@@ -107,8 +103,8 @@ impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppController + Dispatch
     /// `did_finish_launching`. :)
     pub fn run(&self) {
         unsafe {
-            let current_app = cocoa::appkit::NSRunningApplication::currentApplication(nil);
-            current_app.activateWithOptions_(cocoa::appkit::NSApplicationActivateIgnoringOtherApps);
+            let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
+            let _: () = msg_send![current_app, activateWithOptions:0];
             let shared_app: id = msg_send![class!(RSTApplication), sharedApplication];
             let _: () = msg_send![shared_app, run];
         }

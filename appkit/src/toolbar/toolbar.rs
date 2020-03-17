@@ -6,12 +6,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use cocoa::base::{id, nil};
-use cocoa::foundation::NSString;
-
 use objc_id::ShareId;
 use objc::{msg_send, sel, sel_impl};
 
+use crate::foundation::{id, NSString};
 use crate::constants::TOOLBAR_PTR;
 use crate::toolbar::class::register_toolbar_class;
 use crate::toolbar::handle::ToolbarHandle;
@@ -49,7 +47,7 @@ impl<T> Toolbar<T> where T: ToolbarController + 'static {
 
         let objc_controller = unsafe {
             let delegate_class = register_toolbar_class::<T>();
-            let identifier = NSString::alloc(nil).init_str(&identifier);
+            let identifier = NSString::new(&identifier);
             let alloc: id = msg_send![delegate_class, alloc];
             let toolbar: id = msg_send![alloc, initWithIdentifier:identifier];
 

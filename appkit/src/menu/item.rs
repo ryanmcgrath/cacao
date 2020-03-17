@@ -2,13 +2,11 @@
 //! one level deep; this could change in the future but is fine for
 //! now.
 
-use cocoa::base::{id, nil};
-use cocoa::foundation::{NSString, NSUInteger};
-
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::{Object, Sel};
 use objc_id::ShareId;
 
+use crate::foundation::{id, nil, NSString, NSUInteger};
 use crate::events::EventModifierFlag;
 
 /// Internal method (shorthand) for generating `NSMenuItem` holders.
@@ -21,10 +19,10 @@ fn make_menu_item(
     unsafe {
         let cls = class!(NSMenuItem);
         let alloc: id = msg_send![cls, alloc];
-        let title = NSString::alloc(nil).init_str(title);
+        let title = NSString::new(title);
 
         // Note that AppKit requires a blank string if nil, not nil.
-        let key = NSString::alloc(nil).init_str(match key {
+        let key = NSString::new(match key {
             Some(s) => s,
             None => ""
         });
@@ -74,7 +72,7 @@ impl MenuItem {
 
             MenuItem::Action(item) => {
                 unsafe {
-                    let key = NSString::alloc(nil).init_str(key);
+                    let key = NSString::new(key);
                     let _: () = msg_send![&*item, setKeyEquivalent:key];
                 }
 

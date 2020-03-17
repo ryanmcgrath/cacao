@@ -1,7 +1,7 @@
 //! Hoists some type definitions in a way that I personally find cleaner than what's in the Servo
 //! code.
 
-use cocoa::foundation::NSUInteger;
+use crate::foundation::NSUInteger;
 
 #[derive(Clone, Copy, Debug)]
 pub enum EventModifierFlag {

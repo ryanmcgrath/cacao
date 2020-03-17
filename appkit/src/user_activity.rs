@@ -1,8 +1,9 @@
 //! A module wrapping `NSUserActivity`.
 
-use cocoa::base::id;
 use objc::runtime::Object;
 use objc_id::ShareId;
+
+use crate::foundation::id;
 
 /// Represents an `NSUserActivity`, which acts as a lightweight method to capture the state of your
 /// app. 

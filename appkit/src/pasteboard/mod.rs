@@ -1,6 +1,96 @@
+//! A wrapper for NSPasteBoard, which is the interface for copy/paste and general transferring
+//! (think: drag and drop between applications). It exposes a Rust interface that tries to be
+//! complete, but might not cover everything 100% right now - feel free to pull request.
+
+use std::error::Error;
+
+use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
+use objc_id::Id;
+use url::Url;
+
+use crate::foundation::{id, nil, NSString, NSArray};
+use crate::error::AppKitError;
 
 pub mod types;
-pub use types::*;
+pub use types::{PasteboardName, PasteboardType};
 
-pub mod pasteboard;
-pub use pasteboard::*;
+/// Represents an `NSPasteboard`, enabling you to handle copy/paste/drag and drop.
+pub struct Pasteboard(pub Id<Object>);
+
+impl Default for Pasteboard {
+    fn default() -> Self {
+        Pasteboard(unsafe {
+            Id::from_retained_ptr(msg_send![class!(NSPasteboard), generalPasteboard])
+        })
+    }
+}
+
+impl Pasteboard {
+    /// Used internally for wrapping a Pasteboard returned from operations (say, drag and drop).
+    pub(crate) fn with(existing: id) -> Self {
+        Pasteboard(unsafe {
+            Id::from_retained_ptr(existing)
+        })
+    }
+
+    /// Retrieves the system Pasteboard for the given name/type.
+    pub fn named(name: PasteboardName) -> Self {
+        Pasteboard(unsafe {
+            let name: NSString = name.into();
+            Id::from_retained_ptr(msg_send![class!(NSPasteboard), pasteboardWithName:&*name.0])
+        })
+    }
+
+    /// Creates and returns a new pasteboard with a name that is guaranteed to be unique with 
+    /// respect to other pasteboards in the system.
+    pub fn unique() -> Self {
+        Pasteboard(unsafe {
+            Id::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithUniqueName])
+        })
+    }
+
+    /// Releases the receiver’s resources in the pasteboard server. It's rare-ish to need to use
+    /// this, but considering this stuff happens on the Objective-C side you may need it.
+    pub fn release_globally(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.0, releaseGlobally];
+        }
+    }
+
+    /// Clears the existing contents of the pasteboard.
+    pub fn clear_contents(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.0, clearContents];
+        }
+    }
+
+    /// Looks inside the pasteboard contents and extracts what FileURLs are there, if any.
+    pub fn get_file_urls(&self) -> Result<Vec<Url>, Box<dyn Error>> {
+        unsafe {
+            let class: id = msg_send![class!(NSURL), class];
+            let classes = NSArray::new(&[class]);
+            let contents: id = msg_send![&*self.0, readObjectsForClasses:classes options:nil];
+            
+            // This can happen if the Pasteboard server has an error in returning items.
+            // In our case, we'll bubble up an error by checking the pasteboard.
+            if contents == nil {
+                // This error is not necessarily "correct", but in the event of an error in
+                // Pasteboard server retrieval I'm not sure where to check... and this stuff is
+                // kinda ancient and has conflicting docs in places. ;P
+                return Err(Box::new(AppKitError {
+                    code: 666,
+                    domain: "com.appkit-rs.pasteboard".to_string(),
+                    description: "Pasteboard server returned no data.".to_string()
+                }));
+            }
+
+            let urls = NSArray::wrap(contents).map(|url| {
+                let path = NSString::wrap(msg_send![url, path]);
+                Url::parse(&format!("file://{}", path.to_str()))
+            }).into_iter().filter_map(|r| r.ok()).collect();
+
+            Ok(urls)
+        }
+    }
+}

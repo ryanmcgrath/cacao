@@ -1,6 +1,6 @@
 //! Various types used for Toolbar configuration.
 
-use cocoa::foundation::NSUInteger;
+use crate::foundation::NSUInteger;
 
 /// Represents the display mode(s) a Toolbar can render in.
 #[derive(Clone, Copy, Debug)]

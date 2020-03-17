@@ -3,58 +3,51 @@
 use std::rc::Rc;
 use std::sync::Once;
 
-use cocoa::base::{id, nil};
-use cocoa::foundation::{NSArray, NSString};
-
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel, sel_impl};
 
+use crate::foundation::{id, NSArray, NSString};
 use crate::constants::TOOLBAR_PTR;
 use crate::toolbar::traits::ToolbarController;
-use crate::utils::{load, str_from};
+use crate::utils::load;
 
 /// Retrieves and passes the allowed item identifiers for this toolbar.
 extern fn allowed_item_identifiers<T: ToolbarController>(this: &Object, _: Sel, _: id) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
 
-    unsafe {
-        let identifiers = {
-            let t = toolbar.borrow();
+    let identifiers: NSArray = {
+        let t = toolbar.borrow();
+        (*t).allowed_item_identifiers().iter().map(|identifier| {
+            NSString::new(identifier).into_inner()
+        }).collect::<Vec<id>>().into()
+    };
 
-            (*t).allowed_item_identifiers().iter().map(|identifier| {
-                NSString::alloc(nil).init_str(identifier)
-            }).collect::<Vec<id>>()
-        };
-
-        Rc::into_raw(toolbar);
-        NSArray::arrayWithObjects(nil, &identifiers)
-    }
+    Rc::into_raw(toolbar); 
+    identifiers.into_inner()
 }
 
 /// Retrieves and passes the default item identifiers for this toolbar.
 extern fn default_item_identifiers<T: ToolbarController>(this: &Object, _: Sel, _: id) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
 
-    unsafe {
-        let identifiers = {
-            let t = toolbar.borrow();
-            
-            (*t).default_item_identifiers().iter().map(|identifier| {
-                NSString::alloc(nil).init_str(identifier)
-            }).collect::<Vec<id>>()
-        };
+    let identifiers: NSArray = {
+        let t = toolbar.borrow();
+        
+        (*t).default_item_identifiers().iter().map(|identifier| {
+            NSString::new(identifier).into_inner()
+        }).collect::<Vec<id>>().into()
+    };
 
-        Rc::into_raw(toolbar);
-        NSArray::arrayWithObjects(nil, &identifiers)
-    }
+    Rc::into_raw(toolbar);
+    identifiers.into_inner()
 }
 
 /// Loads the controller, grabs whatever item is for this identifier, and returns what the
 /// Objective-C runtime needs.
 extern fn item_for_identifier<T: ToolbarController>(this: &Object, _: Sel, _: id, identifier: id, _: id) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
-    let identifier = str_from(identifier);
+    let identifier = NSString::wrap(identifier).to_str();
     
     let mut item = {
         let t = toolbar.borrow();

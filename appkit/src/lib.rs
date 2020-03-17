@@ -16,15 +16,11 @@
 //! your own risk. With that said, provided you follow the rules (regarding memory/ownership) it's
 //! already fine for some apps. Check the README for more info!
 
-pub use objc_id::ShareId;
-pub use objc::runtime::Object;
-pub use cocoa::base::id;
-
 pub mod alert;
 pub mod app;
 pub mod button;
 
-#[cfg(feature = "user-notifications")]
+#[cfg(feature = "cloudkit")]
 pub mod cloudkit;
 
 pub mod color;
@@ -33,7 +29,8 @@ pub mod constants;
 pub mod dragdrop;
 pub mod error;
 pub mod events;
-pub mod filesystem;
+//pub mod filesystem;
+pub mod foundation;
 pub mod geometry;
 pub mod layout;
 pub mod menu;
@@ -47,7 +44,7 @@ pub mod printing;
 pub mod toolbar;
 pub mod user_activity;
 pub mod utils;
-pub mod view;
+/*pub mod view;
 pub mod webview;
 pub mod window;
 
@@ -81,4 +78,4 @@ pub mod prelude {
     pub use appkit_derive::{
         WindowWrapper, ViewWrapper
     };
-}
+}*/

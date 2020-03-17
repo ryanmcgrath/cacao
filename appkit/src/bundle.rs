@@ -8,8 +8,6 @@
 use std::ffi::CString;
 use std::mem;
 
-use cocoa::foundation::{NSString};
-use cocoa::base::{id, nil, BOOL, YES};//, NO};
 use objc::{class, msg_send, sel, sel_impl, Encode, Encoding, EncodeArguments, Message};
 use objc::runtime::{Class, Sel, Method, Object, Imp};
 use objc::runtime::{
@@ -18,6 +16,8 @@ use objc::runtime::{
     class_getInstanceMethod,
     method_exchangeImplementations
 };
+
+use crate::foundation::{id, nil, BOOL, YES, NSString};
 
 /// Types that can be used as the implementation of an Objective-C method.
 pub trait MethodImplementation {

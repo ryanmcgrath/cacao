@@ -8,21 +8,18 @@ use std::unreachable;
 
 use block::Block;
 
-use cocoa::base::{id, nil, BOOL, YES, NO};
-use cocoa::foundation::{NSUInteger};
-
 use objc::{class, msg_send, sel, sel_impl};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 
 use url::Url;
 
+use crate::foundation::{id, nil, BOOL, YES, NO, NSUInteger, NSArray, NSString};
 use crate::app::traits::AppController;
 use crate::constants::APP_PTR;
 use crate::error::AppKitError;
 use crate::printing::PrintSettings;
 use crate::user_activity::UserActivity;
-use crate::utils::{map_nsarray, str_from};
 
 #[cfg(feature = "cloudkit")]
 use crate::cloudkit::share::CKShareMetaData;
@@ -122,7 +119,6 @@ extern fn should_handle_reopen<T: AppController>(this: &Object, _: Sel, _: id, h
 
 /// Fires when the application delegate receives a `applicationDockMenu:` request.
 extern fn dock_menu<T: AppController>(this: &Object, _: Sel, _: id) -> id {
-    // @TODO: Confirm this is safe to do and not leaky.
     match app::<T>(this).dock_menu() {
         Some(mut menu) => &mut *menu.inner,
         None => nil
@@ -143,9 +139,9 @@ extern fn did_change_screen_parameters<T: AppController>(this: &Object, _: Sel, 
 /// Fires when the application receives a `application:willContinueUserActivityWithType:`
 /// notification.
 extern fn will_continue_user_activity_with_type<T: AppController>(this: &Object, _: Sel, _: id, activity_type: id) -> BOOL {
-    let activity = str_from(activity_type);
+    let activity = NSString::wrap(activity_type);
 
-    match app::<T>(this).will_continue_user_activity(activity) {
+    match app::<T>(this).will_continue_user_activity(activity.to_str()) {
         true => YES,
         false => NO
     }
@@ -171,7 +167,7 @@ extern fn continue_user_activity<T: AppController>(this: &Object, _: Sel, _: id,
 /// `application:didFailToContinueUserActivityWithType:error:` message.
 extern fn failed_to_continue_user_activity<T: AppController>(this: &Object, _: Sel, _: id, activity_type: id, error: id) {
     app::<T>(this).failed_to_continue_user_activity(
-        str_from(activity_type),
+        NSString::wrap(activity_type).to_str(),
         AppKitError::new(error)
     );
 }
@@ -188,8 +184,8 @@ extern fn registered_for_remote_notifications<T: AppController>(_this: &Object, 
 }
 
 /// Fires when the application receives a `application:didFailToRegisterForRemoteNotificationsWithError:` message.
-extern fn failed_to_register_for_remote_notifications<T: AppController>(_this: &Object, _: Sel, _: id, _: id) {
-
+extern fn failed_to_register_for_remote_notifications<T: AppController>(this: &Object, _: Sel, _: id, error: id) {
+    app::<T>(this).failed_to_register_for_remote_notifications(AppKitError::new(error));
 }
 
 /// Fires when the application receives a `application:didReceiveRemoteNotification:` message.
@@ -207,10 +203,12 @@ extern fn accepted_cloudkit_share<T: AppController>(_this: &Object, _: Sel, _: i
 
 /// Fires when the application receives an `application:openURLs` message.
 extern fn open_urls<T: AppController>(this: &Object, _: Sel, _: id, file_urls: id) {
-    let urls = map_nsarray(file_urls, |url| unsafe {
-        let absolute_string = msg_send![url, absoluteString];
-        let uri = str_from(absolute_string);
-        Url::parse(uri)
+    let urls = NSArray::wrap(file_urls).map(|url| {
+        let uri = NSString::wrap(unsafe {
+            msg_send![url, absoluteString]
+        });
+        
+        Url::parse(uri.to_str())
     }).into_iter().filter_map(|url| url.ok()).collect();
 
     app::<T>(this).open_urls(urls);
@@ -218,9 +216,9 @@ extern fn open_urls<T: AppController>(this: &Object, _: Sel, _: id, file_urls: i
 
 /// Fires when the application receives an `application:openFileWithoutUI:` message.
 extern fn open_file_without_ui<T: AppController>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
-    let filename = str_from(file);
+    let filename = NSString::wrap(file);
 
-    match app::<T>(this).open_file_without_ui(filename) {
+    match app::<T>(this).open_file_without_ui(filename.to_str()) {
         true => YES,
         false => NO
     }
@@ -244,9 +242,9 @@ extern fn open_untitled_file<T: AppController>(this: &Object, _: Sel, _: id) -> 
 
 /// Fired when the application receives an `application:openTempFile:` message.
 extern fn open_temp_file<T: AppController>(this: &Object, _: Sel, _: id, filename: id) -> BOOL {
-    let filename = str_from(filename);
+    let filename = NSString::wrap(filename);
 
-    match app::<T>(this).open_temp_file(filename) {
+    match app::<T>(this).open_temp_file(filename.to_str()) {
         true => YES,
         false => NO
     }
@@ -254,9 +252,9 @@ extern fn open_temp_file<T: AppController>(this: &Object, _: Sel, _: id, filenam
 
 /// Fired when the application receives an `application:printFile:` message.
 extern fn print_file<T: AppController>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
-    let filename = str_from(file);
+    let filename = NSString::wrap(file);
 
-    match app::<T>(this).print_file(filename) {
+    match app::<T>(this).print_file(filename.to_str()) {
         true => YES,
         false => NO
     }
@@ -265,8 +263,8 @@ extern fn print_file<T: AppController>(this: &Object, _: Sel, _: id, file: id) -
 /// Fired when the application receives an `application:printFiles:withSettings:showPrintPanels:`
 /// message.
 extern fn print_files<T: AppController>(this: &Object, _: Sel, _: id, files: id, settings: id, show_print_panels: BOOL) -> NSUInteger {
-    let files = map_nsarray(files, |file| {
-        str_from(file).to_string()
+    let files = NSArray::wrap(files).map(|file| {
+        NSString::wrap(file).to_str().to_string()
     });
 
     let settings = PrintSettings::with_inner(settings);
@@ -287,9 +285,9 @@ extern fn did_change_occlusion_state<T: AppController>(this: &Object, _: Sel, _:
 /// Note: this may not fire in sandboxed applications. Apple's documentation is unclear on the
 /// matter.
 extern fn delegate_handles_key<T: AppController>(this: &Object, _: Sel, _: id, key: id) -> BOOL {
-    let key = str_from(key);
+    let key = NSString::wrap(key);
 
-    match app::<T>(this).delegate_handles_key(key) {
+    match app::<T>(this).delegate_handles_key(key.to_str()) {
         true => YES,
         false => NO
     }
