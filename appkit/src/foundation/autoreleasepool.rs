@@ -13,7 +13,7 @@ impl AutoReleasePool {
         })
     }
 
-    pub fn drain(self) {
+    pub fn drain(&self) {
         let _: () = unsafe { msg_send![&*self.0, drain] };
     }
 }

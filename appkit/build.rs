@@ -9,6 +9,8 @@ fn main() {
         println!("cargo:rustc-link-lib=framework=CoreGraphics");
 
         println!("cargo:rustc-link-lib=framework=Security");
+
+        #[cfg(feature = "webview")]
         println!("cargo:rustc-link-lib=framework=WebKit");
         
         #[cfg(feature = "cloudkit")]

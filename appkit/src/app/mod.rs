@@ -5,14 +5,19 @@ use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-mod class;
-pub mod traits;
-pub mod enums;
-
 use crate::foundation::{id, AutoReleasePool};
 use crate::constants::APP_PTR;
 use crate::menu::Menu;
-use class::{register_app_class, register_app_controller_class};
+
+mod class;
+use class::register_app_class;
+
+mod controller;
+use controller::register_app_controller_class;
+
+pub mod enums;
+
+pub mod traits;
 pub use traits::{AppController, Dispatcher};
 
 /// A wrapper for `NSApplication`. It holds (retains) pointers for the Objective-C runtime, 
@@ -104,9 +109,10 @@ impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppController + Dispatch
     pub fn run(&self) {
         unsafe {
             let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
-            let _: () = msg_send![current_app, activateWithOptions:0];
+            let _: () = msg_send![current_app, activateWithOptions:1<<1];
             let shared_app: id = msg_send![class!(RSTApplication), sharedApplication];
             let _: () = msg_send![shared_app, run];
+            self.pool.drain();
         }
     }
 }

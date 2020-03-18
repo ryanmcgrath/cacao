@@ -45,7 +45,10 @@ pub mod toolbar;
 pub mod user_activity;
 pub mod utils;
 pub mod view;
-//pub mod webview;
+
+#[cfg(feature = "webview")]
+pub mod webview;
+
 pub mod window;
 
 // We re-export these so that they can be used without increasing build times.
@@ -69,9 +72,10 @@ pub mod prelude {
         Window, WindowController, WindowHandle
     };
 
-    //pub use crate::webview::{
-    //    WebView, WebViewConfig, WebViewController
-    //};
+    #[cfg(feature = "webview")]
+    pub use crate::webview::{
+        WebView, WebViewConfig, WebViewController
+    };
 
     pub use crate::view::{View, ViewHandle, ViewController};
 }
