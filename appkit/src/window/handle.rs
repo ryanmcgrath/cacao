@@ -4,15 +4,12 @@
 //! We use `NSWindowController` as it has lifecycle methods that are useful, in addition to the
 //! standard `NSWindowDelegate` methods.
 
-use cocoa::base::{id, nil, YES, NO};
-use cocoa::foundation::{NSSize, NSString};
-
 use objc::{msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
+use crate::foundation::{id, nil, YES, NO, CGSize, NSString};
 use crate::layout::traits::Layout;
-
 use crate::toolbar::{Toolbar, ToolbarController};
 
 #[derive(Debug, Default, Clone)]
@@ -24,7 +21,7 @@ impl WindowHandle {
     pub fn set_title(&self, title: &str) {
         if let Some(controller) = &self.0 {
             unsafe {
-                let title = NSString::alloc(nil).init_str(title);
+                let title = NSString::new(title);
                 let window: id = msg_send![*controller, window];
                 let _: () = msg_send![window, setTitle:title];
             }
@@ -72,7 +69,7 @@ impl WindowHandle {
          if let Some(controller) = &self.0 {
             unsafe {
                 let window: id = msg_send![*controller, window];
-                let autosave = NSString::alloc(nil).init_str(name);
+                let autosave = NSString::new(name);
                 let _: () = msg_send![window, setFrameAutosaveName:autosave]; 
             }
         }       
@@ -82,7 +79,7 @@ impl WindowHandle {
     pub fn set_minimum_content_size<F: Into<f64>>(&self, width: F, height: F) {
         if let Some(controller) = &self.0 {
             unsafe {
-                let size = NSSize::new(width.into(), height.into());
+                let size = CGSize::new(width.into(), height.into());
                 let window: id = msg_send![*controller, window];
                 let _: () = msg_send![window, setMinSize:size];
             }

@@ -4,12 +4,11 @@
 use std::rc::Rc;
 use std::sync::Once;
 
-use cocoa::base::id;
-
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel, sel_impl};
 
+use crate::foundation::id;
 use crate::constants::WINDOW_CONTROLLER_PTR;
 use crate::utils::load;
 use crate::window::WindowController;

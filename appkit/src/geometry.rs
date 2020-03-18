@@ -18,6 +18,11 @@ pub struct Rect {
 }
 
 impl Rect {
+    /// Returns a new `Rect` initialized with the values specified.
+    pub fn new(top: f64, left: f64, width: f64, height: f64) -> Self {
+        Rect { top: top, left: left, width: width, height: height }
+    }
+
     /// Returns a zero'd out Rect, with f64 (32-bit is mostly dead on Cocoa, so... this is "okay").
     pub fn zero() -> Rect {
         Rect {

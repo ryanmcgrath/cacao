@@ -3,13 +3,11 @@
 
 use std::sync::Once;
 
-use cocoa::base::{id, NO};
-use cocoa::foundation::{NSRect};
-
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::foundation::{id, NO, CGRect};
 use crate::constants::VIEW_CONTROLLER_PTR;
 use crate::geometry::Rect;
 use crate::view::ViewController;
@@ -18,7 +16,7 @@ use crate::view::class::register_view_class;
 /// Loads and configures ye old NSView for this controller.
 extern fn load_view<T: ViewController>(this: &mut Object, _: Sel) {
     unsafe {
-        let zero: NSRect = Rect::zero().into();
+        let zero: CGRect = Rect::zero().into();
         let view: id = msg_send![register_view_class::<T>(), new];
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
         let _: () = msg_send![view, setFrame:zero];

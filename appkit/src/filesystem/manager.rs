@@ -4,16 +4,14 @@
 use std::error::Error;
 use std::sync::RwLock;
 
-use cocoa::base::{id, nil, NO};
-use cocoa::foundation::{NSString, NSUInteger};
 use objc_id::Id;
 use objc::runtime::{BOOL, Object};
 use objc::{class, msg_send, sel, sel_impl};
 use url::Url;
 
+use crate::foundation::{id, nil, NO, NSString, NSUInteger};
 use crate::error::AppKitError;
 use crate::filesystem::enums::{SearchPathDirectory, SearchPathDomainMask};
-use crate::utils::str_from;
 
 pub struct FileManager {
     pub manager: RwLock<Id<Object>>
@@ -58,8 +56,7 @@ impl FileManager {
                 create:NO
                 error:nil];
 
-            let s: id = msg_send![dir, absoluteString];
-            str_from(s)
+            NSString::wrap(msg_send![dir, absoluteString]).to_str()
         };
         
         Url::parse(directory).map_err(|e| e.into())
@@ -69,12 +66,12 @@ impl FileManager {
     /// an error on the Objective-C side, which we attempt to handle and bubble up as a result if
     /// so.
     pub fn move_item(&self, from: Url, to: Url) -> Result<(), Box<dyn Error>> {
-        unsafe {
-            let s = NSString::alloc(nil).init_str(from.as_str());
-            let from_url: id = msg_send![class!(NSURL), URLWithString:s];
+        let from = NSString::new(from.as_str());
+        let to = NSString::new(to.as_str());
 
-            let s2 = NSString::alloc(nil).init_str(to.as_str());
-            let to_url: id = msg_send![class!(NSURL), URLWithString:s2];
+        unsafe {
+            let from_url: id = msg_send![class!(NSURL), URLWithString:from.into_inner()];
+            let to_url: id = msg_send![class!(NSURL), URLWithString:to.into_inner()];
 
             // This should potentially be write(), but the backing class handles this logic
             // already, so... going to leave it as read.

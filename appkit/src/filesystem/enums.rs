@@ -1,6 +1,6 @@
 //! Certain enums that are useful (response types, etc).
 
-use cocoa::foundation::{NSInteger, NSUInteger};
+use crate::foundation::{NSInteger, NSUInteger};
 
 pub enum ModalResponse {
     Ok,

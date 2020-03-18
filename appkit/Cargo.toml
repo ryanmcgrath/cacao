@@ -11,10 +11,10 @@ dispatch = "0.2.0"
 libc = "0.2"
 objc = "0.2.7"
 objc_id = "0.1.1"
-#uuid = { version = "0.8", features = ["v4"] }
+uuid = { version = "0.8", features = ["v4"], optional = true }
 url = "2.1.1"
 
 [features]
 cloudkit = []
-user-notifications = []
+user-notifications = ["uuid"]
 enable-webview-downloading = []

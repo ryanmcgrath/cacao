@@ -16,23 +16,9 @@ use crate::window::handle::WindowHandle;
 use crate::window::traits::WindowController;
 use crate::window::controller::register_window_controller_class;
 
-pub enum WindowTitleVisibility {
-    Visible,
-    Hidden
-}
-
-impl From<WindowTitleVisibility> for usize {
-    fn from(visibility: WindowTitleVisibility) -> usize {
-        match visibility {
-            WindowTitleVisibility::Visible => 0,
-            WindowTitleVisibility::Hidden => 1
-        }
-    }
-}
-
 /// A `Window` represents your way of interacting with an `NSWindow`. It wraps the various moving
 /// pieces to enable you to focus on reacting to lifecycle methods and doing your thing.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Window<T> {
     internal_callback_ptr: *const RefCell<T>,
     pub objc_controller: WindowHandle,

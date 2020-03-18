@@ -10,19 +10,16 @@
 use std::rc::Rc;
 use std::sync::Once;
 
-use cocoa::base::{id, nil, YES, NO};
-use cocoa::foundation::{NSUInteger};
-
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{msg_send, sel, sel_impl};
 use objc_id::Id;
 
+use crate::foundation::{id, nil, YES, NO, NSUInteger};
 use crate::constants::{BACKGROUND_COLOR, VIEW_CONTROLLER_PTR};
 use crate::dragdrop::DragInfo;
 use crate::view::traits::ViewController;
 use crate::utils::load;
-
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
 extern fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {

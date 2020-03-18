@@ -2,16 +2,16 @@
 //! Cocoa and associated widgets. This also handles looping back
 //! lifecycle events, such as window resizing or close events.
 
-use cocoa::base::{id, YES, NO};
-use cocoa::foundation::{NSRect, NSPoint, NSSize, NSUInteger};
-
 use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::foundation::{id, YES, NO, NSUInteger, CGRect};
+use crate::geometry::Rect;
+
 #[allow(non_upper_case_globals, non_snake_case)]
 pub mod WindowStyle {
-    use cocoa::foundation::NSUInteger;
+    use crate::foundation::NSUInteger;
 
     pub const Borderless: NSUInteger = 0;
     pub const Titled: NSUInteger = 1 << 0;
@@ -32,7 +32,7 @@ pub struct WindowConfig(pub Id<Object>);
 impl Default for WindowConfig {
     fn default() -> Self {
         WindowConfig(unsafe {
-            let dimensions = NSRect::new(NSPoint::new(0., 0.), NSSize::new(800., 600.));
+            let dimensions: CGRect = Rect::new(0., 0., 800., 600.).into();
 
             let style = WindowStyle::Resizable | WindowStyle::Miniaturizable | WindowStyle::UnifiedTitleAndToolbar |
                 WindowStyle::Closable | WindowStyle::Titled;

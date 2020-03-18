@@ -4,14 +4,11 @@
 
 use block::ConcreteBlock;
 
-use cocoa::base::{id, nil, YES, NO};
-use cocoa::foundation::{NSInteger, NSString};
-
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::utils::str_from;
+use crate::foundation::{id, nil, YES, NO, NSInteger, NSString};
 
 #[derive(Debug)]
 pub struct FileSavePanel {
@@ -54,7 +51,7 @@ impl FileSavePanel {
 
     pub fn set_suggested_filename(&mut self, suggested_filename: &str) {
         unsafe {
-            let filename = NSString::alloc(nil).init_str(suggested_filename);
+            let filename = NSString::new(suggested_filename);
             let _: () = msg_send![&*self.panel, setNameFieldStringValue:filename];
         }
     }
@@ -100,11 +97,12 @@ impl FileSavePanel {
 pub fn get_url(panel: &Object) -> Option<String> {
     unsafe {
         let url: id = msg_send![&*panel, URL];
+
         if url == nil {
             None
         } else {
             let path: id = msg_send![url, path];
-            Some(str_from(path).to_string())
+            Some(NSString::wrap(path).to_str().to_string())
         }
     }
 }

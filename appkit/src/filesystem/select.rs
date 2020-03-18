@@ -4,15 +4,12 @@
 
 use block::ConcreteBlock;
 
-use cocoa::base::{id, YES, NO};
-use cocoa::foundation::NSInteger;
-
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
+use crate::foundation::{id, YES, NO, NSInteger, NSString};
 use crate::filesystem::enums::ModalResponse;
-use crate::utils::str_from;
 
 #[derive(Debug)]
 pub struct FileSelectPanel {
@@ -156,8 +153,8 @@ pub fn get_urls(panel: &Object) -> Vec<String> {
             }
 
             let url: id = msg_send![urls, objectAtIndex:count-1];
-            let path: id = msg_send![url, absoluteString];
-            paths.push(str_from(path).to_string());
+            let path = NSString::wrap(msg_send![url, absoluteString]).to_str().to_string();
+            paths.push(path);
             count -= 1;
         }
     }
