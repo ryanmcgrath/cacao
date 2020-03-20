@@ -6,6 +6,7 @@
 fn main() {
     if std::env::var("TARGET").unwrap().contains("-apple") {
         println!("cargo:rustc-link-lib=framework=Foundation");
+        println!("cargo:rustc-link-lib=framework=Cocoa");
         println!("cargo:rustc-link-lib=framework=CoreGraphics");
 
         println!("cargo:rustc-link-lib=framework=Security");

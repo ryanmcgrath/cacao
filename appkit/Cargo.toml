@@ -5,6 +5,9 @@ authors = ["Ryan McGrath <ryan@rymc.io>"]
 edition = "2018"
 build = "build.rs"
 
+[lib]
+path = "lib.rs"
+
 [dependencies]
 block = "0.1.6"
 dispatch = "0.2.0"
@@ -18,4 +21,4 @@ url = "2.1.1"
 cloudkit = []
 user-notifications = ["uuid"]
 webview = []
-enable-webview-downloading = []
+webview-downloading = []
