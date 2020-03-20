@@ -155,6 +155,15 @@ impl<T> Window<T> {
         //}
     }
 
+    /// Given a view, sets it as the content view for this window.
+    pub fn set_content_view<L: Layout + 'static>(&self, view: &L) {
+        let backing_node = view.get_backing_node();
+
+        unsafe {
+            let _: () = msg_send![&*self.objc, setContentView:&*backing_node];
+        }
+    }
+
     /// Shows the window.
     pub fn show(&self) {
         unsafe {

@@ -79,6 +79,7 @@ impl View {
         let view: id = unsafe {
             let view: id = msg_send![register_view_class(), new];
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            let _: () = msg_send![view, setWantsLayer:YES];
             view
         };
 
@@ -93,44 +94,8 @@ impl View {
             height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
             center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
             center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: ShareId::from_ptr(view),
+            objc: unsafe { ShareId::from_ptr(view) },
         }
-    }
-
-    /// Call this to set the background color for the backing layer.
-    pub fn set_background_color(&self, color: Color) {
-        unsafe {
-            //let view: id = msg_send![*self.objc, view];
-            //(*view).set_ivar(BACKGROUND_COLOR, color.into_platform_specific_color());
-            //let _: () = msg_send![view, setNeedsDisplay:YES];
-        }
-    }
-
-    /// Register this view for drag and drop operations.
-    pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        unsafe {
-            let types: NSArray = types.into_iter().map(|t| {
-                // This clone probably doesn't need to be here, but it should also be cheap as
-                // this is just an enum... and this is not an oft called method.
-                let x: NSString = t.clone().into();
-                x.into_inner()
-            }).collect::<Vec<id>>().into();
-
-            let _: () = msg_send![&*self.objc, registerForDraggedTypes:types.into_inner()];
-        }
-    }
-
-    /// Given a subview, adds it to this view.
-    pub fn add_subview<T: Layout>(&self, subview: &T) {
-            /*if let Some(subview_controller) = subview.get_backing_node() {
-                unsafe {
-                    let _: () = msg_send![*this, addChildViewController:&*subview_controller];
-
-                    let subview: id = msg_send![&*subview_controller, view];
-                    let view: id = msg_send![*this, view];
-                    let _: () = msg_send![view, addSubview:subview]; 
-                }
-            }*/
     }
 }
 
@@ -152,9 +117,9 @@ impl<T> View<T> where T: ViewDelegate + 'static {
             view
         };
 
-        let view = View {
+        let mut view = View {
             internal_callback_ptr: Some(internal_callback_ptr),
-            delegate: Some(delegate),
+            delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
             trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
@@ -163,7 +128,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
             height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
             center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
             center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: ShareId::from_ptr(view),
+            objc: unsafe { ShareId::from_ptr(view) },
         };
 
         {
@@ -183,16 +148,65 @@ impl<T> View<T> where T: ViewDelegate + 'static {
             });
         }
 
+        view.delegate = Some(delegate);
         view
     }
 }
 
-impl Layout for View {
+impl<T> View<T> {
+    /// Call this to set the background color for the backing layer.
+    pub fn set_background_color(&self, color: Color) {
+        let bg = color.into_platform_specific_color();
+        
+        unsafe {
+            let cg: id = msg_send![bg, CGColor];
+            let layer: id = msg_send![&*self.objc, layer];
+            let _: () = msg_send![layer, setBackgroundColor:cg];
+            //let view: id = msg_send![*self.objc, view];
+            //(*view).set_ivar(BACKGROUND_COLOR, color.into_platform_specific_color());
+            //let _: () = msg_send![view, setNeedsDisplay:YES];
+        }
+    }
+
+    /// Register this view for drag and drop operations.
+    pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
+        unsafe {
+            let types: NSArray = types.into_iter().map(|t| {
+                // This clone probably doesn't need to be here, but it should also be cheap as
+                // this is just an enum... and this is not an oft called method.
+                let x: NSString = t.clone().into();
+                x.into_inner()
+            }).collect::<Vec<id>>().into();
+
+            let _: () = msg_send![&*self.objc, registerForDraggedTypes:types.into_inner()];
+        }
+    }
+
+    //pub fn add_subview<L: Layout>(&self, subview: &L) {
+            /*if let Some(subview_controller) = subview.get_backing_node() {
+                unsafe {
+                    let _: () = msg_send![*this, addChildViewController:&*subview_controller];
+
+                    let subview: id = msg_send![&*subview_controller, view];
+                    let view: id = msg_send![*this, view];
+                    let _: () = msg_send![view, addSubview:subview]; 
+                }
+            }*/
+    //}
+}
+
+impl<T> Layout for View<T> {
     fn get_backing_node(&self) -> ShareId<Object> {
         self.objc.clone()
     }
 
-    fn add_subview<V: Layout>(&self, _: &V) {}
+    fn add_subview<V: Layout>(&self, view: &V) {
+        let backing_node = view.get_backing_node();
+
+        unsafe {
+            let _: () = msg_send![&*self.objc, addSubview:backing_node];
+        }
+    }
 }
 
 impl<T> Drop for View<T> {

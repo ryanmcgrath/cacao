@@ -134,8 +134,8 @@ pub(crate) fn register_view_class() -> *const Class {
 
         decl.add_ivar::<id>(BACKGROUND_COLOR);
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
-        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern fn(&Object, _) -> BOOL);
-        decl.add_method(sel!(updateLayer), update_layer as extern fn(&Object, _));
+        //decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+        //decl.add_method(sel!(updateLayer), update_layer as extern fn(&Object, _));
     
         VIEW_CLASS = decl.register();
     });

@@ -16,7 +16,7 @@ use class::register_view_controller_class;
 //#[derive(Debug)]
 pub struct ViewController {
     pub objc: ShareId<Object>,
-    pub view: Box<ViewDelegate>
+    pub view: Box<dyn ViewDelegate>
 }
 
 impl ViewController {

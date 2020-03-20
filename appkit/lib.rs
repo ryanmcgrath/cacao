@@ -44,7 +44,7 @@ pub mod printing;
 pub mod toolbar;
 pub mod user_activity;
 pub mod utils;
-//pub mod view;
+pub mod view;
 
 #[cfg(feature = "webview")]
 pub mod webview;
