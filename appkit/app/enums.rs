@@ -29,3 +29,30 @@ impl From<TerminateResponse> for NSUInteger {
         }
     }
 }
+
+/// Used for responding to open/print/copy requests.
+/// You only really need this for calling `App::reply_to_open_or_print()`.
+/// The name is unfortunate, but it covers a variety of things, and by keeping it closer to the
+/// `NSApplication` documentation it may help some poor soul who needs to find information about
+/// it.
+#[derive(Copy, Clone, Debug)]
+pub enum AppDelegateResponse {
+    /// Cancelled.
+    Cancelled,
+
+    /// Success.
+    Success,
+
+    /// Failed.
+    Failure
+}
+
+impl From<AppDelegateResponse> for NSUInteger {
+    fn from(response: AppDelegateResponse) -> Self {
+        match response {
+            AppDelegateResponse::Cancelled => 1,
+            AppDelegateResponse::Success => 0,
+            AppDelegateResponse::Failure => 2
+        }
+    }
+}

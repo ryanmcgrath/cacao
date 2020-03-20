@@ -5,7 +5,7 @@ use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, AutoReleasePool};
+use crate::foundation::{id, YES, NO, NSUInteger, AutoReleasePool};
 use crate::constants::APP_PTR;
 use crate::menu::Menu;
 
@@ -16,9 +16,17 @@ mod delegate;
 use delegate::register_app_delegate_class;
 
 pub mod enums;
+pub use enums::AppDelegateResponse;
 
 pub mod traits;
 pub use traits::{AppDelegate, Dispatcher};
+
+/// A handler to make some boilerplate less annoying.
+#[inline]
+fn shared_application<F: Fn(id)>(handler: F) {
+    let app: id = unsafe { msg_send![register_app_class(), sharedApplication] };
+    handler(app);
+}
 
 /// A wrapper for `NSApplication`. It holds (retains) pointers for the Objective-C runtime, 
 /// which is where our application instance lives. It also injects an `NSObject` subclass,
@@ -29,29 +37,6 @@ pub struct App<T = (), M = ()> {
     pub delegate: Box<T>,
     pub pool: AutoReleasePool,
     _t: std::marker::PhantomData<M>
-}
-
-impl App {
-    /// Sets a set of `Menu`'s as the top level Menu for the current application. Note that behind
-    /// the scenes, Cocoa/AppKit make a copy of the menu you pass in - so we don't retain it, and
-    /// you shouldn't bother to either.
-    pub fn set_menu(menus: Vec<Menu>) {
-        unsafe {
-            let menu_cls = class!(NSMenu);
-            let main_menu: id = msg_send![menu_cls, new];
-
-            let item_cls = class!(NSMenuItem);
-            for menu in menus.iter() {
-                let item: id = msg_send![item_cls, new];
-                let _: () = msg_send![item, setSubmenu:&*menu.inner];
-                let _: () = msg_send![main_menu, addItem:item];
-            }
-
-            let cls = class!(RSTApplication);
-            let shared_app: id = msg_send![cls, sharedApplication];
-            let _: () = msg_send![shared_app, setMainMenu:main_menu];
-        }
-    }
 }
 
 impl<T> App<T> where T: AppDelegate + 'static {
@@ -103,6 +88,7 @@ impl<T> App<T> where T: AppDelegate + 'static {
     }
 } 
 
+// This is a hack and should be replaced with an actual messaging pipeline at some point. :)
 impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher<Message = M> {
     /// Dispatches a message by grabbing the `sharedApplication`, getting ahold of the delegate,
     /// and passing back through there. All messages are currently dispatched on the main thread.
@@ -115,6 +101,71 @@ impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher
             let delegate_ptr: usize = *(*app_delegate).get_ivar(APP_PTR);
             let delegate = delegate_ptr as *const T;
             (&*delegate).on_message(message);
+        });
+    }
+}
+
+impl App {
+    /// Registers for remote notifications from APNS.
+    pub fn register_for_remote_notifications() {
+        shared_application(|app| unsafe {
+            let _: () = msg_send![app, registerForRemoteNotifications];
+        });
+    }
+    
+    /// Unregisters for remote notifications from APNS.
+    pub fn unregister_for_remote_notifications() {
+        shared_application(|app| unsafe {
+            let _: () = msg_send![app, unregisterForRemoteNotifications];
+        });
+    }
+
+    /// Sets whether this application should relaunch at login.
+    pub fn set_relaunch_on_login(relaunch: bool) {
+        shared_application(|app| unsafe {
+            if relaunch {
+                let _: () = msg_send![app, enableRelaunchOnLogin];
+            } else {
+                let _: () = msg_send![app, disableRelaunchOnLogin];
+            }
+        });
+    }
+
+    /// Respond to a termination request. Generally done after returning `TerminateResponse::Later`
+    /// from your trait implementation of `should_terminate()`.
+    pub fn reply_to_termination_request(should_terminate: bool) {
+        shared_application(|app| unsafe {
+            let _: () = msg_send![app, replyToApplicationShouldTerminate:match should_terminate {
+                true => YES,
+                false => NO
+            }];
+        });
+    }
+
+    /// An optional call that you can use for certain scenarios surrounding opening/printing files.
+    pub fn reply_to_open_or_print(response: AppDelegateResponse) {
+        shared_application(|app| unsafe {
+            let r: NSUInteger = response.into();
+            let _: () = msg_send![app, replyToOpenOrPrint:r];
+        });
+    }
+
+    /// Sets a set of `Menu`'s as the top level Menu for the current application. Note that behind
+    /// the scenes, Cocoa/AppKit make a copy of the menu you pass in - so we don't retain it, and
+    /// you shouldn't bother to either.
+    pub fn set_menu(menus: Vec<Menu>) {
+        shared_application(|app| unsafe {
+            let menu_cls = class!(NSMenu);
+            let main_menu: id = msg_send![menu_cls, new];
+
+            let item_cls = class!(NSMenuItem);
+            for menu in menus.iter() {
+                let item: id = msg_send![item_cls, new];
+                let _: () = msg_send![item, setSubmenu:&*menu.inner];
+                let _: () = msg_send![main_menu, addItem:item];
+            }
+
+            let _: () = msg_send![app, setMainMenu:main_menu];
         });
     }
 }
