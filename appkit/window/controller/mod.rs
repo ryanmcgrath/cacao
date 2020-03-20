@@ -4,7 +4,7 @@ use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::foundation::{id, nil};
-use crate::layout::traits::Layout;
+use crate::utils::Controller;
 use crate::window::{Window, WindowConfig, WindowDelegate, WINDOW_DELEGATE_PTR};
 
 mod class;
@@ -51,9 +51,13 @@ impl<T> WindowController<T> where T: WindowDelegate + 'static {
         }
     }
 
-    /// Sets the content view controller for the window.
-    pub fn set_content_view_controller<VC: Layout + 'static>(&self, view_controller: &VC) {
-        //self.objc_controller.set_content_view_controller(view_controller);
+    /// Given a view, sets it as the content view controller for this window.
+    pub fn set_content_view_controller<C: Controller + 'static>(&self, controller: &C) {
+        let backing_node = controller.get_backing_node();
+
+        unsafe {
+            let _: () = msg_send![&*self.objc, setContentViewController:&*backing_node];
+        }
     }
 
     /// Shows the window, running a configuration pass if necessary.

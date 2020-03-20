@@ -14,7 +14,6 @@ use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::{id, YES, NO, NSArray, NSString};
 use crate::color::Color;
-use crate::constants::{BACKGROUND_COLOR, VIEW_DELEGATE_PTR};
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
 
@@ -27,6 +26,8 @@ pub use controller::ViewController;
 pub mod traits;
 pub use traits::ViewDelegate;
 
+pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
+
 /// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
 /// instead of a stock `View` for easier recordkeeping, since it'll need to hold the `View` on that
 /// side anyway.
@@ -37,7 +38,7 @@ pub struct View<T = ()> {
 
     /// An internal callback pointer that we use in delegate loopbacks. Default implementations
     /// don't require this.
-    internal_callback_ptr: Option<*const RefCell<T>>,
+    pub(crate) internal_callback_ptr: Option<*const RefCell<T>>,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Rc<RefCell<T>>>,
@@ -133,19 +134,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
 
         {
             let mut delegate = delegate.borrow_mut();
-            (*delegate).did_load(View { 
-                internal_callback_ptr: None,
-                delegate: None,
-                top: view.top.clone(),
-                leading: view.leading.clone(),
-                trailing: view.trailing.clone(),
-                bottom: view.bottom.clone(),
-                width: view.width.clone(),
-                height: view.height.clone(),
-                center_x: view.center_x.clone(),
-                center_y: view.center_y.clone(),
-                objc: view.objc.clone()
-            });
+            (*delegate).did_load(view.clone_as_handle()); 
         }
 
         view.delegate = Some(delegate);
@@ -154,6 +143,26 @@ impl<T> View<T> where T: ViewDelegate + 'static {
 }
 
 impl<T> View<T> {
+    /// An internal method that returns a clone of this object, sans references to the delegate or
+    /// callback pointer. We use this in calling `did_load()` - implementing delegates get a way to
+    /// reference, customize and use the view but without the trickery of holding pieces of the
+    /// delegate - the `View` is the only true holder of those.
+    pub(crate) fn clone_as_handle(&self) -> View {
+        View {
+            internal_callback_ptr: None,
+            delegate: None,
+            top: self.top.clone(),
+            leading: self.leading.clone(),
+            trailing: self.trailing.clone(),
+            bottom: self.bottom.clone(),
+            width: self.width.clone(),
+            height: self.height.clone(),
+            center_x: self.center_x.clone(),
+            center_y: self.center_y.clone(),
+            objc: self.objc.clone()
+        }
+    }
+
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color(&self, color: Color) {
         let bg = color.into_platform_specific_color();
@@ -162,9 +171,6 @@ impl<T> View<T> {
             let cg: id = msg_send![bg, CGColor];
             let layer: id = msg_send![&*self.objc, layer];
             let _: () = msg_send![layer, setBackgroundColor:cg];
-            //let view: id = msg_send![*self.objc, view];
-            //(*view).set_ivar(BACKGROUND_COLOR, color.into_platform_specific_color());
-            //let _: () = msg_send![view, setNeedsDisplay:YES];
         }
     }
 
@@ -181,18 +187,6 @@ impl<T> View<T> {
             let _: () = msg_send![&*self.objc, registerForDraggedTypes:types.into_inner()];
         }
     }
-
-    //pub fn add_subview<L: Layout>(&self, subview: &L) {
-            /*if let Some(subview_controller) = subview.get_backing_node() {
-                unsafe {
-                    let _: () = msg_send![*this, addChildViewController:&*subview_controller];
-
-                    let subview: id = msg_send![&*subview_controller, view];
-                    let view: id = msg_send![*this, view];
-                    let _: () = msg_send![view, addSubview:subview]; 
-                }
-            }*/
-    //}
 }
 
 impl<T> Layout for View<T> {
@@ -212,7 +206,7 @@ impl<T> Layout for View<T> {
 impl<T> Drop for View<T> {
     /// A bit of extra cleanup for delegate callback pointers.
     fn drop(&mut self) {
-        if let ptr = &self.internal_callback_ptr {
+        if let Some(ptr) = &self.internal_callback_ptr {
             unsafe {
                 let _ = Rc::from_raw(ptr);
             }

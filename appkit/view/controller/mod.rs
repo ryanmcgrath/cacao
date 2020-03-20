@@ -1,35 +1,41 @@
-use std::rc::Rc;
-use std::cell::RefCell;
-
 use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
 
-use crate::foundation::{id, NO};
-use crate::constants::VIEW_DELEGATE_PTR;
+use crate::foundation::id;
 use crate::layout::{Layout};
-use crate::view::traits::ViewDelegate;
+use crate::view::{VIEW_DELEGATE_PTR, View, ViewDelegate};
 
 mod class;
 use class::register_view_controller_class;
 
 //#[derive(Debug)]
-pub struct ViewController {
+pub struct ViewController<T> {
     pub objc: ShareId<Object>,
-    pub view: Box<dyn ViewDelegate>
+    pub view: View<T>
 }
 
-impl ViewController {
-    pub fn new<T: ViewDelegate + Layout + 'static>(view: T) -> Self {
-        let view = Box::new(view);
+impl<T> ViewController<T> where T: ViewDelegate + 'static {
+    pub fn new(delegate: T) -> Self {
+        let mut view = View::with(delegate);
 
         let objc = unsafe {
             let vc: id = msg_send![register_view_controller_class::<T>(), new];
+            
+            if let Some(ptr)= view.internal_callback_ptr {
+                (&mut *vc).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
+            }
+
             let _: () = msg_send![vc, setView:&*view.get_backing_node()];
-            let ptr: *const T = &*view;
-            (&mut *vc).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
+
             ShareId::from_ptr(vc)
         };
+
+        let handle = view.clone_as_handle();
+        if let Some(view_delegate) = &mut view.delegate {
+            let mut view_delegate = view_delegate.borrow_mut();
+            (*view_delegate).did_load(handle);
+        }
 
         ViewController {
             objc: objc,

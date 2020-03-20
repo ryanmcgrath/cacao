@@ -6,7 +6,6 @@ use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, YES, NO, NSUInteger, AutoReleasePool};
-use crate::constants::APP_PTR;
 use crate::menu::Menu;
 
 mod class;
@@ -20,6 +19,8 @@ pub use enums::AppDelegateResponse;
 
 pub mod traits;
 pub use traits::{AppDelegate, Dispatcher};
+
+pub(crate) static APP_PTR: &str = "rstAppPtr";
 
 /// A handler to make some boilerplate less annoying.
 #[inline]

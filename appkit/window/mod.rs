@@ -11,6 +11,7 @@ use objc_id::ShareId;
 use crate::foundation::{id, nil, YES, NO, NSString, NSUInteger, CGRect, CGSize};
 use crate::layout::traits::Layout;
 use crate::toolbar::{Toolbar, ToolbarController};
+use crate::utils::Controller;
 
 mod class;
 use class::{register_window_class, register_window_class_with_delegate};
@@ -146,21 +147,21 @@ impl<T> Window<T> {
         }
     }
 
-    /// Used for setting the content view controller for this window.
-    pub fn set_content_view_controller<L: Layout + 'static>(&self, view_controller: &L) {
-        //unsafe {
-        //    if let Some(vc) = view_controller.get_backing_node() {
-        //        let _: () = msg_send![*controller, setContentViewController:&*vc];
-        //    }
-        //}
-    }
-
     /// Given a view, sets it as the content view for this window.
     pub fn set_content_view<L: Layout + 'static>(&self, view: &L) {
         let backing_node = view.get_backing_node();
 
         unsafe {
             let _: () = msg_send![&*self.objc, setContentView:&*backing_node];
+        }
+    }
+
+    /// Given a view, sets it as the content view controller for this window.
+    pub fn set_content_view_controller<C: Controller + 'static>(&self, controller: &C) {
+        let backing_node = controller.get_backing_node();
+
+        unsafe {
+            let _: () = msg_send![&*self.objc, setContentViewController:&*backing_node];
         }
     }
 

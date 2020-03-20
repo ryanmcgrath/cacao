@@ -6,6 +6,13 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use objc::runtime::Object;
+use objc_id::ShareId;
+
+/// A generic trait that's used throughout multiple different controls in this framework - acts as
+/// a guard for whether something is a (View|etc)Controller. Only needs to return the backing node.
+pub trait Controller {
+    fn get_backing_node(&self) -> ShareId<Object>;
+}
 
 /// Used for moving a pointer back into an Rc, so we can work with the object held behind it. Note
 /// that it's very important to make sure you reverse this when you're done (using

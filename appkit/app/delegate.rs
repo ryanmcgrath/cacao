@@ -14,10 +14,10 @@ use objc::runtime::{Class, Object, Sel};
 
 use url::Url;
 
-use crate::foundation::{id, nil, BOOL, YES, NO, NSUInteger, NSArray, NSString};
+use crate::app::APP_PTR;
 use crate::app::traits::AppDelegate;
-use crate::constants::APP_PTR;
 use crate::error::AppKitError;
+use crate::foundation::{id, nil, BOOL, YES, NO, NSUInteger, NSArray, NSString};
 use crate::printing::PrintSettings;
 use crate::user_activity::UserActivity;
 

@@ -12,31 +12,17 @@ use std::sync::Once;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, nil, YES, NO, NSUInteger};
-use crate::constants::{BACKGROUND_COLOR, VIEW_DELEGATE_PTR};
+use crate::foundation::{id, YES, NO, NSUInteger};
 use crate::dragdrop::DragInfo;
-use crate::view::traits::ViewDelegate;
+use crate::view::{VIEW_DELEGATE_PTR, ViewDelegate};
 use crate::utils::load;
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
 extern fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
     return YES;
-}
-
-/// Used for handling background colors in layer backed views (which is the default here).
-/// @TODO: This could be more efficient, I think.
-extern fn update_layer(this: &Object, _: Sel) {
-    unsafe {
-        let background_color: id = *this.get_ivar(BACKGROUND_COLOR);
-        if background_color != nil {
-            let layer: id = msg_send![this, layer];
-            let cg: id = msg_send![background_color, CGColor];
-            let _: () = msg_send![layer, setBackgroundColor:cg];
-        }
-    }
 }
 
 /// Called when a drag/drop operation has entered this view.
@@ -132,10 +118,7 @@ pub(crate) fn register_view_class() -> *const Class {
         let superclass = class!(NSView);
         let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
 
-        decl.add_ivar::<id>(BACKGROUND_COLOR);
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
-        //decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern fn(&Object, _) -> BOOL);
-        //decl.add_method(sel!(updateLayer), update_layer as extern fn(&Object, _));
     
         VIEW_CLASS = decl.register();
     });
@@ -156,11 +139,8 @@ pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>() -> *const Cla
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
-        decl.add_ivar::<id>(BACKGROUND_COLOR);
         
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
-        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern fn(&Object, _) -> BOOL);
-        decl.add_method(sel!(updateLayer), update_layer as extern fn(&Object, _));
 
         // Drag and drop operations (e.g, accepting files)
         decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger);

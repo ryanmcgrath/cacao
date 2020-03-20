@@ -7,8 +7,7 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel, sel_impl};
 
-use crate::constants::VIEW_DELEGATE_PTR;
-use crate::view::traits::ViewDelegate;
+use crate::view::{VIEW_DELEGATE_PTR, ViewDelegate};
 use crate::utils::load;
 
 /// Called when the view controller receives a `viewWillAppear` message.
