@@ -5,7 +5,7 @@ use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, YES, NO, NSString};
+use crate::foundation::{id, YES, NO, NSString, NSInteger};
 use crate::webview::enums::InjectAt;
 
 /// A wrapper for `WKWebViewConfiguration`. Holds (retains) pointers for the Objective-C runtime 
@@ -40,10 +40,11 @@ impl WebViewConfig {
     /// Adds the given user script to the underlying `WKWebView` user content controller.
     pub fn add_user_script(&mut self, script: &str, at: InjectAt, main_frame_only: bool) {
         let source = NSString::new(script);
+        let at: NSInteger = at.into();
         
         unsafe {
             let alloc: id = msg_send![class!(WKUserScript), alloc]; 
-            let user_script: id = msg_send![alloc, initWithSource:source injectionTime:inject_at forMainFrameOnly:match main_frame_only {
+            let user_script: id = msg_send![alloc, initWithSource:source injectionTime:at forMainFrameOnly:match main_frame_only {
                 true => YES,
                 false => NO
             }];
@@ -64,11 +65,8 @@ impl WebViewConfig {
         }
     }
 
-    pub(crate) fn attach_handlers(&self, target: id) {
-
-    }
-
-    pub fn into_inner(self) -> id {
+    /// Consumes and returns the underlying `WKWebViewConfiguration`.
+    pub fn into_inner(mut self) -> id {
         &mut *self.objc
     }
 }

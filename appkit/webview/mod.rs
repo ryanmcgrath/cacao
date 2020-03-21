@@ -9,10 +9,10 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use objc_id::ShareId;
-use objc::runtime::{Class, Object};
+use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, YES, NO, CGRect, NSString};
+use crate::foundation::{id, YES, NO, CGRect, NSString};
 use crate::geometry::Rect;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
@@ -20,7 +20,7 @@ pub mod actions;
 pub mod enums;
 
 pub(crate) mod class;
-use class::{register_webview_class, register_webview_class_with_delegate};
+use class::{register_webview_class, register_webview_delegate_class};
 //pub(crate) mod process_pool;
 
 pub mod traits;
@@ -32,31 +32,38 @@ pub use config::WebViewConfig;
 pub(crate) static WEBVIEW_DELEGATE_PTR: &str = "rstWebViewDelegatePtr";
 
 fn allocate_webview(
-    config: WebViewConfig,
-    delegate: Option<&Object>
+    mut config: WebViewConfig,
+    objc_delegate: Option<&Object>
 ) -> id {
     unsafe {
+        // Not a fan of this, but we own it anyway, so... meh.
+        let handlers = std::mem::take(&mut config.handlers);
         let configuration = config.into_inner();
         
-        if let Some(delegate) = objc_delegate {
+        if let Some(delegate) = &objc_delegate {
             // Technically private!
             #[cfg(feature = "webview-downloading")]
             let process_pool: id = msg_send![configuration, processPool]; 
             #[cfg(feature = "webview-downloading")]
             let _: () = msg_send![process_pool, _setDownloadDelegate:*delegate];
 
-            // add handlers
-            for
+            let content_controller: id = msg_send![configuration, userContentController];
+            for handler in handlers {
+                let name = NSString::new(&handler);
+                let _: () = msg_send![content_controller, addScriptMessageHandler:*delegate name:name];
+            }
         }
 
         let zero: CGRect = Rect::zero().into();
         let webview_alloc: id = msg_send![register_webview_class(), alloc];
         let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration:configuration];
-
         let _: () = msg_send![webview, setWantsLayer:YES];
         let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints:NO];
-        let _: () = msg_send![webview, setNavigationDelegate:webview];
-        let _: () = msg_send![webview, setUIDelegate:webview];
+
+        if let Some(delegate) = &objc_delegate {
+            let _: () = msg_send![webview, setNavigationDelegate:*delegate];
+            let _: () = msg_send![webview, setUIDelegate:*delegate];
+        }
 
         webview
     }
@@ -110,7 +117,7 @@ impl Default for WebView {
 
 impl WebView {
     pub fn new(config: WebViewConfig) -> Self {
-        let view = allocate_webview(register_webview_class, config, None);
+        let view = allocate_webview(config, None);
 
         WebView {
             internal_callback_ptr: None,
@@ -141,7 +148,7 @@ impl<T> WebView<T> where T: WebViewDelegate + 'static {
         };
 
         let objc_delegate = unsafe {
-            let objc_delegate: id = msg_send![register_webview_delegate_class::<T>, new];
+            let objc_delegate: id = msg_send![register_webview_delegate_class::<T>(), new];
             (&mut *objc_delegate).set_ivar(WEBVIEW_DELEGATE_PTR, internal_callback_ptr as usize);
             ShareId::from_ptr(objc_delegate)
         };
@@ -194,6 +201,18 @@ impl<T> WebView<T> {
             objc_delegate: None
         }
     }
+
+    /// Given a URL, instructs the WebView to load it.
+    //  @TODO: Make this take Url instead? Fine for testing now I suppose.
+    pub fn load_url(&self, url: &str) {
+        let url = NSString::new(url);
+
+        unsafe {
+            let u: id = msg_send![class!(NSURL), URLWithString:url.into_inner()];
+            let request: id = msg_send![class!(NSURLRequest), requestWithURL:u];
+            let _: () = msg_send![&*self.objc, loadRequest:request];
+        }
+    }
 }
 
 impl<T> Layout for WebView<T> {
@@ -202,9 +221,9 @@ impl<T> Layout for WebView<T> {
         self.objc.clone()
     }
 
-    fn add_subview<V: Layout>(&self, subview: &V) {
-
-    }
+    /// Currently, this is a noop. Theoretically there is reason to support this, but in practice
+    /// I've never seen it needed... but am open to discussion.
+    fn add_subview<V: Layout>(&self, _: &V) {}
 }
 
 impl<T> std::fmt::Debug for WebView<T> {
@@ -216,10 +235,14 @@ impl<T> std::fmt::Debug for WebView<T> {
 impl<T> Drop for WebView<T> {
     /// A bit of extra cleanup for delegate callback pointers.
     fn drop(&mut self) {
-        unsafe {
-            if let Some(ptr) = self.internal_callback_ptr {
-                let _ = Rc::from_raw(ptr);
+        /*println!("... {}", self.delegate.is_some());
+        if let Some(delegate) = &self.delegate {
+            println!("Strong count: {}", Rc::strong_count(&delegate));
+            if Rc::strong_count(&delegate) == 1 {
+                let _ = unsafe { 
+                    Rc::from_raw(self.internal_callback_ptr.unwrap())
+                };
             }
-        }
+        }*/
     }
 }

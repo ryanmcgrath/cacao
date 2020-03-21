@@ -32,7 +32,7 @@ impl NSString {
 
     pub fn wrap(object: id) -> Self {
         NSString(unsafe {
-            Id::from_retained_ptr(object)
+            Id::from_ptr(object)
         })
     }
 

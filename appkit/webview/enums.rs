@@ -24,6 +24,24 @@ pub enum NavigationType {
     Other
 }
 
+// For whatever reason, impl From<> below doesn't generate the reciprocal impl Into<> we need.
+// So I guess we'll do it ourselves.
+// 
+// This panic will be removed and is for testing purposes only right now.
+impl Into<NavigationType> for NSInteger {
+    fn into(self) -> NavigationType {
+        match self {
+            -1 => NavigationType::Other,
+            0 => NavigationType::LinkActivated,
+            1 => NavigationType::FormSubmitted,
+            2 => NavigationType::BackForward,
+            3 => NavigationType::Reload,
+            4 => NavigationType::FormResubmitted,
+            _ => { panic!("Unsupported WKWebView NavigationType value found!"); }
+        }
+    }
+}
+
 impl From<NavigationType> for NSInteger {
     fn from(nav_type: NavigationType) -> Self {
         match nav_type {

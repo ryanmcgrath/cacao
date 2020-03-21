@@ -2,8 +2,9 @@
 //! this is primarily used as the ContentView for a window. From there,
 //! we configure an NSToolbar and WKWebview on top of them.
 
-use std::sync::Once;
 use std::ffi::c_void;
+use std::sync::Once;
+use std::rc::Rc;
 
 use block::Block;
 
@@ -11,16 +12,16 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, YES, NO, CGRect, NSString, NSArray, NSInteger};
+use crate::foundation::{id, nil, YES, NO, NSString, NSArray, NSInteger};
 use crate::webview::{WEBVIEW_DELEGATE_PTR, WebViewDelegate};
-use crate::webview::actions::{NavigationAction, NavigationResponse, OpenPanelParameters};
-use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
+use crate::webview::actions::{NavigationAction, NavigationResponse};//, OpenPanelParameters};
+//use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
+use crate::utils::load;
 
 /// Called when an `alert()` from the underlying `WKWebView` is fired. Will call over to your
 /// `WebViewController`, where you should handle the event.
 extern fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, s: id, _: id, complete: id) {
     let alert = NSString::wrap(s).to_str();
-    println!("Alert: {}", alert);
 
     // @TODO: This is technically (I think?) a private method, and there's some other dance that
     // needs to be done here involving taking the pointer/invoke/casting... but this is fine for
@@ -31,7 +32,7 @@ extern fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, s: id, _: id, com
 
     /*unsafe {
         let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
-        let webview = ptr as *const T;
+        let delegate = ptr as *const T;
         (*webview).alert(alert);
     }*/
 
@@ -44,73 +45,80 @@ extern fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, s: id, _: id, com
 
 /// Fires when a message has been passed from the underlying `WKWebView`.
 extern fn on_message<T: WebViewDelegate>(this: &Object, _: Sel, _: id, script_message: id) {
+    let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
+
     unsafe {
         let name = NSString::wrap(msg_send![script_message, name]).to_str();
         let body = NSString::wrap(msg_send![script_message, body]).to_str();
-
-        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
-        let webview = ptr as *const T;
-        (*webview).on_message(name, body);
+        let d = delegate.borrow();
+        (*d).on_message(name, body);
     }
+
+    Rc::into_raw(delegate);
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
 extern fn decide_policy_for_action<T: WebViewDelegate>(this: &Object, _: Sel, _: id, action: id, handler: usize) {
-    let webview = unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
-        let webview = ptr as *const T;
-        &*webview
-    };
+    let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     let action = NavigationAction::new(action);
-    webview.policy_for_navigation_action(action, |policy| {
-        // This is very sketch and should be heavily checked. :|
-        unsafe {
+    
+    {
+        let d = delegate.borrow();
+
+        (*d).policy_for_navigation_action(action, |policy| unsafe {
             let handler = handler as *const Block<(NSInteger,), c_void>;
             (*handler).call((policy.into(),));
-        }
-    }); 
+        }); 
+    }
+
+    Rc::into_raw(delegate);
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
 extern fn decide_policy_for_response<T: WebViewDelegate>(this: &Object, _: Sel, _: id, response: id, handler: usize) {
-    let webview = unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
-        let webview = ptr as *const T;
-        &*webview
-    };
+    let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     let response = NavigationResponse::new(response);
-    webview.policy_for_navigation_response(response, |policy| unsafe {
-        let handler = handler as *const Block<(NSInteger,), c_void>;
-        (*handler).call((policy.into(),));
-    });
+
+    {
+        let d = delegate.borrow();
+
+        (*d).policy_for_navigation_response(response, |policy| unsafe {
+            let handler = handler as *const Block<(NSInteger,), c_void>;
+            (*handler).call((policy.into(),));
+        });
+    }
+
+    Rc::into_raw(delegate);
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
 extern fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, params: id, _: id, handler: usize) {
-    let webview = unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
-        let webview = ptr as *const T;
-        &*webview
-    };
+    let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
-    webview.run_open_panel(params.into(), move |urls| unsafe {
-        let handler = handler as *const Block<(id,), c_void>;
+    {
+        let d = delegate.borrow();
 
-        match urls {
-            Some(u) => {
-                let nsurls: NSArray = u.iter().map(|s| {
-                    let s = NSString::new(s);
-                    msg_send![class!(NSURL), URLWithString:s]
-                }).collect::<Vec<id>>().into();
+        (*d).run_open_panel(params.into(), move |urls| unsafe {
+            let handler = handler as *const Block<(id,), c_void>;
 
-                (*handler).call((nsurls.into_inner(),));
-            },
+            match urls {
+                Some(u) => {
+                    let nsurls: NSArray = u.iter().map(|s| {
+                        let s = NSString::new(s);
+                        msg_send![class!(NSURL), URLWithString:s.into_inner()]
+                    }).collect::<Vec<id>>().into();
 
-            None => { (*handler).call((nil,)); }
-        }
-    });
+                    (*handler).call((nsurls.into_inner(),));
+                },
+
+                None => { (*handler).call((nil,)); }
+            }
+        });
+    }
+
+    Rc::into_raw(delegate);
 }
 
 /// Called when a download has been initiated in the WebView, and when the navigation policy
@@ -118,27 +126,29 @@ extern fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, param
 /// API.
 #[cfg(feature = "webview-downloading")]
 extern fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
-    let webview = unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
-        let webview = ptr as *const T;
-        &*webview
-    };
+    let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     let handler = handler as *const Block<(objc::runtime::BOOL, id), c_void>; 
     let filename = NSString::wrap(suggested_filename).to_str();
 
-    webview.run_save_panel(filename, move |can_overwrite, path| unsafe {
-        if path.is_none() {
-            let _: () = msg_send![download, cancel];
-        }
+    {
+        let d = delegate.borrow();
 
-        let path = NSString::new(&path.unwrap());
-        
-        (*handler).call((match can_overwrite {
-            true => YES,
-            false => NO
-        }, path.into_inner()));
-    });
+        (*d).run_save_panel(filename, move |can_overwrite, path| unsafe {
+            if path.is_none() {
+                let _: () = msg_send![download, cancel];
+            }
+
+            let path = NSString::new(&path.unwrap());
+            
+            (*handler).call((match can_overwrite {
+                true => YES,
+                false => NO
+            }, path.into_inner()));
+        });
+    }
+
+    Rc::into_raw(delegate);
 }
 
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
