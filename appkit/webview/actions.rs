@@ -4,6 +4,7 @@ use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::{id, BOOL, YES, NO, NSInteger};
 use crate::networking::URLRequest;
+use crate::webview::enums::NavigationType;
 
 #[derive(Debug)]
 pub struct NavigationAction {
@@ -41,7 +42,6 @@ impl NavigationResponse {
         }
     }
 }
-
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct OpenPanelParameters {

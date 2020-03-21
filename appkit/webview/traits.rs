@@ -2,27 +2,16 @@
 //! `WKWebView`. It allows you to do things such as handle opening a file (for uploads or
 //! in-browser-processing), handling navigation actions or JS message callbacks, and so on.
 
-use crate::webview::config::WebViewConfig;
-use crate::webview::enums::{
-    NavigationAction, NavigationPolicy,
-    NavigationResponse, NavigationResponsePolicy,
-    OpenPanelParameters
-};
-use crate::webview::handle::WebViewHandle;
+use crate::webview::WebView;
+use crate::webview::actions::{NavigationAction, NavigationResponse, OpenPanelParameters};
+use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
 
 /// You can implement this on structs to handle callbacks from the underlying `WKWebView`.
-pub trait WebViewController {
-    /// Due to a quirk in how the underlying `WKWebView` works, the configuration object must be
-    /// set up before initializing anything. To enable this, you can implement this method and
-    /// return whatever `WebViewConfig` object you want.
-    ///
-    /// By default, this returns `WebViewConfig::default()`.
-    fn configure(&mut self) -> WebViewConfig { WebViewConfig::default() }
-    
+pub trait WebViewDelegate {   
     /// Called when the View is ready to work with. You're passed a `ViewHandle` - this is safe to
     /// store and use repeatedly, but it's not thread safe - any UI calls must be made from the
     /// main thread!
-    fn did_load(&mut self, _view: WebViewHandle) {}
+    fn did_load(&mut self, _webview: WebView) {}
 
     /// Called when this is about to be added to the view heirarchy.
     fn will_appear(&self) {}

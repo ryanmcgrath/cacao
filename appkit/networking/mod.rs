@@ -7,6 +7,7 @@ use objc_id::Id;
 
 use crate::foundation::{id, NSString};
 
+#[derive(Debug)]
 pub struct URLRequest {
     pub inner: Id<Object>
 }

@@ -9,7 +9,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use objc_id::ShareId;
-use objc::runtime::Object;
+use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::{id, YES, NO, NSArray, NSString};
@@ -27,6 +27,16 @@ pub mod traits;
 pub use traits::ViewDelegate;
 
 pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
+
+/// A helper method for instantiating view classes and applying default settings to them.
+fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
+    unsafe {
+        let view: id = msg_send![registration_fn(), new];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let _: () = msg_send![view, setWantsLayer:YES];
+        view 
+    }
+}
 
 /// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
 /// instead of a stock `View` for easier recordkeeping, since it'll need to hold the `View` on that
@@ -77,12 +87,7 @@ impl Default for View {
 impl View {
     /// Returns a default `View`, suitable for 
     pub fn new() -> Self {
-        let view: id = unsafe {
-            let view: id = msg_send![register_view_class(), new];
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
-            let _: () = msg_send![view, setWantsLayer:YES];
-            view
-        };
+        let view = allocate_view(register_view_class);
 
         View {
             internal_callback_ptr: None,
@@ -111,11 +116,11 @@ impl<T> View<T> where T: ViewDelegate + 'static {
             Rc::into_raw(cloned)
         };
 
-        let view = unsafe {
-            let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let view = allocate_view(register_view_class_with_delegate::<T>);
+        unsafe {
+            //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
+            //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             (&mut *view).set_ivar(VIEW_DELEGATE_PTR, internal_callback_ptr as usize);
-            view
         };
 
         let mut view = View {

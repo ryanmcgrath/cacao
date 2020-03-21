@@ -69,13 +69,13 @@ pub mod prelude {
     pub use crate::networking::URLRequest;
 
     pub use crate::window::{
-        Window, /*WindowController,*/ WindowDelegate
+        Window, WindowConfig, WindowDelegate
     };
 
     #[cfg(feature = "webview")]
     pub use crate::webview::{
-        WebView, WebViewConfig, WebViewController
+        WebView, WebViewConfig, WebViewDelegate
     };
 
-    //pub use crate::view::{View, ViewController, ViewDelegate};
+    pub use crate::view::{View, ViewDelegate};
 }

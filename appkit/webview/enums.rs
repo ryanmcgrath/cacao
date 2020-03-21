@@ -3,6 +3,7 @@
 use crate::foundation::NSInteger;
 
 /// Describes a navigation type from within the `WebView`.
+#[derive(Clone, Copy, Debug)]
 pub enum NavigationType {
     /// A user activated a link.
     LinkActivated,
@@ -23,21 +24,21 @@ pub enum NavigationType {
     Other
 }
 
-impl From<NSInteger> for NavigationType {
-    fn from(i: NSInteger) -> Self {
-        match i {
-            -1 => NavigationType::Other,
-            0 => NavigationType::LinkActivated,
-            1 => NavigationType::FormSubmitted,
-            2 => NavigationType::BackForward,
-            3 => NavigationType::Reload,
-            4 => NavigationType::FormResubmitted,
-            e => { panic!("Unsupported navigation type: {}", e); }
+impl From<NavigationType> for NSInteger {
+    fn from(nav_type: NavigationType) -> Self {
+        match nav_type {
+            NavigationType::Other => -1,
+            NavigationType::LinkActivated => 0,
+            NavigationType::FormSubmitted => 1,
+            NavigationType::BackForward => 2,
+            NavigationType::Reload => 3,
+            NavigationType::FormResubmitted => 4
         }
     }
 }
 
 /// Describes the policy for a given navigation.
+#[derive(Clone, Copy, Debug)]
 pub enum NavigationPolicy {
     /// Should be canceled.
     Cancel,
@@ -47,8 +48,8 @@ pub enum NavigationPolicy {
 }
 
 impl From<NavigationPolicy> for NSInteger {
-    fn into(self) -> Self {
-        match self {
+    fn from(policy: NavigationPolicy) -> Self {
+        match policy {
             NavigationPolicy::Cancel => 0,
             NavigationPolicy::Allow => 1
         }
@@ -56,6 +57,7 @@ impl From<NavigationPolicy> for NSInteger {
 }
 
 /// Describes a response policy for a given navigation.
+#[derive(Clone, Copy, Debug)]
 pub enum NavigationResponsePolicy {
     /// Should be canceled.
     Cancel,
@@ -70,8 +72,8 @@ pub enum NavigationResponsePolicy {
 }
 
 impl From<NavigationResponsePolicy> for NSInteger {
-    fn into(self) -> Self {
-        match self {
+    fn from(policy: NavigationResponsePolicy) -> Self {
+        match policy {
             NavigationResponsePolicy::Cancel => 0,
             NavigationResponsePolicy::Allow => 1,
             
@@ -82,6 +84,7 @@ impl From<NavigationResponsePolicy> for NSInteger {
 }
 
 /// Dictates where a given user script should be injected.
+#[derive(Clone, Copy, Debug)]
 pub enum InjectAt {
     /// Inject at the start of the document.
     Start = 0,

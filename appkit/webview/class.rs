@@ -12,51 +12,13 @@ use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, CGRect, NSString, NSArray, NSInteger};
-use crate::constants::{WEBVIEW_VAR, WEBVIEW_CONFIG_VAR, WEBVIEW_CONTROLLER_PTR};
-use crate::geometry::Rect;
-use crate::view::traits::ViewController;
-use crate::webview::action::{NavigationAction, NavigationResponse};
-use crate::webview::traits::WebViewController;
-
-/// Loads and configures ye old WKWebView/View for this controller.
-extern fn load_view<T: ViewController + WebViewController>(this: &mut Object, _: Sel) {
-    unsafe {
-        let configuration: id = *this.get_ivar(WEBVIEW_CONFIG_VAR);
-
-        // Technically private!
-        #[cfg(feature = "webview-downloading")]
-        let process_pool: id = msg_send![configuration, processPool];
-        #[cfg(feature = "webview-downloading")]
-        let _: () = msg_send![process_pool, _setDownloadDelegate:&*this];
-
-        let zero: CGRect = Rect::zero().into();
-        let webview_alloc: id = msg_send![class!(WKWebView), alloc];
-        let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration:configuration];
-        let _: () = msg_send![webview, setWantsLayer:YES];
-        let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints:NO];
- 
-        // Provide an easy way to grab this later
-        (*this).set_ivar(WEBVIEW_VAR, webview);
-        
-        // Clean this up to be safe, as WKWebView makes a copy and we don't need it anymore.
-        (*this).set_ivar(WEBVIEW_CONFIG_VAR, nil);
-
-        let _: () = msg_send![this, setView:webview]; 
-    }
-}
-
-/// Used to connect delegates - doing this in `loadView` can be... bug-inducing.
-extern fn view_did_load<T: ViewController + WebViewController>(this: &Object, _: Sel) {
-    unsafe {
-        let webview: id = *this.get_ivar(WEBVIEW_VAR);
-        let _: () = msg_send![webview, setNavigationDelegate:&*this];
-        let _: () = msg_send![webview, setUIDelegate:&*this];
-    }
-}
+use crate::webview::{WEBVIEW_DELEGATE_PTR, WebViewDelegate};
+use crate::webview::actions::{NavigationAction, NavigationResponse, OpenPanelParameters};
+use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
 
 /// Called when an `alert()` from the underlying `WKWebView` is fired. Will call over to your
 /// `WebViewController`, where you should handle the event.
-extern fn alert<T: WebViewController + 'static>(_: &Object, _: Sel, _: id, s: id, _: id, complete: id) {
+extern fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, s: id, _: id, complete: id) {
     let alert = NSString::wrap(s).to_str();
     println!("Alert: {}", alert);
 
@@ -68,7 +30,7 @@ extern fn alert<T: WebViewController + 'static>(_: &Object, _: Sel, _: id, s: id
     }
 
     /*unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_CONTROLLER_PTR);
+        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
         let webview = ptr as *const T;
         (*webview).alert(alert);
     }*/
@@ -81,21 +43,21 @@ extern fn alert<T: WebViewController + 'static>(_: &Object, _: Sel, _: id, s: id
 }
 
 /// Fires when a message has been passed from the underlying `WKWebView`.
-extern fn on_message<T: WebViewController + 'static>(this: &Object, _: Sel, _: id, script_message: id) {
+extern fn on_message<T: WebViewDelegate>(this: &Object, _: Sel, _: id, script_message: id) {
     unsafe {
         let name = NSString::wrap(msg_send![script_message, name]).to_str();
         let body = NSString::wrap(msg_send![script_message, body]).to_str();
 
-        let ptr: usize = *this.get_ivar(WEBVIEW_CONTROLLER_PTR);
+        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
         let webview = ptr as *const T;
         (*webview).on_message(name, body);
     }
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
-extern fn decide_policy_for_action<T: WebViewController + 'static>(this: &Object, _: Sel, _: id, action: id, handler: usize) {
+extern fn decide_policy_for_action<T: WebViewDelegate>(this: &Object, _: Sel, _: id, action: id, handler: usize) {
     let webview = unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_CONTROLLER_PTR);
+        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
         let webview = ptr as *const T;
         &*webview
     };
@@ -111,9 +73,9 @@ extern fn decide_policy_for_action<T: WebViewController + 'static>(this: &Object
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
-extern fn decide_policy_for_response<T: WebViewController + 'static>(this: &Object, _: Sel, _: id, response: id, handler: usize) {
+extern fn decide_policy_for_response<T: WebViewDelegate>(this: &Object, _: Sel, _: id, response: id, handler: usize) {
     let webview = unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_CONTROLLER_PTR);
+        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
         let webview = ptr as *const T;
         &*webview
     };
@@ -126,9 +88,9 @@ extern fn decide_policy_for_response<T: WebViewController + 'static>(this: &Obje
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
-extern fn run_open_panel<T: WebViewController + 'static>(this: &Object, _: Sel, _: id, params: id, _: id, handler: usize) {
+extern fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, params: id, _: id, handler: usize) {
     let webview = unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_CONTROLLER_PTR);
+        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
         let webview = ptr as *const T;
         &*webview
     };
@@ -139,7 +101,7 @@ extern fn run_open_panel<T: WebViewController + 'static>(this: &Object, _: Sel, 
         match urls {
             Some(u) => {
                 let nsurls: NSArray = u.iter().map(|s| {
-                    let s = NSString::new(&s);
+                    let s = NSString::new(s);
                     msg_send![class!(NSURL), URLWithString:s]
                 }).collect::<Vec<id>>().into();
 
@@ -155,9 +117,9 @@ extern fn run_open_panel<T: WebViewController + 'static>(this: &Object, _: Sel, 
 /// response is upgraded to BecomeDownload. Only called when explicitly linked since it's a private
 /// API.
 #[cfg(feature = "webview-downloading")]
-extern fn handle_download<T: WebViewController + 'static>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
+extern fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
     let webview = unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_CONTROLLER_PTR);
+        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
         let webview = ptr as *const T;
         &*webview
     };
@@ -179,27 +141,34 @@ extern fn handle_download<T: WebViewController + 'static>(this: &Object, _: Sel,
     });
 }
 
-
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
-pub fn register_controller_class<
-    T: ViewController + WebViewController + 'static,
->() -> *const Class {
+pub fn register_webview_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
-        let superclass = Class::get("NSViewController").unwrap();
-        let mut decl = ClassDecl::new("RSTWebViewController", superclass).unwrap();
+        let superclass = class!(WKWebView);
+        let decl = ClassDecl::new("RSTWebView", superclass).unwrap();
+        VIEW_CLASS = decl.register();
+    });
 
-        decl.add_ivar::<id>(WEBVIEW_CONFIG_VAR);
-        decl.add_ivar::<id>(WEBVIEW_VAR);
-        decl.add_ivar::<usize>(WEBVIEW_CONTROLLER_PTR);
+    unsafe { VIEW_CLASS }
+}
 
-        // NSViewController
-        decl.add_method(sel!(loadView), load_view::<T> as extern fn(&mut Object, _));
-        decl.add_method(sel!(viewDidLoad), view_did_load::<T> as extern fn(&Object, _));
+/// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
+/// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
+/// varieties of delegates needed there).
+pub fn register_webview_delegate_class<T: WebViewDelegate>() -> *const Class {
+    static mut VIEW_CLASS: *const Class = 0 as *const Class;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| unsafe {
+        let superclass = class!(NSObject);
+        let mut decl = ClassDecl::new("RSTWebViewDelegate", superclass).unwrap();
+
+        decl.add_ivar::<usize>(WEBVIEW_DELEGATE_PTR);
 
         // WKNavigationDelegate
         decl.add_method(sel!(webView:decidePolicyForNavigationAction:decisionHandler:), decide_policy_for_action::<T> as extern fn(&Object, _, _, id, usize));
@@ -214,7 +183,7 @@ pub fn register_controller_class<
         
         // WKDownloadDelegate is a private class on macOS that handles downloading (saving) files.
         // It's absurd that this is still private in 2020. This probably couldn't get into the app
-        // store, so... screw it, fine for now.
+        // store, so... screw it, feature-gate it.
         #[cfg(feature = "webview-downloading")]
         decl.add_method(sel!(_download:decideDestinationWithSuggestedFilename:completionHandler:), handle_download::<T> as extern fn(&Object, _, id, id, usize));
 

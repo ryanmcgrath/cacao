@@ -5,7 +5,7 @@ use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, YES, NSString};
+use crate::foundation::{id, YES, NO, NSString};
 use crate::webview::enums::InjectAt;
 
 /// A wrapper for `WKWebViewConfiguration`. Holds (retains) pointers for the Objective-C runtime 
@@ -62,5 +62,13 @@ impl WebViewConfig {
             let preferences: id = msg_send![&*self.objc, preferences];
             let _: () = msg_send![preferences, setValue:yes forKey:key];
         }
+    }
+
+    pub(crate) fn attach_handlers(&self, target: id) {
+
+    }
+
+    pub fn into_inner(self) -> id {
+        &mut *self.objc
     }
 }
