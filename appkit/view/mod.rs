@@ -12,7 +12,7 @@ use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
-use crate::foundation::{id, YES, NO, NSArray, NSString};
+use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
@@ -209,10 +209,20 @@ impl<T> Layout for View<T> {
 }
 
 impl<T> Drop for View<T> {
-    /// A bit of extra cleanup for delegate callback pointers.
+    /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being
+    /// dropped, we do some logic to release the loopback ptr. We also go ahead and check to see if
+    /// this has a superview (i.e, it's in the heirarchy) on the AppKit side. If it does, we go
+    /// ahead and remove it - this is intended to match the semantics of how Rust handles things.
+    ///
+    /// There are, thankfully, no delegates we need to break here.
     fn drop(&mut self) {
         if let Some(ptr) = &self.internal_callback_ptr {
             unsafe {
+                let superview: id = msg_send![&*self.objc, superview];
+                if superview != nil {
+                    let _: () = msg_send![&*self.objc, removeFromSuperview];
+                }
+
                 let _ = Rc::from_raw(ptr);
             }
         }
