@@ -12,7 +12,7 @@ use crate::foundation::id;
 use crate::utils::load;
 use crate::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
 
-/// Called when an `NSWindow` receives a `windowWillClose:` event.
+/// Called when an `NSWindowDelegate` receives a `windowWillClose:` event.
 /// Good place to clean up memory and what not.
 extern fn will_close<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
     let window = load::<T>(this, WINDOW_DELEGATE_PTR);
@@ -20,6 +20,66 @@ extern fn will_close<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
     {
         let window = window.borrow();
         (*window).will_close();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowWillMove:` event.
+extern fn will_move<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).will_move();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidMove:` event.
+extern fn did_move<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_move();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
+extern fn did_change_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_change_screen();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
+extern fn did_change_screen_profile<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_change_screen_profile();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeBackingProperties:` event.
+extern fn did_change_backing_properties<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_change_backing_properties();
     }
 
     Rc::into_raw(window);
@@ -58,6 +118,13 @@ pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>() -> *const
 
         // NSWindowDelegate methods
         decl.add_method(sel!(windowWillClose:), will_close::<T> as extern fn(&Object, _, _));
+
+        // Moving Windows
+        decl.add_method(sel!(windowWillMove:), will_move::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidMove:), did_move::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidChangeScreen:), did_change_screen::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidChangeScreenProfile:), did_change_screen_profile::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidChangeBackingProperties:), did_change_backing_properties::<T> as extern fn(&Object, _, _));
         
         DELEGATE_CLASS = decl.register();
     });

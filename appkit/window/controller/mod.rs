@@ -74,19 +74,3 @@ impl<T> WindowController<T> where T: WindowDelegate + 'static {
         }
     }
 }
-
-/*impl<T> Drop for Window<T> {
-    /// When a Window is dropped on the Rust side, we want to ensure that we break the delegate
-    /// link on the Objective-C side. While this shouldn't actually be an issue, I'd rather be
-    /// safer than sorry.
-    ///
-    /// We also clean up our loopback pointer that we use for callbacks.
-    fn drop(&mut self) {
-        unsafe { 
-                let window: id = msg_send![*objc_controller, window];
-                let _: () = msg_send![window, setDelegate:nil];
-
-            let _ = Rc::from_raw(self.internal_callback_ptr);
-        }
-    }
-}*/

@@ -28,6 +28,14 @@ pub trait WindowDelegate {
     /// such as rendering in retina vs non-retina environments.
     fn did_change_screen(&self) {}
 
+    /// Fired when the window profile changes screens - you might find this useful for certain scenarios,
+    /// such as rendering in retina vs non-retina environments.
+    fn did_change_screen_profile(&self) {}
+
+    /// Fired when the window backing properties change - you might find this useful for certain scenarios,
+    /// such as rendering in retina vs non-retina environments. It's rare to need this though.
+    fn did_change_backing_properties(&self) {}
+
     /// Fires when this window is about to become the key window.
     fn did_become_key(&self) {}
 
