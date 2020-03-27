@@ -3,11 +3,13 @@
 //!
 //! UNFORTUNATELY, this is a very old and janky API. So... yeah.
 
+use core_graphics::geometry::CGSize;
+
 use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, CGSize, NSString};
+use crate::foundation::{id, NSString};
 use crate::button::Button;
 
 /// A wrapper for `NSWindow`. Holds (retains) pointers for the Objective-C runtime 

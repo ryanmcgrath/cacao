@@ -4,13 +4,33 @@
 use std::rc::Rc;
 use std::sync::Once;
 
+use core_graphics::base::CGFloat;
+
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel, sel_impl};
 
-use crate::foundation::id;
-use crate::utils::load;
+use crate::foundation::{id, BOOL, YES, NO, NSUInteger};
+use crate::utils::{load, CGSize};
 use crate::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
+
+/// Called when an `NSWindowDelegate` receives a `windowWillClose:` event.
+/// Good place to clean up memory and what not.
+extern fn should_close<T: WindowDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    let result = {
+        let window = window.borrow();
+        (*window).should_close()
+    };
+
+    Rc::into_raw(window);
+
+    match result {
+        true => YES,
+        false => NO
+    }
+}
 
 /// Called when an `NSWindowDelegate` receives a `windowWillClose:` event.
 /// Good place to clean up memory and what not.
@@ -73,6 +93,219 @@ extern fn did_change_screen_profile<T: WindowDelegate>(this: &Object, _: Sel, _:
     Rc::into_raw(window);
 }
 
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
+extern fn will_resize<T: WindowDelegate>(this: &Object, _: Sel, _: id, size: CGSize) -> CGSize {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    let result = {
+        let window = window.borrow();
+        let s = (*window).will_resize(size.width as f64, size.height as f64);
+        
+        CGSize { 
+            width: s.0 as CGFloat,
+            height: s.1 as CGFloat
+        }
+    };
+
+    Rc::into_raw(window);
+
+    result
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
+extern fn did_resize<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_resize();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
+extern fn will_start_live_resize<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).will_start_live_resize();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
+extern fn did_end_live_resize<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_end_live_resize();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
+extern fn will_miniaturize<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).will_miniaturize();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
+extern fn did_miniaturize<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_miniaturize();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
+extern fn did_deminiaturize<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_deminiaturize();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
+extern fn will_enter_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).will_enter_full_screen();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
+extern fn did_enter_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_enter_full_screen();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
+extern fn content_size_for_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id, size: CGSize) -> CGSize {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    let result = {
+        let window = window.borrow();
+        let (width, height) = (*window).content_size_for_full_screen(
+            size.width as f64,
+            size.height as f64
+        );
+
+        CGSize {
+            width: width as CGFloat,
+            height: height as CGFloat
+        }
+    };
+
+    Rc::into_raw(window);
+
+    result
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
+extern fn options_for_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id, options: NSUInteger) -> NSUInteger {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    let result = {
+        let window = window.borrow();
+        let options = (*window).presentation_options_for_full_screen();
+        
+        if options.is_none() { 
+            None
+        } else {
+            let mut opts: NSUInteger = 0;
+            for opt in options.unwrap() {
+                opts = opts << NSUInteger::from(opt);
+            }
+
+            Some(opts)
+        }
+    };
+
+    Rc::into_raw(window);
+
+    match result {
+        Some(options) => options,
+        None => options
+    }
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
+extern fn will_exit_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).will_exit_full_screen();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
+extern fn did_exit_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_exit_full_screen();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
+extern fn did_fail_to_enter_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_fail_to_enter_full_screen();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
+extern fn did_fail_to_exit_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_fail_to_exit_full_screen();
+    }
+
+    Rc::into_raw(window);
+}
+
 /// Called when an `NSWindowDelegate` receives a `windowDidChangeBackingProperties:` event.
 extern fn did_change_backing_properties<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
     let window = load::<T>(this, WINDOW_DELEGATE_PTR);
@@ -84,6 +317,91 @@ extern fn did_change_backing_properties<T: WindowDelegate>(this: &Object, _: Sel
 
     Rc::into_raw(window);
 }
+
+/// Called when an `NSWindowDelegate` receives a `windowDidChangeBackingProperties:` event.
+extern fn did_change_occlusion_state<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_change_occlusion_state();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidUpdate:` event.
+extern fn did_update<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_update();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidExpose:` event.
+extern fn did_become_main<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_become_main();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidExpose:` event.
+extern fn did_resign_main<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_resign_main();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidExpose:` event.
+extern fn did_become_key<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_become_key();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidExpose:` event.
+extern fn did_resign_key<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_resign_key();
+    }
+
+    Rc::into_raw(window);
+}
+
+/// Called when an `NSWindowDelegate` receives a `windowDidExpose:` event.
+extern fn did_expose<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+
+    {
+        let window = window.borrow();
+        (*window).did_expose();
+    }
+
+    Rc::into_raw(window);
+}
+
 
 /// Injects an `NSWindow` subclass, with some callback and pointer ivars for what we
 /// need to do.
@@ -114,10 +432,38 @@ pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>() -> *const
 
         decl.add_ivar::<usize>(WINDOW_DELEGATE_PTR);
 
-        // Subclassed methods
-
         // NSWindowDelegate methods
+        decl.add_method(sel!(windowShouldClose:), should_close::<T> as extern fn(&Object, _, _) -> BOOL);
         decl.add_method(sel!(windowWillClose:), will_close::<T> as extern fn(&Object, _, _));
+
+        // Sizing
+        decl.add_method(sel!(windowWillResize:toSize:), will_resize::<T> as extern fn(&Object, _, _, CGSize) -> CGSize);
+        decl.add_method(sel!(windowDidResize:), did_resize::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowWillStartLiveResize:), will_start_live_resize::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidEndLiveResize:), did_end_live_resize::<T> as extern fn(&Object, _, _));
+
+        // Minimizing
+        decl.add_method(sel!(windowWillMiniaturize:), will_miniaturize::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidMiniaturize:), did_miniaturize::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidDeminiaturize:), did_deminiaturize::<T> as extern fn(&Object, _, _));
+
+        // Full Screen
+        decl.add_method(sel!(window:willUseFullScreenContentSize:), content_size_for_full_screen::<T> as extern fn(&Object, _, _, CGSize) -> CGSize);
+        decl.add_method(sel!(window:willUseFullScreenPresentationOptions:), options_for_full_screen::<T> as extern fn(&Object, _, _, NSUInteger) -> NSUInteger);
+        decl.add_method(sel!(windowWillEnterFullScreen:), will_enter_full_screen::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidEnterFullScreen:), did_enter_full_screen::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowWillExitFullScreen:), will_exit_full_screen::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidExitFullScreen:), did_exit_full_screen::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidFailToEnterFullScreen:), did_fail_to_enter_full_screen::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidFailToExitFullScreen:), did_fail_to_exit_full_screen::<T> as extern fn(&Object, _, _));
+
+        // Key status
+        decl.add_method(sel!(windowDidBecomeKey:), did_become_key::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidResignKey:), did_resign_key::<T> as extern fn(&Object, _, _));
+
+        // Main status
+        decl.add_method(sel!(windowDidBecomeMain:), did_become_main::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidResignMain:), did_resign_main::<T> as extern fn(&Object, _, _));
 
         // Moving Windows
         decl.add_method(sel!(windowWillMove:), will_move::<T> as extern fn(&Object, _, _));
@@ -125,6 +471,11 @@ pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>() -> *const
         decl.add_method(sel!(windowDidChangeScreen:), did_change_screen::<T> as extern fn(&Object, _, _));
         decl.add_method(sel!(windowDidChangeScreenProfile:), did_change_screen_profile::<T> as extern fn(&Object, _, _));
         decl.add_method(sel!(windowDidChangeBackingProperties:), did_change_backing_properties::<T> as extern fn(&Object, _, _));
+
+        // Random
+        decl.add_method(sel!(windowDidChangeOcclusionState:), did_change_occlusion_state::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidExpose:), did_expose::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(windowDidUpdate:), did_update::<T> as extern fn(&Object, _, _));
         
         DELEGATE_CLASS = decl.register();
     });

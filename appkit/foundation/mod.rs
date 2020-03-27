@@ -26,9 +26,6 @@ pub use string::NSString;
 pub mod dictionary;
 pub use dictionary::NSDictionary;
 
-pub mod geometry;
-pub use geometry::{CGSize, CGPoint, CGRect};
-
 #[allow(non_camel_case_types)]
 pub type id = *mut runtime::Object;
 
@@ -44,8 +41,3 @@ pub type NSUInteger = libc::c_uint;
 pub type NSInteger = libc::c_long;
 #[cfg(target_pointer_width = "64")]
 pub type NSUInteger = libc::c_ulong;
-
-#[cfg(target_pointer_width = "64")]
-pub type CGFloat = libc::c_double;
-#[cfg(not(target_pointer_width = "64"))]
-pub type CGFloat = libc::c_float;

@@ -2,11 +2,13 @@
 //! escape hatch, if you need it (we use it for things like width and height, which aren't handled
 //! by an axis).
 
+use core_graphics::base::CGFloat;
+
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::foundation::{id, CGFloat};
+use crate::foundation::id;
 
 /// A wrapper for `NSLayoutConstraint`. This both acts as a central path through which to activate
 /// constraints, as well as a wrapper for layout constraints that are not axis bound (e.g, width or

@@ -56,3 +56,103 @@ impl From<AppDelegateResponse> for NSUInteger {
         }
     }
 }
+
+/// Used (typically) when handling full-screening an application or window. Use these to instruct
+/// how the full screen should work. Note that some may conflict!
+///
+/// From Apple's documentation, swapped to use the enum values here:
+///
+/// - _`AutoHideDock` and `HideDock` are mutually exclusive: You may specify one or the other, but
+/// not both._
+/// - _`AutoHideMenuBar` and `HideMenuBar` are mutually exclusive: You may specify one or the other, but not both._
+/// - _If you specify `HideMenuBar`, it must be accompanied by `HideDock`._
+/// - _If you specify `AutoHideMenuBar`, it must be accompanied by either `HideDock` or `AutoHideDock`._
+/// - _If you specify any of `DisableProcessSwitching`, `DisableForceQuit`, `DisableSessionTermination`, or `DisableMenuBarTransparency`, 
+/// it must be accompanied by either `HideDock` or `AutoHideDock`._
+/// - _`AutoHideToolbar` may be used only when both `FullScreen` and `AutoHideMenuBar` are also set.
+#[derive(Copy, Clone, Debug)]
+pub enum PresentationOption {
+    /// The default mode.
+    Default,
+
+    /// Auto hide the dock. Will reappear when moused near.
+    AutoHideDock,
+
+    /// Dock is entirely disabled.
+    HideDock,
+
+    /// Auto hide the menubar. Will reappear when moused near.
+    AutoHideMenuBar,
+
+    /// Menubar is entirely disabled.
+    HideMenuBar,
+    
+    /// All Apple Menu items are disabled.
+    DisableAppleMenu,
+    
+    /// The process switching user interface (Command + Tab to cycle through apps) is disabled.
+    DisableProcessSwitching,
+
+    /// The force quit panel (displayed by pressing Command + Option + Esc) is disabled
+    DisableForceQuit,
+
+    /// The panel that shows the Restart, Shut Down, and Log Out options that are displayed as a result of pushing the power key is disabled.
+    DisableSessionTermination,
+
+    /// The app’s "Hide" menu item is disabled.
+    DisableHideApplication,
+
+    /// The menu bar transparency appearance is disabled.
+    DisableMenuBarTransparency,
+
+    /// The app is in fullscreen mode.
+    FullScreen,
+
+    /// When in fullscreen mode the window toolbar is detached from window and hides and shows with autoHidden menuBar.
+    AutoHideToolbar,
+
+    /// The behavior that allows the user to shake the mouse to locate the cursor is disabled.
+    DisableCursorLocationAssistance
+}
+
+impl From<PresentationOption> for NSUInteger {
+    fn from(option: PresentationOption) -> Self {
+        match option {
+            PresentationOption::Default => 0,
+            PresentationOption::AutoHideDock => (1 << 0),
+            PresentationOption::HideDock => (1 << 1),
+            PresentationOption::AutoHideMenuBar => (1 <<  2),
+            PresentationOption::HideMenuBar => (1 << 3),
+            PresentationOption::DisableAppleMenu => (1 << 4),
+            PresentationOption::DisableProcessSwitching => (1 << 5),
+            PresentationOption::DisableForceQuit => (1 <<  6),
+            PresentationOption::DisableSessionTermination => (1 <<  7),
+            PresentationOption::DisableHideApplication => (1 <<  8),
+            PresentationOption::DisableMenuBarTransparency => (1 <<  9),
+            PresentationOption::FullScreen => (1 << 10),
+            PresentationOption::AutoHideToolbar => (1 << 11),
+            PresentationOption::DisableCursorLocationAssistance => (1 << 12)
+        }
+    }
+}
+
+impl From<&PresentationOption> for NSUInteger {
+    fn from(option: &PresentationOption) -> Self {
+        match option {
+            PresentationOption::Default => 0,
+            PresentationOption::AutoHideDock => (1 << 0),
+            PresentationOption::HideDock => (1 << 1),
+            PresentationOption::AutoHideMenuBar => (1 <<  2),
+            PresentationOption::HideMenuBar => (1 << 3),
+            PresentationOption::DisableAppleMenu => (1 << 4),
+            PresentationOption::DisableProcessSwitching => (1 << 5),
+            PresentationOption::DisableForceQuit => (1 <<  6),
+            PresentationOption::DisableSessionTermination => (1 <<  7),
+            PresentationOption::DisableHideApplication => (1 <<  8),
+            PresentationOption::DisableMenuBarTransparency => (1 <<  9),
+            PresentationOption::FullScreen => (1 << 10),
+            PresentationOption::AutoHideToolbar => (1 << 11),
+            PresentationOption::DisableCursorLocationAssistance => (1 << 12)
+        }
+    }
+}

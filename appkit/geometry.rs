@@ -1,6 +1,6 @@
 //! Wrapper methods for various geometry types (rects, sizes, ec).
 
-use crate::foundation::{CGRect, CGPoint, CGSize};
+use core_graphics::geometry::{CGRect, CGPoint, CGSize};
 
 /// A struct that represents a box - top, left, width and height.
 #[derive(Copy, Clone, Debug)]

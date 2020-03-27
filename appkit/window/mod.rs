@@ -4,11 +4,13 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use core_graphics::geometry::{CGRect, CGSize};
+
 use objc::{msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSString, NSUInteger, CGRect, CGSize};
+use crate::foundation::{id, nil, YES, NO, NSString, NSUInteger};
 use crate::layout::traits::Layout;
 use crate::toolbar::{Toolbar, ToolbarController};
 use crate::utils::Controller;

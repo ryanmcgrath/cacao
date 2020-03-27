@@ -5,6 +5,9 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use core_graphics::base::CGFloat;
+
+use objc::{Encode, Encoding};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
@@ -22,5 +25,24 @@ pub fn load<T>(this: &Object, ptr: &str) -> Rc<RefCell<T>> {
         let ptr: usize = *this.get_ivar(ptr);
         let view_ptr = ptr as *const RefCell<T>;
         Rc::from_raw(view_ptr)
+    }
+}
+/// Upstream core graphics does not implement Encode for certain things, so we wrap them here -
+/// these are only used in reading certain types passed to us from some delegate methods.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct CGSize {
+    pub width: CGFloat,
+    pub height: CGFloat,
+}
+
+unsafe impl Encode for CGSize {
+    fn encode() -> Encoding {
+        let encoding = format!("{{CGSize={}{}}}",
+            CGFloat::encode().as_str(),
+            CGFloat::encode().as_str()
+        );
+        
+        unsafe { Encoding::from_str(&encoding) }
     }
 }

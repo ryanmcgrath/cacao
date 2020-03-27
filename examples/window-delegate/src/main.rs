@@ -26,6 +26,19 @@ impl WindowDelegate for MyWindow {
     fn will_close(&self) {
         println!("Closing now!");
     }
+
+    fn will_move(&self) {
+        println!("Will move...");
+    }
+
+    fn did_move(&self) {
+        println!("Did move...");
+    }
+
+    fn will_resize(&self, width: f64, height: f64) -> (f64, f64) {
+        println!("Resizing to: {} {}", width, height);
+        (width, height)
+    }
 }
 
 fn main() {
