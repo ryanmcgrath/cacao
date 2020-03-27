@@ -1,4 +1,4 @@
-//! This crate provides pieces necessary for interfacing with `AppKit` (`Cocoa`, on macOS). It
+//! This crate provides pieces necessary for interfacing with `AppKit` on macOS and (eventually) `UIKit` on iOS. It
 //! tries to do so in a way that, if you've done programming for the framework before (in Swift or
 //! Objective-C), will feel familiar. This is tricky in Rust due to the ownership model, but some
 //! creative coding and assumptions can get us pretty far.
@@ -9,12 +9,9 @@
 //! controls. This does _not_ mean you can't assess, review, or question unsafe usage - just know
 //! it's happening, and in large part it's not going away.
 //!
-//! It's best to look at this crate as a bridge to the future: you can write your own (safe) Rust
-//! code, and have it intermix in the (existing, unsafe) world.
-//!
 //! This crate is also, currently, _very_ early stage and may have bugs. Your usage of it is at
 //! your own risk. With that said, provided you follow the rules (regarding memory/ownership) it's
-//! already fine for some apps. Check the README for more info!
+//! already fine for some apps.
 
 pub mod alert;
 pub mod app;

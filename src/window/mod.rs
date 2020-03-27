@@ -1,15 +1,18 @@
 //! Implements an `NSWindow` wrapper for MacOS, backed by Cocoa and associated widgets. This also handles looping back
 //! lifecycle events, such as window resizing or close events.
 
+use std::unreachable;
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use core_graphics::base::CGFloat;
 use core_graphics::geometry::{CGRect, CGSize};
 
 use objc::{msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
+use crate::color::Color;
 use crate::foundation::{id, nil, YES, NO, NSString, NSUInteger};
 use crate::layout::traits::Layout;
 use crate::toolbar::{Toolbar, ToolbarController};
@@ -138,7 +141,15 @@ impl<T> Window<T> {
     pub fn set_minimum_content_size<F: Into<f64>>(&self, width: F, height: F) {
         unsafe {
             let size = CGSize::new(width.into(), height.into());
-            let _: () = msg_send![&*self.objc, setMinSize:size];
+            let _: () = msg_send![&*self.objc, setContentMinSize:size];
+        }
+    }
+
+    /// Sets the maximum size this window can shrink to.
+    pub fn set_maximum_content_size<F: Into<f64>>(&self, width: F, height: F) {
+        unsafe {
+            let size = CGSize::new(width.into(), height.into());
+            let _: () = msg_send![&*self.objc, setContentMaxSize:size];
         }
     }
 
@@ -183,6 +194,148 @@ impl<T> Window<T> {
             let _: () = msg_send![&*self.objc, close];
         }
     }
+
+    /// Toggles a Window being full screen or not.
+    pub fn toggle_full_screen(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, toggleFullScreen:nil];
+        }
+    }
+
+    /// Sets the background color for the window. You generally don't want to do this often.
+    pub fn set_background_color(&self, color: Color) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setBackgroundColor:color.into_platform_specific_color()];
+        }
+    }
+
+    pub fn is_opaque(&self) -> bool {
+        unsafe {
+            match msg_send![&*self.objc, isOpaque] {
+                YES => true,
+                NO => false,
+                _ => unreachable!()
+            }
+        }
+    }
+
+    /// Indicates whether the window is on a currently active space.
+    ///
+    /// From Apple's documentation:
+    ///
+    /// _The value of this property is YES if the window is on the currently active space; otherwise, NO. 
+    /// For visible windows, this property indicates whether the window is currently visible on the active 
+    /// space. For nonvisible windows, it indicates whether ordering the window onscreen would cause it to 
+    /// be on the active space._
+    pub fn is_on_active_space(&self) -> bool {
+        unsafe {
+            match msg_send![&*self.objc, isOnActiveSpace] {
+                YES => true,
+                NO => false,
+                _ => unreachable!()
+            }
+        }
+    }
+
+    pub fn is_visible(&self) -> bool {
+        unsafe {
+            match msg_send![&*self.objc, isVisible] {
+                YES => true,
+                NO => false,
+                _ => unreachable!()
+            }
+        }
+    }
+
+    pub fn is_key(&self) -> bool {
+        unsafe {
+            match msg_send![&*self.objc, isKeyWindow] {
+                YES => true,
+                NO => false,
+                _ => unreachable!()
+            }
+        }
+    }
+
+    pub fn can_become_key(&self) -> bool {
+        unsafe {
+            match msg_send![&*self.objc, canBecomeKeyWindow] {
+                YES => true,
+                NO => false,
+                _ => unreachable!()
+            }
+        }
+    }
+
+    pub fn make_key_window(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, makeKeyWindow];
+        }
+    }
+
+    pub fn make_key_and_order_front(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, makeKeyAndOrderFront:nil];
+        }
+    }
+
+    pub fn is_main_window(&self) -> bool {
+        unsafe {
+            match msg_send![&*self.objc, isMainWindow] {
+                YES => true,
+                NO => false,
+                _ => unreachable!()
+            }
+        }
+    }
+
+    pub fn can_become_main_window(&self) -> bool {
+        unsafe {
+            match msg_send![&*self.objc, canBecomeMainWindow] {
+                YES => true,
+                NO => false,
+                _ => unreachable!()
+            }
+        }
+    }
+
+    pub fn toggle_toolbar_shown(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, toggleToolbarShown:nil];
+        }
+    }
+
+    pub fn set_excluded_from_windows_menu(&self, excluded: bool) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setExcludedFromWindowsMenu:match excluded {
+                true => YES,
+                false => NO
+            }];
+        }
+    }
+
+    pub fn set_shows_toolbar_button(&self, shows: bool) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setShowsToolbarButton:match shows {
+                true => YES,
+                false => NO
+            }];
+        }
+    }
+
+    /// Returns the backing scale (e.g, `1.0` for non retina, `2.0` for retina) used on this
+    /// window.
+    ///
+    /// Note that Apple recommends AGAINST using this in most cases. It's exposed here for the rare
+    /// cases where you DO need it.
+    pub fn backing_scale_factor(&self) -> f64 {
+        unsafe {
+            let scale: CGFloat = msg_send![&*self.objc, backingScaleFactor];
+            scale as f64
+        }
+    }
+
+
 }
 
 impl<T> Window<T> where T: WindowDelegate + 'static {
