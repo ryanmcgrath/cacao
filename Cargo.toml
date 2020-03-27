@@ -1,15 +1,17 @@
 [package]
 name = "appkit"
+description = "Rust wrappers for AppKit on macOS and UIKit on iOS."
 version = "0.1.0"
-authors = ["Ryan McGrath <ryan@rymc.io>"]
 edition = "2018"
+authors = ["Ryan McGrath <ryan@rymc.io>"]
 build = "build.rs"
-
-[lib]
-path = "lib.rs"
+repository = "https://github.com/ryanmcgrath/appkit-rs"
+categories = ["gui", "os::macos-apis"]
+keywords = ["gui", "macos", "appkit", "uikit"]
 
 [dependencies]
 block = "0.1.6"
+core-foundation = { version = "0.7", features = ["with-chrono"] }
 core-graphics = "0.19.0"
 dispatch = "0.2.0"
 libc = "0.2"

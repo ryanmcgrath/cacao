@@ -1,7 +1,7 @@
 //! This example showcases setting up a basic application and window delegate.
 //! Window Delegate's give you lifecycle methods that you can respond to.
 
-use appkit::app::{App, AppDelegate, Dispatcher};
+use appkit::app::{App, AppDelegate};
 use appkit::window::{Window, WindowConfig, WindowDelegate};
 
 struct BasicApp {

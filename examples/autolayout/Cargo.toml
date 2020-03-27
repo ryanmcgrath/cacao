@@ -1,8 +1,0 @@
-[package]
-name = "autolayout"
-version = "0.1.0"
-authors = ["Ryan McGrath <ryan@rymc.io>"]
-edition = "2018"
-
-[dependencies]
-appkit = { path = "../../appkit" }
