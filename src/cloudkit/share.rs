@@ -1,8 +1,9 @@
 //! This module includes wrappers for `CKShare` and `CKShareMetaData`.
 
-use cocoa::base::id;
 use objc::runtime::Object;
 use objc_id::ShareId;
+
+use crate::foundation::id;
 
 /// A wrapper for `CKShareMetaData`, which describes details about a `CKShare`. You might use this
 /// to, say, handle accepting an invite for a share.

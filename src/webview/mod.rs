@@ -8,11 +8,13 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use core_graphics::geometry::CGRect;
+
 use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, YES, NO, CGRect, NSString};
+use crate::foundation::{id, YES, NO, NSString};
 use crate::geometry::Rect;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 

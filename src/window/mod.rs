@@ -1,5 +1,10 @@
 //! Implements an `NSWindow` wrapper for MacOS, backed by Cocoa and associated widgets. This also handles looping back
-//! lifecycle events, such as window resizing or close events.
+//! lifecycle events, such as window resizing or close events. It currently implements a good chunk
+//! of the API, however it should be noted that in places where things are outright deprecated,
+//! this framework will opt to not bother providing access to them.
+//!
+//! If you require functionality like that, you're free to use the `objc` field on a `Window` to
+//! instrument it with the Objective-C runtime on your own.
 
 use std::unreachable;
 use std::rc::Rc;
@@ -49,13 +54,18 @@ pub struct Window<T = ()> {
 }
 
 impl Default for Window {
+    /// Returns a default `Window`, with a default `WindowConfig`.
     fn default() -> Self {
         Window::new(WindowConfig::default())
     }
 }
 
 impl Window {
-    /// Constructs a new Window. 
+    /// Constructs a new `Window`. You can use this instead of the `default()` method if you'd like
+    /// to customize the appearance of a `Window`.
+    ///
+    /// Why the config? Well, certain properties of windows are really not meant to be altered
+    /// after we initialize the backing `NSWindow`.
     pub fn new(config: WindowConfig) -> Window {
         let objc = unsafe {
             let alloc: id = msg_send![register_window_class(), alloc];
@@ -159,6 +169,25 @@ impl<T> Window<T> {
             let _: () = msg_send![&*self.objc, setToolbar:&*toolbar.objc_controller.0];
         }
     }
+    
+    /// Toggles whether the toolbar is shown for this window. Has no effect if no toolbar exists on
+    /// this window.
+    pub fn toggle_toolbar_shown(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, toggleToolbarShown:nil];
+        }
+    }
+
+    /// Set whether the toolbar toggle button is shown. Has no effect if no toolbar exists on this
+    /// window.
+    pub fn set_shows_toolbar_button(&self, shows: bool) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setShowsToolbarButton:match shows {
+                true => YES,
+                false => NO
+            }];
+        }
+    }
 
     /// Given a view, sets it as the content view for this window.
     pub fn set_content_view<L: Layout + 'static>(&self, view: &L) {
@@ -237,6 +266,7 @@ impl<T> Window<T> {
         }
     }
 
+    /// Returns whether this window is visible or not.
     pub fn is_visible(&self) -> bool {
         unsafe {
             match msg_send![&*self.objc, isVisible] {
@@ -247,6 +277,7 @@ impl<T> Window<T> {
         }
     }
 
+    /// Returns whether this window is the key or not.
     pub fn is_key(&self) -> bool {
         unsafe {
             match msg_send![&*self.objc, isKeyWindow] {
@@ -257,6 +288,7 @@ impl<T> Window<T> {
         }
     }
 
+    /// Returns whether this window can become the key window.
     pub fn can_become_key(&self) -> bool {
         unsafe {
             match msg_send![&*self.objc, canBecomeKeyWindow] {
@@ -267,18 +299,22 @@ impl<T> Window<T> {
         }
     }
 
+    /// Make this window the key window.
     pub fn make_key_window(&self) {
         unsafe {
             let _: () = msg_send![&*self.objc, makeKeyWindow];
         }
     }
 
+    /// Make the this window the key window and bring it to the front. Calling `show` does this for
+    /// you.
     pub fn make_key_and_order_front(&self) {
         unsafe {
             let _: () = msg_send![&*self.objc, makeKeyAndOrderFront:nil];
         }
     }
 
+    /// Returns if this is the main window or not.
     pub fn is_main_window(&self) -> bool {
         unsafe {
             match msg_send![&*self.objc, isMainWindow] {
@@ -289,6 +325,7 @@ impl<T> Window<T> {
         }
     }
 
+    /// Returns if this can become the main window.
     pub fn can_become_main_window(&self) -> bool {
         unsafe {
             match msg_send![&*self.objc, canBecomeMainWindow] {
@@ -299,12 +336,7 @@ impl<T> Window<T> {
         }
     }
 
-    pub fn toggle_toolbar_shown(&self) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, toggleToolbarShown:nil];
-        }
-    }
-
+    /// Set whether this window should be excluded from the top-level "Windows" menu.
     pub fn set_excluded_from_windows_menu(&self, excluded: bool) {
         unsafe {
             let _: () = msg_send![&*self.objc, setExcludedFromWindowsMenu:match excluded {
@@ -313,16 +345,7 @@ impl<T> Window<T> {
             }];
         }
     }
-
-    pub fn set_shows_toolbar_button(&self, shows: bool) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setShowsToolbarButton:match shows {
-                true => YES,
-                false => NO
-            }];
-        }
-    }
-
+    
     /// Returns the backing scale (e.g, `1.0` for non retina, `2.0` for retina) used on this
     /// window.
     ///
@@ -334,12 +357,13 @@ impl<T> Window<T> {
             scale as f64
         }
     }
-
-
 }
 
 impl<T> Window<T> where T: WindowDelegate + 'static {
-    /// Constructs a new Window. 
+    /// Constructs a new Window with a `config` and `delegate`. Using a `WindowDelegate` enables
+    /// you to respond to window lifecycle events - visibility, movement, and so on. It also
+    /// enables easier structure of your codebase, and in a way simulates traditional class based
+    /// architectures... just without the subclassing.
     pub fn with(config: WindowConfig, delegate: T) -> Self {
         let delegate = Rc::new(RefCell::new(delegate));
         
