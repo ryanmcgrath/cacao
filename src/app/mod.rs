@@ -1,6 +1,4 @@
-//! A wrapper for `NSApplicationDelegate` on macOS. Handles looping back events and providing a very janky
-//! messaging architecture.
-//!
+//! 
 
 use objc_id::Id;
 use objc::runtime::Object;

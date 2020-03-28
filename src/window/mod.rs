@@ -1,7 +1,8 @@
-//! Implements an `NSWindow` wrapper for MacOS, backed by Cocoa and associated widgets. This also handles looping back
-//! lifecycle events, such as window resizing or close events. It currently implements a good chunk
-//! of the API, however it should be noted that in places where things are outright deprecated,
-//! this framework will opt to not bother providing access to them.
+//! Implements an `NSWindow` wrapper for MacOS, backed by Cocoa and associated widgets.
+//!
+//! This also handles looping back lifecycle events, such as window resizing or close events. It 
+//! currently implements a good chunk of the API, however it should be noted that in places where 
+//! things are outright deprecated, this framework will opt to not bother providing access to them.
 //!
 //! If you require functionality like that, you're free to use the `objc` field on a `Window` to
 //! instrument it with the Objective-C runtime on your own.
@@ -18,7 +19,7 @@ use objc::runtime::Object;
 use objc_id::ShareId;
 
 use crate::color::Color;
-use crate::foundation::{id, nil, YES, NO, NSString, NSUInteger};
+use crate::foundation::{id, nil, YES, NO, NSString, NSInteger, NSUInteger};
 use crate::layout::traits::Layout;
 use crate::toolbar::{Toolbar, ToolbarController};
 use crate::utils::Controller;
@@ -33,6 +34,7 @@ pub mod controller;
 pub use controller::WindowController;
 
 pub mod enums;
+use enums::TitleVisibility;
 
 pub mod traits;
 pub use traits::WindowDelegate;
@@ -113,9 +115,10 @@ impl<T> Window<T> {
     }
 
     /// Sets the title visibility for the underlying window.
-    pub fn set_title_visibility(&self, visibility: usize) {
+    pub fn set_title_visibility(&self, visibility: TitleVisibility) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setTitleVisibility:visibility];
+            let v = NSInteger::from(visibility);
+            let _: () = msg_send![&*self.objc, setTitleVisibility:v];
         }
     }
 
@@ -199,7 +202,7 @@ impl<T> Window<T> {
     }
 
     /// Given a view, sets it as the content view controller for this window.
-    pub fn set_content_view_controller<C: Controller + 'static>(&self, controller: &C) {
+    pub fn set_content_view_controller<VC: Controller + 'static>(&self, controller: &VC) {
         let backing_node = controller.get_backing_node();
 
         unsafe {
@@ -238,6 +241,7 @@ impl<T> Window<T> {
         }
     }
 
+    /// Returns whether this window is opaque or not.
     pub fn is_opaque(&self) -> bool {
         unsafe {
             match msg_send![&*self.objc, isOpaque] {
@@ -245,6 +249,39 @@ impl<T> Window<T> {
                 NO => false,
                 _ => unreachable!()
             }
+        }
+    }
+
+    /// Returns whether this window is miniaturized or not.
+    pub fn is_miniaturized(&self) -> bool {
+        unsafe {
+            match msg_send![&*self.objc, isMiniaturized] {
+                YES => true,
+                NO => false,
+                _ => unreachable!()
+            }
+        }
+    }
+
+    /// Miniaturize this window.
+    pub fn miniaturize(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, miniaturize];
+        }
+    }
+
+    /// De-mimizes this window.
+    pub fn deminiaturize(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, deminiaturize];
+        }
+    }
+
+    /// Runs the print panel, and if the user does anything except cancel, prints the window and
+    /// its contents.
+    pub fn print(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, print];
         }
     }
 

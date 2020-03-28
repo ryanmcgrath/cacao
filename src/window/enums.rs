@@ -1,6 +1,6 @@
 //! Enums used in Window construction and handling.
 
-use crate::foundation::NSUInteger;
+use crate::foundation::{NSInteger, NSUInteger};
 
 /// Describes window styles that can be displayed.
 pub enum WindowStyle {
@@ -80,7 +80,7 @@ impl From<&WindowStyle> for NSUInteger {
 }
 
 /// Describes whether a window shows a title or not.
-pub enum WindowTitleVisibility {
+pub enum TitleVisibility {
     /// Title is visible.
     Visible,
 
@@ -88,11 +88,11 @@ pub enum WindowTitleVisibility {
     Hidden
 }
 
-impl From<WindowTitleVisibility> for usize {
-    fn from(visibility: WindowTitleVisibility) -> usize {
+impl From<TitleVisibility> for NSInteger {
+    fn from(visibility: TitleVisibility) -> Self {
         match visibility {
-            WindowTitleVisibility::Visible => 0,
-            WindowTitleVisibility::Hidden => 1
+            TitleVisibility::Visible => 0,
+            TitleVisibility::Hidden => 1
         }
     }
 }
