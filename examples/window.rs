@@ -1,7 +1,7 @@
 //! This example showcases setting up a basic application and window.
 
-use appkit::app::{App, AppDelegate};
-use appkit::window::Window;
+use cacao::app::{App, AppDelegate};
+use cacao::window::Window;
 
 #[derive(Default)]
 struct BasicApp {

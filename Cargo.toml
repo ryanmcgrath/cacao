@@ -1,13 +1,13 @@
 [package]
-name = "appkit"
-description = "Rust wrappers for AppKit on macOS and UIKit on iOS."
+name = "cacao"
+description = "Rust bindings for AppKit (macOS) and UIKit (iOS/tvOS). Experimental, but working!"
 version = "0.1.0"
 edition = "2018"
 authors = ["Ryan McGrath <ryan@rymc.io>"]
 build = "build.rs"
-repository = "https://github.com/ryanmcgrath/appkit-rs"
-categories = ["gui", "os::macos-apis"]
-keywords = ["gui", "macos", "appkit", "uikit"]
+repository = "https://github.com/ryanmcgrath/cacao"
+categories = ["gui", "os::macos-apis", "os::ios-apis"]
+keywords = ["gui", "macos", "ios", "appkit", "uikit"]
 
 [dependencies]
 block = "0.1.6"

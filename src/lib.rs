@@ -1,7 +1,7 @@
 //#![deny(missing_docs)]
 //#![deny(missing_debug_implementations)]
 
-// Copyright 2019+, the appkit-rs developers.
+// Copyright 2019+, the Cacao developers.
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Dual-licensed under an MIT/MPL-2.0 license, see the LICENSE files in this repository.
 

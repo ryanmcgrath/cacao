@@ -1,11 +1,11 @@
 //! This example showcases setting up a basic application and window, and setting up some views to
 //! work with autolayout.
 
-use appkit::app::{App, AppDelegate};
-use appkit::color::rgb;
-use appkit::layout::{Layout, LayoutConstraint};
-use appkit::view::View;
-use appkit::window::{Window, WindowConfig, WindowDelegate};
+use cacao::app::{App, AppDelegate};
+use cacao::color::rgb;
+use cacao::layout::{Layout, LayoutConstraint};
+use cacao::view::View;
+use cacao::window::{Window, WindowConfig, WindowDelegate};
 
 struct BasicApp {
     window: Window<AppWindow>

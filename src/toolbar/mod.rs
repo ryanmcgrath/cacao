@@ -4,7 +4,7 @@
 //! example:
 //!
 //! ```
-//! use appkit::prelude::*;
+//! use cacao::prelude::*;
 //!
 //! #[derive(Default)]
 //! struct WindowToolbar;

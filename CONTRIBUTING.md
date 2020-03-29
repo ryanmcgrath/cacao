@@ -4,16 +4,16 @@ Thanks for your interest in contributing to this project! Suggestions, bug repor
 
 *Note:* Anyone who interacts with this project in any space, including but not
 limited to this GitHub repository, must follow the [code of
-conduct](https://github.com/ryanmcgrath/appkit/blob/trunk/code_of_conduct.md).
+conduct](https://github.com/ryanmcgrath/cacao/blob/trunk/code_of_conduct.md).
 
 
 ## Submitting bug reports
 
-Have a look at the [issue tracker](https://github.com/ryanmcgrath/appkit/issues). If you can't find an issue (open or closed)
+Have a look at the [issue tracker](https://github.com/ryanmcgrath/cacao/issues). If you can't find an issue (open or closed)
 describing your problem (or a very similar one) there, please open a new issue with
 the following details:
 
-- Which versions of Rust and Appkit (and macOS build) are you using?
+- Which versions of Rust and cacao (and macOS/iOS build/device) are you using?
 - Which feature flags are you using?
 - What are you trying to accomplish?
 - What is the full error you are seeing?
@@ -22,7 +22,7 @@ the following details:
     public repository or [Gist])
   - Please post as much of your database schema as is relevant to your error
 
-[issue tracker]: https://github.com/ryanmcgrath/appkit/issues
+[issue tracker]: https://github.com/ryanmcgrath/cacao/issues
 [Gist]: https://gist.github.com
 
 Thank you!
@@ -44,7 +44,7 @@ Thank you!
 
 ## Contribute code to Alchemy
 
-### Setting up Appkit locally
+### Setting up cacao locally
 
 1. Install Rust. Stable should be fine.
 2. Clone this repository and open it in your favorite editor.
@@ -100,4 +100,4 @@ Check out [their README](https://github.com/rust-lang-nursery/rustfmt) for detai
 
 ### Notes
 This project prefers verbose naming, to a certain degree - UI code is read more often than written, so it's 
-worthwhile to ensure that it scans well. It also maps well to existing Cocoa/Appkit idioms and is generally preferred.
+worthwhile to ensure that it scans well. It also maps well to existing Cocoa/cacao idioms and is generally preferred.

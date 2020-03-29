@@ -80,7 +80,7 @@ impl Pasteboard {
                 // kinda ancient and has conflicting docs in places. ;P
                 return Err(Box::new(AppKitError {
                     code: 666,
-                    domain: "com.appkit-rs.pasteboard".to_string(),
+                    domain: "com.cacao-rs.pasteboard".to_string(),
                     description: "Pasteboard server returned no data.".to_string()
                 }));
             }
