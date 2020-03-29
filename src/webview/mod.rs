@@ -1,9 +1,17 @@
-//! Implements a WebView, which wraps a number of different classes/delegates/controllers into one
+//! Wraps `WKWebView` across all platforms.
+//!
+//! Wraps a number of different classes/delegates/controllers into one
 //! useful interface. This encompasses...
 //!
 //! - `WKWebView`
 //! - `WKUIDelegate`
 //! - `WKScriptMessageHandler`
+//!
+//! This is, thankfully, a pretty similar class across platforms.
+//!
+//! ### WebView is not available for tvOS
+//! Apple does not ship `WKWebView` on tvOS, and as a result this control is not provided on that
+//! platform.
 
 use std::rc::Rc;
 use std::cell::RefCell;

@@ -1,9 +1,45 @@
-//! A `ViewHandle` represents an underlying `NSView`. You're passed a reference to one during your
-//! `ViewController::did_load()` method. This method is safe to store and use, however as it's
-//! UI-specific it's not thread safe.
+//! Wraps `NSView` and `UIView` across platforms.
 //!
-//! You can use this struct to configure how a view should look and layout. It implements
-//! AutoLayout - for more information, see the AutoLayout tutorial.
+//! This implementation errs towards the `UIView` side of things, and mostly acts as a wrapper to
+//! bring `NSView` to the modern era. It does this by flipping the coordinate system to be what
+//! people expect in 2020, and layer-backing all views by default.
+//!
+//! Views implement Autolayout, which enable you to specify how things should appear on the screen.
+//! 
+//! ```rust,no_run
+//! use cacao::color::rgb;
+//! use cacao::layout::{Layout, LayoutConstraint};
+//! use cacao::view::View;
+//! use cacao::window::{Window, WindowDelegate};
+//!
+//! #[derive(Default)]
+//! struct AppWindow {
+//!     content: View,
+//!     red: View,
+//!     window: Window
+//! }
+//! 
+//! impl WindowDelegate for AppWindow {
+//!     fn did_load(&mut self, window: Window) {
+//!         window.set_minimum_content_size(300., 300.);
+//!         self.window = window;
+//!
+//!         self.red.set_background_color(rgb(224, 82, 99));
+//!         self.content.add_subview(&self.red);
+//!         
+//!         self.window.set_content_view(&self.content);
+//!
+//!         LayoutConstraint::activate(&[
+//!             self.red.top.constraint_equal_to(&self.content.top).offset(16.),
+//!             self.red.leading.constraint_equal_to(&self.content.leading).offset(16.),
+//!             self.red.trailing.constraint_equal_to(&self.content.trailing).offset(-16.),
+//!             self.red.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),
+//!         ]);
+//!     }
+//! }
+//! ```
+//!
+//! For more information on Autolayout, view the module or check out the examples folder.
 
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -21,10 +57,9 @@ mod class;
 use class::{register_view_class, register_view_class_with_delegate};
 
 pub mod controller;
-pub use controller::ViewController;
 
 pub mod traits;
-pub use traits::ViewDelegate;
+use traits::ViewDelegate;
 
 pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
 

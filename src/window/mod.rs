@@ -1,11 +1,12 @@
-//! Implements an `NSWindow` wrapper for MacOS, backed by Cocoa and associated widgets.
+//! Wraps `NSWindow` on macOS and `UIWindow` on iOS.
 //!
-//! This also handles looping back lifecycle events, such as window resizing or close events. It 
-//! currently implements a good chunk of the API, however it should be noted that in places where 
-//! things are outright deprecated, this framework will opt to not bother providing access to them.
+//! Using `WindowDelegate`, you're able to handle lifecycle events on your `Window` (such as
+//! resizing, closing, and so on). Note that interaction patterns are different between macOS and
+//! iOS windows, so your codebase may need to differ quite a bit here.
 //!
-//! If you require functionality like that, you're free to use the `objc` field on a `Window` to
-//! instrument it with the Objective-C runtime on your own.
+//! Of note: on macOS, in places where things are outright deprecated, this framework will opt to 
+//! not bother providing access to them. If you require functionality like that, you're free to use 
+//! the `objc` field on a `Window` to instrument it with the Objective-C runtime on your own.
 
 use std::unreachable;
 use std::rc::Rc;
@@ -28,16 +29,15 @@ mod class;
 use class::{register_window_class, register_window_class_with_delegate};
 
 pub mod config;
-pub use config::WindowConfig;
+use config::WindowConfig;
 
 pub mod controller;
-pub use controller::WindowController;
 
 pub mod enums;
 use enums::TitleVisibility;
 
 pub mod traits;
-pub use traits::WindowDelegate;
+use traits::WindowDelegate;
 
 pub(crate) static WINDOW_DELEGATE_PTR: &str = "rstWindowDelegate";
 
@@ -45,10 +45,10 @@ pub(crate) static WINDOW_DELEGATE_PTR: &str = "rstWindowDelegate";
 /// pieces to enable you to focus on reacting to lifecycle methods and doing your thing.
 #[derive(Debug)]
 pub struct Window<T = ()> {
-    /// A pointer to the Objective-C `NSWindow`. Used in callback orchestration.
+    /// A pointer to the Objective-C `NS/UIWindow`. Used in callback orchestration.
     pub(crate) internal_callback_ptr: Option<*const RefCell<T>>,
 
-    /// Represents an `NSWindow` in the Objective-C runtime.
+    /// Represents an `NS/UIWindow` in the Objective-C runtime.
     pub objc: ShareId<Object>,
 
     /// A delegate for this window.

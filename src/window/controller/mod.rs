@@ -1,3 +1,31 @@
+//! A `WindowController` is useful for handling certain document patterns on macOS.
+//!
+//! (iOS has no equivalent, as `UIWindowController` is private there).
+//!
+//! In particular, this is useful for certain situations regarding document handling
+//! (which this framework does not yet cover, but may eventually). Note that this control can only
+//! be created by providing a `WindowDelegate`.
+//!
+//! >If your application only uses a single `Window`, you may not even need this - just set the
+//! autosave name on your `Window` to get the benefit of cached window location across restarts.
+//!
+//! # How to use
+//!
+//! ```rust,no_run
+//! use cacao::app::AppDelegate;
+//! use cacao::window::{WindowController, WindowDelegate};
+//!
+//! #[derive(Default)]
+//! struct MyWindow;
+//!
+//! impl WindowDelegate for MyWindow {
+//!     // Your implementation here...
+//! }
+//!
+//! struct MyApp {
+//!     pub window: WindowController<MyWindow>
+//! }
+//! ```
 
 use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
@@ -10,10 +38,13 @@ use crate::window::{Window, WindowConfig, WindowDelegate, WINDOW_DELEGATE_PTR};
 mod class;
 use class::register_window_controller_class;
 
-/// A `Window` represents your way of interacting with an `NSWindow`. It wraps the various moving
-/// pieces to enable you to focus on reacting to lifecycle methods and doing your thing.
+/// A `WindowController` wraps your `WindowDelegate` into an underlying `Window`, and 
+/// provides some extra lifecycle methods.
 pub struct WindowController<T> {
+    /// A handler to the underlying `NSWindowController`.
     pub objc: ShareId<Object>,
+
+    /// The underlying `Window` that this controller wraps.
     pub window: Window<T>
 }
 

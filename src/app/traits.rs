@@ -13,14 +13,6 @@ use crate::user_activity::UserActivity;
 #[cfg(feature = "cloudkit")]
 use crate::cloudkit::share::CKShareMetaData;
 
-/// Controllers interested in processing messages can implement this to respond to messages as
-/// they're dispatched. All messages come in on the main thread.
-pub trait Dispatcher {
-    type Message: Send + Sync;
-
-    fn on_message(&self, _message: Self::Message) {}
-}
-
 /// `AppDelegate` is more or less `NSAppDelegate` from the Objective-C/Swift side, just named
 /// differently to fit in with the general naming scheme found within this framework. You can
 /// implement methods from this trait in order to respond to lifecycle events that the system will

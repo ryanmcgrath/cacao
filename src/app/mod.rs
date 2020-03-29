@@ -1,9 +1,44 @@
+//! Wraps the application lifecycle across platforms.
+//!
+//! This is where the bulk of your application logic starts out from. macOS and iOS are driven
+//! heavily by lifecycle events - in this case, your boilerplate would look something like this:
+//!
+//! ```rust,no_run
+//! use cacao::app::{App, AppDelegate};
+//! use cacao::window::Window;
 //! 
+//! #[derive(Default)]
+//! struct BasicApp;
+//!
+//! impl AppDelegate for BasicApp {
+//!     fn did_finish_launching(&self) {
+//!         // Your program in here
+//!     }
+//! }
+//!
+//! fn main() {
+//!     App::new("com.my.app", BasicApp::default()).run();
+//! }
+//! ```
+//! 
+//! ## Why do I need to do this?
+//! A good question. Cocoa does many things for you (e.g, setting up and managing a runloop,
+//! handling the view/window heirarchy, and so on). This requires certain things happen before your
+//! code can safely run, which `App` in this framework does for you.
+//!
+//! - It ensures that the `sharedApplication` is properly initialized with your delegate.
+//! - It ensures that Cocoa is put into multi-threaded mode, so standard POSIX threads work as they
+//! should.
+//! 
+//! ### Platform specificity
+//! Certain lifecycle events are specific to certain platforms. Where this is the case, the
+//! documentation makes every effort to note.
 
 use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::dispatcher::Dispatcher;
 use crate::foundation::{id, YES, NO, NSUInteger, AutoReleasePool};
 use crate::menu::Menu;
 
@@ -14,10 +49,10 @@ mod delegate;
 use delegate::register_app_delegate_class;
 
 pub mod enums;
-pub use enums::AppDelegateResponse;
+use enums::AppDelegateResponse;
 
 pub mod traits;
-pub use traits::{AppDelegate, Dispatcher};
+use traits::AppDelegate;
 
 pub(crate) static APP_PTR: &str = "rstAppPtr";
 

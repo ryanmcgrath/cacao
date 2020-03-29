@@ -80,8 +80,8 @@ pub mod button;
 pub mod cloudkit;
 
 pub mod color;
-pub mod collection_view;
 pub mod constants;
+pub mod dispatcher;
 pub mod dragdrop;
 pub mod error;
 pub mod events;
@@ -107,28 +107,4 @@ pub mod webview;
 
 pub mod window;
 
-pub mod prelude {
-    pub use crate::app::{App, AppDelegate, Dispatcher};
-    
-    pub use crate::layout::LayoutConstraint;
-
-    pub use crate::menu::{Menu, MenuItem};
-
-    #[cfg(feature = "user-notifications")]
-    pub use crate::notifications::{Notification, NotificationCenter, NotificationAuthOption};
-
-    pub use crate::toolbar::{Toolbar, ToolbarController, ToolbarHandle};
-
-    pub use crate::networking::URLRequest;
-
-    pub use crate::window::{
-        Window, WindowConfig, WindowDelegate
-    };
-
-    #[cfg(feature = "webview")]
-    pub use crate::webview::{
-        WebView, WebViewConfig, WebViewDelegate
-    };
-
-    pub use crate::view::{View, ViewDelegate};
-}
+pub mod prelude;
