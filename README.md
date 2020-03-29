@@ -9,7 +9,7 @@ This library is currently _very_ early stage and may have bugs. Your usage of it
 your own risk. With that said, provided you follow the rules (regarding memory/ownership) it's
 already fine for some apps.
 
-_Note that this crate relies on the Objective-C runtime. Interfacing with the runtime **requires**
+>_Note that this crate relies on the Objective-C runtime. Interfacing with the runtime **requires**
 unsafe blocks; this crate handles those unsafe interactions for you and provides a safe wrapper, 
 but by using this crate you understand that usage of `unsafe` is a given and will be somewhat 
 rampant for wrapped controls. This does **not** mean you can't assess, review, or question unsafe 
