@@ -52,25 +52,23 @@ impl<T> WindowController<T> where T: WindowDelegate + 'static {
     /// Allocates and configures an `NSWindowController` in the Objective-C/Cocoa runtime that maps over
     /// to your supplied delegate.
     pub fn with(config: WindowConfig, delegate: T) -> Self {
-        let mut window = Window::with(config, delegate);
+        let window = Window::with(config, delegate);
 
         let objc = unsafe {
             let window_controller_class = register_window_controller_class::<T>();
             let controller_alloc: id = msg_send![window_controller_class, alloc];
             let controller: id = msg_send![controller_alloc, initWithWindow:&*window.objc];
 
-            if let Some(ptr) = window.internal_callback_ptr {
+            if let Some(delegate) = &window.delegate {
+                let ptr: *const T = &**delegate;
                 (&mut *controller).set_ivar(WINDOW_DELEGATE_PTR, ptr as usize);
             }
 
             ShareId::from_ptr(controller)
         };
 
-        if let Some(window_delegate) = &mut window.delegate {
-            let mut window_delegate = window_delegate.borrow_mut();
-            
-            (*window_delegate).did_load(Window {
-                internal_callback_ptr: None,
+        if let Some(delegate) = &window.delegate {
+            (*delegate).did_load(Window {
                 delegate: None,
                 objc: window.objc.clone()
             });

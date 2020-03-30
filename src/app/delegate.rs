@@ -15,7 +15,7 @@ use objc::runtime::{Class, Object, Sel};
 use url::Url;
 
 use crate::app::APP_PTR;
-use crate::app::traits::AppDelegate;
+use crate::app::traits::{AppDelegate, MacAppDelegate};
 use crate::error::AppKitError;
 use crate::foundation::{id, nil, BOOL, YES, NO, NSUInteger, NSArray, NSString};
 use crate::printing::PrintSettings;
@@ -26,7 +26,7 @@ use crate::cloudkit::share::CKShareMetaData;
 
 /// A handy method for grabbing our `AppDelegate` from the pointer. This is different from our
 /// standard `utils` version as this doesn't require `RefCell` backing.
-fn app<T: AppDelegate>(this: &Object) -> &T {
+fn app<T>(this: &Object) -> &T {
     unsafe {
         let app_ptr: usize = *this.get_ivar(APP_PTR);
         let app = app_ptr as *const T;
@@ -45,7 +45,7 @@ extern fn did_finish_launching<T: AppDelegate>(this: &Object, _: Sel, _: id) {
 }
 
 /// Fires when the Application Delegate receives a `applicationWillBecomeActive` notification.
-extern fn will_become_active<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn will_become_active<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).will_become_active();
 }
 
@@ -60,12 +60,12 @@ extern fn will_resign_active<T: AppDelegate>(this: &Object, _: Sel, _: id) {
 }
 
 /// Fires when the Application Delegate receives a `applicationDidResignActive` notification.
-extern fn did_resign_active<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn did_resign_active<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).did_resign_active();
 }
 
 /// Fires when the Application Delegate receives a 'applicationShouldTerminate:` notification.
-extern fn should_terminate<T: AppDelegate>(this: &Object, _: Sel, _: id) -> NSUInteger {
+extern fn should_terminate<T: MacAppDelegate>(this: &Object, _: Sel, _: id) -> NSUInteger {
     app::<T>(this).should_terminate().into()
 }
 
@@ -75,38 +75,38 @@ extern fn will_terminate<T: AppDelegate>(this: &Object, _: Sel, _: id) {
 }
 
 /// Fires when the Application Delegate receives a `applicationWillHide:` notification.
-extern fn will_hide<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn will_hide<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).will_hide();
 }
 
 /// Fires when the Application Delegate receives a `applicationDidHide:` notification.
-extern fn did_hide<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn did_hide<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).did_hide();
 }
 
 /// Fires when the Application Delegate receives a `applicationWillUnhide:` notification.
-extern fn will_unhide<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn will_unhide<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).will_unhide();
 }
 
 /// Fires when the Application Delegate receives a `applicationDidUnhide:` notification.
-extern fn did_unhide<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn did_unhide<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).did_unhide();
 }
 
 /// Fires when the Application Delegate receives a `applicationWillUpdate:` notification.
-extern fn will_update<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn will_update<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).will_update();
 }
 
 /// Fires when the Application Delegate receives a `applicationDidUpdate:` notification.
-extern fn did_update<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn did_update<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).did_update();
 }
 
 /// Fires when the Application Delegate receives a
 /// `applicationShouldHandleReopen:hasVisibleWindows:` notification.
-extern fn should_handle_reopen<T: AppDelegate>(this: &Object, _: Sel, _: id, has_visible_windows: BOOL) -> BOOL {
+extern fn should_handle_reopen<T: MacAppDelegate>(this: &Object, _: Sel, _: id, has_visible_windows: BOOL) -> BOOL {
     match app::<T>(this).should_handle_reopen(match has_visible_windows {
         YES => true,
         NO => false,
@@ -118,7 +118,7 @@ extern fn should_handle_reopen<T: AppDelegate>(this: &Object, _: Sel, _: id, has
 }
 
 /// Fires when the application delegate receives a `applicationDockMenu:` request.
-extern fn dock_menu<T: AppDelegate>(this: &Object, _: Sel, _: id) -> id {
+extern fn dock_menu<T: MacAppDelegate>(this: &Object, _: Sel, _: id) -> id {
     match app::<T>(this).dock_menu() {
         Some(mut menu) => &mut *menu.inner,
         None => nil
@@ -126,13 +126,13 @@ extern fn dock_menu<T: AppDelegate>(this: &Object, _: Sel, _: id) -> id {
 }
 
 /// Fires when the application delegate receives a `application:willPresentError:` notification.
-extern fn will_present_error<T: AppDelegate>(this: &Object, _: Sel, _: id, error: id) -> id {
+extern fn will_present_error<T: MacAppDelegate>(this: &Object, _: Sel, _: id, error: id) -> id {
     let error = AppKitError::new(error);
     app::<T>(this).will_present_error(error).into_nserror()
 }
 
 /// Fires when the application receives a `applicationDidChangeScreenParameters:` notification.
-extern fn did_change_screen_parameters<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn did_change_screen_parameters<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).did_change_screen_parameters();
 }
 
@@ -202,7 +202,7 @@ extern fn accepted_cloudkit_share<T: AppDelegate>(_this: &Object, _: Sel, _: id,
 }
 
 /// Fires when the application receives an `application:openURLs` message.
-extern fn open_urls<T: AppDelegate>(this: &Object, _: Sel, _: id, file_urls: id) {
+extern fn open_urls<T: MacAppDelegate>(this: &Object, _: Sel, _: id, file_urls: id) {
     let urls = NSArray::wrap(file_urls).map(|url| {
         let uri = NSString::wrap(unsafe {
             msg_send![url, absoluteString]
@@ -215,7 +215,7 @@ extern fn open_urls<T: AppDelegate>(this: &Object, _: Sel, _: id, file_urls: id)
 }
 
 /// Fires when the application receives an `application:openFileWithoutUI:` message.
-extern fn open_file_without_ui<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
+extern fn open_file_without_ui<T: MacAppDelegate>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
     let filename = NSString::wrap(file);
 
     match app::<T>(this).open_file_without_ui(filename.to_str()) {
@@ -225,7 +225,7 @@ extern fn open_file_without_ui<T: AppDelegate>(this: &Object, _: Sel, _: id, fil
 }
 
 /// Fired when the application receives an `applicationShouldOpenUntitledFile:` message.
-extern fn should_open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
+extern fn should_open_untitled_file<T: MacAppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
     match app::<T>(this).should_open_untitled_file() {
         true => YES,
         false => NO
@@ -233,7 +233,7 @@ extern fn should_open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id
 }
 
 /// Fired when the application receives an `applicationOpenUntitledFile:` message.
-extern fn open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
+extern fn open_untitled_file<T: MacAppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
     match app::<T>(this).open_untitled_file() {
         true => YES,
         false => NO
@@ -241,7 +241,7 @@ extern fn open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BO
 }
 
 /// Fired when the application receives an `application:openTempFile:` message.
-extern fn open_temp_file<T: AppDelegate>(this: &Object, _: Sel, _: id, filename: id) -> BOOL {
+extern fn open_temp_file<T: MacAppDelegate>(this: &Object, _: Sel, _: id, filename: id) -> BOOL {
     let filename = NSString::wrap(filename);
 
     match app::<T>(this).open_temp_file(filename.to_str()) {
@@ -251,7 +251,7 @@ extern fn open_temp_file<T: AppDelegate>(this: &Object, _: Sel, _: id, filename:
 }
 
 /// Fired when the application receives an `application:printFile:` message.
-extern fn print_file<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
+extern fn print_file<T: MacAppDelegate>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
     let filename = NSString::wrap(file);
 
     match app::<T>(this).print_file(filename.to_str()) {
@@ -262,7 +262,7 @@ extern fn print_file<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> 
 
 /// Fired when the application receives an `application:printFiles:withSettings:showPrintPanels:`
 /// message.
-extern fn print_files<T: AppDelegate>(this: &Object, _: Sel, _: id, files: id, settings: id, show_print_panels: BOOL) -> NSUInteger {
+extern fn print_files<T: MacAppDelegate>(this: &Object, _: Sel, _: id, files: id, settings: id, show_print_panels: BOOL) -> NSUInteger {
     let files = NSArray::wrap(files).map(|file| {
         NSString::wrap(file).to_str().to_string()
     });
@@ -277,14 +277,14 @@ extern fn print_files<T: AppDelegate>(this: &Object, _: Sel, _: id, files: id, s
 }
 
 /// Called when the application's occlusion state has changed.
-extern fn did_change_occlusion_state<T: AppDelegate>(this: &Object, _: Sel, _: id) {
+extern fn did_change_occlusion_state<T: MacAppDelegate>(this: &Object, _: Sel, _: id) {
     app::<T>(this).occlusion_state_changed();
 }
 
 /// Called when the application receives an `application:delegateHandlesKey:` message.
 /// Note: this may not fire in sandboxed applications. Apple's documentation is unclear on the
 /// matter.
-extern fn delegate_handles_key<T: AppDelegate>(this: &Object, _: Sel, _: id, key: id) -> BOOL {
+extern fn delegate_handles_key<T: MacAppDelegate>(this: &Object, _: Sel, _: id, key: id) -> BOOL {
     let key = NSString::wrap(key);
 
     match app::<T>(this).delegate_handles_key(key.to_str()) {
@@ -296,6 +296,52 @@ extern fn delegate_handles_key<T: AppDelegate>(this: &Object, _: Sel, _: id, key
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and
 /// pointers we need to have.
 pub(crate) fn register_app_delegate_class<T: AppDelegate>() -> *const Class {
+    static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| unsafe {
+        let superclass = class!(NSObject);
+        let mut decl = ClassDecl::new("RSTAppDelegate", superclass).unwrap();
+
+        decl.add_ivar::<usize>(APP_PTR);
+
+        // Launching Applications
+        decl.add_method(sel!(applicationWillFinishLaunching:), will_finish_launching::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(applicationDidFinishLaunching:), did_finish_launching::<T> as extern fn(&Object, _, _));
+        
+        // Managing Active Status
+        decl.add_method(sel!(applicationDidBecomeActive:), did_become_active::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(applicationWillResignActive:), will_resign_active::<T> as extern fn(&Object, _, _));
+
+        // Terminating Applications
+        decl.add_method(sel!(applicationWillTerminate:), will_terminate::<T> as extern fn(&Object, _, _));
+
+        // User Activities
+        decl.add_method(sel!(application:willContinueUserActivityWithType:), will_continue_user_activity_with_type::<T> as extern fn(&Object, _, _, id) -> BOOL);
+        decl.add_method(sel!(application:continueUserActivity:restorationHandler:), continue_user_activity::<T> as extern fn(&Object, _, _, id, id) -> BOOL);
+        decl.add_method(sel!(application:didFailToContinueUserActivityWithType:error:), failed_to_continue_user_activity::<T> as extern fn(&Object, _, _, id, id));
+        decl.add_method(sel!(application:didUpdateUserActivity:), did_update_user_activity::<T> as extern fn(&Object, _, _, id));
+
+        // Handling push notifications
+        decl.add_method(sel!(application:didRegisterForRemoteNotificationsWithDeviceToken:), registered_for_remote_notifications::<T> as extern fn(&Object, _, _, id));
+        decl.add_method(sel!(application:didFailToRegisterForRemoteNotificationsWithError:), failed_to_register_for_remote_notifications::<T> as extern fn(&Object, _, _, id));
+        decl.add_method(sel!(application:didReceiveRemoteNotification:), did_receive_remote_notification::<T> as extern fn(&Object, _, _, id));
+
+        // CloudKit
+        #[cfg(feature = "cloudkit")]
+        decl.add_method(sel!(application:userDidAcceptCloudKitShareWithMetadata:), accepted_cloudkit_share::<T> as extern fn(&Object, _, _, id));
+
+        DELEGATE_CLASS = decl.register();
+    });
+
+    unsafe {
+        DELEGATE_CLASS
+    }
+}
+
+/// Registers an `NSObject` application delegate, and configures it for the various callbacks and
+/// pointers we need to have.
+pub(crate) fn register_mac_app_delegate_class<T: AppDelegate + MacAppDelegate>() -> *const Class {
     static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
 

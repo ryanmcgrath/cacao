@@ -2,9 +2,6 @@
 //! belong to. These are typically internal, and if you rely on them... well, don't be surprised if
 //! they go away one day.
 
-use std::rc::Rc;
-use std::cell::RefCell;
-
 use core_graphics::base::CGFloat;
 
 use objc::{Encode, Encoding};
@@ -17,16 +14,31 @@ pub trait Controller {
     fn get_backing_node(&self) -> ShareId<Object>;
 }
 
-/// Used for moving a pointer back into an Rc, so we can work with the object held behind it. Note
-/// that it's very important to make sure you reverse this when you're done (using
-/// `Rc::into_raw()`) otherwise you'll cause problems due to the `Drop` logic.
-pub fn load<T>(this: &Object, ptr: &str) -> Rc<RefCell<T>> {
+
+/// Utility method for taking a pointer and grabbing the corresponding delegate in Rust. This is
+/// theoretically safe:
+///
+/// - The object (`this`) is owned by the wrapping component (e.g, a `Window`). It's released when
+/// the `Window` is released.
+/// - The only other place where you can retrieve a `Window` (or such control) is in the respective
+/// delegate `did_load()` method, where you're passed one. This variant never includes the
+/// delegate.
+/// - Thus, provided the root object still exists, this pointer should be valid (root objects Box
+/// them, so they ain't movin').
+/// - The way this _could_ fail would be if the programmer decides to clone their `Window` or such
+/// object deeper into the stack (or elsewhere in general). This is why we don't allow them to be
+/// cloned, though.
+/// 
+/// This is, like much in this framework, subject to revision pending more thorough testing and
+/// checking.
+pub fn load<'a, T>(this: &'a Object, ptr_name: &str) -> &'a T {
     unsafe {
-        let ptr: usize = *this.get_ivar(ptr);
-        let view_ptr = ptr as *const RefCell<T>;
-        Rc::from_raw(view_ptr)
+        let ptr: usize = *this.get_ivar(ptr_name);
+        let obj = ptr as *const T;
+        &*obj
     }
 }
+
 /// Upstream core graphics does not implement Encode for certain things, so we wrap them here -
 /// these are only used in reading certain types passed to us from some delegate methods.
 #[repr(C)]

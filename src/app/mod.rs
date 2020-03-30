@@ -38,21 +38,21 @@ use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::dispatcher::Dispatcher;
 use crate::foundation::{id, YES, NO, NSUInteger, AutoReleasePool};
 use crate::menu::Menu;
+use crate::notification_center::Dispatcher;
 
 mod class;
 use class::register_app_class;
 
 mod delegate;
-use delegate::register_app_delegate_class;
+use delegate::{register_app_delegate_class, register_mac_app_delegate_class};
 
-pub mod enums;
-use enums::AppDelegateResponse;
+mod enums;
+pub use enums::*;
 
-pub mod traits;
-use traits::AppDelegate;
+mod traits;
+pub use traits::{AppDelegate, MacAppDelegate};
 
 pub(crate) static APP_PTR: &str = "rstAppPtr";
 
@@ -63,9 +63,38 @@ fn shared_application<F: Fn(id)>(handler: F) {
     handler(app);
 }
 
-/// A wrapper for `NSApplication`. It holds (retains) pointers for the Objective-C runtime, 
-/// which is where our application instance lives. It also injects an `NSObject` subclass,
-/// which acts as the Delegate, looping back into our Vaulthund shared application.
+/// A helper method for ensuring that Cocoa is running in multi-threaded mode.
+///
+/// Why do we need this? According to Apple, if you're going to make use of standard POSIX threads,
+/// you need to, before creating and using a POSIX thread, first create and immediately detach a
+/// `NSThread`. This ensures that Cocoa utilizes proper locking in certain places where it might
+/// not be doing so for performance reasons.
+///
+/// In general, you should aim to just start all of your work inside of your `AppDelegate` methods.
+/// There are some cases where you might want to do things before that, though - and if you spawn a
+/// thread there, just call this first... otherwise you may have some unexpected issues later on.
+///
+/// _(This is called inside the `App::new()` construct for you already, so as long as you're doing
+/// nothing before your `AppDelegate`, you can pay this no mind)._
+pub fn activate_cocoa_multithreading() {
+    unsafe {
+        let thread: id = msg_send![class!(NSThread), new];
+        let _: () = msg_send![thread, start];
+    }
+}
+
+/// A wrapper for `NSApplication` on macOS, and `UIApplication` on iOS.
+///
+/// It holds (retains) a pointer to the Objective-C runtime shared application object, as well as
+/// handles setting up a few necessary pieces:
+///
+/// - It injects an `NSObject` subclass to act as a delegate for lifecycle events.
+/// - It ensures that Cocoa, where appropriate, is operating in multi-threaded mode so POSIX
+/// threads work as intended.
+///
+/// This also enables support for dispatching a message, `M`. Your `AppDelegate` can optionally
+/// implement the `Dispatcher` trait to receive messages that you might dispatch from deeper in the
+/// application.
 pub struct App<T = (), M = ()> {
     pub inner: Id<Object>,
     pub objc_delegate: Id<Object>,
@@ -74,12 +103,29 @@ pub struct App<T = (), M = ()> {
     _t: std::marker::PhantomData<M>
 }
 
-impl<T> App<T> where T: AppDelegate + 'static {
+impl<T> App<T> {  
+    /// Kicks off the NSRunLoop for the NSApplication instance. This blocks when called.
+    /// If you're wondering where to go from here... you need an `AppDelegate` that implements
+    /// `did_finish_launching`. :)
+    pub fn run(&self) {
+        unsafe {
+            let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
+            let _: () = msg_send![current_app, activateWithOptions:1<<1];
+            let shared_app: id = msg_send![class!(RSTApplication), sharedApplication];
+            let _: () = msg_send![shared_app, run];
+            self.pool.drain();
+        }
+    }
+}
+
+impl<T> App<T> where T: AppDelegate + MacAppDelegate + 'static {
     /// Creates an NSAutoReleasePool, configures various NSApplication properties (e.g, activation
     /// policies), injects an `NSObject` delegate wrapper, and retains everything on the
     /// Objective-C side of things.
     pub fn new(_bundle_id: &str, delegate: T) -> Self {
         // set_bundle_id(bundle_id);
+        
+        activate_cocoa_multithreading();
         
         let pool = AutoReleasePool::new();
 
@@ -92,7 +138,7 @@ impl<T> App<T> where T: AppDelegate + 'static {
         let app_delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
-            let delegate_class = register_app_delegate_class::<T>();
+            let delegate_class = register_mac_app_delegate_class::<T>();
             let delegate: id = msg_send![delegate_class, new];
             let delegate_ptr: *const T = &*app_delegate;
             (&mut *delegate).set_ivar(APP_PTR, delegate_ptr as usize);
@@ -106,19 +152,6 @@ impl<T> App<T> where T: AppDelegate + 'static {
             delegate: app_delegate,
             pool: pool,
             _t: std::marker::PhantomData
-        }
-    }
-    
-    /// Kicks off the NSRunLoop for the NSApplication instance. This blocks when called.
-    /// If you're wondering where to go from here... you need an `AppDelegate` that implements
-    /// `did_finish_launching`. :)
-    pub fn run(&self) {
-        unsafe {
-            let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
-            let _: () = msg_send![current_app, activateWithOptions:1<<1];
-            let shared_app: id = msg_send![class!(RSTApplication), sharedApplication];
-            let _: () = msg_send![shared_app, run];
-            self.pool.drain();
         }
     }
 } 

@@ -13,7 +13,7 @@ use crate::foundation::{nil, NSString};
 /// A wrapper for `NSButton`. Holds (retains) pointers for the Objective-C runtime 
 /// where our `NSButton` lives.
 pub struct Button {
-    pub inner: Id<Object>
+    pub objc: Id<Object>
 }
 
 impl Button {
@@ -21,19 +21,19 @@ impl Button {
     /// and retains the necessary Objective-C runtime pointer.
     pub fn new(text: &str) -> Self {
         let title = NSString::new(text);
-        let inner = unsafe {
+        let objc = unsafe {
             Id::from_ptr(msg_send![register_class(), buttonWithTitle:title target:nil action:nil])
         };
 
         Button {
-            inner: inner
+            objc: objc
         }
     }
 
     /// Sets the bezel style for this button.
     pub fn set_bezel_style(&self, bezel_style: i32) {
         unsafe {
-            let _: () = msg_send![&*self.inner, setBezelStyle:bezel_style];
+            let _: () = msg_send![&*self.objc, setBezelStyle:bezel_style];
         }
     }
 }

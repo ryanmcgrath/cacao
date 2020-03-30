@@ -12,22 +12,20 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, NSString};
 use crate::button::Button;
 
-/// A wrapper for `NSWindow`. Holds (retains) pointers for the Objective-C runtime 
-/// where our `NSWindow` and associated delegate live.
+/// Wraps `NSToolbarItem`. Enables configuring things like size, view, and so on.
 pub struct ToolbarItem {
     pub identifier: String,
-    pub inner: Id<Object>,
+    pub objc: Id<Object>,
     pub button: Option<Button>
 }
 
 impl ToolbarItem {
-    /// Creates a new `NSWindow` instance, configures it appropriately (e.g, titlebar appearance),
-    /// injects an `NSObject` delegate wrapper, and retains the necessary Objective-C runtime
-    /// pointers.
+    /// Creates and returns a new `ToolbarItem`, ensuring the underlying `NSToolbarItem` is
+    /// properly initialized.
     pub fn new<S: Into<String>>(identifier: S) -> Self {
         let identifier = identifier.into();
 
-        let inner = unsafe {
+        let objc = unsafe {
             let identifr = NSString::new(&identifier);
             let alloc: id = msg_send![class!(NSToolbarItem), alloc];
             let item: id = msg_send![alloc, initWithItemIdentifier:identifr];
@@ -36,7 +34,7 @@ impl ToolbarItem {
 
         ToolbarItem {
             identifier: identifier,
-            inner: inner,
+            objc: objc,
             button: None
         }
     }
@@ -45,7 +43,7 @@ impl ToolbarItem {
     pub fn set_title(&mut self, title: &str) {
         unsafe {
             let title = NSString::new(title);
-            let _: () = msg_send![&*self.inner, setTitle:title];
+            let _: () = msg_send![&*self.objc, setTitle:title];
         }
     }
 
@@ -54,7 +52,7 @@ impl ToolbarItem {
         button.set_bezel_style(11);
 
         unsafe {
-            let _: () = msg_send![&*self.inner, setView:&*button.inner];
+            let _: () = msg_send![&*self.objc, setView:&*button.objc];
         }
         
         self.button = Some(button);
@@ -64,7 +62,7 @@ impl ToolbarItem {
     pub fn set_min_size(&mut self, width: f64, height: f64) {
         unsafe {
             let size = CGSize::new(width.into(), height.into());
-            let _: () = msg_send![&*self.inner, setMinSize:size];
+            let _: () = msg_send![&*self.objc, setMinSize:size];
         }
     }
 
@@ -72,7 +70,7 @@ impl ToolbarItem {
     pub fn set_max_size(&mut self, width: f64, height: f64) {
         unsafe {
             let size = CGSize::new(width.into(), height.into());
-            let _: () = msg_send![&*self.inner, setMaxSize:size];
+            let _: () = msg_send![&*self.objc, setMaxSize:size];
         }
     }
 }

@@ -27,14 +27,67 @@ pub trait AppDelegate {
     /// through to your shared application, then used the `App::shared()` call.
     fn did_finish_launching(&self) {}
 
-    /// Fired immediately before the application is about to become active.
-    fn will_become_active(&self) {}
-
     /// Fired when the application is about to become active.
     fn did_become_active(&self) {}
 
     /// Fired when the application is about to resign active state.
     fn will_resign_active(&self) {}
+    
+    /// Fired when the user is going to continue an activity.
+    fn will_continue_user_activity(&self, _activity_type: &str) -> bool { false }
+
+    /// Fired when data for continuing an activity is available. Currently, the
+    /// `restoration_handler` is not used, but there to communicate intent with what this API will
+    /// eventually be doing.
+    fn continue_user_activity<F: Fn()>(&self, _activity: UserActivity, _restoration_handler: F) -> bool { false }
+
+    /// Fired when the activity could not be continued.
+    fn failed_to_continue_user_activity(&self, _activity_type: &str, _error: AppKitError) {}
+
+    /// Fired after the user activity object has been updated.
+    fn updated_user_activity(&self, _activity: UserActivity) {}
+
+    /// Fired when you've successfully registered for remote notifications with APNS.
+    fn registered_for_remote_notifications(&self, _token: &str) {}
+
+    /// Fired after you've received a push notification from APNS.
+    //fn did_receive_remote_notification(&self, notification: PushNotification) {}
+
+    /// Fired if there was a failure to register for remote notifications with APNS - e.g,
+    /// connection issues or something.
+    fn failed_to_register_for_remote_notifications(&self, _error: AppKitError) {}
+
+    /// Fires after the user accepted a CloudKit sharing invitation associated with your
+    /// application. 
+    #[cfg(feature = "cloudkit")]
+    fn user_accepted_cloudkit_share(&self, _share_metadata: CKShareMetaData) {}
+    
+    /// Fired before the application terminates. You can use this to do any required cleanup.
+    fn will_terminate(&self) {}
+}
+
+/// `SceneDelegate` maps over to the newer iOS13+ API. This is necessary in order to support
+/// multiple windows (scenes) on iPadOS, which is a desirable feature.
+pub trait SceneDelegate {
+    /*fn configuration_for(
+        &mut self,
+        session: SceneSession,
+        options: &[SceneConnectionOptions]
+    ) -> SceneConfiguration {
+
+    }
+
+    fn did_discard(&mut self, sessions: &[SceneSession]) {}
+    */
+}
+
+pub trait IOSAppDelegate {
+
+}
+
+pub trait MacAppDelegate {
+    /// Fired immediately before the application is about to become active.
+    fn will_become_active(&self) {}
 
     /// Fired when the application has resigned active state.
     fn did_resign_active(&self) {}
@@ -64,9 +117,6 @@ pub trait AppDelegate {
     /// you do this, you'll need to be sure to call `App::reply_to_termination_request()` to circle
     /// back.
     fn should_terminate(&self) -> TerminateResponse { TerminateResponse::Now }
-
-    /// Fired before the application terminates. You can use this to do any required cleanup.
-    fn will_terminate(&self) {}
 
     /// Sent by the application to the delegate prior to default behavior to reopen AppleEvents.
     ///
@@ -99,38 +149,7 @@ pub trait AppDelegate {
     /// Fired when the screen parameters for the application have changed (e.g, the user changed
     /// something in their settings).
     fn did_change_screen_parameters(&self) {}
-
-    /// Fired when the user is going to continue an activity.
-    fn will_continue_user_activity(&self, _activity_type: &str) -> bool { false }
-
-    /// Fired when data for continuing an activity is available. Currently, the
-    /// `restoration_handler` is not used, but there to communicate intent with what this API will
-    /// eventually be doing.
-    fn continue_user_activity<F: Fn()>(&self, _activity: UserActivity, _restoration_handler: F) -> bool { false }
-
-    /// Fired when the activity could not be continued.
-    fn failed_to_continue_user_activity(&self, _activity_type: &str, _error: AppKitError) {}
-
-    /// Fired after the user activity object has been updated.
-    fn updated_user_activity(&self, _activity: UserActivity) {}
-
-    /// Fired when you've successfully registered for remote notifications with APNS.
-    fn registered_for_remote_notifications(&self, _token: &str) {
-        
-    }
-
-    /// Fired after you've received a push notification from APNS.
-    //fn did_receive_remote_notification(&self, notification: PushNotification) {}
-
-    /// Fired if there was a failure to register for remote notifications with APNS - e.g,
-    /// connection issues or something.
-    fn failed_to_register_for_remote_notifications(&self, _error: AppKitError) {}
-
-    /// Fires after the user accepted a CloudKit sharing invitation associated with your
-    /// application. 
-    #[cfg(feature = "cloudkit")]
-    fn user_accepted_cloudkit_share(&self, _share_metadata: CKShareMetaData) {}
-   
+  
     /// Fired when you have a list of `Url`'s to open. This is best explained by quoting the Apple
     /// documentation verbatim:
     ///

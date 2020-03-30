@@ -9,8 +9,6 @@
 //! the `objc` field on a `Window` to instrument it with the Objective-C runtime on your own.
 
 use std::unreachable;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 use core_graphics::base::CGFloat;
 use core_graphics::geometry::{CGRect, CGSize};
@@ -22,22 +20,23 @@ use objc_id::ShareId;
 use crate::color::Color;
 use crate::foundation::{id, nil, YES, NO, NSString, NSInteger, NSUInteger};
 use crate::layout::traits::Layout;
-use crate::toolbar::{Toolbar, ToolbarController};
+use crate::toolbar::{Toolbar, ToolbarDelegate};
 use crate::utils::Controller;
 
 mod class;
 use class::{register_window_class, register_window_class_with_delegate};
 
-pub mod config;
-use config::WindowConfig;
+mod config;
+pub use config::WindowConfig;
 
-pub mod controller;
+mod controller;
+pub use controller::WindowController;
 
-pub mod enums;
-use enums::TitleVisibility;
+mod enums;
+pub use enums::*;
 
-pub mod traits;
-use traits::WindowDelegate;
+mod traits;
+pub use traits::WindowDelegate;
 
 pub(crate) static WINDOW_DELEGATE_PTR: &str = "rstWindowDelegate";
 
@@ -45,14 +44,11 @@ pub(crate) static WINDOW_DELEGATE_PTR: &str = "rstWindowDelegate";
 /// pieces to enable you to focus on reacting to lifecycle methods and doing your thing.
 #[derive(Debug)]
 pub struct Window<T = ()> {
-    /// A pointer to the Objective-C `NS/UIWindow`. Used in callback orchestration.
-    pub(crate) internal_callback_ptr: Option<*const RefCell<T>>,
-
     /// Represents an `NS/UIWindow` in the Objective-C runtime.
     pub objc: ShareId<Object>,
 
     /// A delegate for this window.
-    pub delegate: Option<Rc<RefCell<T>>>
+    pub delegate: Option<Box<T>>
 }
 
 impl Default for Window {
@@ -97,12 +93,67 @@ impl Window {
         };
 
         Window {
-            internal_callback_ptr: None,
             objc: objc,
             delegate: None
         }
     }
 }
+
+impl<T> Window<T> where T: WindowDelegate + 'static {
+    /// Constructs a new Window with a `config` and `delegate`. Using a `WindowDelegate` enables
+    /// you to respond to window lifecycle events - visibility, movement, and so on. It also
+    /// enables easier structure of your codebase, and in a way simulates traditional class based
+    /// architectures... just without the subclassing.
+    pub fn with(config: WindowConfig, delegate: T) -> Self {
+        let delegate = Box::new(delegate);
+        
+        let objc = unsafe {
+            let alloc: id = msg_send![register_window_class_with_delegate::<T>(), alloc];
+            
+            // Other types of backing (Retained/NonRetained) are archaic, dating back to the
+            // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
+            let buffered: NSUInteger = 2;
+            let dimensions: CGRect = config.initial_dimensions.into();
+            let window: id = msg_send![alloc, initWithContentRect:dimensions 
+                styleMask:config.style 
+                backing:buffered
+                defer:match config.defer {
+                    true => YES,
+                    false => NO
+                }
+            ];
+
+            let delegate_ptr: *const T = &*delegate;
+            (&mut *window).set_ivar(WINDOW_DELEGATE_PTR, delegate_ptr as usize);
+
+            let _: () = msg_send![window, autorelease];
+
+            // This is very important! NSWindow is an old class and has some behavior that we need
+            // to disable, like... this. If we don't set this, we'll segfault entirely because the
+            // Objective-C runtime gets out of sync by releasing the window out from underneath of
+            // us.
+            let _: () = msg_send![window, setReleasedWhenClosed:NO];
+
+            // We set the window to be its own delegate - this is cleaned up inside `Drop`.
+            let _: () = msg_send![window, setDelegate:window];
+
+            ShareId::from_ptr(window)
+        };
+
+        {
+            &delegate.did_load(Window {
+                delegate: None,
+                objc: objc.clone()
+            });
+        }
+
+        Window {
+            objc: objc,
+            delegate: Some(delegate)
+        }
+    }
+}
+
 
 impl<T> Window<T> {
     /// Handles setting the title on the underlying window. Allocates and passes an `NSString` over
@@ -167,9 +218,9 @@ impl<T> Window<T> {
     }
 
     /// Used for setting a toolbar on this window. 
-    pub fn set_toolbar<TC: ToolbarController>(&self, toolbar: &Toolbar<TC>) {
+    pub fn set_toolbar<TC: ToolbarDelegate>(&self, toolbar: &Toolbar<TC>) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setToolbar:&*toolbar.objc_controller.0];
+            let _: () = msg_send![&*self.objc, setToolbar:&*toolbar.objc];
         }
     }
     
@@ -396,89 +447,22 @@ impl<T> Window<T> {
     }
 }
 
-impl<T> Window<T> where T: WindowDelegate + 'static {
-    /// Constructs a new Window with a `config` and `delegate`. Using a `WindowDelegate` enables
-    /// you to respond to window lifecycle events - visibility, movement, and so on. It also
-    /// enables easier structure of your codebase, and in a way simulates traditional class based
-    /// architectures... just without the subclassing.
-    pub fn with(config: WindowConfig, delegate: T) -> Self {
-        let delegate = Rc::new(RefCell::new(delegate));
-        
-        let internal_callback_ptr = {
-            let cloned = Rc::clone(&delegate);
-            Rc::into_raw(cloned)
-        };
-
-        let objc = unsafe {
-            let alloc: id = msg_send![register_window_class_with_delegate::<T>(), alloc];
-            
-            // Other types of backing (Retained/NonRetained) are archaic, dating back to the
-            // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
-            let buffered: NSUInteger = 2;
-            let dimensions: CGRect = config.initial_dimensions.into();
-            let window: id = msg_send![alloc, initWithContentRect:dimensions 
-                styleMask:config.style 
-                backing:buffered
-                defer:match config.defer {
-                    true => YES,
-                    false => NO
-                }
-            ];
-
-            (&mut *window).set_ivar(WINDOW_DELEGATE_PTR, internal_callback_ptr as usize);
-
-            let _: () = msg_send![window, autorelease];
-
-            // This is very important! NSWindow is an old class and has some behavior that we need
-            // to disable, like... this. If we don't set this, we'll segfault entirely because the
-            // Objective-C runtime gets out of sync by releasing the window out from underneath of
-            // us.
-            let _: () = msg_send![window, setReleasedWhenClosed:NO];
-
-            // We set the window to be its own delegate - this is cleaned up inside `Drop`.
-            let _: () = msg_send![window, setDelegate:window];
-
-            ShareId::from_ptr(window)
-        };
-
-        {
-            let mut window_delegate = delegate.borrow_mut();
-            (*window_delegate).did_load(Window {
-                internal_callback_ptr: None,
-                delegate: None,
-                objc: objc.clone()
-            });
-        }
-
-        Window {
-            internal_callback_ptr: Some(internal_callback_ptr),
-            objc: objc,
-            delegate: Some(delegate)
-        }
-    }
-}
-
 impl<T> Drop for Window<T> {
     /// When a Window is dropped on the Rust side, we want to ensure that we break the delegate
     /// link on the Objective-C side. While this shouldn't actually be an issue, I'd rather be
     /// safer than sorry.
     ///
-    /// We also clean up our loopback pointer that we use for callbacks.
-    ///
-    /// Note that only the originating `Window<T>` carries the internal callback ptr, and we
+    /// Note that only the originating `Window<T>` carries the delegate, and we
     /// intentionally don't provide this when cloning it as a handler. This ensures that we only
     /// release the backing Window when the original `Window<T>` is dropped.
     ///
     /// Well, theoretically.
     fn drop(&mut self) {
-        if let Some(ptr) = self.internal_callback_ptr {
+        if self.delegate.is_some() {
             unsafe {
                 // Break the delegate - this shouldn't be an issue, but we should strive to be safe
                 // here anyway.
                 let _: () = msg_send![&*self.objc, setDelegate:nil];
-
-                // Bring this back and let it drop naturally.
-                let _ = Rc::from_raw(ptr);
             }
         }
     }

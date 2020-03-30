@@ -80,8 +80,6 @@ pub mod button;
 pub mod cloudkit;
 
 pub mod color;
-pub mod constants;
-pub mod dispatcher;
 pub mod dragdrop;
 pub mod error;
 pub mod events;
@@ -91,20 +89,20 @@ pub mod geometry;
 pub mod layout;
 pub mod menu;
 pub mod networking;
+pub mod notification_center;
 
 #[cfg(feature = "user-notifications")]
-pub mod notifications;
+pub mod user_notifications;
 
 pub mod pasteboard;
 pub mod printing;
 pub mod toolbar;
 pub mod user_activity;
 pub mod utils;
-pub mod view;
+pub mod user_defaults;
+//pub mod view;
 
 #[cfg(feature = "webview")]
 pub mod webview;
 
 pub mod window;
-
-pub mod prelude;

@@ -2,7 +2,7 @@
 //! module. There's a few different ones, and it's just... cleaner, if
 //! it's organized here.
 
-use crate::app::enums::PresentationOption;
+use crate::app::PresentationOption;
 use crate::window::Window;
 
 /// Lifecycle events for anything that `impl Window`'s. These map to the standard Cocoa
@@ -13,7 +13,7 @@ pub trait WindowDelegate {
     /// to set up your views and what not.
     ///
     /// If you're coming from the web, you can think of this as `DOMContentLoaded`.
-    fn did_load(&mut self, _window: Window) {}
+    fn did_load(&self, _window: Window) {}
 
     /// Called when the user has attempted to close the window. NOT called when a user quits the
     /// application. Return false here if you need to handle the edge case.

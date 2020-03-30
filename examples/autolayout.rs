@@ -1,7 +1,7 @@
 //! This example showcases setting up a basic application and window, and setting up some views to
 //! work with autolayout.
 
-use cacao::app::{App, AppDelegate};
+use cacao::app::{App, AppDelegate, MacAppDelegate};
 use cacao::color::rgb;
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::View;
@@ -10,6 +10,8 @@ use cacao::window::{Window, WindowConfig, WindowDelegate};
 struct BasicApp {
     window: Window<AppWindow>
 }
+
+impl MacAppDelegate for BasicApp {}
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
