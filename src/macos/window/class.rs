@@ -11,7 +11,7 @@ use objc::{class, sel, sel_impl};
 
 use crate::foundation::{id, BOOL, YES, NO, NSUInteger};
 use crate::utils::{load, CGSize};
-use crate::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
+use crate::macos::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
 
 /// Called when an `NSWindowDelegate` receives a `windowWillClose:` event.
 /// Good place to clean up memory and what not.

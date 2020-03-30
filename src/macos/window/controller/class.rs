@@ -7,7 +7,7 @@ use objc::declare::ClassDecl;
 use objc::runtime::Class;
 use objc::class;
 
-use crate::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
+use crate::macos::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
 
 /// Injects an `NSWindowController` subclass, with some callback and pointer ivars for what we
 /// need to do.

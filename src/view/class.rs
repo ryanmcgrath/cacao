@@ -7,7 +7,6 @@
 //! for in the modern era. It also implements a few helpers for things like setting a background
 //! color, and enforcing layer backing by default.
 
-use std::rc::Rc;
 use std::sync::Once;
 
 use objc::declare::ClassDecl;
@@ -28,83 +27,51 @@ extern fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
 /// Called when a drag/drop operation has entered this view.
 extern fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-
-    let response = {
-        let v = view.borrow();
-
-        (*v).dragging_entered(DragInfo {
-            info: unsafe { Id::from_ptr(info) }
-        }).into()
-    };
-
-    Rc::into_raw(view);
-    response
+    view.dragging_entered(DragInfo {
+        info: unsafe { Id::from_ptr(info) }
+    }).into()
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
     
-    let response = {
-        let v = view.borrow();
-        
-        match (*v).prepare_for_drag_operation(DragInfo {
-            info: unsafe { Id::from_ptr(info) }
-        }) {
-            true => YES,
-            false => NO
-        }
-    };
-
-    Rc::into_raw(view); 
-    response
+    match view.prepare_for_drag_operation(DragInfo {
+        info: unsafe { Id::from_ptr(info) }
+    }) {
+        true => YES,
+        false => NO
+    }
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
         
-    let response = {
-        let v = view.borrow();
-        
-        match (*v).perform_drag_operation(DragInfo {
-            info: unsafe { Id::from_ptr(info) }
-        }) {
-            true => YES,
-            false => NO
-        }
-    };
-
-    Rc::into_raw(view); 
-    response
+    match view.perform_drag_operation(DragInfo {
+        info: unsafe { Id::from_ptr(info) }
+    }) {
+        true => YES,
+        false => NO
+    }
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn conclude_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-
-    {
-        let v = view.borrow();
-        (*v).conclude_drag_operation(DragInfo {
-            info: unsafe { Id::from_ptr(info) }
-        });           
-    }
-
-    Rc::into_raw(view); 
+    
+    view.conclude_drag_operation(DragInfo {
+        info: unsafe { Id::from_ptr(info) }
+    });           
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
         
-    {
-        let v = view.borrow();
-        (*v).dragging_exited(DragInfo {
-            info: unsafe { Id::from_ptr(info) }
-        });
-    }
-
-    Rc::into_raw(view); 
+    view.dragging_exited(DragInfo {
+        info: unsafe { Id::from_ptr(info) }
+    });
 }
 
 /// Injects an `NSView` subclass. This is used for the default views that don't use delegates - we

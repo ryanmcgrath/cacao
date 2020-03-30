@@ -72,8 +72,10 @@ pub use core_graphics;
 pub use objc;
 pub use url;
 
+#[cfg(feature = "macos")]
+pub mod macos;
+
 pub mod alert;
-pub mod app;
 pub mod button;
 
 #[cfg(feature = "cloudkit")]
@@ -87,22 +89,18 @@ pub mod filesystem;
 pub mod foundation;
 pub mod geometry;
 pub mod layout;
-pub mod menu;
 pub mod networking;
 pub mod notification_center;
+pub mod pasteboard;
 
 #[cfg(feature = "user-notifications")]
 pub mod user_notifications;
 
-pub mod pasteboard;
-pub mod printing;
-pub mod toolbar;
 pub mod user_activity;
-pub mod utils;
+pub(crate) mod utils;
 pub mod user_defaults;
-//pub mod view;
+
+pub mod view;
 
 #[cfg(feature = "webview")]
 pub mod webview;
-
-pub mod window;

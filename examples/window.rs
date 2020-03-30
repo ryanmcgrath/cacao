@@ -1,7 +1,7 @@
 //! This example showcases setting up a basic application and window.
 
-use cacao::app::{App, AppDelegate};
-use cacao::window::Window;
+use cacao::macos::app::{App, AppDelegate};
+use cacao::macos::window::Window;
 
 #[derive(Default)]
 struct BasicApp {

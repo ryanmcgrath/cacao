@@ -39,20 +39,20 @@ use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, YES, NO, NSUInteger, AutoReleasePool};
-use crate::menu::Menu;
+use crate::macos::menu::Menu;
 use crate::notification_center::Dispatcher;
 
 mod class;
 use class::register_app_class;
 
 mod delegate;
-use delegate::{register_app_delegate_class, register_mac_app_delegate_class};
+use delegate::{register_app_delegate_class};
 
 mod enums;
 pub use enums::*;
 
 mod traits;
-pub use traits::{AppDelegate, MacAppDelegate};
+pub use traits::AppDelegate;
 
 pub(crate) static APP_PTR: &str = "rstAppPtr";
 
@@ -118,7 +118,7 @@ impl<T> App<T> {
     }
 }
 
-impl<T> App<T> where T: AppDelegate + MacAppDelegate + 'static {
+impl<T> App<T> where T: AppDelegate + 'static {
     /// Creates an NSAutoReleasePool, configures various NSApplication properties (e.g, activation
     /// policies), injects an `NSObject` delegate wrapper, and retains everything on the
     /// Objective-C side of things.
@@ -138,7 +138,7 @@ impl<T> App<T> where T: AppDelegate + MacAppDelegate + 'static {
         let app_delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
-            let delegate_class = register_mac_app_delegate_class::<T>();
+            let delegate_class = register_app_delegate_class::<T>();
             let delegate: id = msg_send![delegate_class, new];
             let delegate_ptr: *const T = &*app_delegate;
             (&mut *delegate).set_ivar(APP_PTR, delegate_ptr as usize);

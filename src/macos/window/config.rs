@@ -4,7 +4,7 @@
 
 use crate::foundation::NSUInteger;
 use crate::geometry::Rect;
-use crate::window::enums::WindowStyle;
+use crate::macos::window::enums::WindowStyle;
 
 #[derive(Debug)]
 pub struct WindowConfig {

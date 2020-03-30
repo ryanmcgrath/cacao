@@ -3,17 +3,18 @@
 
 use url::Url;
 
-use crate::app::enums::TerminateResponse;
 use crate::error::AppKitError;
-use crate::menu::Menu;
-use crate::printing::enums::PrintResponse;
-use crate::printing::settings::PrintSettings;
 use crate::user_activity::UserActivity;
+
+use crate::macos::app::enums::TerminateResponse;
+use crate::macos::menu::Menu;
+use crate::macos::printing::enums::PrintResponse;
+use crate::macos::printing::settings::PrintSettings;
 
 #[cfg(feature = "cloudkit")]
 use crate::cloudkit::share::CKShareMetaData;
 
-/// `AppDelegate` is more or less `NSAppDelegate` from the Objective-C/Swift side, just named
+/// `AppDelegate` is more or less `NSApplicationDelegate` from the Objective-C/Swift side, just named
 /// differently to fit in with the general naming scheme found within this framework. You can
 /// implement methods from this trait in order to respond to lifecycle events that the system will
 /// fire off.
@@ -64,28 +65,7 @@ pub trait AppDelegate {
     
     /// Fired before the application terminates. You can use this to do any required cleanup.
     fn will_terminate(&self) {}
-}
 
-/// `SceneDelegate` maps over to the newer iOS13+ API. This is necessary in order to support
-/// multiple windows (scenes) on iPadOS, which is a desirable feature.
-pub trait SceneDelegate {
-    /*fn configuration_for(
-        &mut self,
-        session: SceneSession,
-        options: &[SceneConnectionOptions]
-    ) -> SceneConfiguration {
-
-    }
-
-    fn did_discard(&mut self, sessions: &[SceneSession]) {}
-    */
-}
-
-pub trait IOSAppDelegate {
-
-}
-
-pub trait MacAppDelegate {
     /// Fired immediately before the application is about to become active.
     fn will_become_active(&self) {}
 

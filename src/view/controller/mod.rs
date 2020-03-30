@@ -17,12 +17,13 @@ pub struct ViewController<T> {
 
 impl<T> ViewController<T> where T: ViewDelegate + 'static {
     pub fn new(delegate: T) -> Self {
-        let mut view = View::with(delegate);
+        let view = View::with(delegate);
 
         let objc = unsafe {
             let vc: id = msg_send![register_view_controller_class::<T>(), new];
             
-            if let Some(ptr)= view.internal_callback_ptr {
+            if let Some(delegate)= &view.delegate {
+                let ptr: *const T = &**delegate;
                 (&mut *vc).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
             }
 
@@ -32,9 +33,8 @@ impl<T> ViewController<T> where T: ViewDelegate + 'static {
         };
 
         let handle = view.clone_as_handle();
-        if let Some(view_delegate) = &mut view.delegate {
-            let mut view_delegate = view_delegate.borrow_mut();
-            (*view_delegate).did_load(handle);
+        if let Some(view_delegate) = &view.delegate {
+            view_delegate.did_load(handle);
         }
 
         ViewController {

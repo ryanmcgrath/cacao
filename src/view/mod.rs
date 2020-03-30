@@ -41,9 +41,6 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use std::rc::Rc;
-use std::cell::RefCell;
-
 use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
@@ -81,12 +78,8 @@ pub struct View<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ShareId<Object>,
 
-    /// An internal callback pointer that we use in delegate loopbacks. Default implementations
-    /// don't require this.
-    pub(crate) internal_callback_ptr: Option<*const RefCell<T>>,
-
     /// A pointer to the delegate for this view.
-    pub delegate: Option<Rc<RefCell<T>>>,
+    pub delegate: Option<Box<T>>,
 
     /// A pointer to the Objective-C runtime top layout constraint.
     pub top: LayoutAnchorY,
@@ -125,7 +118,6 @@ impl View {
         let view = allocate_view(register_view_class);
 
         View {
-            internal_callback_ptr: None,
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
@@ -144,22 +136,17 @@ impl<T> View<T> where T: ViewDelegate + 'static {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> View<T> {
-        let delegate = Rc::new(RefCell::new(delegate));
+        let delegate = Box::new(delegate);
         
-        let internal_callback_ptr = {
-            let cloned = Rc::clone(&delegate);
-            Rc::into_raw(cloned)
-        };
-
         let view = allocate_view(register_view_class_with_delegate::<T>);
         unsafe {
             //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
             //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
-            (&mut *view).set_ivar(VIEW_DELEGATE_PTR, internal_callback_ptr as usize);
+            let ptr: *const T = &*delegate;
+            (&mut *view).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
         };
 
         let mut view = View {
-            internal_callback_ptr: Some(internal_callback_ptr),
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
@@ -172,11 +159,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
             objc: unsafe { ShareId::from_ptr(view) },
         };
 
-        {
-            let mut delegate = delegate.borrow_mut();
-            (*delegate).did_load(view.clone_as_handle()); 
-        }
-
+        &delegate.did_load(view.clone_as_handle()); 
         view.delegate = Some(delegate);
         view
     }
@@ -189,7 +172,6 @@ impl<T> View<T> {
     /// delegate - the `View` is the only true holder of those.
     pub(crate) fn clone_as_handle(&self) -> View {
         View {
-            internal_callback_ptr: None,
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
@@ -245,20 +227,18 @@ impl<T> Layout for View<T> {
 
 impl<T> Drop for View<T> {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being
-    /// dropped, we do some logic to release the loopback ptr. We also go ahead and check to see if
+    /// dropped, we do some logic to clean it all up (e.g, we go ahead and check to see if
     /// this has a superview (i.e, it's in the heirarchy) on the AppKit side. If it does, we go
-    /// ahead and remove it - this is intended to match the semantics of how Rust handles things.
+    /// ahead and remove it - this is intended to match the semantics of how Rust handles things).
     ///
     /// There are, thankfully, no delegates we need to break here.
     fn drop(&mut self) {
-        if let Some(ptr) = &self.internal_callback_ptr {
+        if self.delegate.is_some() {
             unsafe {
                 let superview: id = msg_send![&*self.objc, superview];
                 if superview != nil {
                     let _: () = msg_send![&*self.objc, removeFromSuperview];
                 }
-
-                let _ = Rc::from_raw(ptr);
             }
         }
     }

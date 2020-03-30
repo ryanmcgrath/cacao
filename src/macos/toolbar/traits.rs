@@ -2,7 +2,7 @@
 //! go. Currently a bit incomplete in that we don't support the customizing workflow, but feel free
 //! to pull request it.
 
-use crate::toolbar::{Toolbar, ToolbarItem};
+use crate::macos::toolbar::{Toolbar, ToolbarItem};
 
 /// A trait that you can implement to have your struct/etc act as an `NSToolbarDelegate`.
 pub trait ToolbarDelegate {

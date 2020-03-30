@@ -21,6 +21,8 @@ uuid = { version = "0.8", features = ["v4"], optional = true }
 url = "2.1.1"
 
 [features]
+default = ["macos"]
+macos = []
 cloudkit = []
 user-notifications = ["uuid"]
 webview = []

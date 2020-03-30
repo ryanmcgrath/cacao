@@ -7,7 +7,7 @@ use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel, sel_impl};
 
 use crate::foundation::{id, NSArray, NSString};
-use crate::toolbar::{TOOLBAR_PTR, ToolbarDelegate};
+use crate::macos::toolbar::{TOOLBAR_PTR, ToolbarDelegate};
 use crate::utils::load;
 
 /// Retrieves and passes the allowed item identifiers for this toolbar.

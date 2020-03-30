@@ -4,8 +4,8 @@
 //!
 //! If you're not using that, you can probably get by fine with a standard `NSWindow`.
 
-use cacao::app::{App, AppDelegate};
-use cacao::window::{Window, WindowConfig, WindowController, WindowDelegate};
+use cacao::macos::app::{App, AppDelegate};
+use cacao::macos::window::{Window, WindowConfig, WindowController, WindowDelegate};
 
 struct BasicApp {
     window: WindowController<MyWindow>

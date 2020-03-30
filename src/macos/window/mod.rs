@@ -20,7 +20,7 @@ use objc_id::ShareId;
 use crate::color::Color;
 use crate::foundation::{id, nil, YES, NO, NSString, NSInteger, NSUInteger};
 use crate::layout::traits::Layout;
-use crate::toolbar::{Toolbar, ToolbarDelegate};
+use crate::macos::toolbar::{Toolbar, ToolbarDelegate};
 use crate::utils::Controller;
 
 mod class;

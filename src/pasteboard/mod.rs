@@ -12,7 +12,7 @@ use url::Url;
 use crate::foundation::{id, nil, NSString, NSArray};
 use crate::error::AppKitError;
 
-pub mod types;
+mod types;
 pub use types::{PasteboardName, PasteboardType};
 
 /// Represents an `NSPasteboard`, enabling you to handle copy/paste/drag and drop.

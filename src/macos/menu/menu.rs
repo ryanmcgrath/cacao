@@ -5,7 +5,7 @@ use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, NSString};
-use crate::menu::item::MenuItem;
+use crate::macos::menu::item::MenuItem;
 
 /// A struct that represents an `NSMenu`. It takes ownership of items, and handles instrumenting
 /// them throughout the application lifecycle.

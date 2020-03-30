@@ -1,17 +1,16 @@
 //! This example showcases setting up a basic application and window, and setting up some views to
 //! work with autolayout.
 
-use cacao::app::{App, AppDelegate, MacAppDelegate};
 use cacao::color::rgb;
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::View;
-use cacao::window::{Window, WindowConfig, WindowDelegate};
+
+use cacao::macos::app::{App, AppDelegate};
+use cacao::macos::window::{Window, WindowConfig, WindowDelegate};
 
 struct BasicApp {
     window: Window<AppWindow>
 }
-
-impl MacAppDelegate for BasicApp {}
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
@@ -29,10 +28,9 @@ struct AppWindow {
 }
 
 impl WindowDelegate for AppWindow {
-    fn did_load(&mut self, window: Window) {
+    fn did_load(&self, window: Window) {
         window.set_title("AutoLayout Example");
         window.set_minimum_content_size(300., 300.);
-        self.window = window;
 
         self.blue.set_background_color(rgb(105, 162, 176));
         self.content.add_subview(&self.blue);
@@ -43,7 +41,7 @@ impl WindowDelegate for AppWindow {
         self.green.set_background_color(rgb(161, 192, 132));
         self.content.add_subview(&self.green);
 
-        self.window.set_content_view(&self.content);
+        window.set_content_view(&self.content);
 
         LayoutConstraint::activate(&[
             self.blue.top.constraint_equal_to(&self.content.top).offset(16.),

@@ -2,8 +2,8 @@
 //! module. There's a few different ones, and it's just... cleaner, if
 //! it's organized here.
 
-use crate::app::PresentationOption;
-use crate::window::Window;
+use crate::macos::app::PresentationOption;
+use crate::macos::window::Window;
 
 /// Lifecycle events for anything that `impl Window`'s. These map to the standard Cocoa
 /// lifecycle methods, but mix in a few extra things to handle offering configuration tools

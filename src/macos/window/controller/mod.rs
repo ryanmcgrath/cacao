@@ -12,8 +12,8 @@
 //! # How to use
 //!
 //! ```rust,no_run
-//! use cacao::app::AppDelegate;
-//! use cacao::window::{WindowController, WindowDelegate};
+//! use cacao::macos::app::AppDelegate;
+//! use cacao::macos::window::{WindowController, WindowDelegate};
 //!
 //! #[derive(Default)]
 //! struct MyWindow;
@@ -33,7 +33,7 @@ use objc_id::ShareId;
 
 use crate::foundation::{id, nil};
 use crate::utils::Controller;
-use crate::window::{Window, WindowConfig, WindowDelegate, WINDOW_DELEGATE_PTR};
+use crate::macos::window::{Window, WindowConfig, WindowDelegate, WINDOW_DELEGATE_PTR};
 
 mod class;
 use class::register_window_controller_class;

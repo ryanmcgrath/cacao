@@ -1,6 +1,5 @@
 //! Hoists a basic `NSViewController`.
 
-use std::rc::Rc;
 use std::sync::Once;
 
 use objc::declare::ClassDecl;
@@ -13,49 +12,25 @@ use crate::utils::load;
 /// Called when the view controller receives a `viewWillAppear` message.
 extern fn will_appear<T: ViewDelegate>(this: &mut Object, _: Sel) {
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
-
-    {
-        let vc = controller.borrow();
-        (*vc).will_appear();
-    }
-
-    Rc::into_raw(controller);
+    controller.will_appear();
 }
 
 /// Called when the view controller receives a `viewDidAppear` message.
 extern fn did_appear<T: ViewDelegate>(this: &mut Object, _: Sel) {
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
-
-    {
-        let vc = controller.borrow();
-        (*vc).did_appear();
-    }
-
-    Rc::into_raw(controller);
+    controller.did_appear();
 }
 
 /// Called when the view controller receives a `viewWillDisappear` message.
 extern fn will_disappear<T: ViewDelegate>(this: &mut Object, _: Sel) {
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
-
-    {
-        let vc = controller.borrow();
-        (*vc).will_disappear();
-    }
-
-    Rc::into_raw(controller);
+    controller.will_disappear();
 }
 
 /// Called when the view controller receives a `viewDidDisappear` message.
 extern fn did_disappear<T: ViewDelegate>(this: &mut Object, _: Sel) {
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
-
-    {
-        let vc = controller.borrow();
-        (*vc).did_disappear();
-    }
-
-    Rc::into_raw(controller);
+    controller.did_disappear();
 }
 
 /// Registers an `NSViewDelegate`.
