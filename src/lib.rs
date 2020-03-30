@@ -85,6 +85,7 @@ pub mod color;
 pub mod dragdrop;
 pub mod error;
 pub mod events;
+pub mod defaults;
 pub mod filesystem;
 pub mod foundation;
 pub mod geometry;
@@ -98,7 +99,6 @@ pub mod user_notifications;
 
 pub mod user_activity;
 pub(crate) mod utils;
-pub mod user_defaults;
 
 pub mod view;
 

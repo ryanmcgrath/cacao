@@ -38,7 +38,7 @@ use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, YES, NO, NSUInteger, AutoReleasePool};
+use crate::foundation::{id, nil, YES, NO, NSUInteger, AutoReleasePool};
 use crate::macos::menu::Menu;
 use crate::notification_center::Dispatcher;
 
@@ -234,6 +234,15 @@ impl App {
             }
 
             let _: () = msg_send![app, setMainMenu:main_menu];
+        });
+    }
+
+    /// Terminates the application, firing the requisite cleanup delegate methods in the process.
+    ///
+    /// This is typically called when the user chooses to quit via the App menu.
+    pub fn terminate() {
+        shared_application(|app| unsafe {
+            let _: () = msg_send![app, terminate:nil];
         });
     }
 }
