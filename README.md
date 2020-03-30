@@ -19,8 +19,8 @@ existence of unsafe will be closed without comment._
 # Hello World
 
 ```rust
-use cacao::app::{App, AppDelegate};
-use cacao::window::Window;
+use cacao::macos::app::{App, AppDelegate};
+use cacao::macos::window::Window;
 
 #[derive(Default)]
 struct BasicApp {
