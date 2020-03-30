@@ -4,7 +4,6 @@
 
 use std::ffi::c_void;
 use std::sync::Once;
-use std::rc::Rc;
 
 use block::Block;
 
@@ -50,11 +49,8 @@ extern fn on_message<T: WebViewDelegate>(this: &Object, _: Sel, _: id, script_me
     unsafe {
         let name = NSString::wrap(msg_send![script_message, name]).to_str();
         let body = NSString::wrap(msg_send![script_message, body]).to_str();
-        let d = delegate.borrow();
-        (*d).on_message(name, body);
+        delegate.on_message(name, body);
     }
-
-    Rc::into_raw(delegate);
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
@@ -63,16 +59,10 @@ extern fn decide_policy_for_action<T: WebViewDelegate>(this: &Object, _: Sel, _:
 
     let action = NavigationAction::new(action);
     
-    {
-        let d = delegate.borrow();
-
-        (*d).policy_for_navigation_action(action, |policy| unsafe {
-            let handler = handler as *const Block<(NSInteger,), c_void>;
-            (*handler).call((policy.into(),));
-        }); 
-    }
-
-    Rc::into_raw(delegate);
+    delegate.policy_for_navigation_action(action, |policy| unsafe {
+        let handler = handler as *const Block<(NSInteger,), c_void>;
+        (*handler).call((policy.into(),));
+    }); 
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
@@ -81,44 +71,32 @@ extern fn decide_policy_for_response<T: WebViewDelegate>(this: &Object, _: Sel, 
 
     let response = NavigationResponse::new(response);
 
-    {
-        let d = delegate.borrow();
-
-        (*d).policy_for_navigation_response(response, |policy| unsafe {
-            let handler = handler as *const Block<(NSInteger,), c_void>;
-            (*handler).call((policy.into(),));
-        });
-    }
-
-    Rc::into_raw(delegate);
+    delegate.policy_for_navigation_response(response, |policy| unsafe {
+        let handler = handler as *const Block<(NSInteger,), c_void>;
+        (*handler).call((policy.into(),));
+    });
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
 extern fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, params: id, _: id, handler: usize) {
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
-    {
-        let d = delegate.borrow();
+    delegate.run_open_panel(params.into(), move |urls| unsafe {
+        let handler = handler as *const Block<(id,), c_void>;
 
-        (*d).run_open_panel(params.into(), move |urls| unsafe {
-            let handler = handler as *const Block<(id,), c_void>;
+        match urls {
+            Some(u) => {
+                let nsurls: NSArray = u.iter().map(|s| {
+                    let s = NSString::new(s);
+                    msg_send![class!(NSURL), URLWithString:s.into_inner()]
+                }).collect::<Vec<id>>().into();
 
-            match urls {
-                Some(u) => {
-                    let nsurls: NSArray = u.iter().map(|s| {
-                        let s = NSString::new(s);
-                        msg_send![class!(NSURL), URLWithString:s.into_inner()]
-                    }).collect::<Vec<id>>().into();
+                (*handler).call((nsurls.into_inner(),));
+            },
 
-                    (*handler).call((nsurls.into_inner(),));
-                },
-
-                None => { (*handler).call((nil,)); }
-            }
-        });
-    }
-
-    Rc::into_raw(delegate);
+            None => { (*handler).call((nil,)); }
+        }
+    });
 }
 
 /// Called when a download has been initiated in the WebView, and when the navigation policy
@@ -131,24 +109,18 @@ extern fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: i
     let handler = handler as *const Block<(objc::runtime::BOOL, id), c_void>; 
     let filename = NSString::wrap(suggested_filename).to_str();
 
-    {
-        let d = delegate.borrow();
+    delegate.run_save_panel(filename, move |can_overwrite, path| unsafe {
+        if path.is_none() {
+            let _: () = msg_send![download, cancel];
+        }
 
-        (*d).run_save_panel(filename, move |can_overwrite, path| unsafe {
-            if path.is_none() {
-                let _: () = msg_send![download, cancel];
-            }
-
-            let path = NSString::new(&path.unwrap());
-            
-            (*handler).call((match can_overwrite {
-                true => YES,
-                false => NO
-            }, path.into_inner()));
-        });
-    }
-
-    Rc::into_raw(delegate);
+        let path = NSString::new(&path.unwrap());
+        
+        (*handler).call((match can_overwrite {
+            true => YES,
+            false => NO
+        }, path.into_inner()));
+    });
 }
 
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as

@@ -13,31 +13,31 @@
 //! Apple does not ship `WKWebView` on tvOS, and as a result this control is not provided on that
 //! platform.
 
-use std::rc::Rc;
-use std::cell::RefCell;
-
 use core_graphics::geometry::CGRect;
 
 use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, YES, NO, NSString};
+use crate::foundation::{id, nil, YES, NO, NSString};
 use crate::geometry::Rect;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
-pub mod actions;
-pub mod enums;
+mod actions;
+pub use actions::*;
+
+mod config;
+pub use config::WebViewConfig;
+
+mod enums;
+pub use enums::*;
 
 pub(crate) mod class;
 use class::{register_webview_class, register_webview_delegate_class};
 //pub(crate) mod process_pool;
 
-pub mod traits;
+mod traits;
 pub use traits::WebViewDelegate;
-
-pub mod config;
-pub use config::WebViewConfig;
 
 pub(crate) static WEBVIEW_DELEGATE_PTR: &str = "rstWebViewDelegatePtr";
 
@@ -87,12 +87,8 @@ pub struct WebView<T = ()> {
     /// we do so.
     pub objc_delegate: Option<ShareId<Object>>,
 
-    /// An internal callback pointer that we use in delegate loopbacks. Default implementations
-    /// don't require this.
-    pub(crate) internal_callback_ptr: Option<*const RefCell<T>>,
-
     /// A pointer to the delegate for this view.
-    pub delegate: Option<Rc<RefCell<T>>>,
+    pub delegate: Option<Box<T>>,
 
     /// A pointer to the Objective-C runtime top layout constraint.
     pub top: LayoutAnchorY,
@@ -130,7 +126,6 @@ impl WebView {
         let view = allocate_webview(config, None);
 
         WebView {
-            internal_callback_ptr: None,
             delegate: None,
             objc_delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
@@ -150,23 +145,18 @@ impl<T> WebView<T> where T: WebViewDelegate + 'static {
     /// Initializes a new WebView with a given `WebViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(config: WebViewConfig, delegate: T) -> WebView<T> {
-        let delegate = Rc::new(RefCell::new(delegate));
-        
-        let internal_callback_ptr = {
-            let cloned = Rc::clone(&delegate);
-            Rc::into_raw(cloned)
-        };
+        let delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
             let objc_delegate: id = msg_send![register_webview_delegate_class::<T>(), new];
-            (&mut *objc_delegate).set_ivar(WEBVIEW_DELEGATE_PTR, internal_callback_ptr as usize);
+            let ptr: *const T = &*delegate;
+            (&mut *objc_delegate).set_ivar(WEBVIEW_DELEGATE_PTR, ptr as usize);
             ShareId::from_ptr(objc_delegate)
         };
 
         let view = allocate_webview(config, Some(&objc_delegate));
 
         let mut view = WebView {
-            internal_callback_ptr: Some(internal_callback_ptr),
             delegate: None,
             objc_delegate: Some(objc_delegate),
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
@@ -180,11 +170,7 @@ impl<T> WebView<T> where T: WebViewDelegate + 'static {
             objc: unsafe { ShareId::from_ptr(view) },
         };
 
-        {
-            let mut delegate = delegate.borrow_mut();
-            (*delegate).did_load(view.clone_as_handle()); 
-        }
-
+        &delegate.did_load(view.clone_as_handle()); 
         view.delegate = Some(delegate);
         view
     }
@@ -197,7 +183,6 @@ impl<T> WebView<T> {
     /// delegate - the `View` is the only true holder of those.
     pub(crate) fn clone_as_handle(&self) -> WebView {
         WebView {
-            internal_callback_ptr: None,
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
@@ -245,14 +230,11 @@ impl<T> std::fmt::Debug for WebView<T> {
 impl<T> Drop for WebView<T> {
     /// A bit of extra cleanup for delegate callback pointers.
     fn drop(&mut self) {
-        /*println!("... {}", self.delegate.is_some());
-        if let Some(delegate) = &self.delegate {
-            println!("Strong count: {}", Rc::strong_count(&delegate));
-            if Rc::strong_count(&delegate) == 1 {
-                let _ = unsafe { 
-                    Rc::from_raw(self.internal_callback_ptr.unwrap())
-                };
+        if self.delegate.is_some() {
+            unsafe {
+                let _: () = msg_send![&*self.objc, setNavigationDelegate:nil];
+                let _: () = msg_send![&*self.objc, setUIDelegate:nil];
             }
-        }*/
+        }
     }
 }
