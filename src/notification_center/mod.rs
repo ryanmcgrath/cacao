@@ -11,9 +11,6 @@
 //! integrating with certain aspects of the underlying Cocoa/Foundation/Kit frameworks.
 //!
 //! ## Example
-//! ```rust,no_run
-//!
-//! ```
 
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;

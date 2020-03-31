@@ -24,9 +24,9 @@
 //!
 //! # Hello World
 //!
-//! ```rust,no_run
-//! use cacao::app::{App, AppDelegate};
-//! use cacao::window::Window;
+//! ```rust
+//! use cacao::macos::app::{App, AppDelegate};
+//! use cacao::macos::window::Window;
 //! 
 //! #[derive(Default)]
 //! struct BasicApp {

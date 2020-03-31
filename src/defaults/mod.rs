@@ -1,7 +1,7 @@
 //! Wraps `NSUserDefaults`, providing an interface to fetch and store small amounts of data.
 //!
 //! In general, this tries to take an approach popularized by `serde_json`'s `Value` struct. In
-//! this case, `DefaultValue` handles wrapping types for insertion/retrieval, shepherding between
+//! this case, `Value` handles wrapping types for insertion/retrieval, shepherding between
 //! the Objective-C runtime and your Rust code.
 //!
 //! It currently supports a number of primitive types, as well as a generic `Data` type for custom
@@ -17,13 +17,13 @@
 //! ## Example
 //! ```rust
 //! use std::collections::HashMap;
-//! use cacao::defaults::{UserDefaults, DefaultValue};
+//! use cacao::defaults::{UserDefaults, Value};
 //!
 //! let mut defaults = UserDefaults::standard();
 //!
 //! defaults.register({
 //!     let map = HashMap::new();
-//!     map.insert("test", DefaultValue::string("value"));
+//!     map.insert("test", Value::string("value"));
 //!     map
 //! });
 //!
@@ -33,18 +33,15 @@
 //! ```
 
 use std::collections::HashMap;
-use std::ffi::CStr;
-use std::os::raw::c_char;
-use std::unreachable;
 
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, nil, YES, BOOL, NSInteger, NSString, NSDictionary};
+use crate::foundation::{id, nil, YES, BOOL, NSData, NSInteger, NSString, NSDictionary, NSNumber};
 
 mod value;
-pub use value::DefaultValue;
+pub use value::Value;
 
 /// Wraps and provides methods for interacting with `NSUserDefaults`, which can be used for storing
 /// pieces of information (preferences, or _defaults_) to persist across application launches.
@@ -106,17 +103,17 @@ impl UserDefaults {
     /// ```rust
     /// use std::collections::HashMap;
     ///
-    /// use cacao::defaults::{UserDefaults, DefaultValue};
+    /// use cacao::defaults::{UserDefaults, Value};
     ///
     /// let mut defaults = UserDefaults::standard();
     /// 
     /// defaults.register({
     ///     let mut map = HashMap::new();
-    ///     map.insert("test", DefaultValue::Bool(true));
+    ///     map.insert("test", Value::Bool(true));
     ///     map
     /// });
     /// ```
-    pub fn register<K: AsRef<str>>(&mut self, values: HashMap<K, DefaultValue>) {
+    pub fn register<K: AsRef<str>>(&mut self, values: HashMap<K, Value>) {
         let dictionary = NSDictionary::from(values);
         
         unsafe {
@@ -128,14 +125,14 @@ impl UserDefaults {
     /// `NSUserDefaults` store, and asynchronously persists to the disk.
     ///
     /// ```rust
-    /// use cacao::defaults::{UserDefaults, DefaultValue};
+    /// use cacao::defaults::{UserDefaults, Value};
     ///
     /// let mut defaults = UserDefaults::standard();
-    /// defaults.insert("test", DefaultValue::Bool(true));
+    /// defaults.insert("test", Value::Bool(true));
     /// ```
-    pub fn insert<K: AsRef<str>>(&mut self, key: K, value: DefaultValue) {
+    pub fn insert<K: AsRef<str>>(&mut self, key: K, value: Value) {
         let key = NSString::new(key.as_ref());
-        let value: id = (&value).into();
+        let value: id = value.into();
 
         unsafe {
             let _: () = msg_send![&*self.0, setObject:value forKey:key];
@@ -145,7 +142,7 @@ impl UserDefaults {
     /// Remove the default associated with the key. If the key doesn't exist, this is a noop.
     ///
     /// ```rust
-    /// use cacao::defaults::{UserDefaults, DefaultValue};
+    /// use cacao::defaults::{UserDefaults, Value};
     ///
     /// let mut defaults = UserDefaults::standard();
     /// defaults.remove("test");
@@ -158,7 +155,7 @@ impl UserDefaults {
         }
     }
 
-    /// Returns a `DefaultValue` for the given key, from which you can further extract the data you
+    /// Returns a `Value` for the given key, from which you can further extract the data you
     /// need. Note that this does a `nil` check and will return `None` in such cases, with the
     /// exception of `bool` values, where it will always return either `true` or `false`. This is
     /// due to the underlying storage engine used for `NSUserDefaults`.
@@ -167,15 +164,15 @@ impl UserDefaults {
     /// returns new immutable copies each time, so we're free to vend them as such.
     ///
     /// ```rust
-    /// use cacao::defaults::{UserDefaults, DefaultValue};
+    /// use cacao::defaults::{UserDefaults, Value};
     ///
     /// let mut defaults = UserDefaults::standard();
-    /// defaults.insert("test", DefaultValue::string("value"));
+    /// defaults.insert("test", Value::string("value"));
     ///
     /// let value = defaults.get("test").unwrap().as_str().unwrap();
     /// assert_eq!(value, "value");
     /// ```
-    pub fn get<K: AsRef<str>>(&self, key: K) -> Option<DefaultValue> {
+    pub fn get<K: AsRef<str>>(&self, key: K) -> Option<Value> {
         let key = NSString::new(key.as_ref());
 
         let result: id = unsafe {
@@ -186,36 +183,32 @@ impl UserDefaults {
             return None;
         }
 
-        let is_string: BOOL = unsafe { msg_send![result, isKindOfClass:class!(NSString)] };
-        if is_string == YES {
+        if NSData::is(result) {
+            let data = NSData::wrap(result);
+            return Some(Value::Data(data.into_vec()));
+        }
+
+        if NSString::is(result) {
             let s = NSString::wrap(result).to_str().to_string();
-            return Some(DefaultValue::String(s));
+            return Some(Value::String(s));
         }
 
         // This works, but might not be the best approach. We basically need to inspect the
         // `NSNumber` returned and see what the wrapped encoding type is. `q` and `d` represent
         // `NSInteger` (platform specific) and `double` (f64) respectively, but conceivably we
         // might need others.
-        let is_number: BOOL = unsafe { msg_send![result, isKindOfClass:class!(NSNumber)] };
-        if is_number == YES {
-            unsafe {
-                let t: *const c_char = msg_send![result, objCType];
-                let slice = CStr::from_ptr(t);
+        if NSNumber::is(result) {
+            let number = NSNumber::wrap(result);
+            
+            return match number.objc_type() {
+                "q" => Some(Value::Integer(number.as_i64())),
+                "d" => Some(Value::Float(number.as_f64())),
 
-                if let Ok(code) = slice.to_str() {
-                    println!("Code: {}", code);
-
-                    if code == "q" {
-                        let v: NSInteger = msg_send![result, integerValue];
-                        return Some(DefaultValue::Integer(v as i64));
-                    }
-
-                    if code == "d" {
-                        let v: f64 = msg_send![result, doubleValue];
-                        return Some(DefaultValue::Float(v));
-                    }
+                _ => {
+                    // @TODO: Verify this area.
+                    None
                 }
-            }
+            };
         }
 
         None

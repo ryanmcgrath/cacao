@@ -5,7 +5,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, nil, YES, NO, NSString};
+use crate::foundation::id;
 
 /// A wrapper for `NSDictionary`. Behind the scenes we actually wrap `NSMutableDictionary`, and
 /// rely on Rust doing the usual borrow-checking guards that it does so well.

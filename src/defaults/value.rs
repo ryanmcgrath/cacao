@@ -1,35 +1,44 @@
-//! 
-
 use std::collections::HashMap;
 
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, YES, NO, nil, NSInteger, NSDictionary, NSString};
+use crate::foundation::{id, YES, NO, NSData, NSInteger, NSDictionary, NSString};
 
+/// Represents a Value that can be stored or queried with `UserDefaults`.
+///
+/// In general, this wraps a few types that should hopefully work for most cases. Note that the
+/// `Value` always owns whatever it holds - this is both for ergonomic considerations, as
+/// well as contractual obligations with the underlying `NSUserDefaults` system.
 #[derive(Clone, Debug, PartialEq)]
-pub enum DefaultValue {
+pub enum Value {
+    /// Represents a Boolean value.
     Bool(bool),
+
+    /// Represents a String value.
     String(String),
+
+    /// Represents a Float (`f64`) value.
     Float(f64),
-    Integer(i64)
+
+    /// Represents an Integer (`i64`) value.
+    Integer(i64),
+
+    /// Represents Data (bytes). You can use this to store arbitrary things that aren't supported
+    /// above. You're responsible for moving things back and forth to the necessary types.
+    Data(Vec<u8>)
 }
 
-impl DefaultValue {
-    /// A handy initializer for `DefaultValue::Bool`.
-    pub fn bool(value: bool) -> Self {
-        DefaultValue::Bool(value)
-    }
-
-    /// A handy initializer for `DefaultValue::String`;
+impl Value {
+    /// A handy initializer for `Value::String`.
     pub fn string<S: Into<String>>(value: S) -> Self {
-        DefaultValue::String(value.into())
+        Value::String(value.into())
     }
     
     /// Returns `true` if the value is a boolean value. Returns `false` otherwise.
     pub fn is_boolean(&self) -> bool {
         match self {
-            DefaultValue::Bool(_) => true,
+            Value::Bool(_) => true,
             _ => false
         }
     }
@@ -37,7 +46,7 @@ impl DefaultValue {
     /// If this is a Bool, it returns the associated bool. Returns `None` otherwise.
     pub fn as_bool(&self) -> Option<bool> {
         match self {
-            DefaultValue::Bool(v) => Some(*v),
+            Value::Bool(v) => Some(*v),
             _ => None
         }
     }
@@ -45,7 +54,7 @@ impl DefaultValue {
     /// Returns `true` if the value is a string. Returns `false` otherwise.
     pub fn is_string(&self) -> bool {
         match self {
-            DefaultValue::String(_) => true,
+            Value::String(_) => true,
             _ => false
         }
     }
@@ -53,7 +62,7 @@ impl DefaultValue {
     /// If this is a String, it returns a &str. Returns `None` otherwise.
     pub fn as_str(&self) -> Option<&str> {
         match self {
-            DefaultValue::String(s) => Some(s),
+            Value::String(s) => Some(s),
             _ => None
         }
     }
@@ -61,7 +70,7 @@ impl DefaultValue {
     /// Returns `true` if the value is a float. Returns `false` otherwise.
     pub fn is_integer(&self) -> bool {
         match self {
-            DefaultValue::Integer(_) => true,
+            Value::Integer(_) => true,
             _ => false
         }
     }
@@ -69,7 +78,7 @@ impl DefaultValue {
     /// If this is a int, returns it (`i32`). Returns `None` otherwise.
     pub fn as_i32(&self) -> Option<i32> {
         match self {
-            DefaultValue::Integer(i) => Some(*i as i32),
+            Value::Integer(i) => Some(*i as i32),
             _ => None
         }
     }
@@ -77,7 +86,7 @@ impl DefaultValue {
     /// If this is a int, returns it (`i64`). Returns `None` otherwise.
     pub fn as_i64(&self) -> Option<i64> {
         match self {
-            DefaultValue::Integer(i) => Some(*i as i64),
+            Value::Integer(i) => Some(*i as i64),
             _ => None
         }
     }
@@ -85,7 +94,7 @@ impl DefaultValue {
     /// Returns `true` if the value is a float. Returns `false` otherwise.
     pub fn is_float(&self) -> bool {
         match self {
-            DefaultValue::Float(_) => true,
+            Value::Float(_) => true,
             _ => false
         }
     }
@@ -93,7 +102,7 @@ impl DefaultValue {
     /// If this is a float, returns it (`f32`). Returns `None` otherwise.
     pub fn as_f32(&self) -> Option<f32> {
         match self {
-            DefaultValue::Float(f) => Some(*f as f32),
+            Value::Float(f) => Some(*f as f32),
             _ => None
         }
     }
@@ -101,42 +110,60 @@ impl DefaultValue {
     /// If this is a float, returns it (`f64`). Returns `None` otherwise.
     pub fn as_f64(&self) -> Option<f64> {
         match self {
-            DefaultValue::Float(f) => Some(*f as f64),
+            Value::Float(f) => Some(*f as f64),
+            _ => None
+        }
+    }
+
+    /// Returns `true` if the value is data. Returns `false` otherwise.
+    pub fn is_data(&self) -> bool {
+        match self {
+            Value::Data(_) => true,
+            _ => false
+        }
+    }
+
+    /// If this is data, returns it (`&[u8]`). If you need to own the underlying buffer, you can
+    /// extract it yourself. Returns `None` if this is not Data.
+    pub fn as_data(&self) -> Option<&[u8]> {
+        match self {
+            Value::Data(data) => Some(data),
             _ => None
         }
     }
 }
 
-impl From<&DefaultValue> for id {
-    /// Shepherds `DefaultValue` types into `NSObject`s that can be stored in `NSUserDefaults`.
+impl From<Value> for id {
+    /// Shepherds `Value` types into `NSObject`s that can be stored in `NSUserDefaults`.
     // These currently work, but may not be exhaustive and should be looked over past the preview
     // period.
-    fn from(value: &DefaultValue) -> Self {
+    fn from(value: Value) -> Self {
         unsafe {
             match value {
-                DefaultValue::Bool(b) => msg_send![class!(NSNumber), numberWithBool:match b {
+                Value::Bool(b) => msg_send![class!(NSNumber), numberWithBool:match b {
                     true => YES,
                     false => NO
                 }],
 
-                DefaultValue::String(s) => NSString::new(&s).into_inner(),
-                DefaultValue::Float(f) => msg_send![class!(NSNumber), numberWithDouble:*f],
-                DefaultValue::Integer(i) => msg_send![class!(NSNumber), numberWithInteger:*i as NSInteger]
+                Value::String(s) => NSString::new(&s).into_inner(),
+                Value::Float(f) => msg_send![class!(NSNumber), numberWithDouble:f],
+                Value::Integer(i) => msg_send![class!(NSNumber), numberWithInteger:i as NSInteger],
+                Value::Data(data) => NSData::new(data).into_inner()
             }
         }
     }
 }
 
-impl<K> From<HashMap<K, DefaultValue>> for NSDictionary
+impl<K> From<HashMap<K, Value>> for NSDictionary
 where
     K: AsRef<str>
 {
-    /// Translates a `HashMap` of `DefaultValue`s into an `NSDictionary`.
-    fn from(map: HashMap<K, DefaultValue>) -> Self {
+    /// Translates a `HashMap` of `Value`s into an `NSDictionary`.
+    fn from(map: HashMap<K, Value>) -> Self {
         NSDictionary(unsafe {
             let dictionary: id = msg_send![class!(NSMutableDictionary), new];
 
-            for (key, value) in map.iter() {
+            for (key, value) in map.into_iter() {
                 let k = NSString::new(key.as_ref()); 
                 let v: id = value.into();
                 let _: () = msg_send![dictionary, setObject:v forKey:k];
