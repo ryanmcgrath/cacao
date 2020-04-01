@@ -197,15 +197,24 @@ impl UserDefaults {
         // `NSNumber` returned and see what the wrapped encoding type is. `q` and `d` represent
         // `NSInteger` (platform specific) and `double` (f64) respectively, but conceivably we
         // might need others.
+        //
+        // BOOL returns as "c", which... something makes me feel weird there, but testing it seems
+        // reliable.
+        //
+        // For context: https://nshipster.com/type-encodings/
         if NSNumber::is(result) {
             let number = NSNumber::wrap(result);
             
             return match number.objc_type() {
-                "q" => Some(Value::Integer(number.as_i64())),
+                "c" => Some(Value::Bool(number.as_bool())),
                 "d" => Some(Value::Float(number.as_f64())),
+                "q" => Some(Value::Integer(number.as_i64())),
 
-                _ => {
-                    // @TODO: Verify this area.
+                x => {
+                    // Debugging code that should be removed at some point.
+                    #[cfg(debug_assertions)]
+                    println!("Code: {}", x);
+
                     None
                 }
             };

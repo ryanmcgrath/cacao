@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use cacao::macos::app::{App, AppDelegate};
+use cacao::macos::{App, AppDelegate};
 use cacao::defaults::{UserDefaults, Value};
 use cacao::foundation::NSData;
 
@@ -18,7 +18,7 @@ impl AppDelegate for DefaultsTest {
             //map.insert("LOL", Value::string("laugh"));
             //map.insert("X", Value::Integer(1));
             //map.insert("X2", Value::Float(1.0));
-            map.insert("BOOL", Value::bool(true));
+            map.insert("BOOL", Value::Bool(false));
 
             println!("Test equivalency:");
             let s = "BYTES TEST".to_string().into_bytes();
@@ -34,7 +34,7 @@ impl AppDelegate for DefaultsTest {
 
         //println!("Retrieved LOL: {:?}", defaults.get("LOL"));
         //println!("Retrieved LOL: {:?}", defaults.get("X"));
-        //println!("Retrieved LOL: {:?}", defaults.get("X2"));
+        println!("Retrieved LOL: {:?}", defaults.get("BOOL"));
 
         let bytes = defaults.get("BYTES").unwrap();
         println!("Bytes: {:?}", bytes);
