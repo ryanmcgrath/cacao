@@ -56,10 +56,10 @@ impl FileManager {
                 create:NO
                 error:nil];
 
-            NSString::wrap(msg_send![dir, absoluteString]).to_str()
+            NSString::wrap(msg_send![dir, absoluteString])
         };
         
-        Url::parse(directory).map_err(|e| e.into())
+        Url::parse(directory.to_str()).map_err(|e| e.into())
     }
 
     /// Given two paths, moves file (`from`) to the location specified in `to`. This can result in

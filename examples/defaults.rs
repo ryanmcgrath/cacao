@@ -4,7 +4,6 @@ use std::collections::HashMap;
 
 use cacao::macos::{App, AppDelegate};
 use cacao::defaults::{UserDefaults, Value};
-use cacao::foundation::NSData;
 
 #[derive(Default)]
 struct DefaultsTest;
@@ -15,30 +14,31 @@ impl AppDelegate for DefaultsTest {
 
         defaults.register({
             let mut map = HashMap::new();
-            //map.insert("LOL", Value::string("laugh"));
-            //map.insert("X", Value::Integer(1));
-            //map.insert("X2", Value::Float(1.0));
-            map.insert("BOOL", Value::Bool(false));
+            map.insert("testbool", Value::Bool(true));
+            map.insert("testint", Value::Integer(42));
+            map.insert("testfloat", Value::Float(42.));
+            map.insert("teststring", Value::string("Testing"));
 
-            println!("Test equivalency:");
-            let s = "BYTES TEST".to_string().into_bytes();
-            println!("    {:?}", s);
-            let x = NSData::new(s);
-            println!("    {:?}", x.bytes());
-            
-            let s2 = "BYTES TEST".to_string().into_bytes();
-            map.insert("BYTES", Value::Data(s2));
-            
+            let bytes = "BYTES TEST".to_string().into_bytes();
+            map.insert("testdata", Value::Data(bytes));
+
             map
         });
 
-        //println!("Retrieved LOL: {:?}", defaults.get("LOL"));
-        //println!("Retrieved LOL: {:?}", defaults.get("X"));
-        println!("Retrieved LOL: {:?}", defaults.get("BOOL"));
+        let testbool = defaults.get("testbool").unwrap().as_bool().unwrap();
+        assert_eq!(testbool, true);
 
-        let bytes = defaults.get("BYTES").unwrap();
-        println!("Bytes: {:?}", bytes);
-        let data = match std::str::from_utf8(bytes.as_data().unwrap()) {
+        let testint = defaults.get("testint").unwrap().as_i64().unwrap();
+        assert_eq!(testint, 42);
+
+        let testfloat = defaults.get("testfloat").unwrap().as_f64().unwrap();
+        assert_eq!(testfloat, 42.);
+
+        let teststring = defaults.get("teststring").unwrap();
+        assert_eq!(teststring.as_str().unwrap(), "Testing");
+        
+        let bytes = defaults.get("testdata").unwrap();
+        let s = match std::str::from_utf8(bytes.as_data().unwrap()) {
             Ok(s) => s,
             Err(e) => {
                 eprintln!("Error converting bytes {}", e);
@@ -46,8 +46,8 @@ impl AppDelegate for DefaultsTest {
             }
         };
 
-        println!("Retrieved Bytes: {}", data);
-        
+        assert_eq!(s, "BYTES TEST");
+        println!("All UserDefaults tests pass");
 
         App::terminate();
     }

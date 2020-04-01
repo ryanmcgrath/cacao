@@ -19,8 +19,8 @@ use crate::utils::load;
 
 /// Called when an `alert()` from the underlying `WKWebView` is fired. Will call over to your
 /// `WebViewController`, where you should handle the event.
-extern fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, s: id, _: id, complete: id) {
-    let alert = NSString::wrap(s).to_str();
+extern fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, _: id, _: id, complete: id) {
+    //let alert = NSString::wrap(s).to_str();
 
     // @TODO: This is technically (I think?) a private method, and there's some other dance that
     // needs to be done here involving taking the pointer/invoke/casting... but this is fine for
@@ -47,9 +47,9 @@ extern fn on_message<T: WebViewDelegate>(this: &Object, _: Sel, _: id, script_me
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     unsafe {
-        let name = NSString::wrap(msg_send![script_message, name]).to_str();
-        let body = NSString::wrap(msg_send![script_message, body]).to_str();
-        delegate.on_message(name, body);
+        let name = NSString::wrap(msg_send![script_message, name]);
+        let body = NSString::wrap(msg_send![script_message, body]);
+        delegate.on_message(name.to_str(), body.to_str());
     }
 }
 
@@ -107,9 +107,9 @@ extern fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: i
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     let handler = handler as *const Block<(objc::runtime::BOOL, id), c_void>; 
-    let filename = NSString::wrap(suggested_filename).to_str();
+    let filename = NSString::wrap(suggested_filename);
 
-    delegate.run_save_panel(filename, move |can_overwrite, path| unsafe {
+    delegate.run_save_panel(filename.to_str(), move |can_overwrite, path| unsafe {
         if path.is_none() {
             let _: () = msg_send![download, cancel];
         }

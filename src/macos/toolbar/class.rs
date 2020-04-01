@@ -13,7 +13,6 @@ use crate::utils::load;
 /// Retrieves and passes the allowed item identifiers for this toolbar.
 extern fn allowed_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel, _: id) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
-    println!("Hitting here?");
 
     let identifiers: NSArray = toolbar.allowed_item_identifiers().iter().map(|identifier| {
         NSString::new(identifier).into_inner()
@@ -37,9 +36,9 @@ extern fn default_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel, _:
 /// Objective-C runtime needs.
 extern fn item_for_identifier<T: ToolbarDelegate>(this: &Object, _: Sel, _: id, identifier: id, _: id) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
-    let identifier = NSString::wrap(identifier).to_str();
+    let identifier = NSString::wrap(identifier);
     
-    let mut item = toolbar.item_for(identifier);
+    let mut item = toolbar.item_for(identifier.to_str());
     &mut *item.objc
 }
 

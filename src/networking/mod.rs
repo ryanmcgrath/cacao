@@ -19,10 +19,10 @@ impl URLRequest {
         }
     }
 
-    pub fn url(&self) -> &'static str {
+    pub fn url(&self) -> String {
         NSString::wrap(unsafe {
             let url: id = msg_send![&*self.inner, URL];
             msg_send![url, absoluteString]
-        }).to_str()
+        }).to_string()
     }
 }

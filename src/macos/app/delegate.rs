@@ -195,7 +195,7 @@ extern fn did_receive_remote_notification<T: AppDelegate>(_this: &Object, _: Sel
 /// Fires when the application receives a `application:userDidAcceptCloudKitShareWithMetadata:`
 /// message.
 #[cfg(feature = "cloudkit")]
-extern fn accepted_cloudkit_share<T: AppDelegate>(_this: &Object, _: Sel, _: id, metadata: id) {
+extern fn accepted_cloudkit_share<T: AppDelegate>(this: &Object, _: Sel, _: id, metadata: id) {
     let share = CKShareMetaData::with_inner(metadata);
     app::<T>(this).user_accepted_cloudkit_share(share);
 }
