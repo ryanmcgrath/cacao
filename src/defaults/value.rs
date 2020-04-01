@@ -1,9 +1,6 @@
 use std::collections::HashMap;
 
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
-
-use crate::foundation::{id, YES, NO, NSData, NSInteger, NSDictionary, NSString};
+use crate::foundation::{id, NSData, NSDictionary, NSString, NSNumber};
 
 /// Represents a Value that can be stored or queried with `UserDefaults`.
 ///
@@ -138,18 +135,12 @@ impl From<Value> for id {
     // These currently work, but may not be exhaustive and should be looked over past the preview
     // period.
     fn from(value: Value) -> Self {
-        unsafe {
-            match value {
-                Value::Bool(b) => msg_send![class!(NSNumber), numberWithBool:match b {
-                    true => YES,
-                    false => NO
-                }],
-
-                Value::String(s) => NSString::new(&s).into_inner(),
-                Value::Float(f) => msg_send![class!(NSNumber), numberWithDouble:f],
-                Value::Integer(i) => msg_send![class!(NSNumber), numberWithInteger:i as NSInteger],
-                Value::Data(data) => NSData::new(data).into_inner()
-            }
+        match value {
+            Value::Bool(b) => NSNumber::bool(b).into_inner(),
+            Value::String(s) => NSString::new(&s).into_inner(),
+            Value::Float(f) => NSNumber::float(f).into_inner(),
+            Value::Integer(i) => NSNumber::integer(i).into_inner(),
+            Value::Data(data) => NSData::new(data).into_inner()
         }
     }
 }
@@ -160,16 +151,13 @@ where
 {
     /// Translates a `HashMap` of `Value`s into an `NSDictionary`.
     fn from(map: HashMap<K, Value>) -> Self {
-        NSDictionary(unsafe {
-            let dictionary: id = msg_send![class!(NSMutableDictionary), new];
+        let mut dictionary = NSDictionary::new();
 
-            for (key, value) in map.into_iter() {
-                let k = NSString::new(key.as_ref()); 
-                let v: id = value.into();
-                let _: () = msg_send![dictionary, setObject:v forKey:k];
-            }
+        for (key, value) in map.into_iter() {
+            let k = NSString::new(key.as_ref()); 
+            dictionary.insert(k, value.into());
+        }
 
-            Id::from_ptr(dictionary)
-        })
+        dictionary
     }
 }

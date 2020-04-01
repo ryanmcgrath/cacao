@@ -1,5 +1,28 @@
-//! A wrapper for `NSAlert`. Currently doesn't cover everything possible for this class, as it was
-//! built primarily for debugging uses. Feel free to extend via pull requests or something.
+//! A wrapper for `NSAlert`.
+//!
+//! This is housed inside `macos` as it's a useful tool for a few cases, but it doesn't match the
+//! iOS API, so we make no guarantees about it being a universal control. In general this also
+//! doesn't produce an amazing user experience, and you may want to shy away from using it.
+//!
+//! If you want to show a complex view in an alert-esque fashion, you may consider looking at
+//! `Sheet`.
+//!
+//! ```rust
+//! use cacao::macos::{App, AppDelegate, Alert};
+//! 
+//! #[derive(Default)]
+//! struct ExampleApp;
+//!
+//! impl AppDelegate {
+//!     fn did_finish_launching(&self) {
+//!         
+//!     }
+//! }
+//!
+//! fn main() {
+//!     App::new("com.alert.example", ExampleApp::default()).run()
+//! }
+//! ```
 
 use objc_id::Id;
 use objc::runtime::Object;

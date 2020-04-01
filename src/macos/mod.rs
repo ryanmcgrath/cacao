@@ -15,7 +15,12 @@
 //! of your app as a cross platform codebase, with the initial 10% being scaffolding code for the
 //! platform (e.g, NSApplication vs UIApplication lifecycle).
 
-pub mod app;
+mod alert;
+pub use alert::Alert;
+
+mod app;
+pub use app::*;
+
 pub mod menu;
 pub mod printing;
 pub mod toolbar;

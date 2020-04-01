@@ -21,8 +21,7 @@ impl NSNumber {
         NSNumber(unsafe {
             Id::from_ptr(msg_send![class!(NSNumber), numberWithBool:match value {
                 true => YES,
-                false => NO,
-                _ => unreachable!()
+                false => NO
             }])
         })
     }

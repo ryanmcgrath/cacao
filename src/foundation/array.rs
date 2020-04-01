@@ -1,4 +1,6 @@
-//! A wrapper type for `NSArray`. This is abstracted out as we need to use `NSArray` in a ton of
+//! A wrapper type for `NSArray`.
+//!
+//! This is abstracted out as we need to use `NSArray` in a ton of
 //! instances in this framework, and down the road I'd like to investigate using `CFArray` instead
 //! of `NSArray` (i.e, if the ObjC runtime is ever pulled or something - perhaps those types would
 //! stick around).

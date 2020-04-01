@@ -38,7 +38,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, nil, YES, BOOL, NSData, NSInteger, NSString, NSDictionary, NSNumber};
+use crate::foundation::{id, nil, YES, NO, BOOL, NSData, NSString, NSDictionary, NSNumber};
 
 mod value;
 pub use value::Value;
@@ -212,5 +212,50 @@ impl UserDefaults {
         }
 
         None
+    }
+
+    /// Returns a boolean value if the object stored for the specified key is managed by an
+    /// administrator. This is rarely used - mostly in managed environments, e.g a classroom.
+    /// 
+    /// For managed keys, the application should disable any user interface that allows the 
+    /// user to modify the value of key.
+    ///
+    /// ```rust
+    /// use cacao::defaults::{UserDefaults, Value};
+    ///
+    /// let mut defaults = UserDefaults::standard();
+    /// defaults.insert("test", Value::string("value"));
+    ///
+    /// let value = defaults.is_forced_for_key("test");
+    /// assert_eq!(value, false);
+    /// ```
+    pub fn is_forced_for_key<K: AsRef<str>>(&self, key: K) -> bool {
+        let result: BOOL = unsafe {
+            let key = NSString::new(key.as_ref());
+            msg_send![&*self.0, objectIsForcedForKey:key.into_inner()]
+        };
+
+        match result {
+            YES => true,
+            NO => false,
+            _ => unreachable!()
+        }
+    }
+
+    /// Blocks for any asynchronous updates to the defaults database and returns.
+    ///
+    /// This method is legacy, likely unnecessary and shouldn't be used unless you know exactly why
+    /// you need it... and even then, you should double check it.
+    /// ```rust
+    /// use cacao::defaults::{UserDefaults, Value};
+    ///
+    /// let mut defaults = UserDefaults::standard();
+    /// defaults.insert("test", Value::string("value"));
+    /// defaults.synchronize();
+    /// ```
+    pub fn synchronize(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.0, synchronize];
+        }
     }
 }

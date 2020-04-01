@@ -5,7 +5,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::id;
+use crate::foundation::{id, NSString};
 
 /// A wrapper for `NSDictionary`. Behind the scenes we actually wrap `NSMutableDictionary`, and
 /// rely on Rust doing the usual borrow-checking guards that it does so well.
@@ -23,6 +23,12 @@ impl NSDictionary {
         NSDictionary(unsafe {
             Id::from_ptr(msg_send![class!(NSMutableDictionary), new])
         })
+    }
+
+    pub fn insert(&mut self, key: NSString, object: id) {
+        unsafe {
+            let _: () = msg_send![&*self.0, setObject:object forKey:key.into_inner()];
+        }
     }
 
     pub fn into_inner(mut self) -> id {
