@@ -22,8 +22,9 @@ url = "2.1.1"
 
 [features]
 default = ["macos"]
-macos = []
 cloudkit = []
+ios = []
+macos = []
 user-notifications = ["uuid"]
 webview = []
 webview-downloading = []

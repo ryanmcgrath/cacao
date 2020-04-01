@@ -75,6 +75,9 @@ pub use url;
 #[cfg(feature = "macos")]
 pub mod macos;
 
+#[cfg(feature = "ios")]
+pub mod ios;
+
 pub mod button;
 
 #[cfg(feature = "cloudkit")]
