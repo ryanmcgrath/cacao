@@ -41,6 +41,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO, NSUInteger, AutoReleasePool};
 use crate::macos::menu::Menu;
 use crate::notification_center::Dispatcher;
+use crate::utils::activate_cocoa_multithreading;
 
 mod class;
 use class::register_app_class;
@@ -61,26 +62,6 @@ pub(crate) static APP_PTR: &str = "rstAppPtr";
 fn shared_application<F: Fn(id)>(handler: F) {
     let app: id = unsafe { msg_send![register_app_class(), sharedApplication] };
     handler(app);
-}
-
-/// A helper method for ensuring that Cocoa is running in multi-threaded mode.
-///
-/// Why do we need this? According to Apple, if you're going to make use of standard POSIX threads,
-/// you need to, before creating and using a POSIX thread, first create and immediately detach a
-/// `NSThread`. This ensures that Cocoa utilizes proper locking in certain places where it might
-/// not be doing so for performance reasons.
-///
-/// In general, you should aim to just start all of your work inside of your `AppDelegate` methods.
-/// There are some cases where you might want to do things before that, though - and if you spawn a
-/// thread there, just call this first... otherwise you may have some unexpected issues later on.
-///
-/// _(This is called inside the `App::new()` construct for you already, so as long as you're doing
-/// nothing before your `AppDelegate`, you can pay this no mind)._
-pub fn activate_cocoa_multithreading() {
-    unsafe {
-        let thread: id = msg_send![class!(NSThread), new];
-        let _: () = msg_send![thread, start];
-    }
 }
 
 /// A wrapper for `NSApplication` on macOS, and `UIApplication` on iOS.

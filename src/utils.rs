@@ -4,16 +4,19 @@
 
 use core_graphics::base::CGFloat;
 
+use objc::{class, msg_send, sel, sel_impl};
+
 use objc::{Encode, Encoding};
 use objc::runtime::Object;
 use objc_id::ShareId;
+
+use crate::foundation::id;
 
 /// A generic trait that's used throughout multiple different controls in this framework - acts as
 /// a guard for whether something is a (View|etc)Controller. Only needs to return the backing node.
 pub trait Controller {
     fn get_backing_node(&self) -> ShareId<Object>;
 }
-
 
 /// Utility method for taking a pointer and grabbing the corresponding delegate in Rust. This is
 /// theoretically safe:
@@ -56,5 +59,25 @@ unsafe impl Encode for CGSize {
         );
         
         unsafe { Encoding::from_str(&encoding) }
+    }
+}
+
+/// A helper method for ensuring that Cocoa is running in multi-threaded mode.
+///
+/// Why do we need this? According to Apple, if you're going to make use of standard POSIX threads,
+/// you need to, before creating and using a POSIX thread, first create and immediately detach a
+/// `NSThread`. This ensures that Cocoa utilizes proper locking in certain places where it might
+/// not be doing so for performance reasons.
+///
+/// In general, you should aim to just start all of your work inside of your `AppDelegate` methods.
+/// There are some cases where you might want to do things before that, though - and if you spawn a
+/// thread there, just call this first... otherwise you may have some unexpected issues later on.
+///
+/// _(This is called inside the `App::new()` construct for you already, so as long as you're doing
+/// nothing before your `AppDelegate`, you can pay this no mind)._
+pub fn activate_cocoa_multithreading() {
+    unsafe {
+        let thread: id = msg_send![class!(NSThread), new];
+        let _: () = msg_send![thread, start];
     }
 }

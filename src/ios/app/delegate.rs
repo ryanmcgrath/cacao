@@ -16,7 +16,7 @@ use url::Url;
 
 use crate::error::AppKitError;
 use crate::foundation::{id, nil, BOOL, YES, NO, NSUInteger, NSArray, NSString};
-use crate::ios::app::{APP_PTR, AppDelegate, APP_DELEGATE};
+use crate::ios::app::{AppDelegate, APP_DELEGATE};
 use crate::user_activity::UserActivity;
 
 #[cfg(feature = "cloudkit")]
@@ -48,8 +48,6 @@ pub(crate) fn register_app_delegate_class<T: AppDelegate>() -> *const Class {
     INIT.call_once(|| unsafe {
         let superclass = class!(NSObject);
         let mut decl = ClassDecl::new("RSTAppDelegate", superclass).unwrap();
-
-        decl.add_ivar::<usize>(APP_PTR);
 
         // Launching Applications
         decl.add_method(sel!(application:didFinishLaunchingWithOptions:), did_finish_launching::<T> as extern fn(&Object, _, _, id) -> BOOL);
