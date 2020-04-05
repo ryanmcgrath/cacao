@@ -2,15 +2,13 @@
 //! (think: drag and drop between applications). It exposes a Rust interface that tries to be
 //! complete, but might not cover everything 100% right now - feel free to pull request.
 
-use std::error::Error;
-
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 use url::Url;
 
 use crate::foundation::{id, nil, NSString, NSArray};
-use crate::error::AppKitError;
+use crate::error::Error;
 
 mod types;
 pub use types::{PasteboardName, PasteboardType};
@@ -66,7 +64,7 @@ impl Pasteboard {
     }
 
     /// Looks inside the pasteboard contents and extracts what FileURLs are there, if any.
-    pub fn get_file_urls(&self) -> Result<Vec<Url>, Box<dyn Error>> {
+    pub fn get_file_urls(&self) -> Result<Vec<Url>, Box<dyn std::error::Error>> {
         unsafe {
             let class: id = msg_send![class!(NSURL), class];
             let classes = NSArray::new(&[class]);
@@ -78,7 +76,7 @@ impl Pasteboard {
                 // This error is not necessarily "correct", but in the event of an error in
                 // Pasteboard server retrieval I'm not sure where to check... and this stuff is
                 // kinda ancient and has conflicting docs in places. ;P
-                return Err(Box::new(AppKitError {
+                return Err(Box::new(Error {
                     code: 666,
                     domain: "com.cacao-rs.pasteboard".to_string(),
                     description: "Pasteboard server returned no data.".to_string()

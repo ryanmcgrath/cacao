@@ -1,5 +1,6 @@
-//! A wrapper for `NSError`, which can be (and is) bubbled up for certain calls in this library. It
-//! attempts to be thread safe where possible, and extract the "default" usable information out of
+//! A wrapper for `NSError`.
+//!
+//! It attempts to be thread safe where possible, and extract the "default" usable information out of
 //! an `NSError`. This might not be what you need, though, so if it's missing something... well,
 //! it's up for discussion.
 
@@ -14,13 +15,18 @@ use crate::foundation::{id, nil, NSInteger, NSString};
 /// allocates `String` instances when theoretically it could be avoided, and we might be erasing
 /// certain parts of the `NSError` object that are useful.
 #[derive(Clone, Debug)]
-pub struct AppKitError {
+pub struct Error {
+    /// Represents the code. Some of these can be... archaic.
     pub code: usize,
+
+    /// Represents the domain of the error.
     pub domain: String,
+
+    /// Maps over to `[NSError localizedDescription]`.
     pub description: String
 }
 
-impl AppKitError {
+impl Error {
     /// Given an `NSError` (i.e, an id reference) we'll pull out the relevant information and
     /// configure this. We pull out the information as it makes the error thread safe this way,
     /// which is... easier, in some cases.
@@ -33,19 +39,20 @@ impl AppKitError {
             (code, domain, description)
         };
 
-        AppKitError {
+        Error {
             code: code,
             domain: domain.to_str().to_string(),
             description: description.to_str().to_string()
         }
     }
 
+    /// Returns a boxed `Error`.
     pub fn boxed(error: id) -> Box<Self> {
-        Box::new(AppKitError::new(error))
+        Box::new(Error::new(error))
     }
 
     /// Used for cases where we need to return an `NSError` back to the system (e.g, top-level
-    /// error handling). We just create a new `NSError` so the `AppKitError` crate can be mostly
+    /// error handling). We just create a new `NSError` so the `Error` crate can be mostly
     /// thread safe.
     pub fn into_nserror(self) -> id {
         unsafe {
@@ -56,10 +63,10 @@ impl AppKitError {
     }
 }
 
-impl fmt::Display for AppKitError {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.description)
     }
 }
 
-impl error::Error for AppKitError {}
+impl error::Error for Error {}

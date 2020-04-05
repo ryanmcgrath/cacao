@@ -37,11 +37,11 @@
 use libc::{c_char, c_int};
 use std::ffi::CString;
 
-use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSString, NSUInteger, AutoReleasePool};
+use crate::ios::scene::{WindowSceneDelegate, register_window_scene_delegate_class};
 use crate::notification_center::Dispatcher;
 use crate::utils::activate_cocoa_multithreading;
 
@@ -58,6 +58,7 @@ mod traits;
 pub use traits::AppDelegate;
 
 pub(crate) static mut APP_DELEGATE: usize = 0;
+pub(crate) static mut SCENE_DELEGATE_VENDOR: usize = 0;
 
 extern "C" {
     /// Required for iOS applications to initialize.
@@ -83,17 +84,64 @@ fn shared_application<F: Fn(id)>(handler: F) {
 /// - It injects an `NSObject` subclass to act as a delegate for lifecycle events.
 /// - It ensures that Cocoa, where appropriate, is operating in multi-threaded mode so POSIX
 /// threads work as intended.
-///
-/// This also enables support for dispatching a message, `M`. Your `AppDelegate` can optionally
-/// implement the `Dispatcher` trait to receive messages that you might dispatch from deeper in the
-/// application.
-pub struct App<T = (), M = ()> {
+pub struct App<
+    T = (),
+    W = (),
+    F = (),
+> {
     pub delegate: Box<T>,
+    pub vendor: Box<F>,
     pub pool: AutoReleasePool,
-    _t: std::marker::PhantomData<M>
+    _w: std::marker::PhantomData<W>
 }
 
-impl<T> App<T> {  
+impl<T, W, F> App<T, W, F>
+where 
+    T: AppDelegate + 'static,
+    W: WindowSceneDelegate,
+    F: Fn() -> Box<W>
+{
+    /// iOS manages creating a new Application (`UIApplication`) differently than you'd expect if
+    /// you were looking at the macOS side of things.
+    ///
+    /// In this case, we're primarily concerned with shoving our `AppDelegate` to a place we can
+    /// retrieve it later on. While this is unsafe behavior, it's ultimately no different than
+    /// shoving the pointer onto the delegate like we do on the macOS side of things.
+    ///
+    /// Note that this pattern is only fine here due to the fact that there can only be one
+    /// AppDelegate at a time.
+    ///
+    /// This also handles ensuring that our subclasses exist in the Objective-C runtime *before*
+    /// `UIApplicationMain` is called.
+    pub fn new(delegate: T, scene_delegate_vendor: F) -> Self {
+        activate_cocoa_multithreading();
+        
+        let pool = AutoReleasePool::new();
+        let cls = register_app_class();
+        let dl = register_app_delegate_class::<T>();
+        let w = register_window_scene_delegate_class::<W, F>();
+
+        // This probably needs to be Arc<Mutex<>>'d at some point, but this is still exploratory.
+        let app_delegate = Box::new(delegate);
+        let vendor = Box::new(scene_delegate_vendor);
+        unsafe {
+            let delegate_ptr: *const T = &*app_delegate; 
+            APP_DELEGATE = delegate_ptr as usize;
+
+            let scene_delegate_vendor_ptr: *const F = &*vendor;
+            SCENE_DELEGATE_VENDOR = scene_delegate_vendor_ptr as usize;
+        }
+        
+        App {
+            delegate: app_delegate,
+            vendor: vendor,
+            pool: pool,
+            _w: std::marker::PhantomData
+        }
+    }
+} 
+
+impl<T, W, F> App<T, W, F> {  
     /// Handles calling through to `UIApplicationMain()`, ensuring that it's using our custom
     /// `UIApplication` and `UIApplicationDelegate` classes.
     pub fn run(&self) {
@@ -111,41 +159,3 @@ impl<T> App<T> {
     }
 }
 
-impl<T> App<T> where T: AppDelegate + 'static {
-    /// iOS manages creating a new Application (`UIApplication`) differently than you'd expect if
-    /// you were looking at the macOS side of things.
-    ///
-    /// In this case, we're primarily concerned with shoving our `AppDelegate` to a place we can
-    /// retrieve it later on. While this is unsafe behavior, it's ultimately no different than
-    /// shoving the pointer onto the delegate like we do on the macOS side of things.
-    ///
-    /// This also handles ensuring that our subclasses exist in the Objective-C runtime *before*
-    /// `UIApplicationMain` is called.
-    pub fn new(delegate: T) -> Self {
-        activate_cocoa_multithreading();
-        
-        let pool = AutoReleasePool::new();
-        let cls = register_app_class();
-        let dl = register_app_delegate_class::<T>();
-        let app_delegate = Box::new(delegate);
-        let delegate_ptr: *const T = &*app_delegate;
-        
-        unsafe {
-            APP_DELEGATE = delegate_ptr as usize;
-        }
-        
-        App {
-            delegate: app_delegate,
-            pool: pool,
-            _t: std::marker::PhantomData
-        }
-    }
-} 
-
-// This is a hack and should be replaced with an actual messaging pipeline at some point. :)
-impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher<Message = M> {
-    /// Dispatches a message by grabbing the `sharedApplication`, getting ahold of the delegate,
-    /// and passing back through there. All messages are currently dispatched on the main thread.
-    pub fn dispatch(message: M) {
-    }
-}

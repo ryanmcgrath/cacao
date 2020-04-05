@@ -5,9 +5,19 @@ use objc::{msg_send, sel, sel_impl};
 use crate::foundation::id;
 use crate::layout::{Layout};
 use crate::view::{VIEW_DELEGATE_PTR, View, ViewDelegate};
+use crate::utils::Controller;
 
-mod class;
-use class::register_view_controller_class;
+#[cfg(target_os = "macos")]
+mod macos;
+
+#[cfg(target_os = "macos")]
+use macos::register_view_controller_class;
+
+#[cfg(target_os = "ios")]
+mod ios;
+
+#[cfg(target_os = "ios")]
+use ios::register_view_controller_class;
 
 //#[derive(Debug)]
 pub struct ViewController<T> {
@@ -41,5 +51,11 @@ impl<T> ViewController<T> where T: ViewDelegate + 'static {
             objc: objc,
             view: view
         }
+    }
+}
+
+impl<T> Controller for ViewController<T> {
+    fn get_backing_node(&self) -> ShareId<Object> {
+        self.objc.clone()
     }
 }

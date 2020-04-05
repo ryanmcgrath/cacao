@@ -6,3 +6,9 @@
 
 mod app;
 pub use app::*;
+
+mod scene;
+pub use scene::*;
+
+mod window;
+pub use window::*;

@@ -50,13 +50,23 @@ use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
 
-mod class;
-use class::{register_view_class, register_view_class_with_delegate};
+#[cfg(target_os = "macos")]
+mod macos;
 
-pub mod controller;
+#[cfg(target_os = "macos")]
+use macos::{register_view_class, register_view_class_with_delegate};
 
-pub mod traits;
-use traits::ViewDelegate;
+#[cfg(target_os = "ios")]
+mod ios;
+
+#[cfg(target_os = "ios")]
+use ios::{register_view_class, register_view_class_with_delegate};
+
+mod controller;
+pub use controller::ViewController;
+
+mod traits;
+pub use traits::ViewDelegate;
 
 pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
 
@@ -65,7 +75,10 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
     unsafe {
         let view: id = msg_send![registration_fn(), new];
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+
+        #[cfg(target_os = "macos")]
         let _: () = msg_send![view, setWantsLayer:YES];
+
         view 
     }
 }

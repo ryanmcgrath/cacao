@@ -1,5 +1,6 @@
 //#![deny(missing_docs)]
 //#![deny(missing_debug_implementations)]
+#![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 
 // Copyright 2019+, the Cacao developers.
 // See the COPYRIGHT file at the top-level directory of this distribution.

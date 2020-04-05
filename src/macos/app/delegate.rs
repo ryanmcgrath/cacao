@@ -14,7 +14,7 @@ use objc::runtime::{Class, Object, Sel};
 
 use url::Url;
 
-use crate::error::AppKitError;
+use crate::error::Error;
 use crate::foundation::{id, nil, BOOL, YES, NO, NSUInteger, NSArray, NSString};
 use crate::macos::app::{APP_PTR, AppDelegate};
 use crate::macos::printing::PrintSettings;
@@ -126,7 +126,7 @@ extern fn dock_menu<T: AppDelegate>(this: &Object, _: Sel, _: id) -> id {
 
 /// Fires when the application delegate receives a `application:willPresentError:` notification.
 extern fn will_present_error<T: AppDelegate>(this: &Object, _: Sel, _: id, error: id) -> id {
-    let error = AppKitError::new(error);
+    let error = Error::new(error);
     app::<T>(this).will_present_error(error).into_nserror()
 }
 
@@ -167,7 +167,7 @@ extern fn continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: id, a
 extern fn failed_to_continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: id, activity_type: id, error: id) {
     app::<T>(this).failed_to_continue_user_activity(
         NSString::wrap(activity_type).to_str(),
-        AppKitError::new(error)
+        Error::new(error)
     );
 }
 
@@ -184,7 +184,7 @@ extern fn registered_for_remote_notifications<T: AppDelegate>(_this: &Object, _:
 
 /// Fires when the application receives a `application:didFailToRegisterForRemoteNotificationsWithError:` message.
 extern fn failed_to_register_for_remote_notifications<T: AppDelegate>(this: &Object, _: Sel, _: id, error: id) {
-    app::<T>(this).failed_to_register_for_remote_notifications(AppKitError::new(error));
+    app::<T>(this).failed_to_register_for_remote_notifications(Error::new(error));
 }
 
 /// Fires when the application receives a `application:didReceiveRemoteNotification:` message.

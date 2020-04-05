@@ -10,7 +10,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use url::Url;
 
 use crate::foundation::{id, nil, NO, NSString, NSUInteger};
-use crate::error::AppKitError;
+use crate::error::{Error as AppKitError};
 use crate::filesystem::enums::{SearchPathDirectory, SearchPathDomainMask};
 
 pub struct FileManager {

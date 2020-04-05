@@ -43,3 +43,14 @@ impl From<Rect> for CGRect {
         )
     }
 }
+
+impl From<CGRect> for Rect {
+    fn from(rect: CGRect) -> Rect {
+        Rect {
+            top: rect.origin.y as f64,
+            left: rect.origin.x as f64,
+            width: rect.size.width as f64,
+            height: rect.size.height as f64
+        }
+    }
+}

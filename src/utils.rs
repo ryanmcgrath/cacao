@@ -10,7 +10,7 @@ use objc::{Encode, Encoding};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::foundation::id;
+use crate::foundation::{id, BOOL};
 
 /// A generic trait that's used throughout multiple different controls in this framework - acts as
 /// a guard for whether something is a (View|etc)Controller. Only needs to return the backing node.
@@ -79,5 +79,15 @@ pub fn activate_cocoa_multithreading() {
     unsafe {
         let thread: id = msg_send![class!(NSThread), new];
         let _: () = msg_send![thread, start];
+    }
+}
+
+/// Utility method for turning an Objective-C `BOOL` into a Rust `bool`.
+#[inline]
+pub fn as_bool(value: BOOL) -> bool {
+    match value {
+        YES => true,
+        NO => false,
+        _ => unreachable!()
     }
 }

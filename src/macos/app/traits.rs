@@ -3,7 +3,7 @@
 
 use url::Url;
 
-use crate::error::AppKitError;
+use crate::error::Error;
 use crate::user_activity::UserActivity;
 
 use crate::macos::app::enums::TerminateResponse;
@@ -43,7 +43,7 @@ pub trait AppDelegate {
     fn continue_user_activity<F: Fn()>(&self, _activity: UserActivity, _restoration_handler: F) -> bool { false }
 
     /// Fired when the activity could not be continued.
-    fn failed_to_continue_user_activity(&self, _activity_type: &str, _error: AppKitError) {}
+    fn failed_to_continue_user_activity(&self, _activity_type: &str, _error: Error) {}
 
     /// Fired after the user activity object has been updated.
     fn updated_user_activity(&self, _activity: UserActivity) {}
@@ -56,7 +56,7 @@ pub trait AppDelegate {
 
     /// Fired if there was a failure to register for remote notifications with APNS - e.g,
     /// connection issues or something.
-    fn failed_to_register_for_remote_notifications(&self, _error: AppKitError) {}
+    fn failed_to_register_for_remote_notifications(&self, _error: Error) {}
 
     /// Fires after the user accepted a CloudKit sharing invitation associated with your
     /// application. 
@@ -124,7 +124,7 @@ pub trait AppDelegate {
     /// Fired before the application presents an error message to the user. If you find the error
     /// to be... not what you want, you can take it, alter it, and return it anew. The default
     /// implementation of this method simply returns the error as-is.
-    fn will_present_error(&self, error: AppKitError) -> AppKitError { error }
+    fn will_present_error(&self, error: Error) -> Error { error }
 
     /// Fired when the screen parameters for the application have changed (e.g, the user changed
     /// something in their settings).

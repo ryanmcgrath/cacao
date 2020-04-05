@@ -12,29 +12,50 @@
 //!
 //! ## Example
 
-use objc::{class, msg_send, sel, sel_impl};
-use objc::runtime::Object;
-use objc_id::ShareId;
+//use std::sync::Mutex;
+//use std::collections::HashMap;
+
+//use lazy_static::lazy_static;
+//use objc::{class, msg_send, sel, sel_impl};
+//use objc::runtime::Object;
+//use objc_id::ShareId;
 
 mod traits;
 pub use traits::Dispatcher;
 
-/// Wraps a reference to an `NSNotificationCenter` instance. Currently this only supports the
-/// default center; in the future it should aim to support custom variants.
-#[derive(Debug)]
-pub struct NotificationCenter(pub ShareId<Object>);
+/*lazy_static! {
+    pub static ref DefaultNotificationCenter: NotificationCenter = {
+        NotificationCenter {
+            objc: unsafe {
+                ShareId::from_ptr(msg_send![class!(NSNotificationCenter), defaultCenter])
+            },
 
-impl Default for NotificationCenter {
+            subscribers: Mutex::new(HashMap::new())
+        }
+    };
+}*/
+
+// Wraps a reference to an `NSNotificationCenter` instance. Currently this only supports the
+// default center; in the future it should aim to support custom variants.
+//#[derive(Debug)]
+//pub struct NotificationCenter {
+//    pub objc: ShareId<Object>,
+    //pub subscribers: Mutex<HashMap<String, Vec<Dispatcher>>>
+//}
+
+/*impl Default for NotificationCenter {
     /// Returns a wrapper over `[NSNotificationCenter defaultCenter]`. From here you can handle
     /// observing, removing, and posting notifications.
     fn default() -> Self {
-        NotificationCenter(unsafe {
-            ShareId::from_ptr(msg_send![class!(NSNotificationCenter), defaultCenter])
-        })
+        NotificationCenter {
+            objc: unsafe {
+                ShareId::from_ptr(msg_send![class!(NSNotificationCenter), defaultCenter])
+            }
+        }
     }
-}
+}*/
 
-impl NotificationCenter {
+/*impl NotificationCenter {
     pub fn observe<T: Dispatcher>(&self, name: &str, handler: &T) {
 
     }
@@ -46,4 +67,4 @@ impl NotificationCenter {
     pub fn post(&self, name: &str) {
 
     }
-}
+}*/

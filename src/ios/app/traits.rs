@@ -1,10 +1,11 @@
 //! Traits that an implementing application can conform to. These aim to wrap the general
 //! lifecycles across macOS/iOS/etc, while still conforming to a Rust-ish approach.
 
-use url::Url;
+//use url::Url;
 
-use crate::error::AppKitError;
-use crate::user_activity::UserActivity;
+//use crate::error::Error;
+//use crate::user_activity::UserActivity;
+use crate::ios::scene::{SceneConfig, SceneConnectionOptions, SceneSession};
 
 #[cfg(feature = "cloudkit")]
 use crate::cloudkit::share::CKShareMetaData;
@@ -18,4 +19,6 @@ pub trait AppDelegate {
     /// events in this framework, you don't get a reference to an app here - if you need to call
     /// through to your shared application, then used the `App::shared()` call.
     fn did_finish_launching(&self) {}
+
+    fn config_for_scene_session(&self, session: SceneSession, options: SceneConnectionOptions) -> SceneConfig;
 }
