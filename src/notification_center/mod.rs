@@ -20,6 +20,9 @@
 //use objc::runtime::Object;
 //use objc_id::ShareId;
 
+mod name;
+pub use name::NotificationName;
+
 mod traits;
 pub use traits::Dispatcher;
 
