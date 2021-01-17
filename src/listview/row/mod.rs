@@ -49,26 +49,21 @@ use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
+use crate::view::ViewDelegate;
 
 #[cfg(target_os = "macos")]
 mod macos;
 
 #[cfg(target_os = "macos")]
-use macos::{register_view_class, register_view_class_with_delegate};
+use macos::{register_listview_row_class, register_listview_row_class_with_delegate};
 
 #[cfg(target_os = "ios")]
 mod ios;
 
 #[cfg(target_os = "ios")]
-use ios::{register_view_class, register_view_class_with_delegate};
+use ios::{register_listview_row_view_class, register_listview_row_class_with_delegate};
 
-mod controller;
-pub use controller::ViewController;
-
-mod traits;
-pub use traits::ViewDelegate;
-
-pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
+pub(crate) static LISTVIEW_ROW_DELEGATE_PTR: &str = "rstListViewRowDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
@@ -87,7 +82,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 /// instead of a stock `View` for easier recordkeeping, since it'll need to hold the `View` on that
 /// side anyway.
 #[derive(Debug)]
-pub struct View<T = ()> {
+pub struct ListViewRow<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ShareId<Object>,
 
@@ -119,18 +114,18 @@ pub struct View<T = ()> {
     pub center_y: LayoutAnchorY
 }
 
-impl Default for View {
+impl Default for ListViewRow {
     fn default() -> Self {
-        View::new()
+        ListViewRow::new()
     }
 }
 
-impl View {
+impl ListViewRow {
     /// Returns a default `View`, suitable for 
     pub fn new() -> Self {
-        let view = allocate_view(register_view_class);
+        let view = allocate_view(register_listview_row_class);
 
-        View {
+        ListViewRow {
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
@@ -145,21 +140,21 @@ impl View {
     }
 }
 
-impl<T> View<T> where T: ViewDelegate + 'static {
+impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
-    pub fn with(delegate: T) -> View<T> {
+    pub fn with(delegate: T) -> ListViewRow<T> {
         let mut delegate = Box::new(delegate);
         
-        let view = allocate_view(register_view_class_with_delegate::<T>);
+        let view = allocate_view(register_listview_row_class_with_delegate::<T>);
         unsafe {
             //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
             //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let ptr: *const T = &*delegate;
-            (&mut *view).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
+            (&mut *view).set_ivar(LISTVIEW_ROW_DELEGATE_PTR, ptr as usize);
         };
 
-        let mut view = View {
+        let mut view = ListViewRow {
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
@@ -178,13 +173,19 @@ impl<T> View<T> where T: ViewDelegate + 'static {
     }
 }
 
-impl<T> View<T> {
+impl<T> From<&ListViewRow<T>> for ShareId<Object> {
+    fn from(row: &ListViewRow<T>) -> ShareId<Object> {
+        row.objc.clone()
+    }
+}
+
+impl<T> ListViewRow<T> {
     /// An internal method that returns a clone of this object, sans references to the delegate or
     /// callback pointer. We use this in calling `did_load()` - implementing delegates get a way to
     /// reference, customize and use the view but without the trickery of holding pieces of the
     /// delegate - the `View` is the only true holder of those.
-    pub(crate) fn clone_as_handle(&self) -> View {
-        View {
+    pub(crate) fn clone_as_handle(&self) -> crate::view::View {
+        crate::view::View {
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
@@ -224,7 +225,7 @@ impl<T> View<T> {
     }
 }
 
-impl<T> Layout for View<T> {
+impl<T> Layout for ListViewRow<T> {
     fn get_backing_node(&self) -> ShareId<Object> {
         self.objc.clone()
     }
@@ -238,21 +239,7 @@ impl<T> Layout for View<T> {
     }
 }
 
-impl<T> Drop for View<T> {
-    /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being
-    /// dropped, we do some logic to clean it all up (e.g, we go ahead and check to see if
-    /// this has a superview (i.e, it's in the heirarchy) on the AppKit side. If it does, we go
-    /// ahead and remove it - this is intended to match the semantics of how Rust handles things).
-    ///
-    /// There are, thankfully, no delegates we need to break here.
+impl<T> Drop for ListViewRow<T> {
     fn drop(&mut self) {
-        if self.delegate.is_some() {
-            unsafe {
-                let superview: id = msg_send![&*self.objc, superview];
-                if superview != nil {
-                    let _: () = msg_send![&*self.objc, removeFromSuperview];
-                }
-            }
-        }
     }
 }

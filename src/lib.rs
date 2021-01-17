@@ -72,6 +72,12 @@ pub use core_foundation;
 pub use core_graphics;
 pub use objc;
 pub use url;
+pub use lazy_static;
+
+/// Until we figure out a better way to handle reusable views (i.e, the 
+/// "correct" way for a list view to work), just let the delegates pass
+/// back the pointer and handle keeping the pools for themselves.
+pub type Node = objc_id::ShareId<objc::runtime::Object>;
 
 #[cfg(feature = "macos")]
 pub mod macos;
@@ -92,10 +98,19 @@ pub mod defaults;
 pub mod filesystem;
 pub mod foundation;
 pub mod geometry;
+pub mod image;
+pub mod input;
+pub(crate) mod invoker;
 pub mod layout;
+pub mod listview;
 pub mod networking;
 pub mod notification_center;
 pub mod pasteboard;
+pub mod scrollview;
+pub mod text;
+
+#[cfg(feature = "quicklook")]
+pub mod quicklook;
 
 #[cfg(feature = "user-notifications")]
 pub mod user_notifications;

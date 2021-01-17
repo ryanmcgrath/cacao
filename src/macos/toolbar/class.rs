@@ -4,7 +4,7 @@ use std::sync::Once;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, sel, sel_impl};
+use objc::{class, sel, sel_impl, msg_send};
 
 use crate::foundation::{id, NSArray, NSString};
 use crate::macos::toolbar::{TOOLBAR_PTR, ToolbarDelegate};
@@ -38,8 +38,11 @@ extern fn item_for_identifier<T: ToolbarDelegate>(this: &Object, _: Sel, _: id, 
     let toolbar = load::<T>(this, TOOLBAR_PTR);
     let identifier = NSString::wrap(identifier);
     
-    let mut item = toolbar.item_for(identifier.to_str());
-    &mut *item.objc
+    let item = toolbar.item_for(identifier.to_str());
+    unsafe {
+        msg_send![&*item.objc, self]
+    }
+    //&mut *item.objc
 }
 
 /// Registers a `NSToolbar` subclass, and configures it to hold some ivars for various things we need

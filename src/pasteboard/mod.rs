@@ -4,7 +4,7 @@
 
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc_id::ShareId;
 use url::Url;
 
 use crate::foundation::{id, nil, NSString, NSArray};
@@ -14,12 +14,12 @@ mod types;
 pub use types::{PasteboardName, PasteboardType};
 
 /// Represents an `NSPasteboard`, enabling you to handle copy/paste/drag and drop.
-pub struct Pasteboard(pub Id<Object>);
+pub struct Pasteboard(pub ShareId<Object>);
 
 impl Default for Pasteboard {
     fn default() -> Self {
         Pasteboard(unsafe {
-            Id::from_retained_ptr(msg_send![class!(NSPasteboard), generalPasteboard])
+            ShareId::from_ptr(msg_send![class!(NSPasteboard), generalPasteboard])
         })
     }
 }
@@ -28,7 +28,7 @@ impl Pasteboard {
     /// Used internally for wrapping a Pasteboard returned from operations (say, drag and drop).
     pub(crate) fn with(existing: id) -> Self {
         Pasteboard(unsafe {
-            Id::from_retained_ptr(existing)
+            ShareId::from_ptr(existing)
         })
     }
 
@@ -36,7 +36,7 @@ impl Pasteboard {
     pub fn named(name: PasteboardName) -> Self {
         Pasteboard(unsafe {
             let name: NSString = name.into();
-            Id::from_retained_ptr(msg_send![class!(NSPasteboard), pasteboardWithName:&*name.0])
+            ShareId::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithName:&*name.0])
         })
     }
 
@@ -44,7 +44,7 @@ impl Pasteboard {
     /// respect to other pasteboards in the system.
     pub fn unique() -> Self {
         Pasteboard(unsafe {
-            Id::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithUniqueName])
+            ShareId::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithUniqueName])
         })
     }
 

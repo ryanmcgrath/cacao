@@ -4,7 +4,7 @@
 
 use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc_id::ShareId;
 
 use crate::foundation::NSUInteger;
 use crate::pasteboard::Pasteboard;
@@ -54,7 +54,7 @@ impl From<DragOperation> for NSUInteger {
 /// A wrapper for `NSDraggingInfo`. As this is a protocol/type you should never create yourself,
 /// this only provides getters - merely a Rust-y way to grab what you need.
 pub struct DragInfo {
-    pub info: Id<Object>
+    pub info: ShareId<Object>
 }
 
 impl DragInfo {

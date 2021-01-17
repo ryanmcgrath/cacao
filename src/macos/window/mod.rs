@@ -137,6 +137,8 @@ impl<T> Window<T> where T: WindowDelegate + 'static {
             // We set the window to be its own delegate - this is cleaned up inside `Drop`.
             let _: () = msg_send![window, setDelegate:window];
 
+            let _: () = msg_send![window, setRestorable:NO];
+
             ShareId::from_ptr(window)
         };
 

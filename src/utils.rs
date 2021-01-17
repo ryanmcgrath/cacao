@@ -42,6 +42,22 @@ pub fn load<'a, T>(this: &'a Object, ptr_name: &str) -> &'a T {
     }
 }
 
+pub fn async_main_thread<F>(method: F)
+where
+    F: Fn() + Send + 'static
+{
+    let queue = dispatch::Queue::main();    
+    queue.exec_async(method);
+}
+
+pub fn sync_main_thread<F>(method: F)
+where
+    F: Fn() + Send + 'static
+{
+    let queue = dispatch::Queue::main();    
+    queue.exec_sync(method);    
+}
+
 /// Upstream core graphics does not implement Encode for certain things, so we wrap them here -
 /// these are only used in reading certain types passed to us from some delegate methods.
 #[repr(C)]
@@ -49,6 +65,12 @@ pub fn load<'a, T>(this: &'a Object, ptr_name: &str) -> &'a T {
 pub struct CGSize {
     pub width: CGFloat,
     pub height: CGFloat,
+}
+
+impl CGSize {
+    pub fn new(width: CGFloat, height: CGFloat) -> Self {
+        CGSize { width, height }
+    }
 }
 
 unsafe impl Encode for CGSize {

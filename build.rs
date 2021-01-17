@@ -1,14 +1,13 @@
-//! Specifies various frameworks to link against. Note that this is something where you probably
-//! only want to be compiling this project on macOS. ;P
+//! Emits linker flags depending on platforms and features.
 //!
-//! (it checks to see if it's macOS before emitting anything, but still)
+//! (iOS/macOS only right now... maybe tvOS one day?)
 
 fn main() {
     let target = std::env::var("TARGET").unwrap();
 
     println!("cargo:rustc-link-lib=framework=Foundation");
     
-    if std::env::var("TARGET").unwrap().contains("-ios") {
+    if target.contains("-ios") {
         println!("cargo:rustc-link-lib=framework=UIKit");
     } else {
         println!("cargo:rustc-link-lib=framework=AppKit");
@@ -16,7 +15,6 @@ fn main() {
 
     println!("cargo:rustc-link-lib=framework=CoreGraphics");
     println!("cargo:rustc-link-lib=framework=QuartzCore");
-
     println!("cargo:rustc-link-lib=framework=Security");
 
     #[cfg(feature = "webview")]
@@ -27,4 +25,7 @@ fn main() {
 
     #[cfg(feature = "user-notifications")]
     println!("cargo:rustc-link-lib=framework=UserNotifications");
+    
+    #[cfg(feature = "quicklook")]
+    println!("cargo:rustc-link-lib=framework=QuickLook");
 }

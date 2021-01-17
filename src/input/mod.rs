@@ -1,21 +1,19 @@
-//! Wraps `NSView` and `UIView` across platforms.
+//! Wraps `NSTextField` and `UITextField` across platforms, explicitly as a TextField.
+//! In AppKit, `NSTextField` does double duty, and for clarity we just double
+//! the implementation.
 //!
-//! This implementation errs towards the `UIView` side of things, and mostly acts as a wrapper to
-//! bring `NSView` to the modern era. It does this by flipping the coordinate system to be what
-//! people expect in 2020, and layer-backing all views by default.
-//!
-//! Views implement Autolayout, which enable you to specify how things should appear on the screen.
+//! TextFields implement Autolayout, which enable you to specify how things should appear on the screen.
 //! 
 //! ```rust,no_run
 //! use cacao::color::rgb;
 //! use cacao::layout::{Layout, LayoutConstraint};
-//! use cacao::view::View;
+//! use cacao::view::TextField;
 //! use cacao::window::{Window, WindowDelegate};
 //!
 //! #[derive(Default)]
 //! struct AppWindow {
-//!     content: View,
-//!     red: View,
+//!     content: TextField,
+//!     label: TextField,
 //!     window: Window
 //! }
 //! 
@@ -24,7 +22,8 @@
 //!         window.set_minimum_content_size(300., 300.);
 //!         self.window = window;
 //!
-//!         self.red.set_background_color(rgb(224, 82, 99));
+//!         self.label.set_background_color(rgb(224, 82, 99));
+//!         self.label.set_text("LOL");
 //!         self.content.add_subview(&self.red);
 //!         
 //!         self.window.set_content_view(&self.content);
@@ -45,10 +44,10 @@ use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
+use crate::foundation::{id, nil, YES, NO, NSArray, NSInteger, NSString};
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
-use crate::pasteboard::PasteboardType;
+use crate::text::{Font, TextAlign};
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -62,18 +61,19 @@ mod ios;
 #[cfg(target_os = "ios")]
 use ios::{register_view_class, register_view_class_with_delegate};
 
-mod controller;
-pub use controller::ViewController;
+//mod controller;
+//pub use controller::TextFieldController;
 
 mod traits;
-pub use traits::ViewDelegate;
+pub use traits::TextFieldDelegate;
 
-pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
+pub(crate) static TEXTFIELD_DELEGATE_PTR: &str = "rstTextFieldDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
     unsafe {
         let view: id = msg_send![registration_fn(), new];
+
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         #[cfg(target_os = "macos")]
@@ -83,11 +83,10 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
     }
 }
 
-/// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
-/// instead of a stock `View` for easier recordkeeping, since it'll need to hold the `View` on that
-/// side anyway.
+/// A clone-able handler to an `NSTextField/UITextField` reference in the 
+/// Objective-C runtime.
 #[derive(Debug)]
-pub struct View<T = ()> {
+pub struct TextField<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ShareId<Object>,
 
@@ -119,18 +118,18 @@ pub struct View<T = ()> {
     pub center_y: LayoutAnchorY
 }
 
-impl Default for View {
+impl Default for TextField {
     fn default() -> Self {
-        View::new()
+        TextField::new()
     }
 }
 
-impl View {
-    /// Returns a default `View`, suitable for 
+impl TextField {
+    /// Returns a default `TextField`, suitable for 
     pub fn new() -> Self {
         let view = allocate_view(register_view_class);
 
-        View {
+        TextField {
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
@@ -145,46 +144,46 @@ impl View {
     }
 }
 
-impl<T> View<T> where T: ViewDelegate + 'static {
-    /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
+impl<T> TextField<T> where T: TextFieldDelegate + 'static {
+    /// Initializes a new TextField with a given `TextFieldDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
-    pub fn with(delegate: T) -> View<T> {
-        let mut delegate = Box::new(delegate);
+    pub fn with(delegate: T) -> TextField<T> {
+        let delegate = Box::new(delegate);
         
-        let view = allocate_view(register_view_class_with_delegate::<T>);
+        let label = allocate_view(register_view_class_with_delegate::<T>);
         unsafe {
             //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
             //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let ptr: *const T = &*delegate;
-            (&mut *view).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
+            (&mut *label).set_ivar(TEXTFIELD_DELEGATE_PTR, ptr as usize);
         };
 
-        let mut view = View {
+        let mut label = TextField {
             delegate: None,
-            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: unsafe { ShareId::from_ptr(view) },
+            top: LayoutAnchorY::new(unsafe { msg_send![label, topAnchor] }),
+            leading: LayoutAnchorX::new(unsafe { msg_send![label, leadingAnchor] }),
+            trailing: LayoutAnchorX::new(unsafe { msg_send![label, trailingAnchor] }),
+            bottom: LayoutAnchorY::new(unsafe { msg_send![label, bottomAnchor] }),
+            width: LayoutAnchorDimension::new(unsafe { msg_send![label, widthAnchor] }),
+            height: LayoutAnchorDimension::new(unsafe { msg_send![label, heightAnchor] }),
+            center_x: LayoutAnchorX::new(unsafe { msg_send![label, centerXAnchor] }),
+            center_y: LayoutAnchorY::new(unsafe { msg_send![label, centerYAnchor] }),
+            objc: unsafe { ShareId::from_ptr(label) },
         };
 
-        (&mut delegate).did_load(view.clone_as_handle()); 
-        view.delegate = Some(delegate);
-        view
+        //(&mut delegate).did_load(label.clone_as_handle()); 
+        label.delegate = Some(delegate);
+        label
     }
 }
 
-impl<T> View<T> {
+impl<T> TextField<T> {
     /// An internal method that returns a clone of this object, sans references to the delegate or
     /// callback pointer. We use this in calling `did_load()` - implementing delegates get a way to
     /// reference, customize and use the view but without the trickery of holding pieces of the
-    /// delegate - the `View` is the only true holder of those.
-    pub(crate) fn clone_as_handle(&self) -> View {
-        View {
+    /// delegate - the `TextField` is the only true holder of those.
+    pub(crate) fn clone_as_handle(&self) -> TextField {
+        TextField {
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
@@ -198,6 +197,15 @@ impl<T> View<T> {
         }
     }
 
+    /// Grabs the value from the textfield and returns it as an owned String.
+    pub fn get_value(&self) -> String {
+        let value = NSString::wrap(unsafe {
+            msg_send![&*self.objc, stringValue]
+        });
+
+        value.to_str().to_string()
+    }
+
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color(&self, color: Color) {
         let bg = color.into_platform_specific_color();
@@ -209,22 +217,30 @@ impl<T> View<T> {
         }
     }
 
-    /// Register this view for drag and drop operations.
-    pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        unsafe {
-            let types: NSArray = types.into_iter().map(|t| {
-                // This clone probably doesn't need to be here, but it should also be cheap as
-                // this is just an enum... and this is not an oft called method.
-                let x: NSString = t.clone().into();
-                x.into_inner()
-            }).collect::<Vec<id>>().into();
+    /// Call this to set the text for the label.
+    pub fn set_text(&self, text: &str) {
+        let s = NSString::new(text);
 
-            let _: () = msg_send![&*self.objc, registerForDraggedTypes:types.into_inner()];
+        unsafe {
+            let _: () = msg_send![&*self.objc, setStringValue:s.into_inner()];
+        }
+    }
+
+    pub fn set_text_alignment(&self, alignment: TextAlign) {
+        unsafe {
+            let alignment: NSInteger = alignment.into();
+            let _: () = msg_send![&*self.objc, setAlignment:alignment];
+        }
+    }
+
+    pub fn set_font(&self, font: &Font) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setFont:&*font.objc];
         }
     }
 }
 
-impl<T> Layout for View<T> {
+impl<T> Layout for TextField<T> {
     fn get_backing_node(&self) -> ShareId<Object> {
         self.objc.clone()
     }
@@ -238,8 +254,8 @@ impl<T> Layout for View<T> {
     }
 }
 
-impl<T> Drop for View<T> {
-    /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being
+impl<T> Drop for TextField<T> {
+    /// A bit of extra cleanup for delegate callback pointers. If the originating `TextField` is being
     /// dropped, we do some logic to clean it all up (e.g, we go ahead and check to see if
     /// this has a superview (i.e, it's in the heirarchy) on the AppKit side. If it does, we go
     /// ahead and remove it - this is intended to match the semantics of how Rust handles things).

@@ -19,7 +19,7 @@ mod ios;
 #[cfg(target_os = "ios")]
 use ios::register_view_controller_class;
 
-//#[derive(Debug)]
+#[derive(Debug)]
 pub struct ViewController<T> {
     pub objc: ShareId<Object>,
     pub view: View<T>
@@ -27,7 +27,7 @@ pub struct ViewController<T> {
 
 impl<T> ViewController<T> where T: ViewDelegate + 'static {
     pub fn new(delegate: T) -> Self {
-        let view = View::with(delegate);
+        let mut view = View::with(delegate);
 
         let objc = unsafe {
             let vc: id = msg_send![register_view_controller_class::<T>(), new];
@@ -42,10 +42,10 @@ impl<T> ViewController<T> where T: ViewDelegate + 'static {
             ShareId::from_ptr(vc)
         };
 
-        let handle = view.clone_as_handle();
-        if let Some(view_delegate) = &view.delegate {
-            view_delegate.did_load(handle);
-        }
+        //let handle = view.clone_as_handle();
+        //if let Some(view_delegate) = &mut view.delegate {
+        //    view_delegate.did_load(handle);
+        //}
 
         ViewController {
             objc: objc,

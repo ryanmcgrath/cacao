@@ -5,9 +5,11 @@
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::{Object, Sel};
 use objc_id::ShareId;
+use std::sync::Once;
 
 use crate::foundation::{id, nil, NSString, NSUInteger};
 use crate::events::EventModifierFlag;
+use crate::invoker::TargetActionHandler;
 
 /// Internal method (shorthand) for generating `NSMenuItem` holders.
 fn make_menu_item(
@@ -17,8 +19,6 @@ fn make_menu_item(
     modifiers: Option<&[EventModifierFlag]>
 ) -> MenuItem {
     unsafe {
-        let cls = class!(NSMenuItem);
-        let alloc: id = msg_send![cls, alloc];
         let title = NSString::new(title);
 
         // Note that AppKit requires a blank string if nil, not nil.
@@ -27,6 +27,7 @@ fn make_menu_item(
             None => ""
         });
 
+        let alloc: id = msg_send![class!(NSMenuItem), alloc];
         let item = ShareId::from_ptr(match action {
             Some(a) => msg_send![alloc, initWithTitle:title action:a keyEquivalent:key],
             None => msg_send![alloc, initWithTitle:title action:nil keyEquivalent:key]
@@ -43,7 +44,7 @@ fn make_menu_item(
             let _: () = msg_send![&*item, setKeyEquivalentModifierMask:key_mask];
         }
 
-        MenuItem::Action(item)
+        MenuItem::Entry((item, None))
     }
 }
 
@@ -52,7 +53,7 @@ fn make_menu_item(
 pub enum MenuItem {
     /// Represents a Menu item that's not a separator - for all intents and purposes, you can consider
     /// this the real `NSMenuItem`.
-    Action(ShareId<Object>),
+    Entry((ShareId<Object>, Option<TargetActionHandler>)),
 
     /// Represents a Separator. You can't do anything with this, but it's useful nonetheless for
     /// separating out pieces of the `NSMenu` structure.
@@ -60,8 +61,8 @@ pub enum MenuItem {
 }
 
 impl MenuItem {
-    /// Creates and returns a `MenuItem::Action` with the specified title.
-    pub fn action(title: &str) -> Self {
+    /// Creates and returns a `MenuItem::Entry` with the specified title.
+    pub fn entry(title: &str) -> Self {
         make_menu_item(title, None, None, None)
     }
 
@@ -70,15 +71,27 @@ impl MenuItem {
         match self {
             MenuItem::Separator => MenuItem::Separator,
 
-            MenuItem::Action(item) => {
+            MenuItem::Entry((item, action)) => {
                 unsafe {
                     let key = NSString::new(key);
                     let _: () = msg_send![&*item, setKeyEquivalent:key];
                 }
 
-                MenuItem::Action(item)
+                MenuItem::Entry((item, action))
             }
         }
+    }
+
+    /// Attaches a target/action handler to dispatch events.
+    pub fn action<F: Fn() + Send + Sync + 'static>(self, action: F) -> Self {
+        match self {
+            MenuItem::Separator => MenuItem::Separator,
+
+            MenuItem::Entry((item, old_action)) => {
+                let action = TargetActionHandler::new(&*item, action);
+                MenuItem::Entry((item, Some(action)))
+            }
+        }        
     }
     
     /// Returns a standard "About" item.
@@ -97,14 +110,14 @@ impl MenuItem {
     pub fn services() -> Self {
         match make_menu_item("Services", None, None, None) {
             // Link in the services menu, which is part of NSApp
-            MenuItem::Action(item) => {
+            MenuItem::Entry((item, action)) => {
                 unsafe {
                     let app: id = msg_send![class!(RSTApplication), sharedApplication];
                     let services: id = msg_send![app, servicesMenu];
                     let _: () = msg_send![&*item, setSubmenu:services];
                 }
 
-                MenuItem::Action(item)
+                MenuItem::Entry((item, action))
             },
 
             // Should never be hit

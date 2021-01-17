@@ -1,13 +1,11 @@
-//! Various traits used for Views.
-
 use crate::dragdrop::{DragInfo, DragOperation};
-use crate::view::View;
+use crate::scrollview::ScrollView;
 
-pub trait ViewDelegate {
+pub trait ScrollViewDelegate {
     /// Called when the View is ready to work with. You're passed a `View` - this is safe to
     /// store and use repeatedly, but it's not thread safe - any UI calls must be made from the
     /// main thread!
-    fn did_load(&mut self, _view: View) {}
+    fn did_load(&mut self, _view: ScrollView) {}
 
     /// Called when this is about to be added to the view heirarchy.
     fn will_appear(&self, _animated: bool) {}

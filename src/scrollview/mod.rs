@@ -54,7 +54,7 @@ use crate::pasteboard::PasteboardType;
 mod macos;
 
 #[cfg(target_os = "macos")]
-use macos::{register_view_class, register_view_class_with_delegate};
+use macos::{register_scrollview_class, register_scrollview_class_with_delegate};
 
 #[cfg(target_os = "ios")]
 mod ios;
@@ -62,13 +62,10 @@ mod ios;
 #[cfg(target_os = "ios")]
 use ios::{register_view_class, register_view_class_with_delegate};
 
-mod controller;
-pub use controller::ViewController;
-
 mod traits;
-pub use traits::ViewDelegate;
+pub use traits::ScrollViewDelegate;
 
-pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
+pub(crate) static SCROLLVIEW_DELEGATE_PTR: &str = "rstScrollViewDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
@@ -77,17 +74,21 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         #[cfg(target_os = "macos")]
-        let _: () = msg_send![view, setWantsLayer:YES];
+        {
+            let _: () = msg_send![view, setDrawsBackground:NO];
+            let _: () = msg_send![view, setWantsLayer:YES];
+            let _: () = msg_send![view, setBorderType:0];
+            let _: () = msg_send![view, setHorizontalScrollElasticity:1];
+            let _: () = msg_send![view, setHasVerticalScroller:YES];
+        }
 
         view 
     }
 }
 
-/// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
-/// instead of a stock `View` for easier recordkeeping, since it'll need to hold the `View` on that
-/// side anyway.
+/// A clone-able handler to a `NS/UIScrollView` reference in the Objective C runtime.
 #[derive(Debug)]
-pub struct View<T = ()> {
+pub struct ScrollView<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ShareId<Object>,
 
@@ -119,18 +120,18 @@ pub struct View<T = ()> {
     pub center_y: LayoutAnchorY
 }
 
-impl Default for View {
+impl Default for ScrollView {
     fn default() -> Self {
-        View::new()
+        ScrollView::new()
     }
 }
 
-impl View {
+impl ScrollView {
     /// Returns a default `View`, suitable for 
     pub fn new() -> Self {
-        let view = allocate_view(register_view_class);
+        let view = allocate_view(register_scrollview_class);
 
-        View {
+        ScrollView {
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
@@ -145,21 +146,21 @@ impl View {
     }
 }
 
-impl<T> View<T> where T: ViewDelegate + 'static {
+impl<T> ScrollView<T> where T: ScrollViewDelegate + 'static {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
-    pub fn with(delegate: T) -> View<T> {
+    pub fn with(delegate: T) -> ScrollView<T> {
         let mut delegate = Box::new(delegate);
         
-        let view = allocate_view(register_view_class_with_delegate::<T>);
+        let view = allocate_view(register_scrollview_class_with_delegate::<T>);
         unsafe {
             //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
             //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let ptr: *const T = &*delegate;
-            (&mut *view).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
+            (&mut *view).set_ivar(SCROLLVIEW_DELEGATE_PTR, ptr as usize);
         };
 
-        let mut view = View {
+        let mut view = ScrollView {
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
@@ -178,13 +179,13 @@ impl<T> View<T> where T: ViewDelegate + 'static {
     }
 }
 
-impl<T> View<T> {
+impl<T> ScrollView<T> {
     /// An internal method that returns a clone of this object, sans references to the delegate or
     /// callback pointer. We use this in calling `did_load()` - implementing delegates get a way to
     /// reference, customize and use the view but without the trickery of holding pieces of the
     /// delegate - the `View` is the only true holder of those.
-    pub(crate) fn clone_as_handle(&self) -> View {
-        View {
+    pub(crate) fn clone_as_handle(&self) -> ScrollView {
+        ScrollView {
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
@@ -208,23 +209,9 @@ impl<T> View<T> {
             let _: () = msg_send![layer, setBackgroundColor:cg];
         }
     }
-
-    /// Register this view for drag and drop operations.
-    pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        unsafe {
-            let types: NSArray = types.into_iter().map(|t| {
-                // This clone probably doesn't need to be here, but it should also be cheap as
-                // this is just an enum... and this is not an oft called method.
-                let x: NSString = t.clone().into();
-                x.into_inner()
-            }).collect::<Vec<id>>().into();
-
-            let _: () = msg_send![&*self.objc, registerForDraggedTypes:types.into_inner()];
-        }
-    }
 }
 
-impl<T> Layout for View<T> {
+impl<T> Layout for ScrollView<T> {
     fn get_backing_node(&self) -> ShareId<Object> {
         self.objc.clone()
     }
@@ -238,7 +225,7 @@ impl<T> Layout for View<T> {
     }
 }
 
-impl<T> Drop for View<T> {
+impl<T> Drop for ScrollView<T> {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being
     /// dropped, we do some logic to clean it all up (e.g, we go ahead and check to see if
     /// this has a superview (i.e, it's in the heirarchy) on the AppKit side. If it does, we go

@@ -18,5 +18,5 @@ pub trait ToolbarDelegate {
     fn default_item_identifiers(&self) -> Vec<&'static str>;
 
     /// For a given `identifier`, return the `ToolbarItem` that should be displayed.
-    fn item_for(&self, _identifier: &str) -> ToolbarItem;
+    fn item_for(&self, _identifier: &str) -> &ToolbarItem;
 }

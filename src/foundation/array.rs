@@ -49,7 +49,7 @@ impl NSArray {
     /// This handles that edge case.
     pub fn wrap(array: id) -> Self {
         NSArray(unsafe {
-            Id::from_retained_ptr(array)
+            Id::from_ptr(array)
         })
     }
 

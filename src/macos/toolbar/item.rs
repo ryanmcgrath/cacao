@@ -3,20 +3,24 @@
 //!
 //! UNFORTUNATELY, this is a very old and janky API. So... yeah.
 
+use std::fmt;
 use core_graphics::geometry::CGSize;
 
-use objc_id::Id;
-use objc::runtime::Object;
+use objc_id::{Id, ShareId};
+use objc::runtime::{Object};
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, NSString};
+use crate::invoker::TargetActionHandler;
 use crate::button::Button;
 
 /// Wraps `NSToolbarItem`. Enables configuring things like size, view, and so on.
+#[derive(Debug)]
 pub struct ToolbarItem {
     pub identifier: String,
     pub objc: Id<Object>,
-    pub button: Option<Button>
+    pub button: Option<Button>,
+    handler: Option<TargetActionHandler>
 }
 
 impl ToolbarItem {
@@ -35,15 +39,17 @@ impl ToolbarItem {
         ToolbarItem {
             identifier: identifier,
             objc: objc,
-            button: None
+            button: None,
+            handler: None
         }
     }
 
     /// Sets the title for this item.
     pub fn set_title(&mut self, title: &str) {
         unsafe {
-            let title = NSString::new(title);
-            let _: () = msg_send![&*self.objc, setTitle:title];
+            let title = NSString::new(title).into_inner();
+            let _: () = msg_send![&*self.objc, setLabel:&*title];
+            let _: () = msg_send![&*self.objc, setTitle:&*title];
         }
     }
 
@@ -72,5 +78,10 @@ impl ToolbarItem {
             let size = CGSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.objc, setMaxSize:size];
         }
+    }
+
+    pub fn set_action<F: Fn() + Send + Sync + 'static>(&mut self, action: F) {
+        let handler = TargetActionHandler::new(&*self.objc, action);
+        self.handler = Some(handler);
     }
 }

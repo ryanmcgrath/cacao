@@ -1,13 +1,25 @@
 //! Various traits used for Views.
 
+use crate::Node;
 use crate::dragdrop::{DragInfo, DragOperation};
+use crate::listview::{ListView, ListViewRow};
+use crate::layout::Layout;
 use crate::view::View;
 
-pub trait ViewDelegate {
+pub trait ListViewDelegate {
     /// Called when the View is ready to work with. You're passed a `View` - this is safe to
     /// store and use repeatedly, but it's not thread safe - any UI calls must be made from the
     /// main thread!
-    fn did_load(&mut self, _view: View) {}
+    fn did_load(&mut self, _view: ListView) {}
+
+    /// Returns the number of items in the list view.
+    fn number_of_items(&self) -> usize;
+
+    /// This is temporary and you should not rely on this signature if you
+    /// choose to try and work with this. NSTableView & such associated delegate patterns
+    /// are tricky to support in Rust, and while I have a few ideas about them, I haven't
+    /// had time to sit down and figure them out properly yet.
+    fn item(&self, _row: usize) -> Node;
 
     /// Called when this is about to be added to the view heirarchy.
     fn will_appear(&self, _animated: bool) {}
