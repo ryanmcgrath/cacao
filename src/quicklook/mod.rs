@@ -7,7 +7,7 @@ use block::ConcreteBlock;
 use url::Url;
 
 use crate::error::Error;
-use crate::foundation::{id, NSUInteger};
+use crate::foundation::{id, nil, NSUInteger};
 use crate::image::Image;
 
 mod config;
@@ -25,13 +25,18 @@ impl ThumbnailGenerator {
 
     pub fn generate<F>(&self, url: &Url, config: ThumbnailConfig, callback: F)
     where
-        //F: Fn(Result<(Image, ThumbnailQuality), Error>) + Send + Sync + 'static
         F: Fn(Result<(Image, ThumbnailQuality), Error>) + Send + Sync + 'static
     {
         let block = ConcreteBlock::new(move |thumbnail: id, thumbnail_type: NSUInteger, error: id| {
-            unsafe {
-                let image = Image::with(msg_send![thumbnail, NSImage]);
-                callback(Ok((image, ThumbnailQuality::Low)));
+            if error == nil {
+                unsafe {
+                    let image = Image::with(msg_send![thumbnail, NSImage]);
+                    let quality = ThumbnailQuality::from(thumbnail_type);
+                    callback(Ok((image, ThumbnailQuality::Low)));
+                }
+            } else {
+                let error = Error::new(error);
+                callback(Err(error));
             }
         });
 

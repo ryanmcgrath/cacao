@@ -5,7 +5,7 @@ pub mod label;
 pub use label::Label;
 
 pub mod enums;
-pub use enums::TextAlign;
+pub use enums::{LineBreakMode, TextAlign};
 
 pub mod font;
 pub use font::Font;

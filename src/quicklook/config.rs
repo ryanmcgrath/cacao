@@ -23,7 +23,12 @@ pub enum ThumbnailQuality {
 
     /// Ask for them all, and pick which one you
     /// use via your provided callback.
-    All
+    All,
+
+    /// Provided in case this is ever expanded by the OS, and the system
+    /// returns a thumbnail quality type that can't be matched here. Users
+    /// could then handle the edge case themselves.
+    Unknown(NSUInteger)
 }
 
 impl From<&ThumbnailQuality> for NSUInteger {
@@ -32,11 +37,35 @@ impl From<&ThumbnailQuality> for NSUInteger {
             ThumbnailQuality::Icon => 1 << 0,
             ThumbnailQuality::Low => 1 << 1,
             ThumbnailQuality::High => 1 << 2,
-            ThumbnailQuality::All => NSUInteger::MAX
+            ThumbnailQuality::All => NSUInteger::MAX,
+            ThumbnailQuality::Unknown(x) => *x
         }
     }
 }
 
+impl From<ThumbnailQuality> for NSUInteger {
+    fn from(quality: ThumbnailQuality) -> Self {
+        match quality {
+            ThumbnailQuality::Icon => 1 << 0,
+            ThumbnailQuality::Low => 1 << 1,
+            ThumbnailQuality::High => 1 << 2,
+            ThumbnailQuality::All => NSUInteger::MAX,
+            ThumbnailQuality::Unknown(x) => x
+        }
+    }
+}
+
+impl From<NSUInteger> for ThumbnailQuality {
+    fn from(i: NSUInteger) -> Self {
+        match i {
+            0 => ThumbnailQuality::Icon,
+            2 => ThumbnailQuality::Low,
+            4 => ThumbnailQuality::High,
+            NSUInteger::MAX => ThumbnailQuality::All,
+            i => ThumbnailQuality::Unknown(i)
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct ThumbnailConfig {

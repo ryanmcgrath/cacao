@@ -13,7 +13,7 @@ pub trait WindowDelegate {
     /// to set up your views and what not.
     ///
     /// If you're coming from the web, you can think of this as `DOMContentLoaded`.
-    fn did_load(&self, _window: Window) {}
+    fn did_load(&mut self, _window: Window) {}
 
     /// Called when the user has attempted to close the window. NOT called when a user quits the
     /// application. Return false here if you need to handle the edge case.
@@ -118,4 +118,8 @@ pub trait WindowDelegate {
 
     /// Fired when the Window receives an `update` message from higher up in the chain.
     fn did_update(&self) {}
+
+    /// If you want your window to close when the `ESC` key is hit, implement this.
+    /// This is mostly useful for windows that present as modal sheets.
+    fn cancel(&self) {}
 }

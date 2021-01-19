@@ -21,6 +21,9 @@ pub use alert::Alert;
 mod app;
 pub use app::*;
 
+mod cursor;
+pub use cursor::{Cursor, CursorType};
+
 pub mod menu;
 pub mod printing;
 pub mod toolbar;

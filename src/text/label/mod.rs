@@ -44,10 +44,10 @@ use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSInteger, NSString};
+use crate::foundation::{id, nil, YES, NO, NSArray, NSInteger, NSUInteger, NSString};
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
-use crate::text::{Font, TextAlign};
+use crate::text::{Font, TextAlign, LineBreakMode};
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -235,6 +235,15 @@ impl<T> Label<T> {
     pub fn set_font(&self, font: &Font) {
         unsafe {
             let _: () = msg_send![&*self.objc, setFont:&*font.objc];
+        }
+    }
+
+    pub fn set_line_break_mode(&self, mode: LineBreakMode) {
+        #[cfg(target_os = "macos")]
+        unsafe {
+            let cell: id = msg_send![&*self.objc, cell];
+            let mode = mode as NSUInteger;
+            let _: () = msg_send![cell, setLineBreakMode:mode];
         }
     }
 }

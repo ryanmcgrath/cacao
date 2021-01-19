@@ -24,6 +24,10 @@ impl From<NSInteger> for ModalResponse {
             -1000 => ModalResponse::Stopped,
             -1001 => ModalResponse::Aborted,
             -1002 => ModalResponse::Continue,
+
+            // @TODO: Definitely don't panic here, wtf was I thinking?
+            // Probably make this a ModalResponse::Unknown or something so a user can
+            // gracefully handle.
             e => { panic!("Unknown NSModalResponse sent back! {}", e); }
         }
     }

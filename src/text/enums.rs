@@ -20,3 +20,39 @@ impl From<TextAlign> for NSInteger {
         }
     }
 }
+
+/// Instructs text controls how to optimize line breaks.
+pub enum LineBreakMode {
+    /// Wrap at word boundaries (the default)
+    WrapWords,
+
+    /// Wrap at character boundaries
+    WrapChars,
+
+    /// Clip with no regard
+    Clip,
+
+    /// Truncate the start, e.g, ...my sentence
+    TruncateHead,
+
+    /// Truncate the end, e.g, my sentenc...
+    TruncateTail,
+
+    /// Truncate the middle, e.g, my se...ce
+    TruncateMiddle
+}
+
+impl Into<NSUInteger> for LineBreakMode {
+    fn into(self) -> NSUInteger {
+        match self {
+            LineBreakMode::WrapWords => 0,
+            LineBreakMode::WrapChars => 1,
+            LineBreakMode::Clip => 2,
+            LineBreakMode::TruncateHead => 3,
+            LineBreakMode::TruncateTail => 4,
+            LineBreakMode::TruncateMiddle => 5
+        }
+    }
+}
+
+

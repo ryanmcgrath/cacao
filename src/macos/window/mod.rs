@@ -10,10 +10,12 @@
 
 use std::unreachable;
 
+use block::ConcreteBlock;
+
 use core_graphics::base::CGFloat;
 use core_graphics::geometry::{CGRect, CGSize};
 
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel, sel_impl, class};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
@@ -66,6 +68,11 @@ impl Window {
     /// after we initialize the backing `NSWindow`.
     pub fn new(config: WindowConfig) -> Window {
         let objc = unsafe {
+            // This behavior might make sense to keep as default (YES), but I think the majority of
+            // apps that would use this toolkit wouldn't be tab-oriented...
+            let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing:NO];
+
+
             let alloc: id = msg_send![register_window_class(), alloc];
             
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
@@ -105,9 +112,14 @@ impl<T> Window<T> where T: WindowDelegate + 'static {
     /// enables easier structure of your codebase, and in a way simulates traditional class based
     /// architectures... just without the subclassing.
     pub fn with(config: WindowConfig, delegate: T) -> Self {
-        let delegate = Box::new(delegate);
+        let mut delegate = Box::new(delegate);
         
         let objc = unsafe {
+            // This behavior might make sense to keep as default (YES), but I think the majority of
+            // apps that would use this toolkit wouldn't be tab-oriented...
+            let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing:NO];
+
+
             let alloc: id = msg_send![register_window_class_with_delegate::<T>(), alloc];
             
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
@@ -143,7 +155,7 @@ impl<T> Window<T> where T: WindowDelegate + 'static {
         };
 
         {
-            &delegate.did_load(Window {
+            (&mut delegate).did_load(Window {
                 delegate: None,
                 objc: objc.clone()
             });
@@ -445,6 +457,37 @@ impl<T> Window<T> {
         unsafe {
             let scale: CGFloat = msg_send![&*self.objc, backingScaleFactor];
             scale as f64
+        }
+    }
+
+    /// Given a window and callback handler, will run it as a "sheet" (model-ish) and then run the
+    /// handler once the sheet is dismissed.
+    ///
+    /// This is a bit awkward due to Rust semantics; you have to use the same type of Window as the
+    /// one you're presenting on, but in practice this isn't too bad since you rarely want a Window
+    /// without a WindowDelegate.
+    pub fn begin_sheet<F, W>(&self, window: &Window<W>, completion: F)
+    where
+        F: Fn() + Send + Sync + 'static,
+        W: WindowDelegate + 'static
+    {
+        let block = ConcreteBlock::new(move |response: NSInteger| {
+            completion();
+        });
+        let block = block.copy();
+
+        unsafe {
+            let _: () = msg_send![&*self.objc, beginSheet:&*window.objc completionHandler:block];
+        }
+    }
+
+    /// Closes a sheet.
+    pub fn end_sheet<W>(&self, window: &Window<W>)
+    where
+        W: WindowDelegate + 'static
+    {
+        unsafe {
+            let _: () = msg_send![&*self.objc, endSheet:&*window.objc];
         }
     }
 }

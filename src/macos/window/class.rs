@@ -219,6 +219,15 @@ extern fn did_expose<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
     window.did_expose();
 }
 
+/// Called as part of the responder chain, when, say, the ESC key is hit. If your 
+/// delegate returns `true` in `should_cancel_on_esc`, then this will allow your
+/// window to close when the Esc key is hit. This is mostly useful for Sheet-presented
+/// windows, and so the default response from delegates is `false` and must be opted in to.
+extern fn cancel<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
+    let window = load::<T>(this, WINDOW_DELEGATE_PTR);
+    window.cancel();
+}
+
 /// Injects an `NSWindow` subclass, with some callback and pointer ivars for what we
 /// need to do.
 pub(crate) fn register_window_class() -> *const Class {
@@ -292,6 +301,7 @@ pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>() -> *const
         decl.add_method(sel!(windowDidChangeOcclusionState:), did_change_occlusion_state::<T> as extern fn(&Object, _, _));
         decl.add_method(sel!(windowDidExpose:), did_expose::<T> as extern fn(&Object, _, _));
         decl.add_method(sel!(windowDidUpdate:), did_update::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(cancelOperation:), cancel::<T> as extern fn (&Object, _, _));
         
         DELEGATE_CLASS = decl.register();
     });

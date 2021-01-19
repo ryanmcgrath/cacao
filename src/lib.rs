@@ -106,6 +106,7 @@ pub mod listview;
 pub mod networking;
 pub mod notification_center;
 pub mod pasteboard;
+pub mod progress;
 pub mod scrollview;
 pub mod text;
 
