@@ -41,6 +41,8 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
+use std::collections::HashMap;
+
 use core_graphics::base::CGFloat;
 use objc_id::ShareId;
 use objc::runtime::{Class, Object};
@@ -66,7 +68,7 @@ mod ios;
 use ios::{register_view_class, register_view_class_with_delegate};
 
 mod enums;
-pub use enums::ListViewAnimation;
+pub use enums::{RowAnimation, RowEdge};
 
 mod traits;
 pub use traits::ListViewDelegate;
@@ -74,7 +76,68 @@ pub use traits::ListViewDelegate;
 mod row;
 pub use row::ListViewRow;
 
+mod actions;
+pub use actions::{RowAction, RowActionStyle};
+
 pub(crate) static LISTVIEW_DELEGATE_PTR: &str = "rstListViewDelegatePtr";
+pub(crate) static LISTVIEW_CELL_VENDOR_PTR: &str = "rstListViewCellVendorPtr";
+
+use std::any::Any;
+use std::sync::{Arc, RwLock};
+
+use std::rc::Rc;
+use std::cell::RefCell;
+
+use crate::view::ViewDelegate;
+
+pub(crate) type CellFactoryMap = HashMap<&'static str, Box<Fn() -> Box<Any>>>;
+
+#[derive(Clone)]
+pub struct CellFactory(pub Rc<RefCell<CellFactoryMap>>);
+
+impl std::fmt::Debug for CellFactory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CellFactory").finish()
+    }
+}
+
+impl CellFactory {
+    pub fn new() -> Self {
+        CellFactory(Rc::new(RefCell::new(HashMap::new())))
+    }
+
+    pub fn insert<F, T>(&self, identifier: &'static str, vendor: F)
+    where
+        F: Fn() -> T + 'static,
+        T: ViewDelegate + 'static
+    {
+        let mut lock = self.0.borrow_mut();
+        lock.insert(identifier, Box::new(move || {
+            let cell = vendor();
+            Box::new(cell) as Box<Any>
+        }));
+    }
+
+    pub fn get<R>(&self, identifier: &'static str) -> Box<R>
+    where
+        R: ViewDelegate + 'static
+    {
+        let lock = self.0.borrow();
+        let vendor = match lock.get(identifier) {
+            Some(v) => v,
+            None => { 
+                panic!("Unable to dequeue cell of type {}: did you forget to register it?", identifier);
+            }
+        };
+        let view = vendor();
+
+        if let Ok(view) = view.downcast::<R>() {
+            view
+        } else {
+            panic!("Asking for cell of type {}, but failed to match the type!", identifier);
+        }
+    }
+}
 
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
@@ -110,6 +173,10 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 
 #[derive(Debug)]
 pub struct ListView<T = ()> {
+    /// Internal map of cell identifers/vendors. These are used for handling dynamic cell
+    /// allocation and reuse, which is necessary for an "infinite" listview.
+    cell_factory: CellFactory,
+
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ShareId<Object>,
 
@@ -176,6 +243,7 @@ impl ListView {
         let anchor_view = view;
 
         ListView {
+            cell_factory: CellFactory::new(),
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![anchor_view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![anchor_view, leadingAnchor] }),
@@ -193,19 +261,21 @@ impl ListView {
     }
 }
 
-
 impl<T> ListView<T> where T: ListViewDelegate + 'static {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> ListView<T> {
         let mut delegate = Box::new(delegate);
+        let cell = CellFactory::new();
         
         let view = allocate_view(register_listview_class_with_delegate::<T>);
         unsafe {
             //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
             //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
-            let ptr: *const T = &*delegate;
-            (&mut *view).set_ivar(LISTVIEW_DELEGATE_PTR, ptr as usize);
+            let delegate_ptr: *const T = &*delegate;
+            let cell_vendor_ptr: *const RefCell<CellFactoryMap> = &*cell.0;
+            (&mut *view).set_ivar(LISTVIEW_DELEGATE_PTR, delegate_ptr as usize);
+            (&mut *view).set_ivar(LISTVIEW_CELL_VENDOR_PTR, cell_vendor_ptr as usize);
             let _: () = msg_send![view, setDelegate:view];
             let _: () = msg_send![view, setDataSource:view];
         };
@@ -229,6 +299,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
         let anchor_view = view;
 
         let mut view = ListView {
+            cell_factory: cell,
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![anchor_view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![anchor_view, leadingAnchor] }),
@@ -257,6 +328,7 @@ impl<T> ListView<T> {
     /// delegate - the `View` is the only true holder of those.
     pub(crate) fn clone_as_handle(&self) -> ListView {
         ListView {
+            cell_factory: CellFactory::new(),
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
@@ -270,6 +342,34 @@ impl<T> ListView<T> {
 
             #[cfg(target_os = "macos")]
             scrollview: self.scrollview.clone_as_handle()
+        }
+    }
+
+    /// Register a cell/row vendor function with an identifier. This is stored internally and used
+    /// for row-reuse.
+    pub fn register<F, R>(&self, identifier: &'static str, vendor: F)
+    where
+        F: Fn() -> R + 'static,
+        R: ViewDelegate + 'static
+    {
+        self.cell_factory.insert(identifier, vendor);
+    }
+
+    /// Dequeue a reusable cell. If one is not in the queue, will create and cache one for reuse.
+    pub fn dequeue<R: ViewDelegate + 'static>(&self, identifier: &'static str) -> ListViewRow<R> {
+        #[cfg(target_os = "macos")]
+        unsafe {
+            let key = NSString::new(identifier).into_inner();
+            let cell: id = msg_send![&*self.objc, makeViewWithIdentifier:key owner:nil];
+            
+            if cell != nil {
+                ListViewRow::from_cached(cell)
+            } else {
+                let delegate: Box<R> = self.cell_factory.get(identifier);
+                let view = ListViewRow::with_boxed(delegate);
+                view.set_identifier(identifier);
+                view
+            }
         }
     }
 
@@ -296,7 +396,7 @@ impl<T> ListView<T> {
         }
     }
 
-    pub fn insert_rows<I: IntoIterator<Item = usize>>(&self, indexes: I, animations: ListViewAnimation) {
+    pub fn insert_rows<I: IntoIterator<Item = usize>>(&self, indexes: I, animation: RowAnimation) {
         #[cfg(target_os = "macos")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
@@ -306,12 +406,12 @@ impl<T> ListView<T> {
                 let _: () = msg_send![index_set, addIndex:x];
             }
 
-            let animation_options: NSUInteger = animations.into();
+            let animation_options: NSUInteger = animation.into();
 
             // We need to temporarily retain this; it can drop after the underlying NSTableView
             // has also retained it.
             let x = ShareId::from_ptr(index_set);
-            let _: () = msg_send![&*self.objc, insertRowsAtIndexes:&*x withAnimation:20];
+            let _: () = msg_send![&*self.objc, insertRowsAtIndexes:&*x withAnimation:animation_options];
         }
     }
 
@@ -333,7 +433,7 @@ impl<T> ListView<T> {
         }
     }
 
-    pub fn remove_rows<I: IntoIterator<Item = usize>>(&self, indexes: I, animations: ListViewAnimation) {
+    pub fn remove_rows<I: IntoIterator<Item = usize>>(&self, indexes: I, animations: RowAnimation) {
         #[cfg(target_os = "macos")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
@@ -348,7 +448,7 @@ impl<T> ListView<T> {
             // We need to temporarily retain this; it can drop after the underlying NSTableView
             // has also retained it.
             let x = ShareId::from_ptr(index_set);
-            let _: () = msg_send![&*self.objc, removeRowsAtIndexes:&*x withAnimation:20];
+            let _: () = msg_send![&*self.objc, removeRowsAtIndexes:&*x withAnimation:animation_options];
         }
     }
 

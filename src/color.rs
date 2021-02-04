@@ -2,6 +2,7 @@
 //! for (what I believe) is a friendlier API.
 
 use core_graphics::base::CGFloat;
+use core_graphics::color::CGColor;
 
 use objc::{class, msg_send, sel, sel_impl};
 
@@ -67,6 +68,16 @@ impl Color {
         unsafe {
             msg_send![class!(NSColor), colorWithRed:red green:green blue:blue alpha:alpha]
         }
+    }
+
+    /// Maps to CGColor, used across platforms.
+    pub fn cg_color(&self) -> CGColor {
+        let red = self.red as CGFloat / 255.0;
+        let green = self.green as CGFloat / 255.0;
+        let blue = self.blue as CGFloat / 255.0;
+        let alpha = self.alpha as CGFloat / 255.0;
+        
+        CGColor::rgb(red, green, blue, alpha)
     }
 
     /// Returns the red channel in a floating point number form, from 0 to 1.

@@ -9,10 +9,13 @@ repository = "https://github.com/ryanmcgrath/cacao"
 categories = ["gui", "os::macos-apis", "os::ios-apis"]
 keywords = ["gui", "macos", "ios", "appkit", "uikit"]
 
+[package.metadata.docs.rs]
+default-target = "x86_64-apple-darwin"
+
 [dependencies]
 block = "0.1.6"
-core-foundation = { version = "0.7", features = ["with-chrono"] }
-core-graphics = "0.19.0"
+core-foundation = { version = "0.9", features = ["with-chrono", "mac_os_10_8_features"] }
+core-graphics = "0.22"
 dispatch = "0.2.0"
 lazy_static = "1.4.0"
 libc = "0.2"
@@ -26,6 +29,7 @@ default = ["macos"]
 cloudkit = []
 ios = []
 macos = []
+quicklook = []
 user-notifications = ["uuid"]
 webview = []
 webview-downloading = []

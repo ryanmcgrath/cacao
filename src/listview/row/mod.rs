@@ -141,11 +141,49 @@ impl ListViewRow {
 }
 
 impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
+    /// When we're able to retrieve a reusable view cell from the backing table view, we can check
+    /// for the pointer and attempt to reconstruct the ListViewRow<T> that corresponds to this.
+    ///
+    /// We can be reasonably sure that the pointer for the delegate is accurate, as:
+    ///
+    /// - A `ListViewRow` is explicitly not clone-able
+    /// - It owns the Delegate on creation
+    /// - It takes ownership of the returned row in row_for_item
+    /// - When it takes ownership, it "forgets" the pointer - and the `dealloc` method on the
+    /// backing view cell will clean it up whenever it's dropped.
+    pub(crate) fn from_cached(view: id) -> ListViewRow<T> {
+        let delegate = unsafe {
+            let ptr: usize = *(&*view).get_ivar(LISTVIEW_ROW_DELEGATE_PTR);
+            let obj = ptr as *mut T;
+            Box::from_raw(obj)
+            //&*obj
+        };
+        //let delegate = crate::utils::load::<R>(&*view, LISTVIEW_ROW_DELEGATE_PTR);
+
+        let mut view = ListViewRow {
+            delegate: Some(delegate),
+            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
+            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
+            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
+            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
+            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
+            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
+            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
+            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
+            objc: unsafe { ShareId::from_ptr(view) },
+        };
+
+        view
+    }
+
+    pub fn with(delegate: T) -> ListViewRow<T> {
+        let delegate = Box::new(delegate);
+        Self::with_boxed(delegate)
+    }
+
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
-    pub fn with(delegate: T) -> ListViewRow<T> {
-        let mut delegate = Box::new(delegate);
-        
+    pub fn with_boxed(mut delegate: Box<T>) -> ListViewRow<T> { 
         let view = allocate_view(register_listview_row_class_with_delegate::<T>);
         unsafe {
             //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
@@ -171,13 +209,35 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
         view.delegate = Some(delegate);
         view
     }
+
+    pub fn wut(mut self) -> ListViewRow {
+        // "forget" delegate, then move into standard ListViewRow
+        // to ease return type
+        let delegate = self.delegate.take();
+        if let Some(d) = delegate {
+            let _ = Box::into_raw(d);
+        }
+
+        ListViewRow {
+            delegate: None,
+            top: self.top.clone(),
+            leading: self.leading.clone(),
+            trailing: self.trailing.clone(),
+            bottom: self.bottom.clone(),
+            width: self.width.clone(),
+            height: self.height.clone(),
+            center_x: self.center_x.clone(),
+            center_y: self.center_y.clone(),
+            objc: self.objc.clone()
+        }
+    }
 }
 
-impl<T> From<&ListViewRow<T>> for ShareId<Object> {
+/*impl<T> From<&ListViewRow<T>> for ShareId<Object> {
     fn from(row: &ListViewRow<T>) -> ShareId<Object> {
         row.objc.clone()
     }
-}
+}*/
 
 impl<T> ListViewRow<T> {
     /// An internal method that returns a clone of this object, sans references to the delegate or
@@ -196,6 +256,15 @@ impl<T> ListViewRow<T> {
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
             objc: self.objc.clone()
+        }
+    }
+
+    /// Sets the identifier, which enables cells to be reused and dequeued properly.
+    pub fn set_identifier(&self, identifier: &'static str) {
+        let identifier = NSString::new(identifier).into_inner();
+
+        unsafe {
+            let _: () = msg_send![&*self.objc, setIdentifier:identifier];
         }
     }
 

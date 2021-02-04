@@ -2,6 +2,8 @@
 //! (think: drag and drop between applications). It exposes a Rust interface that tries to be
 //! complete, but might not cover everything 100% right now - feel free to pull request.
 
+use std::path::PathBuf;
+
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
@@ -87,6 +89,35 @@ impl Pasteboard {
                 let path = NSString::wrap(msg_send![url, path]);
                 Url::parse(&format!("file://{}", path.to_str()))
             }).into_iter().filter_map(|r| r.ok()).collect();
+
+            Ok(urls)
+        }
+    }
+
+    /// Looks inside the pasteboard contents and extracts what FileURLs are there, if any.
+    pub fn get_file_paths(&self) -> Result<Vec<PathBuf>, Box<dyn std::error::Error>> {
+        unsafe {
+            let class: id = msg_send![class!(NSURL), class];
+            let classes = NSArray::new(&[class]);
+            let contents: id = msg_send![&*self.0, readObjectsForClasses:classes options:nil];
+            
+            // This can happen if the Pasteboard server has an error in returning items.
+            // In our case, we'll bubble up an error by checking the pasteboard.
+            if contents == nil {
+                // This error is not necessarily "correct", but in the event of an error in
+                // Pasteboard server retrieval I'm not sure where to check... and this stuff is
+                // kinda ancient and has conflicting docs in places. ;P
+                return Err(Box::new(Error {
+                    code: 666,
+                    domain: "com.cacao-rs.pasteboard".to_string(),
+                    description: "Pasteboard server returned no data.".to_string()
+                }));
+            }
+
+            let urls = NSArray::wrap(contents).map(|url| {
+                let path = NSString::wrap(msg_send![url, path]).to_str().to_string();
+                PathBuf::from(path)
+            }).into_iter().collect();
 
             Ok(urls)
         }

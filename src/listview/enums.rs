@@ -1,9 +1,9 @@
-use crate::foundation::NSUInteger;
+use crate::foundation::{NSInteger, NSUInteger};
 
 /// This enum represents the different stock animations possible
 /// for ListView row operations. You can pass it to `insert_rows`
 /// and `remove_rows` - reloads don't get animations.
-pub enum ListViewAnimation {
+pub enum RowAnimation {
     /// No animation.
     None,
 
@@ -27,16 +27,36 @@ pub enum ListViewAnimation {
     SlideRight
 }
 
-impl Into<NSUInteger> for ListViewAnimation {
+impl Into<NSUInteger> for RowAnimation {
     fn into(self) -> NSUInteger {
         match self {
-            ListViewAnimation::None => 0x0,
-            ListViewAnimation::Fade => 0x1,
-            ListViewAnimation::Gap => 0x2,
-            ListViewAnimation::SlideUp => 0x10,
-            ListViewAnimation::SlideDown => 0x20,
-            ListViewAnimation::SlideLeft => 0x30,
-            ListViewAnimation::SlideRight => 0x40
+            RowAnimation::None => 0x0,
+            RowAnimation::Fade => 0x1,
+            RowAnimation::Gap => 0x2,
+            RowAnimation::SlideUp => 0x10,
+            RowAnimation::SlideDown => 0x20,
+            RowAnimation::SlideLeft => 0x30,
+            RowAnimation::SlideRight => 0x40
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum RowEdge {
+    Leading,
+    Trailing
+}
+
+impl Into<RowEdge> for NSInteger {
+    fn into(self) -> RowEdge {
+        match self {
+            0 => RowEdge::Leading,
+            1 => RowEdge::Trailing,
+
+            // @TODO: This *should* be unreachable, provided macOS doesn't start
+            // letting people swipe from vertical directions to reveal stuff. Have to 
+            // feel like there's a better way to do this, though...
+            _ => { unreachable!(); }
         }
     }
 }

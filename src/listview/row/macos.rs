@@ -11,7 +11,7 @@ use std::sync::Once;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, sel, sel_impl};
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::foundation::{id, YES, NO, NSUInteger};
@@ -74,6 +74,21 @@ extern fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) 
     });
 }
 
+/// Normally, you might not want to do a custom dealloc override. However, reusable cells are
+/// tricky - since we "forget" them when we give them to the system, we need to make sure to do
+/// proper cleanup then the backing (cached) version is deallocated on the Objective-C side. Since
+/// we know 
+extern fn dealloc<T: ViewDelegate>(this: &Object, _: Sel) {
+    // Load the Box pointer here, and just let it drop normally.
+    unsafe {
+        let ptr: usize = *(&*this).get_ivar(LISTVIEW_ROW_DELEGATE_PTR);
+        let obj = ptr as *mut T;
+        let _x = Box::from_raw(obj);
+
+        let _: () = msg_send![super(this, class!(NSView)), dealloc];
+    }
+}
+
 /// Injects an `NSView` subclass. This is used for the default views that don't use delegates - we
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
@@ -116,6 +131,9 @@ pub(crate) fn register_listview_row_class_with_delegate<T: ViewDelegate>() -> *c
         decl.add_method(sel!(concludeDragOperation:), conclude_drag_operation::<T> as extern fn (&mut Object, _, _));
         decl.add_method(sel!(draggingExited:), dragging_exited::<T> as extern fn (&mut Object, _, _));
         
+        // Cleanup
+        decl.add_method(sel!(dealloc), dealloc::<T> as extern fn (&Object, _));
+
         VIEW_CLASS = decl.register();
     });
 

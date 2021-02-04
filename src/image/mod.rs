@@ -19,7 +19,7 @@ mod ios;
 use ios::register_image_view_class;
 
 mod image;
-pub use image::Image;
+pub use image::{Image, DrawConfig, ResizeBehavior};
 
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
@@ -37,7 +37,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 /// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
 /// instead of a stock `View` for easier recordkeeping, since it'll need to hold the `View` on that
 /// side anyway.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ImageView {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ShareId<Object>,

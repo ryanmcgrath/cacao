@@ -14,9 +14,12 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel, sel_impl, msg_send};
 use objc_id::Id;
 
-use crate::foundation::{id, YES, NO, NSInteger, NSUInteger};
+use crate::foundation::{id, YES, NO, NSArray, NSInteger, NSUInteger};
 use crate::dragdrop::DragInfo;
-use crate::listview::{LISTVIEW_DELEGATE_PTR, ListViewDelegate};
+use crate::listview::{
+    LISTVIEW_DELEGATE_PTR, LISTVIEW_CELL_VENDOR_PTR,
+    ListViewDelegate, RowEdge
+};
 use crate::utils::load;
 
 /// Determines the number of items by way of the backing data source (the Rust struct).
@@ -32,12 +35,12 @@ extern fn number_of_items<T: ListViewDelegate>(
 extern fn view_for_column<T: ListViewDelegate>(
     this: &Object,
     _: Sel,
-    table_view: id,
+    _table_view: id,
     _: id,
     item: NSInteger
 ) -> id {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
-    let item = view.item(item as usize);
+    let item = view.item_for(item as usize);
 
     // A hacky method of returning the underlying pointer
     // without Rust annoying us.
@@ -46,8 +49,28 @@ extern fn view_for_column<T: ListViewDelegate>(
     // as we *know* the underlying view will be retained by the NSTableView, so
     // passing over one more won't really screw up retain counts.
     unsafe {
-        msg_send![&*item, self]
+        msg_send![&*item.objc, self]
     }
+}
+
+extern fn row_actions_for_row<T: ListViewDelegate>(
+    this: &Object,
+    _: Sel,
+    _table_view: id,
+    row: NSInteger,
+    edge: NSInteger
+) -> id {
+    let edge: RowEdge = edge.into();
+    let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
+    
+    let actions = view.actions_for(row as usize, edge);
+
+    //if actions.len() > 0 {
+        let ids: Vec<&Object> = actions.iter().map(|action| &*action.0).collect();
+        NSArray::from(ids).into_inner()
+    //} else {
+    //    NSArray::new(&[]).into_inner()
+    //}
 }
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
@@ -140,12 +163,14 @@ pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>() -> *c
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.
         decl.add_ivar::<usize>(LISTVIEW_DELEGATE_PTR);
+        decl.add_ivar::<usize>(LISTVIEW_CELL_VENDOR_PTR);
         
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
 
         // Tableview-specific
         decl.add_method(sel!(numberOfRowsInTableView:), number_of_items::<T> as extern fn(&Object, _, id) -> NSInteger);
         decl.add_method(sel!(tableView:viewForTableColumn:row:), view_for_column::<T> as extern fn(&Object, _, id, id, NSInteger) -> id);
+        decl.add_method(sel!(tableView:rowActionsForRow:edge:), row_actions_for_row::<T> as extern fn(&Object, _, id, NSInteger, NSInteger) -> id);
 
         // Drag and drop operations (e.g, accepting files)
         decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger);

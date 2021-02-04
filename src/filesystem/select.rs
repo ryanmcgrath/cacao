@@ -2,6 +2,8 @@
 //! urls to work with. It currently doesn't implement _everything_ necessary, but it's functional
 //! enough for general use.
 
+use std::path::PathBuf;
+
 use block::ConcreteBlock;
 
 use objc::{class, msg_send, sel, sel_impl};
@@ -120,7 +122,7 @@ impl FileSelectPanel {
     /// Note that this clones the underlying `NSOpenPanel` pointer. This is theoretically safe as
     /// the system runs and manages that in another process, and we're still abiding by the general
     /// retain/ownership rules here.
-    pub fn show<F: Fn(Vec<String>) + 'static>(&self, handler: F) {
+    pub fn show<F: Fn(Vec<PathBuf>) + 'static>(&self, handler: F) {
         let panel = self.panel.clone();
         let completion = ConcreteBlock::new(move |result: NSInteger| {
             let response: ModalResponse = result.into();
@@ -140,8 +142,8 @@ impl FileSelectPanel {
 /// Retrieves the selected URLs from the provided panel.
 /// This is currently a bit ugly, but it's also not something that needs to be the best thing in
 /// the world as it (ideally) shouldn't be called repeatedly in hot spots.
-pub fn get_urls(panel: &Object) -> Vec<String> {
-    let mut paths: Vec<String> = vec![];
+pub fn get_urls(panel: &Object) -> Vec<PathBuf> {
+    let mut paths: Vec<PathBuf> = vec![];
 
     unsafe {
         let urls: id = msg_send![&*panel, URLs];
@@ -153,8 +155,8 @@ pub fn get_urls(panel: &Object) -> Vec<String> {
             }
 
             let url: id = msg_send![urls, objectAtIndex:count-1];
-            let path = NSString::wrap(msg_send![url, absoluteString]).to_str().to_string();
-            paths.push(path);
+            let path = NSString::wrap(msg_send![url, path]).to_str().to_string();
+            paths.push(path.into());
             count -= 1;
         }
     }

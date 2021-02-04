@@ -71,6 +71,10 @@ impl CGSize {
     pub fn new(width: CGFloat, height: CGFloat) -> Self {
         CGSize { width, height }
     }
+    
+    pub fn zero() -> Self {
+        CGSize { width: 0., height: 0. }
+    }
 }
 
 unsafe impl Encode for CGSize {

@@ -1,9 +1,9 @@
+use std::path::Path;
+
 use core_graphics::base::CGFloat;
 use objc::runtime::{Object};
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
-
-use url::Url;
 
 use crate::foundation::{id, YES, NSString, NSUInteger};
 use crate::utils::CGSize;
@@ -97,8 +97,8 @@ impl Default for ThumbnailConfig {
 impl ThumbnailConfig {
     /// Consumes the request and returns a native representation 
     /// (`QLThumbnailGenerationRequest`).
-    pub fn to_request(self, url: &Url) -> id {
-        let file = NSString::new(url.as_str());
+    pub fn to_request(self, path: &Path) -> id {
+        let file = NSString::new(path.to_str().unwrap());
 
         let mut types: NSUInteger = 0;
         for mask in self.types {
@@ -108,8 +108,8 @@ impl ThumbnailConfig {
 
         unsafe {
             let size = CGSize::new(self.size.0, self.size.1);
-            let from_url: id = msg_send![class!(NSURL), URLWithString:file.into_inner()];
-
+            // @TODO: Check nil here, or other bad conversion
+            let from_url: id = msg_send![class!(NSURL), fileURLWithPath:file.into_inner()];
 
             let request: id = msg_send![class!(QLThumbnailGenerationRequest), alloc];
             let request: id = msg_send![request, initWithFileAtURL:from_url

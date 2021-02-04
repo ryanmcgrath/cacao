@@ -2,7 +2,7 @@
 
 use crate::Node;
 use crate::dragdrop::{DragInfo, DragOperation};
-use crate::listview::{ListView, ListViewRow};
+use crate::listview::{ListView, ListViewRow, RowAction, RowEdge};
 use crate::layout::Layout;
 use crate::view::View;
 
@@ -19,7 +19,11 @@ pub trait ListViewDelegate {
     /// choose to try and work with this. NSTableView & such associated delegate patterns
     /// are tricky to support in Rust, and while I have a few ideas about them, I haven't
     /// had time to sit down and figure them out properly yet.
-    fn item(&self, _row: usize) -> Node;
+    fn item_for(&self, _row: usize) -> ListViewRow;
+    
+    /// An optional delegate method; implement this if you'd like swipe-to-reveal to be
+    /// supported for a given row by returning a vector of actions to show.
+    fn actions_for(&self, row: usize, edge: RowEdge) -> Vec<RowAction> { Vec::new() }
 
     /// Called when this is about to be added to the view heirarchy.
     fn will_appear(&self, _animated: bool) {}

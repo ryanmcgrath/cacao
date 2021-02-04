@@ -1,10 +1,10 @@
+use std::path::Path;
+
 use objc::runtime::{Object};
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use block::ConcreteBlock;
-
-use url::Url;
 
 use crate::error::Error;
 use crate::foundation::{id, nil, NSUInteger};
@@ -23,7 +23,7 @@ impl ThumbnailGenerator {
         })
     }
 
-    pub fn generate<F>(&self, url: &Url, config: ThumbnailConfig, callback: F)
+    pub fn generate<F>(&self, path: &Path, config: ThumbnailConfig, callback: F)
     where
         F: Fn(Result<(Image, ThumbnailQuality), Error>) + Send + Sync + 'static
     {
@@ -41,7 +41,7 @@ impl ThumbnailGenerator {
         });
 
         let block = block.copy();
-        let request = config.to_request(url);
+        let request = config.to_request(path);
 
         unsafe {
             let _: () = msg_send![&*self.0, generateRepresentationsForRequest:request 
