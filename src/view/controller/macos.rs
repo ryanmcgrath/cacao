@@ -6,6 +6,7 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
+use crate::foundation::load_or_register_class;
 use crate::view::{VIEW_DELEGATE_PTR, ViewDelegate};
 use crate::utils::load;
 
@@ -50,24 +51,13 @@ extern fn did_disappear<T: ViewDelegate>(this: &mut Object, _: Sel) {
 }
 
 /// Registers an `NSViewDelegate`.
-pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSViewController);
-        let mut decl = ClassDecl::new("RSTViewController", superclass).unwrap();
-
+pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>(instance: &T) -> *const Class {
+    load_or_register_class("NSViewController", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
 
-        // NSViewDelegate
         decl.add_method(sel!(viewWillAppear), will_appear::<T> as extern fn(&mut Object, _));
         decl.add_method(sel!(viewDidAppear), did_appear::<T> as extern fn(&mut Object, _));
         decl.add_method(sel!(viewWillDisappear), will_disappear::<T> as extern fn(&mut Object, _));
         decl.add_method(sel!(viewDidDisappear), did_disappear::<T> as extern fn(&mut Object, _));
-
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    })
 }

@@ -90,7 +90,7 @@ use std::cell::RefCell;
 
 use crate::view::ViewDelegate;
 
-pub(crate) type CellFactoryMap = HashMap<&'static str, Box<Fn() -> Box<Any>>>;
+pub(crate) type CellFactoryMap = HashMap<&'static str, Box<dyn Fn() -> Box<dyn Any>>>;
 
 #[derive(Clone)]
 pub struct CellFactory(pub Rc<RefCell<CellFactoryMap>>);
@@ -114,7 +114,7 @@ impl CellFactory {
         let mut lock = self.0.borrow_mut();
         lock.insert(identifier, Box::new(move || {
             let cell = vendor();
-            Box::new(cell) as Box<Any>
+            Box::new(cell) as Box<dyn Any>
         }));
     }
 
@@ -140,9 +140,9 @@ impl CellFactory {
 }
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
+fn common_init(class: *const Class) -> id { 
     unsafe {
-        let tableview: id = msg_send![registration_fn(), new];
+        let tableview: id = msg_send![class, new];
         let _: () = msg_send![tableview, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         // Let's... make NSTableView into UITableView-ish.
@@ -222,7 +222,8 @@ impl Default for ListView {
 impl ListView {
     /// Returns a default `View`, suitable for 
     pub fn new() -> Self {
-        let view = allocate_view(register_listview_class);
+        let class = register_listview_class();
+        let view = common_init(class);
         
         #[cfg(target_os = "macos")]
         let scrollview = {
@@ -265,10 +266,11 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> ListView<T> {
+        let class = register_listview_class_with_delegate::<T>(&delegate);
+        let view = common_init(class);
         let mut delegate = Box::new(delegate);
         let cell = CellFactory::new();
         
-        let view = allocate_view(register_listview_class_with_delegate::<T>);
         unsafe {
             //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
             //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];

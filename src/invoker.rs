@@ -30,7 +30,7 @@ pub static ACTION_CALLBACK_PTR: &str = "rstTargetActionPtr";
 /// Point is, Button aren't created that much in the grand scheme of things,
 /// and the heap isn't our enemy in a GUI framework anyway. If someone knows 
 /// a better way to do this that doesn't require double-boxing, I'm all ears.
-pub struct Action(Box<Fn() + Send + Sync + 'static>);
+pub struct Action(Box<dyn Fn() + Send + Sync + 'static>);
 
 impl fmt::Debug for Action {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

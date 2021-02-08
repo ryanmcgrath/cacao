@@ -1,3 +1,5 @@
+#[allow(non_camel_case_types)]
+
 use crate::foundation::NSString;
 
 /// An enum that wraps NSNotificationName.
@@ -1024,22 +1026,22 @@ pub enum NotificationName {
     PDFViewVisiblePagesChanged,
 
     ///
-    kABDatabaseChanged,
+    KABDatabaseChanged,
 
     ///
-    kABDatabaseChangedExternally,
+    KABDatabaseChangedExternally,
 
     ///
-    kQuartzFilterManagerDidAddFilter,
+    KQuartzFilterManagerDidAddFilter,
 
     ///
-    kQuartzFilterManagerDidModifyFilter,
+    KQuartzFilterManagerDidModifyFilter,
 
     ///
-    kQuartzFilterManagerDidRemoveFilter,
+    KQuartzFilterManagerDidRemoveFilter,
 
     ///
-    kQuartzFilterManagerDidSelectFilter,
+    KQuartzFilterManagerDidSelectFilter,
 
     ///
     EAAccessoryDidConnect,

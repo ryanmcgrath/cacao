@@ -92,8 +92,7 @@ impl NSNumber {
 
         match result {
             YES => true,
-            NO => false,
-            _ => unreachable!()
+            NO => false
         }
     }
 
@@ -105,8 +104,7 @@ impl NSNumber {
 
         match result {
             YES => true,
-            NO => false,
-            _ => unreachable!()
+            NO => false
         }
     }
     

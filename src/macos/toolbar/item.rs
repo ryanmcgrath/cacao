@@ -13,6 +13,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, NSString};
 use crate::invoker::TargetActionHandler;
 use crate::button::Button;
+use crate::image::Image;
 
 /// Wraps `NSToolbarItem`. Enables configuring things like size, view, and so on.
 #[derive(Debug)]
@@ -20,6 +21,7 @@ pub struct ToolbarItem {
     pub identifier: String,
     pub objc: Id<Object>,
     pub button: Option<Button>,
+    pub image: Option<Image>,
     handler: Option<TargetActionHandler>
 }
 
@@ -40,6 +42,7 @@ impl ToolbarItem {
             identifier: identifier,
             objc: objc,
             button: None,
+            image: None,
             handler: None
         }
     }
@@ -49,7 +52,6 @@ impl ToolbarItem {
         unsafe {
             let title = NSString::new(title).into_inner();
             let _: () = msg_send![&*self.objc, setLabel:&*title];
-            let _: () = msg_send![&*self.objc, setTitle:&*title];
         }
     }
 
@@ -62,6 +64,15 @@ impl ToolbarItem {
         }
         
         self.button = Some(button);
+    }
+
+    /// Sets and takes ownership of the image for this toolbar item.
+    pub fn set_image(&mut self, image: Image) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setImage:&*image.0];
+        }
+
+        self.image = Some(image);
     }
 
     /// Sets the minimum size for this button.

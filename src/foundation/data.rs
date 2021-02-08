@@ -72,8 +72,7 @@ impl NSData {
 
         match result {
             YES => true,
-            NO => false,
-            _ => unreachable!()
+            NO => false
         }
     }
 

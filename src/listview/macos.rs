@@ -14,7 +14,7 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel, sel_impl, msg_send};
 use objc_id::Id;
 
-use crate::foundation::{id, YES, NO, NSArray, NSInteger, NSUInteger};
+use crate::foundation::{load_or_register_class, id, YES, NO, NSArray, NSInteger, NSUInteger};
 use crate::dragdrop::DragInfo;
 use crate::listview::{
     LISTVIEW_DELEGATE_PTR, LISTVIEW_CELL_VENDOR_PTR,
@@ -138,8 +138,7 @@ pub(crate) fn register_listview_class() -> *const Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSTableView);
-        let mut decl = ClassDecl::new("RSTListView", superclass).unwrap();
-       
+        let decl = ClassDecl::new("RSTListView", superclass).unwrap();
         VIEW_CLASS = decl.register();
     });
 
@@ -152,16 +151,8 @@ pub(crate) fn register_listview_class() -> *const Class {
 /// need to do. Note that we treat and constrain this as a one-column "list" view to match
 /// `UITableView` semantics; if `NSTableView`'s multi column behavior is needed, then it can
 /// be added in.
-pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSTableView);
-        let mut decl = ClassDecl::new("RSTListViewWithDelegate", superclass).unwrap();
-
-        // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
-        // move.
+pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instance: &T) -> *const Class {
+    load_or_register_class("NSTableView", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(LISTVIEW_DELEGATE_PTR);
         decl.add_ivar::<usize>(LISTVIEW_CELL_VENDOR_PTR);
         
@@ -178,11 +169,5 @@ pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>() -> *c
         decl.add_method(sel!(performDragOperation:), perform_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
         decl.add_method(sel!(concludeDragOperation:), conclude_drag_operation::<T> as extern fn (&mut Object, _, _));
         decl.add_method(sel!(draggingExited:), dragging_exited::<T> as extern fn (&mut Object, _, _));
-        
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe {
-        VIEW_CLASS
-    }
+    })
 }

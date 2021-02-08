@@ -14,7 +14,7 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, YES, NO, NSUInteger};
+use crate::foundation::{load_or_register_class, id, YES, NO, NSUInteger};
 use crate::dragdrop::DragInfo;
 use crate::view::{VIEW_DELEGATE_PTR, ViewDelegate};
 use crate::utils::load;
@@ -95,31 +95,41 @@ pub(crate) fn register_view_class() -> *const Class {
 
 /// Injects an `NSView` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSView);
-        let mut decl = ClassDecl::new("RSTViewWithDelegate", superclass).unwrap();
-
-        // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
-        // move.
+pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> *const Class {
+    load_or_register_class("NSView", instance.subclass_name(), |decl| unsafe {
+        // A pointer to the ViewDelegate instance on the Rust side.
+        // It's expected that this doesn't move.
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
         
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+        decl.add_method(
+            sel!(isFlipped),
+            enforce_normalcy as extern fn(&Object, _) -> BOOL
+        );
 
         // Drag and drop operations (e.g, accepting files)
-        decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger);
-        decl.add_method(sel!(prepareForDragOperation:), prepare_for_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
-        decl.add_method(sel!(performDragOperation:), perform_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
-        decl.add_method(sel!(concludeDragOperation:), conclude_drag_operation::<T> as extern fn (&mut Object, _, _));
-        decl.add_method(sel!(draggingExited:), dragging_exited::<T> as extern fn (&mut Object, _, _));
-        
-        VIEW_CLASS = decl.register();
-    });
+        decl.add_method(
+            sel!(draggingEntered:),
+            dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger
+        );
 
-    unsafe {
-        VIEW_CLASS
-    }
+        decl.add_method(
+            sel!(prepareForDragOperation:),
+            prepare_for_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL
+        );
+
+        decl.add_method(
+            sel!(performDragOperation:),
+            perform_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL
+        );
+
+        decl.add_method(
+            sel!(concludeDragOperation:),
+            conclude_drag_operation::<T> as extern fn (&mut Object, _, _)
+        );
+
+        decl.add_method(
+            sel!(draggingExited:),
+            dragging_exited::<T> as extern fn (&mut Object, _, _)
+        );
+    })
 }

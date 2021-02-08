@@ -108,6 +108,7 @@ pub mod notification_center;
 pub mod pasteboard;
 pub mod progress;
 pub mod scrollview;
+pub mod switch;
 pub mod text;
 
 #[cfg(feature = "quicklook")]

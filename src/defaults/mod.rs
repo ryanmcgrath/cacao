@@ -246,8 +246,7 @@ impl UserDefaults {
 
         match result {
             YES => true,
-            NO => false,
-            _ => unreachable!()
+            NO => false
         }
     }
 

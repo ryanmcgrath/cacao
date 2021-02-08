@@ -71,9 +71,9 @@ pub use traits::ViewDelegate;
 pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
+fn common_init(class: *const Class) -> id { 
     unsafe {
-        let view: id = msg_send![registration_fn(), new];
+        let view: id = msg_send![class, new];
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         #[cfg(target_os = "macos")]
@@ -128,7 +128,7 @@ impl Default for View {
 impl View {
     /// Returns a default `View`, suitable for 
     pub fn new() -> Self {
-        let view = allocate_view(register_view_class);
+        let view = common_init(register_view_class());
 
         View {
             delegate: None,
@@ -149,14 +149,15 @@ impl<T> View<T> where T: ViewDelegate + 'static {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> View<T> {
+        let class = register_view_class_with_delegate(&delegate);
         let mut delegate = Box::new(delegate);
         
-        let view = allocate_view(register_view_class_with_delegate::<T>);
-        unsafe {
-            //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
-            //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
-            let ptr: *const T = &*delegate;
+        let view = unsafe {
+            let view: id = common_init(class);
+            let ptr = Box::into_raw(delegate);
             (&mut *view).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
+            delegate = Box::from_raw(ptr);
+            view
         };
 
         let mut view = View {

@@ -27,10 +27,11 @@ pub struct ViewController<T> {
 
 impl<T> ViewController<T> where T: ViewDelegate + 'static {
     pub fn new(delegate: T) -> Self {
-        let mut view = View::with(delegate);
+        let class = register_view_controller_class::<T>(&delegate);
+        let view = View::with(delegate);
 
         let objc = unsafe {
-            let vc: id = msg_send![register_view_controller_class::<T>(), new];
+            let vc: id = msg_send![class, new];
             
             if let Some(delegate)= &view.delegate {
                 let ptr: *const T = &**delegate;
@@ -41,11 +42,6 @@ impl<T> ViewController<T> where T: ViewDelegate + 'static {
 
             ShareId::from_ptr(vc)
         };
-
-        //let handle = view.clone_as_handle();
-        //if let Some(view_delegate) = &mut view.delegate {
-        //    view_delegate.did_load(handle);
-        //}
 
         ViewController {
             objc: objc,

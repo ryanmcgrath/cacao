@@ -32,7 +32,7 @@ impl ThumbnailGenerator {
                 unsafe {
                     let image = Image::with(msg_send![thumbnail, NSImage]);
                     let quality = ThumbnailQuality::from(thumbnail_type);
-                    callback(Ok((image, ThumbnailQuality::Low)));
+                    callback(Ok((image, quality)));
                 }
             } else {
                 let error = Error::new(error);

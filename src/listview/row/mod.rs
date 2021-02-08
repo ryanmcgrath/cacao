@@ -152,15 +152,15 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
     /// - When it takes ownership, it "forgets" the pointer - and the `dealloc` method on the
     /// backing view cell will clean it up whenever it's dropped.
     pub(crate) fn from_cached(view: id) -> ListViewRow<T> {
+        // @TODO: Make this better.
         let delegate = unsafe {
             let ptr: usize = *(&*view).get_ivar(LISTVIEW_ROW_DELEGATE_PTR);
             let obj = ptr as *mut T;
             Box::from_raw(obj)
             //&*obj
         };
-        //let delegate = crate::utils::load::<R>(&*view, LISTVIEW_ROW_DELEGATE_PTR);
 
-        let mut view = ListViewRow {
+        let view = ListViewRow {
             delegate: Some(delegate),
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),

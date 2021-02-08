@@ -81,7 +81,7 @@ pub(crate) fn register_scrollview_class() -> *const Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSScrollView);
-        let mut decl = ClassDecl::new("RSTScrollView", superclass).unwrap();
+        let decl = ClassDecl::new("RSTScrollView", superclass).unwrap();
         VIEW_CLASS = decl.register();
     });
 

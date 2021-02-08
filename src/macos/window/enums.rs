@@ -96,3 +96,39 @@ impl From<TitleVisibility> for NSInteger {
         }
     }
 }
+
+/// Represents the styles a Toolbar can have. This setting is specific to macOS 11.0+ (Big Sur and
+/// onwards); setting it won't change versions prior to Big Sur.
+#[derive(Clone, Copy, Debug)]
+pub enum WindowToolbarStyle {
+    /// The default display mode. This will change the appearance based on whether it's 10.15 and
+    /// earlier. In most cases, this is fine.
+    Automatic,
+
+    /// The style from macOS pre-11.0. Toolbar items will always be located underneath the
+    /// titlebar.
+    Expanded,
+
+    /// A style specifically for Preferences windows. Toolbar items will be under the titlebar, and
+    /// centered.
+    Preferences,
+
+    /// The Big Sur (11.0+) style. Titles appear next to controls.
+    Unified,
+
+    /// The Big Sur (11.0+) style, but more compact. Toolbar flushes up against the title and
+    /// spacing is reduced.
+    UnifiedCompact
+}
+
+impl From<WindowToolbarStyle> for NSUInteger {
+    fn from(mode: WindowToolbarStyle) -> Self {
+        match mode {
+            WindowToolbarStyle::Automatic => 0,
+            WindowToolbarStyle::Expanded => 1,
+            WindowToolbarStyle::Preferences => 2,
+            WindowToolbarStyle::Unified => 3,
+            WindowToolbarStyle::UnifiedCompact => 4
+        }
+    }
+}

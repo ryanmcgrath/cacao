@@ -28,7 +28,7 @@ pub(crate) fn register_view_class() -> *const Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSTextField);
-        let mut decl = ClassDecl::new("RSTTextField", superclass).unwrap();
+        let decl = ClassDecl::new("RSTTextField", superclass).unwrap();
         VIEW_CLASS = decl.register();
     });
 

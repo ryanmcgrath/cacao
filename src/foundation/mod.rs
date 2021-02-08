@@ -27,6 +27,9 @@ pub use autoreleasepool::AutoReleasePool;
 mod array;
 pub use array::NSArray;
 
+mod class;
+pub use class::load_or_register_class;
+
 mod data;
 pub use data::NSData;
 

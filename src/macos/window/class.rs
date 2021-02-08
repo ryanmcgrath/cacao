@@ -9,7 +9,7 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel, sel_impl};
 
-use crate::foundation::{id, BOOL, YES, NO, NSUInteger};
+use crate::foundation::{load_or_register_class, id, BOOL, YES, NO, NSUInteger};
 use crate::utils::{load, CGSize};
 use crate::macos::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
 
@@ -228,33 +228,10 @@ extern fn cancel<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
     window.cancel();
 }
 
-/// Injects an `NSWindow` subclass, with some callback and pointer ivars for what we
-/// need to do.
-pub(crate) fn register_window_class() -> *const Class {
-    static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSWindow);
-        let decl = ClassDecl::new("RSTWindow", superclass).unwrap();
-        DELEGATE_CLASS = decl.register();
-    });
-
-    unsafe {
-        DELEGATE_CLASS
-    }
-}
-
 /// Injects an `NSWindowDelegate` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>() -> *const Class {
-    static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSWindow);
-        let mut decl = ClassDecl::new("RSTWindowWithDelegate", superclass).unwrap();
-
+pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>(instance: &T) -> *const Class {
+    load_or_register_class("NSWindow", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(WINDOW_DELEGATE_PTR);
 
         // NSWindowDelegate methods
@@ -302,11 +279,5 @@ pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>() -> *const
         decl.add_method(sel!(windowDidExpose:), did_expose::<T> as extern fn(&Object, _, _));
         decl.add_method(sel!(windowDidUpdate:), did_update::<T> as extern fn(&Object, _, _));
         decl.add_method(sel!(cancelOperation:), cancel::<T> as extern fn (&Object, _, _));
-        
-        DELEGATE_CLASS = decl.register();
-    });
-
-    unsafe {
-        DELEGATE_CLASS
-    }
+    })
 }

@@ -4,7 +4,6 @@
 
 use std::ffi::c_void;
 use std::sync::Once;
-use std::unreachable;
 
 use block::Block;
 
@@ -108,8 +107,7 @@ extern fn did_update<T: AppDelegate>(this: &Object, _: Sel, _: id) {
 extern fn should_handle_reopen<T: AppDelegate>(this: &Object, _: Sel, _: id, has_visible_windows: BOOL) -> BOOL {
     match app::<T>(this).should_handle_reopen(match has_visible_windows {
         YES => true,
-        NO => false,
-        _ => { unreachable!(); },
+        NO => false
     }) {
         true => YES,
         false => NO
@@ -270,8 +268,7 @@ extern fn print_files<T: AppDelegate>(this: &Object, _: Sel, _: id, files: id, s
 
     app::<T>(this).print_files(files, settings, match show_print_panels {
         YES => true,
-        NO => false,
-        _ => { unreachable!(); }
+        NO => false
     }).into()
 }
 

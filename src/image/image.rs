@@ -11,7 +11,9 @@ use core_graphics::{
 };
 use core_graphics::context::{CGContext, CGContextRef};
 
-use crate::foundation::{id, YES, NO};
+use crate::foundation::{id, YES, NO, NSString};
+use crate::utils::os;
+use super::icons::*;
 
 #[derive(Debug)]
 pub enum ResizeBehavior {
@@ -42,21 +44,21 @@ fn min_cgfloat(x: CGFloat, y: CGFloat) -> CGFloat {
 impl ResizeBehavior {
     pub fn apply(&self, source: CGRect, target: CGRect) -> CGRect {
         // if equal, just return source
-        if(
+        if
             source.origin.x == target.origin.x && 
             source.origin.y == target.origin.y &&
             source.size.width == target.size.width &&
             source.size.height == target.size.height
-        ) {
+        {
             return source;
         }
 
-        if(
+        if
             source.origin.x == 0. && 
             source.origin.y == 0. &&
             source.size.width == 0. &&
             source.size.height == 0. 
-        ) {
+        {
             return source;
         }
 
@@ -107,6 +109,26 @@ impl Image {
     pub fn with(image: id) -> Self {
         Image(unsafe {
             ShareId::from_ptr(image)
+        })
+    }
+
+    /// Returns a stock system icon. These are guaranteed to exist across all versions of macOS
+    /// supported.
+    #[cfg(feature = "macos")]
+    pub fn system_icon(icon: MacSystemIcon, accessibility_description: &str) -> Self {
+        Image(unsafe {
+            ShareId::from_ptr(match os::is_minimum_version(11) {
+                true => {
+                    let icon = NSString::new(icon.to_sfsymbol_str()).into_inner();
+                    let desc = NSString::new(accessibility_description).into_inner();
+                    msg_send![class!(NSImage), imageWithSystemSymbolName:icon accessibilityDescription:desc]
+                },
+
+                false => {
+                    let icon = NSString::new(icon.to_str()).into_inner();
+                    msg_send![class!(NSImage), imageNamed:icon]
+                }
+            })
         })
     }
 

@@ -9,6 +9,17 @@ use crate::macos::window::Window;
 /// lifecycle methods, but mix in a few extra things to handle offering configuration tools
 /// in lieu of subclasses.
 pub trait WindowDelegate {    
+    /// Used to cache subclass creations on the Objective-C side.
+    /// You can just set this to be the name of your view type. This
+    /// value *must* be unique per-type.
+    const NAME: &'static str;
+
+    /// You should rarely (read: probably never) need to implement this yourself.
+    /// It simply acts as a getter for the associated `NAME` const on this trait.
+    fn subclass_name(&self) -> &'static str {
+        Self::NAME
+    }
+
     /// Fires when this window has loaded in memory, and is about to display. This is a good point
     /// to set up your views and what not.
     ///

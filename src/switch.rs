@@ -1,4 +1,4 @@
-//! A wrapper for NSButton. Currently the epitome of jank - if you're poking around here, expect
+//! A wrapper for NSSwitch. Currently the epitome of jank - if you're poking around here, expect
 //! that this will change at some point.
 
 use std::fmt;
@@ -14,10 +14,10 @@ use crate::invoker::TargetActionHandler;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::utils::load;
 
-/// A wrapper for `NSButton`. Holds (retains) pointers for the Objective-C runtime 
-/// where our `NSButton` lives.
+/// A wrapper for `NSSwitch`. Holds (retains) pointers for the Objective-C runtime 
+/// where our `NSSwitch` lives.
 #[derive(Debug)]
-pub struct Button {
+pub struct Switch {
     pub objc: ShareId<Object>,
     handler: Option<TargetActionHandler>,
     
@@ -46,8 +46,8 @@ pub struct Button {
     pub center_y: LayoutAnchorY
 }
 
-impl Button {
-    /// Creates a new `NSButton` instance, configures it appropriately,
+impl Switch {
+    /// Creates a new `NSSwitch` instance, configures it appropriately,
     /// and retains the necessary Objective-C runtime pointer.
     pub fn new(text: &str) -> Self {
         let title = NSString::new(text);
@@ -55,10 +55,11 @@ impl Button {
         let view: id = unsafe {
             let button: id = msg_send![register_class(), buttonWithTitle:title target:nil action:nil];
             let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            let _: () = msg_send![button, setButtonType:3];
             button
         };
         
-        Button {
+        Switch {
             handler: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
@@ -72,10 +73,15 @@ impl Button {
         }
     }
 
-    /// Sets the bezel style for this button.
-    pub fn set_bezel_style(&self, bezel_style: i32) {
+    /// Sets whether this is checked on or off.
+    pub fn set_checked(&mut self, checked: bool) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setBezelStyle:bezel_style];
+            // @TODO: The constants to use here changed back in 10.13ish, so... do we support that,
+            // or just hide it?
+            let _: () = msg_send![&*self.objc, setState:match checked {
+                true => 1,
+                false => 0
+            }];
         }
     }
 
@@ -87,21 +93,20 @@ impl Button {
     }
 }
 
-impl Layout for Button {
+impl Layout for Switch {
     fn get_backing_node(&self) -> ShareId<Object> {
         self.objc.clone()
     }
 
-    fn add_subview<V: Layout>(&self, _view: &V) {
+    fn add_subview<V: Layout>(&self, _view: &V) { 
         panic!(r#"
             Tried to add a subview to a Button. This is not allowed in Cacao. If you think this should be supported, 
             open a discussion on the GitHub repo.
-        "#);
+        "#);    
     }
 }
 
-
-impl Drop for Button {
+impl Drop for Switch {
     // Just to be sure, let's... nil these out. They should be weak references,
     // but I'd rather be paranoid and remove them later.
     fn drop(&mut self) {
@@ -120,7 +125,7 @@ fn register_class() -> *const Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSButton);
-        let decl = ClassDecl::new("RSTButton", superclass).unwrap(); 
+        let decl = ClassDecl::new("RSTSwitch", superclass).unwrap(); 
         VIEW_CLASS = decl.register();
     });
 

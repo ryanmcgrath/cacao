@@ -8,8 +8,6 @@
 //! not bother providing access to them. If you require functionality like that, you're free to use 
 //! the `objc` field on a `Window` to instrument it with the Objective-C runtime on your own.
 
-use std::unreachable;
-
 use block::ConcreteBlock;
 
 use core_graphics::base::CGFloat;
@@ -26,7 +24,7 @@ use crate::macos::toolbar::{Toolbar, ToolbarDelegate};
 use crate::utils::Controller;
 
 mod class;
-use class::{register_window_class, register_window_class_with_delegate};
+use class::register_window_class_with_delegate;
 
 mod config;
 pub use config::WindowConfig;
@@ -72,8 +70,7 @@ impl Window {
             // apps that would use this toolkit wouldn't be tab-oriented...
             let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing:NO];
 
-
-            let alloc: id = msg_send![register_window_class(), alloc];
+            let alloc: id = msg_send![class!(NSWindow), alloc];
             
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
@@ -95,6 +92,14 @@ impl Window {
             // Objective-C runtime gets out of sync by releasing the window out from underneath of
             // us.
             let _: () = msg_send![window, setReleasedWhenClosed:NO];
+            
+            let _: () = msg_send![window, setRestorable:NO];
+
+            // This doesn't exist prior to Big Sur, but is important to support for Big Sur.
+            //
+            // Why this isn't a setting on the Toolbar itself I'll never know.
+            let toolbar_style: NSUInteger = config.toolbar_style.into();
+            let _: () = msg_send![window, setToolbarStyle:toolbar_style];
 
             ShareId::from_ptr(window)
         };
@@ -112,6 +117,7 @@ impl<T> Window<T> where T: WindowDelegate + 'static {
     /// enables easier structure of your codebase, and in a way simulates traditional class based
     /// architectures... just without the subclassing.
     pub fn with(config: WindowConfig, delegate: T) -> Self {
+        let class = register_window_class_with_delegate::<T>(&delegate);
         let mut delegate = Box::new(delegate);
         
         let objc = unsafe {
@@ -119,8 +125,7 @@ impl<T> Window<T> where T: WindowDelegate + 'static {
             // apps that would use this toolkit wouldn't be tab-oriented...
             let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing:NO];
 
-
-            let alloc: id = msg_send![register_window_class_with_delegate::<T>(), alloc];
+            let alloc: id = msg_send![class, alloc];
             
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
@@ -151,6 +156,12 @@ impl<T> Window<T> where T: WindowDelegate + 'static {
 
             let _: () = msg_send![window, setRestorable:NO];
 
+            // This doesn't exist prior to Big Sur, but is important to support for Big Sur.
+            //
+            // Why this isn't a setting on the Toolbar itself I'll never know.
+            let toolbar_style: NSUInteger = config.toolbar_style.into();
+            let _: () = msg_send![window, setToolbarStyle:toolbar_style];
+
             ShareId::from_ptr(window)
         };
 
@@ -167,7 +178,6 @@ impl<T> Window<T> where T: WindowDelegate + 'static {
         }
     }
 }
-
 
 impl<T> Window<T> {
     /// Handles setting the title on the underlying window. Allocates and passes an `NSString` over
@@ -311,8 +321,7 @@ impl<T> Window<T> {
         unsafe {
             match msg_send![&*self.objc, isOpaque] {
                 YES => true,
-                NO => false,
-                _ => unreachable!()
+                NO => false
             }
         }
     }
@@ -322,8 +331,7 @@ impl<T> Window<T> {
         unsafe {
             match msg_send![&*self.objc, isMiniaturized] {
                 YES => true,
-                NO => false,
-                _ => unreachable!()
+                NO => false
             }
         }
     }
@@ -362,8 +370,7 @@ impl<T> Window<T> {
         unsafe {
             match msg_send![&*self.objc, isOnActiveSpace] {
                 YES => true,
-                NO => false,
-                _ => unreachable!()
+                NO => false
             }
         }
     }
@@ -373,8 +380,7 @@ impl<T> Window<T> {
         unsafe {
             match msg_send![&*self.objc, isVisible] {
                 YES => true,
-                NO => false,
-                _ => unreachable!()
+                NO => false
             }
         }
     }
@@ -384,8 +390,7 @@ impl<T> Window<T> {
         unsafe {
             match msg_send![&*self.objc, isKeyWindow] {
                 YES => true,
-                NO => false,
-                _ => unreachable!()
+                NO => false
             }
         }
     }
@@ -395,8 +400,7 @@ impl<T> Window<T> {
         unsafe {
             match msg_send![&*self.objc, canBecomeKeyWindow] {
                 YES => true,
-                NO => false,
-                _ => unreachable!()
+                NO => false
             }
         }
     }
@@ -421,8 +425,7 @@ impl<T> Window<T> {
         unsafe {
             match msg_send![&*self.objc, isMainWindow] {
                 YES => true,
-                NO => false,
-                _ => unreachable!()
+                NO => false
             }
         }
     }
@@ -432,8 +435,7 @@ impl<T> Window<T> {
         unsafe {
             match msg_send![&*self.objc, canBecomeMainWindow] {
                 YES => true,
-                NO => false,
-                _ => unreachable!()
+                NO => false
             }
         }
     }

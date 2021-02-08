@@ -110,7 +110,7 @@ pub struct App<T = (), M = ()> {
     pub objc_delegate: Id<Object>,
     pub delegate: Box<T>,
     pub pool: AutoReleasePool,
-    _t: std::marker::PhantomData<M>
+    _message: std::marker::PhantomData<M>
 }
 
 impl<T> App<T> {  
@@ -119,7 +119,7 @@ impl<T> App<T> {
     /// `did_finish_launching`. :)
     pub fn run(&self) {
         unsafe {
-            let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
+            //let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
             let shared_app: id = msg_send![class!(RSTApplication), sharedApplication];
             let _: () = msg_send![shared_app, run];
             self.pool.drain();
@@ -159,14 +159,14 @@ impl<T> App<T> where T: AppDelegate + 'static {
             inner: inner,
             delegate: app_delegate,
             pool: pool,
-            _t: std::marker::PhantomData
+            _message: std::marker::PhantomData
         }
     }
 } 
 
 //  This is a very basic "dispatch" mechanism. In macOS, it's critical that UI work happen on the
 //  UI ("main") thread. We can hook into the standard mechanism for this by dispatching on
-//  queues; in our case, we'll just offer two points - one for the background queue(s), and one
+//  queues; in our case, we'll just offer two points - one for a background queue, and one
 //  for the main queue. They automatically forward through to our registered `AppDelegate`.
 //
 //  One thing I don't like about GCD is that detecting incorrect thread usage has historically been

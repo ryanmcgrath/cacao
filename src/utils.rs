@@ -10,7 +10,40 @@ use objc::{Encode, Encoding};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::foundation::{id, BOOL};
+use crate::foundation::{id, BOOL, YES, NO};
+
+pub mod os {
+    use lazy_static::lazy_static;
+    use os_info::Version;
+
+    lazy_static! {
+        pub static ref OS_VERSION: os_info::Info = os_info::get();
+    }
+
+    /// In rare cases we need to check whether something is a specific version of macOS. This is a
+    /// runtime check thhat returns a boolean indicating whether the current version is a minimum target.
+    #[inline(always)]
+    pub fn is_minimum_version(major: u64) -> bool {
+        match OS_VERSION.version() {
+            Version::Semantic(maj, _, _) => major >= *maj,
+            _ => false
+        }
+    }
+
+
+    /// In rare cases we need to check whether something is a specific version of macOS. This is a
+    /// runtime check thhat returns a boolean indicating whether the current version is a minimum target.
+    #[inline(always)]
+    pub fn is_minimum_semversion(major: u64, minor: u64, patch: u64) -> bool {
+        match OS_VERSION.version() {
+            Version::Semantic(maj, min, p) => {
+                major >= *maj && minor >= *min && patch >= *p
+            },
+
+            _ => { false }
+        }
+    }
+}
 
 /// A generic trait that's used throughout multiple different controls in this framework - acts as
 /// a guard for whether something is a (View|etc)Controller. Only needs to return the backing node.
@@ -113,7 +146,6 @@ pub fn activate_cocoa_multithreading() {
 pub fn as_bool(value: BOOL) -> bool {
     match value {
         YES => true,
-        NO => false,
-        _ => unreachable!()
+        NO => false
     }
 }

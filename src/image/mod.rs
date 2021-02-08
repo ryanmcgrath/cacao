@@ -21,6 +21,9 @@ use ios::register_image_view_class;
 mod image;
 pub use image::{Image, DrawConfig, ResizeBehavior};
 
+mod icons;
+pub use icons::*;
+
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
     unsafe {

@@ -28,7 +28,7 @@ pub(crate) fn register_image_view_class() -> *const Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSImageView);
-        let mut decl = ClassDecl::new("RSTImageView", superclass).unwrap();
+        let decl = ClassDecl::new("RSTImageView", superclass).unwrap();
 
         //decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
     

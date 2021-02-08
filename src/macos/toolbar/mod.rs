@@ -3,7 +3,7 @@
 //!
 //! UNFORTUNATELY, this is a very old and janky API. So... yeah.
 
-use objc::{msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
@@ -32,6 +32,8 @@ pub struct Toolbar<T = ()> {
     /// The Objective-C runtime toolbar.
     pub objc: ShareId<Object>,
 
+    pub objc_delegate: ShareId<Object>,
+
     /// The user supplied delegate.
     pub delegate: Option<Box<T>>
 }
@@ -41,23 +43,25 @@ impl<T> Toolbar<T> where T: ToolbarDelegate + 'static {
     /// chain, and retains it all.
     pub fn new<S: Into<String>>(identifier: S, delegate: T) -> Self {
         let identifier = identifier.into();
-        let delegate = Box::new(delegate);
+        let cls = register_toolbar_class::<T>(&delegate);
+        let mut delegate = Box::new(delegate);
         
-        let objc = unsafe {
-            let cls = register_toolbar_class::<T>();
-            let alloc: id = msg_send![cls, alloc];
+        let (objc, objc_delegate) = unsafe {
+            let alloc: id = msg_send![class!(NSToolbar), alloc];
             let identifier = NSString::new(&identifier);
             let toolbar: id = msg_send![alloc, initWithIdentifier:identifier];
+            let objc_delegate: id = msg_send![cls, new]; //WithIdentifier:identifier];
 
             let ptr: *const T = &*delegate;
-            (&mut *toolbar).set_ivar(TOOLBAR_PTR, ptr as usize);
-            let _: () = msg_send![toolbar, setDelegate:toolbar];
+            (&mut *objc_delegate).set_ivar(TOOLBAR_PTR, ptr as usize);
+            let _: () = msg_send![toolbar, setDelegate:objc_delegate];
 
-            ShareId::from_ptr(toolbar)
+            (ShareId::from_ptr(toolbar), ShareId::from_ptr(objc_delegate))
         };
 
-        &delegate.did_load(Toolbar {
+        &mut delegate.did_load(Toolbar {
             objc: objc.clone(),
+            objc_delegate: objc_delegate.clone(),
             identifier: identifier.clone(),
             delegate: None
         });
@@ -65,6 +69,7 @@ impl<T> Toolbar<T> where T: ToolbarDelegate + 'static {
         Toolbar {
             identifier: identifier,
             objc: objc,
+            objc_delegate: objc_delegate,
             delegate: Some(delegate),
         }
     }
@@ -107,6 +112,15 @@ impl<T> Toolbar<T> {
                 true => YES,
                 false => NO
             }];
+        }
+    }
+
+    /// Sets the item represented by the item identifier to be selected.
+    pub fn set_selected(&self, item_identifier: &str) {
+        let identifier = NSString::new(item_identifier).into_inner();
+
+        unsafe {
+            let _: () = msg_send![&*self.objc, setSelectedItemIdentifier:identifier];
         }
     }
 }
