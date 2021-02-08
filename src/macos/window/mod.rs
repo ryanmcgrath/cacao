@@ -21,7 +21,7 @@ use crate::color::Color;
 use crate::foundation::{id, nil, YES, NO, NSString, NSInteger, NSUInteger};
 use crate::layout::traits::Layout;
 use crate::macos::toolbar::{Toolbar, ToolbarDelegate};
-use crate::utils::Controller;
+use crate::utils::{os, Controller};
 
 mod class;
 use class::register_window_class_with_delegate;
@@ -98,8 +98,10 @@ impl Window {
             // This doesn't exist prior to Big Sur, but is important to support for Big Sur.
             //
             // Why this isn't a setting on the Toolbar itself I'll never know.
-            let toolbar_style: NSUInteger = config.toolbar_style.into();
-            let _: () = msg_send![window, setToolbarStyle:toolbar_style];
+            if os::is_minimum_version(11) {
+                let toolbar_style: NSUInteger = config.toolbar_style.into();
+                let _: () = msg_send![window, setToolbarStyle:toolbar_style];
+            }
 
             ShareId::from_ptr(window)
         };
@@ -159,8 +161,10 @@ impl<T> Window<T> where T: WindowDelegate + 'static {
             // This doesn't exist prior to Big Sur, but is important to support for Big Sur.
             //
             // Why this isn't a setting on the Toolbar itself I'll never know.
-            let toolbar_style: NSUInteger = config.toolbar_style.into();
-            let _: () = msg_send![window, setToolbarStyle:toolbar_style];
+            if os::is_minimum_version(11) {
+                let toolbar_style: NSUInteger = config.toolbar_style.into();
+                let _: () = msg_send![window, setToolbarStyle:toolbar_style];
+            }
 
             ShareId::from_ptr(window)
         };
