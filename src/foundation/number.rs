@@ -5,7 +5,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, BOOL, YES, NO, NSInteger};
+use crate::foundation::{id, to_bool, BOOL, YES, NO, NSInteger};
 
 /// Wrapper for a retained `NSNumber` object.
 ///
@@ -90,10 +90,7 @@ impl NSNumber {
             msg_send![&*self.0, boolValue]
         };
 
-        match result {
-            YES => true,
-            NO => false
-        }
+        to_bool(result)
     }
 
     /// A helper method for determining if a given `NSObject` is an `NSNumber`.
@@ -102,10 +99,7 @@ impl NSNumber {
             msg_send![obj, isKindOfClass:class!(NSNumber)]
         };
 
-        match result {
-            YES => true,
-            NO => false
-        }
+        to_bool(result)
     }
     
     /// Consumes and returns the underlying `NSNumber`.

@@ -23,9 +23,12 @@ pub mod os {
     /// In rare cases we need to check whether something is a specific version of macOS. This is a
     /// runtime check thhat returns a boolean indicating whether the current version is a minimum target.
     #[inline(always)]
-    pub fn is_minimum_version(major: u64) -> bool {
+    pub fn is_minimum_version(minimum_major: u64) -> bool {
+        //println!("Looking for: {}", major);
+        //println!("VERSION: {}", OS_VERSION.version());
+
         match OS_VERSION.version() {
-            Version::Semantic(maj, _, _) => major >= *maj,
+            Version::Semantic(os_major, _, _) => { *os_major >= minimum_major },
             _ => false
         }
     }
@@ -138,14 +141,5 @@ pub fn activate_cocoa_multithreading() {
     unsafe {
         let thread: id = msg_send![class!(NSThread), new];
         let _: () = msg_send![thread, start];
-    }
-}
-
-/// Utility method for turning an Objective-C `BOOL` into a Rust `bool`.
-#[inline]
-pub fn as_bool(value: BOOL) -> bool {
-    match value {
-        YES => true,
-        NO => false
     }
 }

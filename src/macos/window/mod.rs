@@ -18,7 +18,7 @@ use objc::runtime::Object;
 use objc_id::ShareId;
 
 use crate::color::Color;
-use crate::foundation::{id, nil, YES, NO, NSString, NSInteger, NSUInteger};
+use crate::foundation::{id, nil, to_bool, YES, NO, NSString, NSInteger, NSUInteger};
 use crate::layout::traits::Layout;
 use crate::macos::toolbar::{Toolbar, ToolbarDelegate};
 use crate::utils::{os, Controller};
@@ -322,22 +322,16 @@ impl<T> Window<T> {
 
     /// Returns whether this window is opaque or not.
     pub fn is_opaque(&self) -> bool {
-        unsafe {
-            match msg_send![&*self.objc, isOpaque] {
-                YES => true,
-                NO => false
-            }
-        }
+        to_bool(unsafe {
+            msg_send![&*self.objc, isOpaque]
+        })
     }
 
     /// Returns whether this window is miniaturized or not.
     pub fn is_miniaturized(&self) -> bool {
-        unsafe {
-            match msg_send![&*self.objc, isMiniaturized] {
-                YES => true,
-                NO => false
-            }
-        }
+        to_bool(unsafe {
+            msg_send![&*self.objc, isMiniaturized]
+        })
     }
 
     /// Miniaturize this window.
@@ -371,42 +365,30 @@ impl<T> Window<T> {
     /// space. For nonvisible windows, it indicates whether ordering the window onscreen would cause it to 
     /// be on the active space._
     pub fn is_on_active_space(&self) -> bool {
-        unsafe {
-            match msg_send![&*self.objc, isOnActiveSpace] {
-                YES => true,
-                NO => false
-            }
-        }
+        to_bool(unsafe {
+            msg_send![&*self.objc, isOnActiveSpace]
+        })
     }
 
     /// Returns whether this window is visible or not.
     pub fn is_visible(&self) -> bool {
-        unsafe {
-            match msg_send![&*self.objc, isVisible] {
-                YES => true,
-                NO => false
-            }
-        }
+        to_bool(unsafe {
+            msg_send![&*self.objc, isVisible]
+        })
     }
 
     /// Returns whether this window is the key or not.
     pub fn is_key(&self) -> bool {
-        unsafe {
-            match msg_send![&*self.objc, isKeyWindow] {
-                YES => true,
-                NO => false
-            }
-        }
+        to_bool(unsafe {
+            msg_send![&*self.objc, isKeyWindow]
+        })
     }
 
     /// Returns whether this window can become the key window.
     pub fn can_become_key(&self) -> bool {
-        unsafe {
-            match msg_send![&*self.objc, canBecomeKeyWindow] {
-                YES => true,
-                NO => false
-            }
-        }
+        to_bool(unsafe {
+            msg_send![&*self.objc, canBecomeKeyWindow]
+        })
     }
 
     /// Make this window the key window.
@@ -426,22 +408,16 @@ impl<T> Window<T> {
 
     /// Returns if this is the main window or not.
     pub fn is_main_window(&self) -> bool {
-        unsafe {
-            match msg_send![&*self.objc, isMainWindow] {
-                YES => true,
-                NO => false
-            }
-        }
+        to_bool(unsafe {
+            msg_send![&*self.objc, isMainWindow]
+        })
     }
 
     /// Returns if this can become the main window.
     pub fn can_become_main_window(&self) -> bool {
-        unsafe {
-            match msg_send![&*self.objc, canBecomeMainWindow] {
-                YES => true,
-                NO => false
-            }
-        }
+        to_bool(unsafe {
+            msg_send![&*self.objc, canBecomeMainWindow]
+        })
     }
 
     /// Set whether this window should be excluded from the top-level "Windows" menu.

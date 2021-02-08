@@ -5,7 +5,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, BOOL, YES, NO};
+use crate::foundation::{id, to_bool, BOOL, YES, NO};
 
 const UTF8_ENCODING: usize = 4;
 
@@ -38,11 +38,7 @@ impl NSString {
     /// Utility method for checking whether an `NSObject` is an `NSString`.
     pub fn is(obj: id) -> bool {
         let result: BOOL = unsafe { msg_send![obj, isKindOfClass:class!(NSString)] };
-
-        match result {
-            YES => true,
-            NO => false
-        }
+        to_bool(result)
     }
 
     /// Helper method for returning the UTF8 bytes for this `NSString`.

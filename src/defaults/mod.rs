@@ -38,7 +38,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, nil, YES, NO, BOOL, NSData, NSString, NSDictionary, NSNumber};
+use crate::foundation::{id, nil, to_bool, YES, NO, BOOL, NSData, NSString, NSDictionary, NSNumber};
 
 mod value;
 pub use value::Value;
@@ -244,10 +244,7 @@ impl UserDefaults {
             msg_send![&*self.0, objectIsForcedForKey:key.into_inner()]
         };
 
-        match result {
-            YES => true,
-            NO => false
-        }
+        to_bool(result)
     }
 
     /// Blocks for any asynchronous updates to the defaults database and returns.

@@ -17,7 +17,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, BOOL, YES, NO, NSUInteger};
+use crate::foundation::{id, to_bool, BOOL, YES, NO, NSUInteger};
 
 /// Wrapper for a retained `NSData` object.
 ///
@@ -70,10 +70,7 @@ impl NSData {
             msg_send![obj, isKindOfClass:class!(NSData)]
         };
 
-        match result {
-            YES => true,
-            NO => false
-        }
+        to_bool(result)
     }
 
     /// Returns the length of the underlying `NSData` bytes.

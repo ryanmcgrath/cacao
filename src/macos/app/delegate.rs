@@ -14,7 +14,7 @@ use objc::runtime::{Class, Object, Sel};
 use url::Url;
 
 use crate::error::Error;
-use crate::foundation::{id, nil, BOOL, YES, NO, NSUInteger, NSArray, NSString};
+use crate::foundation::{id, nil, to_bool, BOOL, YES, NO, NSUInteger, NSArray, NSString};
 use crate::macos::app::{APP_PTR, AppDelegate};
 use crate::macos::printing::PrintSettings;
 use crate::user_activity::UserActivity;
@@ -105,10 +105,7 @@ extern fn did_update<T: AppDelegate>(this: &Object, _: Sel, _: id) {
 /// Fires when the Application Delegate receives a
 /// `applicationShouldHandleReopen:hasVisibleWindows:` notification.
 extern fn should_handle_reopen<T: AppDelegate>(this: &Object, _: Sel, _: id, has_visible_windows: BOOL) -> BOOL {
-    match app::<T>(this).should_handle_reopen(match has_visible_windows {
-        YES => true,
-        NO => false
-    }) {
+    match app::<T>(this).should_handle_reopen(to_bool(has_visible_windows)) {
         true => YES,
         false => NO
     }
@@ -266,10 +263,7 @@ extern fn print_files<T: AppDelegate>(this: &Object, _: Sel, _: id, files: id, s
 
     let settings = PrintSettings::with_inner(settings);
 
-    app::<T>(this).print_files(files, settings, match show_print_panels {
-        YES => true,
-        NO => false
-    }).into()
+    app::<T>(this).print_files(files, settings, to_bool(show_print_panels)).into()
 }
 
 /// Called when the application's occlusion state has changed.
