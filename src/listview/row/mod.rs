@@ -210,7 +210,7 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
         view
     }
 
-    pub fn wut(mut self) -> ListViewRow {
+    pub fn into_row(mut self) -> ListViewRow {
         // "forget" delegate, then move into standard ListViewRow
         // to ease return type
         let delegate = self.delegate.take();

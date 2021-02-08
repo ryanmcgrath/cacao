@@ -490,6 +490,17 @@ impl<T> ListView<T> {
         }
     }
 
+    /// End actions for a row. API subject to change.
+    pub fn set_row_actions_visible(&self, visible: bool) {
+        #[cfg(target_os = "macos")]
+        unsafe {
+            let _: () = msg_send![&*self.objc, setRowActionsVisible:match visible {
+                true => YES,
+                false => NO
+            }];
+        }
+    }
+
     /// Register this view for drag and drop operations.
     pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
         unsafe {

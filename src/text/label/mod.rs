@@ -216,6 +216,15 @@ impl<T> Label<T> {
         }
     }
 
+    /// Call this to set the color of the text.
+    pub fn set_color(&self, color: Color) {
+        let color = color.into_platform_specific_color();
+
+        unsafe {
+            let _: () = msg_send![&*self.objc, setTextColor:color];
+        }
+    }
+
     /// Call this to set the text for the label.
     pub fn set_text(&self, text: &str) {
         let s = NSString::new(text);

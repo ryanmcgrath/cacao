@@ -42,6 +42,12 @@ fn main() {
 
 For more thorough examples, check the `examples/` folder - for each UI control that's supported there will (ideally) be an example to accompany it.
 
+If you're interested in a more "kitchen sink" example, check out the todos_list with:
+
+``` sh
+cargo run --example todos_list
+```
+
 ## Initialization
 Due to the way that AppKit and UIKit programs typically work, you're encouraged to do the bulk
 of your work starting from the `did_finish_launching()` method of your `AppDelegate`. This
