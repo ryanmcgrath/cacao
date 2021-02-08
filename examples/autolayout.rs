@@ -5,7 +5,7 @@ use cacao::color::rgb;
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::View;
 
-use cacao::macos::app::{App, AppDelegate};
+use cacao::macos::{App, AppDelegate};
 use cacao::macos::window::{Window, WindowConfig, WindowDelegate};
 
 struct BasicApp {
@@ -14,6 +14,7 @@ struct BasicApp {
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
+        App::activate();
         self.window.show();
     }
 }
@@ -28,7 +29,9 @@ struct AppWindow {
 }
 
 impl WindowDelegate for AppWindow {
-    fn did_load(&self, window: Window) {
+    const NAME: &'static str = "WindowDelegate";
+
+    fn did_load(&mut self, window: Window) {
         window.set_title("AutoLayout Example");
         window.set_minimum_content_size(300., 300.);
 

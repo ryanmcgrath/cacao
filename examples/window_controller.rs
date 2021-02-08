@@ -4,7 +4,7 @@
 //!
 //! If you're not using that, you can probably get by fine with a standard `NSWindow`.
 
-use cacao::macos::app::{App, AppDelegate};
+use cacao::macos::{App, AppDelegate};
 use cacao::macos::window::{Window, WindowConfig, WindowController, WindowDelegate};
 
 struct BasicApp {
@@ -13,6 +13,8 @@ struct BasicApp {
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
+        App::activate();
+
         self.window.show();
     }
 }
@@ -21,6 +23,8 @@ impl AppDelegate for BasicApp {
 struct MyWindow;
 
 impl WindowDelegate for MyWindow {
+    const NAME: &'static str = "MyWindow";
+
     fn did_load(&mut self, window: Window) {
         window.set_minimum_content_size(400., 400.);
         window.set_title("A Basic Window!?");

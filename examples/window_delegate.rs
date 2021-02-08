@@ -1,7 +1,7 @@
 //! This example showcases setting up a basic application and window delegate.
 //! Window Delegate's give you lifecycle methods that you can respond to.
 
-use cacao::macos::app::{App, AppDelegate};
+use cacao::macos::{App, AppDelegate};
 use cacao::macos::window::{Window, WindowConfig, WindowDelegate};
 
 struct BasicApp {
@@ -10,6 +10,7 @@ struct BasicApp {
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
+        App::activate();
         self.window.show();
     }
 }
@@ -18,7 +19,9 @@ impl AppDelegate for BasicApp {
 struct MyWindow;
 
 impl WindowDelegate for MyWindow {
-    fn did_load(&self, window: Window) {
+    const NAME: &'static str = "MyWindow";
+
+    fn did_load(&mut self, window: Window) {
         window.set_minimum_content_size(400., 400.);
         window.set_title("A Basic Window!?");
     }
