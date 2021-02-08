@@ -19,7 +19,7 @@ existence of unsafe will be closed without comment._
 # Hello World
 
 ```rust
-use cacao::macos::app::{App, AppDelegate};
+use cacao::macos::{App, AppDelegate};
 use cacao::macos::window::Window;
 
 #[derive(Default)]
@@ -55,6 +55,7 @@ In terms of mostly working pieces, the following currently work:
 - `Window` construction, handling, and event delegation
 - `View` construction, basic styling, some event delegation
 - `ViewController` construction, lifecycle delegation
+- `ListView` support, including cell reuse (still needs testing).
 - `Toolbar` construction and basic API
 - `WebView` with a basic API for handling callbacks
 - `Autolayout` for View layout and such.
