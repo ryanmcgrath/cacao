@@ -87,7 +87,7 @@ impl MenuItem {
         match self {
             MenuItem::Separator => MenuItem::Separator,
 
-            MenuItem::Entry((item, old_action)) => {
+            MenuItem::Entry((item, _)) => {
                 let action = TargetActionHandler::new(&*item, action);
                 MenuItem::Entry((item, Some(action)))
             }

@@ -11,12 +11,12 @@ use std::sync::Once;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, sel, sel_impl};
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{load_or_register_class, id, YES, NO, NSUInteger};
+use crate::foundation::{load_or_register_class, id, nil, YES, NO, NSUInteger};
 use crate::dragdrop::DragInfo;
-use crate::view::{VIEW_DELEGATE_PTR, ViewDelegate};
+use crate::view::{VIEW_DELEGATE_PTR, BACKGROUND_COLOR, ViewDelegate};
 use crate::utils::load;
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
@@ -74,6 +74,19 @@ extern fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) 
     });
 }
 
+/// Called for layer updates.
+extern fn update_layer(this: &Object, _: Sel) {
+    unsafe {
+        let background_color: id = *this.get_ivar(BACKGROUND_COLOR);
+
+        if background_color != nil {
+            let layer: id = msg_send![this, layer];
+            let cg: id = msg_send![background_color, CGColor];
+            let _: () = msg_send![layer, setBackgroundColor:cg];
+        }
+    }
+}
+
 /// Injects an `NSView` subclass. This is used for the default views that don't use delegates - we
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
@@ -86,6 +99,10 @@ pub(crate) fn register_view_class() -> *const Class {
         let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
 
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(updateLayer), update_layer as extern fn(&Object, _));
+        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+
+        decl.add_ivar::<id>(BACKGROUND_COLOR);
     
         VIEW_CLASS = decl.register();
     });
@@ -100,7 +117,18 @@ pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -
         // A pointer to the ViewDelegate instance on the Rust side.
         // It's expected that this doesn't move.
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
+        decl.add_ivar::<id>(BACKGROUND_COLOR);
         
+        decl.add_method(
+            sel!(updateLayer),
+            update_layer as extern fn(&Object, _)
+        );
+
+        decl.add_method(
+            sel!(wantsUpdateLayer),
+            enforce_normalcy as extern fn(&Object, _) -> BOOL
+        );
+
         decl.add_method(
             sel!(isFlipped),
             enforce_normalcy as extern fn(&Object, _) -> BOOL

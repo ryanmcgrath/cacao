@@ -24,27 +24,18 @@ pub mod os {
     /// runtime check thhat returns a boolean indicating whether the current version is a minimum target.
     #[inline(always)]
     pub fn is_minimum_version(minimum_major: u64) -> bool {
-        //println!("Looking for: {}", major);
-        //println!("VERSION: {}", OS_VERSION.version());
-
         match OS_VERSION.version() {
             Version::Semantic(os_major, _, _) => { *os_major >= minimum_major },
             _ => false
         }
     }
 
-
     /// In rare cases we need to check whether something is a specific version of macOS. This is a
     /// runtime check thhat returns a boolean indicating whether the current version is a minimum target.
     #[inline(always)]
     pub fn is_minimum_semversion(major: u64, minor: u64, patch: u64) -> bool {
-        match OS_VERSION.version() {
-            Version::Semantic(maj, min, p) => {
-                major >= *maj && minor >= *min && patch >= *p
-            },
-
-            _ => { false }
-        }
+        let target = Version::Semantic(major, minor, patch);
+        OS_VERSION.version() > &target
     }
 }
 

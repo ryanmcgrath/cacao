@@ -41,7 +41,10 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use objc_id::ShareId;
+use std::rc::Rc;
+use std::cell::RefCell;
+
+use objc_id::{Id, ShareId};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
@@ -84,7 +87,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 #[derive(Debug)]
 pub struct ListViewRow<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: ShareId<Object>,
+    pub objc: Rc<RefCell<Id<Object>>>,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
@@ -135,7 +138,7 @@ impl ListViewRow {
             height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
             center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
             center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
         }
     }
 }
@@ -170,7 +173,7 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
             center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
             center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
         };
 
         view
@@ -202,7 +205,7 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
             center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
             center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
         };
 
         (&mut delegate).did_load(view.clone_as_handle()); 
@@ -228,7 +231,7 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             height: self.height.clone(),
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
-            objc: self.objc.clone()
+            objc: Rc::clone(&self.objc)
         }
     }
 }
@@ -255,7 +258,7 @@ impl<T> ListViewRow<T> {
             height: self.height.clone(),
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
-            objc: self.objc.clone()
+            objc: Rc::clone(&self.objc)
         }
     }
 
@@ -263,8 +266,9 @@ impl<T> ListViewRow<T> {
     pub fn set_identifier(&self, identifier: &'static str) {
         let identifier = NSString::new(identifier).into_inner();
 
+        let objc = self.objc.borrow();
         unsafe {
-            let _: () = msg_send![&*self.objc, setIdentifier:identifier];
+            let _: () = msg_send![&**objc, setIdentifier:identifier];
         }
     }
 
@@ -272,9 +276,10 @@ impl<T> ListViewRow<T> {
     pub fn set_background_color(&self, color: Color) {
         let bg = color.into_platform_specific_color();
         
+        let objc = self.objc.borrow();
         unsafe {
             let cg: id = msg_send![bg, CGColor];
-            let layer: id = msg_send![&*self.objc, layer];
+            let layer: id = msg_send![&**objc, layer];
             let _: () = msg_send![layer, setBackgroundColor:cg];
         }
     }
@@ -289,21 +294,29 @@ impl<T> ListViewRow<T> {
                 x.into_inner()
             }).collect::<Vec<id>>().into();
 
-            let _: () = msg_send![&*self.objc, registerForDraggedTypes:types.into_inner()];
+            let objc = self.objc.borrow();
+            let _: () = msg_send![&**objc, registerForDraggedTypes:types.into_inner()];
         }
     }
 }
 
 impl<T> Layout for ListViewRow<T> {
     fn get_backing_node(&self) -> ShareId<Object> {
-        self.objc.clone()
+        let objc = self.objc.borrow();
+
+        unsafe {
+            // @TODO: Need a better solution here.
+            let x: id = msg_send![&**objc, self];
+            ShareId::from_ptr(x)
+        }
     }
 
     fn add_subview<V: Layout>(&self, view: &V) {
         let backing_node = view.get_backing_node();
 
+        let objc = self.objc.borrow();
         unsafe {
-            let _: () = msg_send![&*self.objc, addSubview:backing_node];
+            let _: () = msg_send![&**objc, addSubview:backing_node];
         }
     }
 }

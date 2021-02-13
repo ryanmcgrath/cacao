@@ -39,7 +39,7 @@ impl LayoutAnchorDimension {
     pub fn constraint_equal_to(&self, anchor_to: &LayoutAnchorDimension) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintEqualToAnchor:&*to]
+                msg_send![*from, constraintEqualToAnchor:&**to]
             }),
 
             _ => { panic!("Attempted to create constraints with an uninitialized anchor!"); }
@@ -50,7 +50,7 @@ impl LayoutAnchorDimension {
     pub fn constraint_greater_than_or_equal_to(&self, anchor_to: &LayoutAnchorDimension) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintGreaterThanOrEqualToAnchor:&*to]
+                msg_send![*from, constraintGreaterThanOrEqualToAnchor:&**to]
             }),
 
             _ => { panic!("Attempted to create constraints with an uninitialized anchor!"); }
@@ -61,7 +61,7 @@ impl LayoutAnchorDimension {
     pub fn constraint_less_than_or_equal_to(&self, anchor_to: &LayoutAnchorDimension) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintLessThanOrEqualToAnchor:&*to]
+                msg_send![*from, constraintLessThanOrEqualToAnchor:&**to]
             }),
 
             _ => { panic!("Attempted to create constraints with an uninitialized anchor!"); }

@@ -217,7 +217,7 @@ impl<T> Label<T> {
     }
 
     /// Call this to set the color of the text.
-    pub fn set_color(&self, color: Color) {
+    pub fn set_text_color(&self, color: Color) {
         let color = color.into_platform_specific_color();
 
         unsafe {
@@ -232,6 +232,15 @@ impl<T> Label<T> {
         unsafe {
             let _: () = msg_send![&*self.objc, setStringValue:s.into_inner()];
         }
+    }
+
+    /// Retrieve the text currently held in the label.
+    pub fn text(&self) -> String {
+        let s = NSString::wrap(unsafe {
+            msg_send![&*self.objc, stringValue]
+        });
+
+        s.to_str().to_string()
     }
 
     pub fn set_text_alignment(&self, alignment: TextAlign) {

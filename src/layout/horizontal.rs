@@ -26,7 +26,7 @@ impl LayoutAnchorX {
     pub fn constraint_equal_to(&self, anchor_to: &LayoutAnchorX) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintEqualToAnchor:&*to.clone()]
+                msg_send![*from, constraintEqualToAnchor:&**to]
             }),
 
             _ => { panic!("Attempted to create horizontal constraints with an uninitialized anchor!"); }
@@ -37,7 +37,7 @@ impl LayoutAnchorX {
     pub fn constraint_greater_than_or_equal_to(&self, anchor_to: &LayoutAnchorX) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintGreaterThanOrEqualToAnchor:&*to]
+                msg_send![*from, constraintGreaterThanOrEqualToAnchor:&**to]
             }),
 
             _ => { panic!("Attempted to create horizontal constraints with an uninitialized anchor!"); }
@@ -48,7 +48,7 @@ impl LayoutAnchorX {
     pub fn constraint_less_than_or_equal_to(&self, anchor_to: &LayoutAnchorX) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintLessThanOrEqualToAnchor:&*to]
+                msg_send![*from, constraintLessThanOrEqualToAnchor:&**to]
             }),
 
             _ => { panic!("Attempted to create horizontal constraints with an uninitialized anchor!"); }

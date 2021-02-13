@@ -1,7 +1,7 @@
-//! This example showcases setting up a basic application and window, and setting up some views to
-//! work with autolayout.
+//! This example showcases setting up a basic application and window, setting up some views to
+//! work with autolayout, and some basic ways to handle colors.
 
-use cacao::color::rgb;
+use cacao::color::{Color, Theme};
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::View;
 
@@ -24,8 +24,7 @@ struct AppWindow {
     content: View,
     blue: View,
     red: View,
-    green: View,
-    window: Window
+    green: View
 }
 
 impl WindowDelegate for AppWindow {
@@ -35,13 +34,18 @@ impl WindowDelegate for AppWindow {
         window.set_title("AutoLayout Example");
         window.set_minimum_content_size(300., 300.);
 
-        self.blue.set_background_color(rgb(105, 162, 176));
+        let dynamic = Color::dynamic(|style| match (style.theme, style.contrast) {
+            (Theme::Dark, _) => Color::SystemGreen,
+            _ => Color::SystemRed
+        });
+
+        self.blue.set_background_color(Color::SystemBlue);
         self.content.add_subview(&self.blue);
 
-        self.red.set_background_color(rgb(224, 82, 99));
+        self.red.set_background_color(Color::SystemRed);
         self.content.add_subview(&self.red);
 
-        self.green.set_background_color(rgb(161, 192, 132));
+        self.green.set_background_color(dynamic);
         self.content.add_subview(&self.green);
 
         window.set_content_view(&self.content);

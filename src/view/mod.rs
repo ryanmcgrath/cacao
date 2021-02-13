@@ -41,7 +41,7 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use objc_id::ShareId;
+use objc_id::{Id, ShareId};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
@@ -49,6 +49,9 @@ use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
+
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -68,6 +71,7 @@ pub use controller::ViewController;
 mod traits;
 pub use traits::ViewDelegate;
 
+pub(crate) static BACKGROUND_COLOR: &str = "alchemyBackgroundColor";
 pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
@@ -89,7 +93,7 @@ fn common_init(class: *const Class) -> id {
 #[derive(Debug)]
 pub struct View<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: ShareId<Object>,
+    pub objc: Rc<RefCell<Id<Object>>>,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
@@ -140,7 +144,7 @@ impl View {
             height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
             center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
             center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
         }
     }
 }
@@ -170,7 +174,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
             height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
             center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
             center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
         };
 
         (&mut delegate).did_load(view.clone_as_handle()); 
@@ -195,19 +199,24 @@ impl<T> View<T> {
             height: self.height.clone(),
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
-            objc: self.objc.clone()
+            objc: Rc::clone(&self.objc) //.clone()
         }
     }
 
     /// Call this to set the background color for the backing layer.
-    pub fn set_background_color(&self, color: Color) {
-        let bg = color.into_platform_specific_color();
+    pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
+        let mut objc = self.objc.borrow_mut();
+        
+        unsafe {
+            (&mut **objc).set_ivar(BACKGROUND_COLOR, color.as_ref().to_objc());
+        }
+        /*let bg = color.as_ref().into_platform_specific_color();
         
         unsafe {
             let cg: id = msg_send![bg, CGColor];
             let layer: id = msg_send![&*self.objc, layer];
             let _: () = msg_send![layer, setBackgroundColor:cg];
-        }
+        }*/
     }
 
     /// Register this view for drag and drop operations.
@@ -220,21 +229,28 @@ impl<T> View<T> {
                 x.into_inner()
             }).collect::<Vec<id>>().into();
 
-            let _: () = msg_send![&*self.objc, registerForDraggedTypes:types.into_inner()];
+            let objc = self.objc.borrow();
+            let _: () = msg_send![&**objc, registerForDraggedTypes:types.into_inner()];
         }
     }
 }
 
 impl<T> Layout for View<T> {
     fn get_backing_node(&self) -> ShareId<Object> {
-        self.objc.clone()
+        let objc = self.objc.borrow();
+
+        unsafe {
+            let x: id = msg_send![&**objc, self];
+            ShareId::from_ptr(x)
+        }
     }
 
     fn add_subview<V: Layout>(&self, view: &V) {
         let backing_node = view.get_backing_node();
 
+        let objc = self.objc.borrow();
         unsafe {
-            let _: () = msg_send![&*self.objc, addSubview:backing_node];
+            let _: () = msg_send![&**objc, addSubview:backing_node];
         }
     }
 }
@@ -247,13 +263,13 @@ impl<T> Drop for View<T> {
     ///
     /// There are, thankfully, no delegates we need to break here.
     fn drop(&mut self) {
-        if self.delegate.is_some() {
+        /*if self.delegate.is_some() {
             unsafe {
                 let superview: id = msg_send![&*self.objc, superview];
                 if superview != nil {
                     let _: () = msg_send![&*self.objc, removeFromSuperview];
                 }
             }
-        }
+        }*/
     }
 }

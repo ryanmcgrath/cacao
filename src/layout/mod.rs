@@ -7,6 +7,9 @@
 //! not be able to attach a left-axis to a top-axis. In Rust this is a bit tricky, but by using
 //! some `impl Trait`'s in the right places we can mostly hide this detail away.
 
+pub mod attributes;
+pub use attributes::*;
+
 pub mod traits;
 pub use traits::Layout;
 

@@ -1,7 +1,7 @@
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::text::{Font, Label, LineBreakMode};
 use cacao::view::{View, ViewDelegate};
-use cacao::color::rgb;
+use cacao::color::Color;
 
 use crate::storage::{Todo, TodoStatus};
 
@@ -20,12 +20,12 @@ impl TodoViewRow {
 
         match todo.status {
             TodoStatus::Incomplete => {
-                self.status.set_color(rgb(219, 66, 66));
+                self.status.set_text_color(Color::SystemRed);
                 self.status.set_text("Incomplete");
             },
 
             TodoStatus::Complete => {
-                self.status.set_color(rgb(11, 121, 254));
+                self.status.set_text_color(Color::SystemBlue);
                 self.status.set_text("Complete");
             }
         }

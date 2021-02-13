@@ -25,11 +25,15 @@ os_info = "3.0.1"
 uuid = { version = "0.8", features = ["v4"], optional = true }
 url = "2.1.1"
 
+[dev-dependencies]
+eval = "0.4"
+
 [features]
 default = ["macos"]
 cloudkit = []
 ios = []
 macos = []
+color_fallbacks = []
 quicklook = []
 user-notifications = ["uuid"]
 webview = []

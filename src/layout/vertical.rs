@@ -26,7 +26,7 @@ impl LayoutAnchorY {
     pub fn constraint_equal_to(&self, anchor_to: &LayoutAnchorY) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                let b: id = msg_send![*from, constraintEqualToAnchor:&*to.clone()];
+                let b: id = msg_send![*from, constraintEqualToAnchor:&**to];
                 b
             }),
 
@@ -38,7 +38,7 @@ impl LayoutAnchorY {
     pub fn constraint_greater_than_or_equal_to(&self, anchor_to: &LayoutAnchorY) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintGreaterThanOrEqualToAnchor:&*to]
+                msg_send![*from, constraintGreaterThanOrEqualToAnchor:&**to]
             }),
 
             _ => { panic!("Attempted to create vertical constraints with an uninitialized anchor!"); }
@@ -49,7 +49,7 @@ impl LayoutAnchorY {
     pub fn constraint_less_than_or_equal_to(&self, anchor_to: &LayoutAnchorY) -> LayoutConstraint {
         match (&self.0, &anchor_to.0) {
             (Some(from), Some(to)) => LayoutConstraint::new(unsafe {
-                msg_send![*from, constraintLessThanOrEqualToAnchor:&*to]
+                msg_send![*from, constraintLessThanOrEqualToAnchor:&**to]
             }),
 
             _ => { panic!("Attempted to create vertical constraints with an uninitialized anchor!"); }

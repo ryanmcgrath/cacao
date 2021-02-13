@@ -48,8 +48,12 @@ extern fn view_for_column<T: ListViewDelegate>(
     // @TODO: probably find a better way to do this. It's theoretically fine,
     // as we *know* the underlying view will be retained by the NSTableView, so
     // passing over one more won't really screw up retain counts.
+    //
+    // @TODO: Finish investing the `Rc` approach, might be able to just take
+    // ownership and rely on Rust being correct.
+    let objc = item.objc.borrow();
     unsafe {
-        msg_send![&*item.objc, self]
+        msg_send![&**objc, self]
     }
 }
 

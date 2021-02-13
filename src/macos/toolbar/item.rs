@@ -12,7 +12,7 @@ use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, NSString};
 use crate::invoker::TargetActionHandler;
-use crate::button::Button;
+use crate::button::{Button, BezelStyle};
 use crate::image::Image;
 
 /// Wraps `NSToolbarItem`. Enables configuring things like size, view, and so on.
@@ -57,7 +57,7 @@ impl ToolbarItem {
 
     /// Sets and takes ownership of the button for this item.
     pub fn set_button(&mut self, button: Button) {
-        button.set_bezel_style(11);
+        button.set_bezel_style(BezelStyle::TexturedRounded);
 
         unsafe {
             let _: () = msg_send![&*self.objc, setView:&*button.objc];
