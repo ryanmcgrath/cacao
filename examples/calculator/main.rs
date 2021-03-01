@@ -49,6 +49,9 @@ impl AppDelegate for CalculatorApp {
         self.window.set_content_view(&self.content);
         self.window.show();
     }
+    fn should_terminate_after_last_window_closed(&self) -> bool {
+        true
+    }
 }
 
 impl Dispatcher for CalculatorApp {
