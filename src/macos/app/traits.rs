@@ -98,6 +98,10 @@ pub trait AppDelegate {
     /// back.
     fn should_terminate(&self) -> TerminateResponse { TerminateResponse::Now }
 
+    /// Called after closing the last open window. Return `true` here if you want
+    /// the application to terminate.
+    fn should_terminate_after_last_window_closed(&self) -> bool { false }
+
     /// Sent by the application to the delegate prior to default behavior to reopen AppleEvents.
     ///
     /// `has_visible_windows` indicates whether the Application object found any visible windows in your application.
