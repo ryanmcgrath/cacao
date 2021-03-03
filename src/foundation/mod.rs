@@ -31,15 +31,31 @@ mod class;
 pub use class::load_or_register_class;
 
 mod data;
+
 pub use data::NSData;
 
 mod dictionary;
+
 pub use dictionary::NSDictionary;
 
 mod number;
+
 pub use number::NSNumber;
 
+mod point;
+
+pub use point::NSPoint;
+
+mod rect;
+
+pub use rect::NSRect;
+
+mod size;
+
+pub use size::NSSize;
+
 mod string;
+
 pub use string::NSString;
 
 /// Bool mapping types differ between ARM and x64. There's a number of places that we need to check
@@ -49,10 +65,12 @@ pub fn to_bool(result: BOOL) -> bool {
     match result {
         YES => true,
         NO => false,
-        
+
         //#[cfg(target_arch = "aarch64")]
         #[cfg(not(target_arch = "aarch64"))]
-        _ => { std::unreachable!(); }
+        _ => {
+            std::unreachable!();
+        }
     }
 }
 

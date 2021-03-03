@@ -5,7 +5,7 @@
 //! people expect in 2020, and layer-backing all views by default.
 //!
 //! Views implement Autolayout, which enable you to specify how things should appear on the screen.
-//! 
+//!
 //! ```rust,no_run
 //! use cacao::color::rgb;
 //! use cacao::layout::{Layout, LayoutConstraint};
@@ -18,7 +18,7 @@
 //!     red: View,
 //!     window: Window
 //! }
-//! 
+//!
 //! impl WindowDelegate for AppWindow {
 //!     fn did_load(&mut self, window: Window) {
 //!         window.set_minimum_content_size(300., 300.);
@@ -41,17 +41,17 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use objc_id::{Id, ShareId};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
+use objc_id::{Id, ShareId};
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::foundation::{id, nil, NSArray, NSRect, NSString, NO, YES};
+use crate::layout::{Layout, LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 use crate::pasteboard::PasteboardType;
 
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -75,15 +75,15 @@ pub(crate) static BACKGROUND_COLOR: &str = "alchemyBackgroundColor";
 pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn common_init(class: *const Class) -> id { 
+fn common_init(class: *const Class) -> id {
     unsafe {
         let view: id = msg_send![class, new];
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
         #[cfg(target_os = "macos")]
-        let _: () = msg_send![view, setWantsLayer:YES];
+        let _: () = msg_send![view, setWantsLayer: YES];
 
-        view 
+        view
     }
 }
 
@@ -120,7 +120,7 @@ pub struct View<T = ()> {
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
-    pub center_y: LayoutAnchorY
+    pub center_y: LayoutAnchorY,
 }
 
 impl Default for View {
@@ -130,7 +130,7 @@ impl Default for View {
 }
 
 impl View {
-    /// Returns a default `View`, suitable for 
+    /// Returns a default `View`, suitable for
     pub fn new() -> Self {
         let view = common_init(register_view_class());
 
@@ -149,13 +149,16 @@ impl View {
     }
 }
 
-impl<T> View<T> where T: ViewDelegate + 'static {
+impl<T> View<T>
+where
+    T: ViewDelegate + 'static,
+{
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> View<T> {
         let class = register_view_class_with_delegate(&delegate);
         let mut delegate = Box::new(delegate);
-        
+
         let view = unsafe {
             let view: id = common_init(class);
             let ptr = Box::into_raw(delegate);
@@ -177,7 +180,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
             objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
         };
 
-        (&mut delegate).did_load(view.clone_as_handle()); 
+        (&mut delegate).did_load(view.clone_as_handle());
         view.delegate = Some(delegate);
         view
     }
@@ -199,19 +202,19 @@ impl<T> View<T> {
             height: self.height.clone(),
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
-            objc: Rc::clone(&self.objc) //.clone()
+            objc: Rc::clone(&self.objc), //.clone()
         }
     }
 
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         let mut objc = self.objc.borrow_mut();
-        
+
         unsafe {
             (&mut **objc).set_ivar(BACKGROUND_COLOR, color.as_ref().to_objc());
         }
         /*let bg = color.as_ref().into_platform_specific_color();
-        
+
         unsafe {
             let cg: id = msg_send![bg, CGColor];
             let layer: id = msg_send![&*self.objc, layer];
@@ -222,15 +225,33 @@ impl<T> View<T> {
     /// Register this view for drag and drop operations.
     pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
         unsafe {
-            let types: NSArray = types.into_iter().map(|t| {
-                // This clone probably doesn't need to be here, but it should also be cheap as
-                // this is just an enum... and this is not an oft called method.
-                let x: NSString = t.clone().into();
-                x.into_inner()
-            }).collect::<Vec<id>>().into();
+            let types: NSArray = types
+                .into_iter()
+                .map(|t| {
+                    // This clone probably doesn't need to be here, but it should also be cheap as
+                    // this is just an enum... and this is not an oft called method.
+                    let x: NSString = t.clone().into();
+                    x.into_inner()
+                })
+                .collect::<Vec<id>>()
+                .into();
 
             let objc = self.objc.borrow();
             let _: () = msg_send![&**objc, registerForDraggedTypes:types.into_inner()];
+        }
+    }
+
+    pub fn set_frame(&self, rect: NSRect) {
+        let mut objc = self.objc.borrow_mut();
+        unsafe {
+            let _: () = msg_send![&**objc, setFrame: rect];
+        }
+    }
+
+    pub fn set_translates_autoresizing_mask_into_constraints(&self, translates: bool) {
+        let mut objc = self.objc.borrow_mut();
+        unsafe {
+            let _: () = msg_send![&**objc, setTranslatesAutoresizingMaskIntoConstraints:match translates { true => YES, false => NO }];
         }
     }
 }
@@ -250,7 +271,7 @@ impl<T> Layout for View<T> {
 
         let objc = self.objc.borrow();
         unsafe {
-            let _: () = msg_send![&**objc, addSubview:backing_node];
+            let _: () = msg_send![&**objc, addSubview: backing_node];
         }
     }
 }
