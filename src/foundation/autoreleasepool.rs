@@ -7,6 +7,7 @@ use objc_id::Id;
 ///
 /// When this is dropped, we automatically send a `drain` message to the underlying pool. You can
 /// also call `drain()` yourself if you need to drain for whatever reason.
+#[derive(Debug)]
 pub struct AutoReleasePool(pub Id<Object>);
 
 impl AutoReleasePool {

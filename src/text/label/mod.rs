@@ -203,19 +203,19 @@ impl<T> Label<T> {
     }
 
     /// Call this to set the background color for the backing layer.
-    pub fn set_background_color(&self, color: Color) {
-        let bg = color.into_platform_specific_color();
+    pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
+        // @TODO: This is wrong.
+        let color = color.as_ref().cg_color();
         
         unsafe {
-            let cg: id = msg_send![bg, CGColor];
             let layer: id = msg_send![&*self.objc, layer];
-            let _: () = msg_send![layer, setBackgroundColor:cg];
+            let _: () = msg_send![layer, setBackgroundColor:color];
         }
     }
 
     /// Call this to set the color of the text.
-    pub fn set_text_color(&self, color: Color) {
-        let color = color.into_platform_specific_color();
+    pub fn set_text_color<C: AsRef<Color>>(&self, color: C) {
+        let color: id = color.as_ref().into();
 
         unsafe {
             let _: () = msg_send![&*self.objc, setTextColor:color];
@@ -240,6 +240,7 @@ impl<T> Label<T> {
         s.to_string()
     }
 
+    /// Sets the text alignment for this label.
     pub fn set_text_alignment(&self, alignment: TextAlign) {
         unsafe {
             let alignment: NSInteger = alignment.into();
@@ -247,12 +248,18 @@ impl<T> Label<T> {
         }
     }
 
-    pub fn set_font(&self, font: &Font) {
+    /// Sets the font for this label.
+    pub fn set_font<F: AsRef<Font>>(&self, font: F) {
+        // This clone is here to ensure there's no oddities with retain counts on the underlying
+        // font object - it seems like it can be optimized away otherwise.
+        let font = font.as_ref().clone();
+
         unsafe {
-            let _: () = msg_send![&*self.objc, setFont:&*font.objc];
+            let _: () = msg_send![&*self.objc, setFont:&*font];
         }
     }
 
+    /// Set whether this is hidden or not.
     pub fn set_hidden(&self, hidden: bool) {
         unsafe {
             let _: () = msg_send![&*self.objc, setHidden:match hidden {
@@ -262,6 +269,7 @@ impl<T> Label<T> {
         }
     }
 
+    /// Set the line break mode for this label.
     pub fn set_line_break_mode(&self, mode: LineBreakMode) {
         #[cfg(target_os = "macos")]
         unsafe {

@@ -2,6 +2,7 @@
 //! one level deep; this could change in the future but is fine for
 //! now.
 
+use std::fmt;
 use std::sync::Once;
 
 use block::ConcreteBlock;
@@ -24,6 +25,16 @@ static BLOCK_PTR: &'static str = "cacaoMenuItemBlockPtr";
 /// and the heap isn't our enemy in a GUI framework anyway. If someone knows 
 /// a better way to do this that doesn't require double-boxing, I'm all ears.
 pub struct Action(Box<dyn Fn() + 'static>);
+
+impl fmt::Debug for Action {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let ptr = format!("{:p}", self.0);
+
+        f.debug_struct("Action")
+            .field("fn", &ptr)
+            .finish()
+    }
+}
 
 /// Internal method (shorthand) for generating `NSMenuItem` holders.
 fn make_menu_item<S: AsRef<str>>(

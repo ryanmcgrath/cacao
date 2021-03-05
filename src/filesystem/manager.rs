@@ -13,6 +13,7 @@ use crate::foundation::{id, nil, NO, NSString, NSUInteger};
 use crate::error::{Error as AppKitError};
 use crate::filesystem::enums::{SearchPathDirectory, SearchPathDomainMask};
 
+#[derive(Debug)]
 pub struct FileManager {
     pub manager: RwLock<Id<Object>>
 }

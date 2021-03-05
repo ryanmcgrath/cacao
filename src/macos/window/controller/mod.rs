@@ -27,9 +27,11 @@
 //! }
 //! ```
 
+use std::fmt;
+
 use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc_id::Id;
 
 use crate::foundation::{id, nil};
 use crate::utils::Controller;
@@ -42,7 +44,7 @@ use class::register_window_controller_class;
 /// provides some extra lifecycle methods.
 pub struct WindowController<T> {
     /// A handler to the underlying `NSWindowController`.
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object>,
 
     /// The underlying `Window` that this controller wraps.
     pub window: Window<T>
@@ -64,7 +66,7 @@ impl<T> WindowController<T> where T: WindowDelegate + 'static {
                 (&mut *controller).set_ivar(WINDOW_DELEGATE_PTR, ptr as usize);
             }
 
-            ShareId::from_ptr(controller)
+            Id::from_ptr(controller)
         };
 
         if let Some(delegate) = &mut window.delegate {
@@ -74,10 +76,7 @@ impl<T> WindowController<T> where T: WindowDelegate + 'static {
             });
         }
 
-        WindowController {
-            objc: objc,
-            window: window
-        }
+        WindowController { objc, window }
     }
 
     /// Given a view, sets it as the content view controller for this window.
@@ -101,5 +100,13 @@ impl<T> WindowController<T> where T: WindowDelegate + 'static {
         unsafe {
             let _: () = msg_send![&*self.objc, close];
         }
+    }
+}
+
+impl<T> fmt::Debug for WindowController<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("WindowController")
+            .field("objc", &self.objc)
+            .finish()
     }
 }

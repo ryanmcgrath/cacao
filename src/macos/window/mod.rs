@@ -330,9 +330,11 @@ impl<T> Window<T> {
     }
 
     /// Sets the background color for the window. You generally don't want to do this often.
-    pub fn set_background_color(&self, color: Color) {
+    pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
+        let color: id = color.as_ref().into();
+
         unsafe {
-            let _: () = msg_send![&*self.objc, setBackgroundColor:color.into_platform_specific_color()];
+            let _: () = msg_send![&*self.objc, setBackgroundColor:color];
         }
     }
 

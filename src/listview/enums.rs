@@ -3,6 +3,7 @@ use crate::foundation::{NSInteger, NSUInteger};
 /// This enum represents the different stock animations possible
 /// for ListView row operations. You can pass it to `insert_rows`
 /// and `remove_rows` - reloads don't get animations.
+#[derive(Copy, Clone, Debug)]
 pub enum RowAnimation {
     /// No animation.
     None,
@@ -41,7 +42,7 @@ impl Into<NSUInteger> for RowAnimation {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum RowEdge {
     Leading,
     Trailing

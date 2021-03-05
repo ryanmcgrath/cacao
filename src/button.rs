@@ -14,15 +14,11 @@ use crate::image::Image;
 use crate::foundation::{id, nil, BOOL, YES, NO, NSString, NSUInteger};
 use crate::invoker::TargetActionHandler;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
-use crate::text::Font;
+use crate::text::{AttributedString, Font};
 use crate::utils::load;
 
 #[cfg(feature = "macos")]
 use crate::macos::FocusRingType;
-
-extern "C" {
-    static NSForegroundColorAttributeName: id;
-}
 
 /// A wrapper for `NSButton`. Holds (retains) pointers for the Objective-C runtime 
 /// where our `NSButton` lives.
@@ -111,17 +107,13 @@ impl Button {
     }
 
     /// Call this to set the background color for the backing layer.
-    pub fn set_background_color(&self, color: Color) {
-        let bg = color.into_platform_specific_color();
+    pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
+        let color: id = color.as_ref().into();
         
         #[cfg(feature = "macos")]
         unsafe {
             let cell: id = msg_send![&*self.objc, cell];
-            let _: () = msg_send![cell, setBackgroundColor:bg];
-            /*let cg: id = msg_send![bg, CGColor];
-            let layer: id = msg_send![&*self.objc, layer];
-            let _: () = msg_send![layer, setBackgroundColor:cg];
-            */
+            let _: () = msg_send![cell, setBackgroundColor:color];
         }
     }
 
@@ -133,20 +125,19 @@ impl Button {
         }
     }
 
-    pub fn set_text_color(&self, color: Color) {
-        let bg = color.into_platform_specific_color();
-        
-        // @TODO: Clean this up, and look at just using `CFMutableAttributedString` instead
-        // to avoid ObjC overhead.
+    /// Sets the text color for this button.
+    ///
+    /// On macOS, this is done by way of an `AttributedString` under the hood. 
+    pub fn set_text_color<C: AsRef<Color>>(&self, color: C) {
+        #[cfg(feature = "macos")]
         unsafe {
-            let alloc: id = msg_send![class!(NSMutableAttributedString), alloc];
-            let s: id = msg_send![&*self.objc, attributedTitle];
-            let attributed_string: id = msg_send![alloc, initWithAttributedString:s];
-            let len: isize = msg_send![s, length];
-            let range = core_foundation::base::CFRange::init(0, len);
-
-            let _: () = msg_send![attributed_string, addAttribute:NSForegroundColorAttributeName value:bg range:range];
-            let _: () = msg_send![&*self.objc, setAttributedTitle:attributed_string];
+            let text: id = msg_send![&*self.objc, attributedTitle];
+            let len: isize = msg_send![text, length];
+            
+            let mut attr_str = AttributedString::wrap(text);
+            attr_str.set_text_color(color, 0..len);
+            
+            let _: () = msg_send![&*self.objc, setAttributedTitle:&*attr_str];
         }
     }
 
@@ -163,9 +154,11 @@ impl Button {
     }
 
     /// Sets the font for this button.
-    pub fn set_font(&self, font: &Font) {
+    pub fn set_font<F: AsRef<Font>>(&self, font: F) {
+        let font = font.as_ref().clone();
+
         unsafe {
-            let _: () = msg_send![&*self.objc, setFont:&*font.objc];
+            let _: () = msg_send![&*self.objc, setFont:&*font];
         }
     }
 
@@ -197,8 +190,8 @@ impl Layout for Button {
 
     fn add_subview<V: Layout>(&self, _view: &V) {
         panic!(r#"
-            Tried to add a subview to a Button. This is not allowed in Cacao. If you think this should be supported, 
-            open a discussion on the GitHub repo.
+            Tried to add a subview to a Button. This is not allowed in Cacao. 
+            If you think this should be supported, open a discussion on the GitHub repo.
         "#);
     }
 }
@@ -210,8 +203,8 @@ impl Layout for &Button {
 
     fn add_subview<V: Layout>(&self, _view: &V) {
         panic!(r#"
-            Tried to add a subview to a Button. This is not allowed in Cacao. If you think this should be supported, 
-            open a discussion on the GitHub repo.
+            Tried to add a subview to a Button. This is not allowed in Cacao.
+            If you think this should be supported, open a discussion on the GitHub repo.
         "#);
     }
 }

@@ -16,6 +16,7 @@ mod types;
 pub use types::{PasteboardName, PasteboardType};
 
 /// Represents an `NSPasteboard`, enabling you to handle copy/paste/drag and drop.
+#[derive(Debug)]
 pub struct Pasteboard(pub ShareId<Object>);
 
 impl Default for Pasteboard {

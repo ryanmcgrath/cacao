@@ -1,5 +1,5 @@
 //#![deny(missing_docs)]
-//#![deny(missing_debug_implementations)]
+#![deny(missing_debug_implementations)]
 #![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 #![cfg_attr(docsrs, deny(rustdoc::broken_intra_doc_links))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -74,6 +74,8 @@
 //!
 //! - `cloudkit`: Links `CloudKit.framework` and provides some wrappers around CloudKit
 //! functionality. Currently not feature complete.
+//! - `color_fallbacks`: Provides fallback colors for older systems where `systemColor` types don't
+//! exist. This feature is very uncommon and you probably don't need it.
 //! - `quicklook`: Links `QuickLook.framework` and offers methods for generating preview images for
 //! files.
 //! - `user-notifications`: Links `UserNotifications.framework` and provides functionality for

@@ -2,6 +2,7 @@
 
 use crate::foundation::{NSInteger, NSUInteger};
 
+#[derive(Copy, Clone, Debug)]
 pub enum ModalResponse {
     Ok,
     Continue,
@@ -33,6 +34,7 @@ impl From<NSInteger> for ModalResponse {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum SearchPathDomainMask {
     User,
     Local,
@@ -53,6 +55,7 @@ impl From<SearchPathDomainMask> for NSUInteger {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum SearchPathDirectory {
     Applications,
     DemoApplications,

@@ -12,36 +12,12 @@ use objc_id::ShareId;
 
 use crate::foundation::{id, BOOL, YES, NO};
 
-pub mod os {
-    use lazy_static::lazy_static;
-    use os_info::Version;
-
-    lazy_static! {
-        pub static ref OS_VERSION: os_info::Info = os_info::get();
-    }
-
-    /// In rare cases we need to check whether something is a specific version of macOS. This is a
-    /// runtime check thhat returns a boolean indicating whether the current version is a minimum target.
-    #[inline(always)]
-    pub fn is_minimum_version(minimum_major: u64) -> bool {
-        match OS_VERSION.version() {
-            Version::Semantic(os_major, _, _) => { *os_major >= minimum_major },
-            _ => false
-        }
-    }
-
-    /// In rare cases we need to check whether something is a specific version of macOS. This is a
-    /// runtime check thhat returns a boolean indicating whether the current version is a minimum target.
-    #[inline(always)]
-    pub fn is_minimum_semversion(major: u64, minor: u64, patch: u64) -> bool {
-        let target = Version::Semantic(major, minor, patch);
-        OS_VERSION.version() > &target
-    }
-}
+pub mod os;
 
 /// A generic trait that's used throughout multiple different controls in this framework - acts as
-/// a guard for whether something is a (View|etc)Controller. Only needs to return the backing node.
+/// a guard for whether something is a (View|Window|etc)Controller. 
 pub trait Controller {
+    /// Returns the underlying Objective-C object.
     fn get_backing_node(&self) -> ShareId<Object>;
 }
 
@@ -69,6 +45,7 @@ pub fn load<'a, T>(this: &'a Object, ptr_name: &str) -> &'a T {
     }
 }
 
+/// Asynchronously execute a callback on the main thread via Grand Central Dispatch.
 pub fn async_main_thread<F>(method: F)
 where
     F: Fn() + Send + 'static
@@ -77,6 +54,7 @@ where
     queue.exec_async(method);
 }
 
+/// Synchronously execute a callback on the main thread via Grand Central Dispatch.
 pub fn sync_main_thread<F>(method: F)
 where
     F: Fn() + Send + 'static
@@ -90,21 +68,27 @@ where
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct CGSize {
+    /// The width of this size.
     pub width: CGFloat,
+
+    /// The height of this size.
     pub height: CGFloat,
 }
 
 impl CGSize {
+    /// Create and return a new `CGSize`.
     pub fn new(width: CGFloat, height: CGFloat) -> Self {
         CGSize { width, height }
     }
     
+    /// Create and return a `CGSizeZero` equivalent.
     pub fn zero() -> Self {
         CGSize { width: 0., height: 0. }
     }
 }
 
 unsafe impl Encode for CGSize {
+    /// Adds support for CGSize Objective-C encoding.
     fn encode() -> Encoding {
         let encoding = format!("{{CGSize={}{}}}",
             CGFloat::encode().as_str(),

@@ -154,8 +154,6 @@ impl<T> ScrollView<T> where T: ScrollViewDelegate + 'static {
         
         let view = allocate_view(register_scrollview_class_with_delegate::<T>);
         unsafe {
-            //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
-            //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let ptr: *const T = &*delegate;
             (&mut *view).set_ivar(SCROLLVIEW_DELEGATE_PTR, ptr as usize);
         };
@@ -200,13 +198,13 @@ impl<T> ScrollView<T> {
     }
 
     /// Call this to set the background color for the backing layer.
-    pub fn set_background_color(&self, color: Color) {
-        let bg = color.into_platform_specific_color();
+    pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
+        // @TODO: This is wrong.
+        let color = color.as_ref().cg_color();
         
         unsafe {
-            let cg: id = msg_send![bg, CGColor];
             let layer: id = msg_send![&*self.objc, layer];
-            let _: () = msg_send![layer, setBackgroundColor:cg];
+            let _: () = msg_send![layer, setBackgroundColor:color];
         }
     }
 }

@@ -204,11 +204,11 @@ impl<T> TextField<T> {
     }
 
     /// Call this to set the background color for the backing layer.
-    pub fn set_background_color(&self, color: Color) {
-        let bg = color.to_objc();
+    pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
+        // @TODO: This is wrong.
+        let cg = color.as_ref().cg_color();
         
         unsafe {
-            let cg: id = msg_send![bg, CGColor];
             let layer: id = msg_send![&*self.objc, layer];
             let _: () = msg_send![layer, setBackgroundColor:cg];
         }
@@ -230,9 +230,12 @@ impl<T> TextField<T> {
         }
     }
 
-    pub fn set_font(&self, font: &Font) {
+    /// Sets the font for this input.
+    pub fn set_font<F: AsRef<Font>>(&self, font: F) {
+        let font = font.as_ref();
+
         unsafe {
-            let _: () = msg_send![&*self.objc, setFont:&*font.objc];
+            let _: () = msg_send![&*self.objc, setFont:&*font];
         }
     }
 }

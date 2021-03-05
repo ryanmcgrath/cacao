@@ -1,11 +1,21 @@
-
 use crate::foundation::{NSInteger, NSUInteger};
 
+/// Specifies how text should align for a supported control.
+#[derive(Copy, Clone, Debug)]
 pub enum TextAlign {
+    /// Align text to the left.
     Left,
+
+    /// Align text to the right.
     Right,
+
+    /// Center-align text.
     Center,
+
+    /// Justify text.
     Justified,
+
+    /// Natural.
     Natural
 }
 
@@ -22,6 +32,7 @@ impl From<TextAlign> for NSInteger {
 }
 
 /// Instructs text controls how to optimize line breaks.
+#[derive(Copy, Clone, Debug)]
 pub enum LineBreakMode {
     /// Wrap at word boundaries (the default)
     WrapWords,

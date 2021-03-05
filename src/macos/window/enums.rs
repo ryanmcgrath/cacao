@@ -3,6 +3,7 @@
 use crate::foundation::{NSInteger, NSUInteger};
 
 /// Describes window styles that can be displayed.
+#[derive(Clone, Copy, Debug)]
 pub enum WindowStyle {
     /// Window has no border. You generally do not want this.
     Borderless,
@@ -80,6 +81,7 @@ impl From<&WindowStyle> for NSUInteger {
 }
 
 /// Describes whether a window shows a title or not.
+#[derive(Clone, Copy, Debug)]
 pub enum TitleVisibility {
     /// Title is visible.
     Visible,

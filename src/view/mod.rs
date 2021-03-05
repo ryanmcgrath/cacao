@@ -209,9 +209,10 @@ impl<T> View<T> {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         let mut objc = self.objc.borrow_mut();
+        let color: id = color.as_ref().into();
         
         unsafe {
-            (&mut **objc).set_ivar(BACKGROUND_COLOR, color.as_ref().to_objc());
+            (&mut **objc).set_ivar(BACKGROUND_COLOR, color);
         }
     }
 

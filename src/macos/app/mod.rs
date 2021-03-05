@@ -34,7 +34,9 @@
 //! Certain lifecycle events are specific to certain platforms. Where this is the case, the
 //! documentation makes every effort to note.
 
+use std::fmt;
 use std::sync::{Arc, Mutex};
+
 use lazy_static::lazy_static;
 
 use objc_id::Id;
@@ -51,7 +53,7 @@ mod class;
 use class::register_app_class;
 
 mod delegate;
-use delegate::{register_app_delegate_class};
+use delegate::register_app_delegate_class;
 
 mod enums;
 pub use enums::*;
@@ -60,31 +62,6 @@ mod traits;
 pub use traits::AppDelegate;
 
 pub(crate) static APP_PTR: &str = "rstAppPtr";
-
-// Alright, so this... sucks.
-//
-// But let me explain.
-//
-// macOS only has one top level menu, and it's probably one of the old(est|er)
-// parts of the system - there's still Carbon there, if you know where to look.
-// We store our event handlers on the Rust side, and in most cases this works fine - 
-// we can enforce that the programmer should be retaining ownership and dropping
-// when ready.
-//
-// We can't enforce this with NSMenu, as it takes ownership of the items and then
-// lives in its own world. We want to mirror the same contract, somehow... so, again,
-// we go back to the "one top level menu" bit.
-//
-// Yes, all this to say, this is a singleton that caches TargetActionHandler entries
-// when menus are constructed. It's mostly 1:1 with the NSMenu, I think - and probably
-// the only true singleton I want to see in this framework.
-//
-// Calls to App::set_menu() will reconfigure the contents of this Vec, so that's also
-// the easiest way to remove things as necessary - just rebuild your menu. Trying to debug
-// and/or predict NSMenu is a whole task that I'm not even sure is worth trying to do.
-/*lazy_static! {
-    static ref MENU_ITEMS_HANDLER_CACHE: Arc<Mutex<Vec<TargetActionHandler>>> = Arc::new(Mutex::new(Vec::new()));
-}*/
 
 /// A handler to make some boilerplate less annoying.
 #[inline]
@@ -106,11 +83,24 @@ fn shared_application<F: Fn(id)>(handler: F) {
 /// implement the `Dispatcher` trait to receive messages that you might dispatch from deeper in the
 /// application.
 pub struct App<T = (), M = ()> {
-    pub inner: Id<Object>,
+    pub objc: Id<Object>,
     pub objc_delegate: Id<Object>,
     pub delegate: Box<T>,
     pub pool: AutoReleasePool,
     _message: std::marker::PhantomData<M>
+}
+
+impl<T, M> fmt::Debug for App<T, M> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let delegate = format!("{:p}", self.delegate);
+
+        f.debug_struct("App")
+            .field("objc", &self.objc)
+            .field("objc_delegate", &self.objc_delegate)
+            .field("delegate", &delegate)
+            .field("pool", &self.pool)
+            .finish()
+    }
 }
 
 impl<T> App<T> {  
@@ -138,7 +128,7 @@ impl<T> App<T> where T: AppDelegate + 'static {
         
         let pool = AutoReleasePool::new();
 
-        let inner = unsafe {
+        let objc = unsafe {
             let app: id = msg_send![register_app_class(), sharedApplication];
             Id::from_ptr(app)
         };
@@ -150,15 +140,15 @@ impl<T> App<T> where T: AppDelegate + 'static {
             let delegate: id = msg_send![delegate_class, new];
             let delegate_ptr: *const T = &*app_delegate;
             (&mut *delegate).set_ivar(APP_PTR, delegate_ptr as usize);
-            let _: () = msg_send![&*inner, setDelegate:delegate];
+            let _: () = msg_send![&*objc, setDelegate:delegate];
             Id::from_ptr(delegate)
         };
 
         App {
-            objc_delegate: objc_delegate,
-            inner: inner,
+            objc,
+            objc_delegate,
             delegate: app_delegate,
-            pool: pool,
+            pool,
             _message: std::marker::PhantomData
         }
     }

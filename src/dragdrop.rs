@@ -10,6 +10,7 @@ use crate::foundation::NSUInteger;
 use crate::pasteboard::Pasteboard;
 
 /// Represents operations that can happen for a given drag/drop scenario.
+#[derive(Copy, Clone, Debug)]
 pub enum DragOperation {
     /// No drag operations are allowed.
     None,
@@ -53,6 +54,7 @@ impl From<DragOperation> for NSUInteger {
 
 /// A wrapper for `NSDraggingInfo`. As this is a protocol/type you should never create yourself,
 /// this only provides getters - merely a Rust-y way to grab what you need.
+#[derive(Clone, Debug)]
 pub struct DragInfo {
     pub info: ShareId<Object>
 }

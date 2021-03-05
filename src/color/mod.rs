@@ -14,12 +14,14 @@
 ///
 /// @TODO: bundle iOS/tvOS support.
 
+use std::sync::{Arc, RwLock};
+
 use core_graphics::base::CGFloat;
 use core_graphics::color::CGColor;
 
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
-use objc_id::ShareId;
+use objc_id::Id;
 
 use crate::foundation::id;
 use crate::utils::os;
@@ -37,7 +39,7 @@ use macos_dynamic_color::{
 /// In the event that a new variant is introduced in later versions of
 /// macOS or iOS, calls that use the dynamic color(s) from here will likely
 /// default to the `Light` theme.
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Theme {
     /// The "default" theme on a platform. On macOS, this is Aqua.
     /// On iOS and tvOS, this is whatever you call the system defined theme.
@@ -48,7 +50,7 @@ pub enum Theme {
 }
 
 /// Represents the contrast level for a rendering context. 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Contrast {
     /// The default contrast level for the system.
     Normal,
@@ -60,7 +62,7 @@ pub enum Contrast {
 /// A `Style` is passed to you when doing dynamic color calculations. You can opt to
 /// provide different colors depending on the settings in here - notably, this is useful
 /// for supporting dark mode and high contrast accessibility contexts.
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Style {
     /// Represents the current theme for where this color may render.
     pub theme: Theme,
@@ -69,39 +71,22 @@ pub struct Style {
     pub contrast: Contrast
 }
 
-/*
-#[derive(Clone)]
-pub struct Property(Rc<RefCell<Id<Object>>>);
-
-impl Property {
-    pub fn new(obj: id) -> Self {
-        Property(Rc::new(RefCell::new(Id::from_ptr(obj))))
-    }
-}
-
-#[derive(Clone)]
-pub struct ThreadSafeProperty(Arc<RwLock<Id<Object>>>);
-
-impl Property {
-    pub fn new(obj: id) -> Self {
-        Property(Rc::new(RefCell::new(Id::from_ptr(obj))))
-    }
-}
-*/
-
 /// Represents a Color. You can create custom colors using the various 
 /// initializers, or opt to use a system-provided color. The system provided
 /// colors will automatically switch to the "correct" colors/shades depending on whether
-/// the user is in light or dark mode; to support this with custom colors, be sure
-/// to call the `.dark()` method after initializing.
-#[derive(Clone)]
+/// the user is in light or dark mode; to support this with custom colors, you can create a
+/// `dynamic` color with a custom handler that determines a color depending on a variety of system
+/// settings.
+///
+/// This enum is thread-safe, so clone away as needed.
+#[derive(Clone, Debug)]
 pub enum Color {
     /// Represents an `NSColor` on macOS, and a `UIColor` everywhere else. You typically
     /// don't create this variant yourself; use the initializers found on this enum.
     ///
     /// If you need to do custom work not covered by this enum, you can drop to 
     /// the Objective-C level yourself and wrap your color in this.
-    Object(ShareId<Object>),
+    Custom(Arc<RwLock<Id<Object>>>),
 
     /// The system-provided black. Harsh - you probably don't want to use this.
     SystemBlack,
@@ -244,9 +229,13 @@ pub enum Color {
     /// The un-adaptable color for text on a dark background.
     LightText,
 
-    WindowBackgroundColor,
+    /// The background color for a given window in the system theme.
+    #[cfg(feature = "macos")]
+    MacOSWindowBackgroundColor,
 
-    UnderPageBackgroundColor
+    /// The background color that should appear under a page per the system theme.
+    #[cfg(feature = "macos")]
+    MacOSUnderPageBackgroundColor
 }
 
 impl Color {
@@ -264,10 +253,10 @@ impl Color {
         #[cfg(feature = "ios")]
         let color = class!(UIColor);
 
-        Color::Object(unsafe {
+        Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "macos")]
-            ShareId::from_ptr(msg_send![color, colorWithCalibratedRed:r green:g blue:b alpha:a])
-        })
+            Id::from_ptr(msg_send![color, colorWithCalibratedRed:r green:g blue:b alpha:a])
+        })))
     }
     
     /// Creates and returns a color in the RGB space, with the alpha level
@@ -290,10 +279,10 @@ impl Color {
         #[cfg(feature = "ios")]
         let color = class!(UIColor);
 
-        Color::Object(unsafe {
+        Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "macos")]
-            ShareId::from_ptr(msg_send![color, colorWithCalibratedHue:h saturation:s brightness:b alpha:a])
-        })
+            Id::from_ptr(msg_send![color, colorWithCalibratedHue:h saturation:s brightness:b alpha:a])
+        })))
     }
     
     /// Creates and returns a color in the RGB space, with the alpha level
@@ -311,10 +300,10 @@ impl Color {
         #[cfg(feature = "ios")]
         let color = class!(UIColor);
 
-        Color::Object(unsafe {
+        Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "macos")]
-            ShareId::from_ptr(msg_send![color, colorWithCalibratedWhite:level alpha:alpha])
-        })
+            Id::from_ptr(msg_send![color, colorWithCalibratedWhite:level alpha:alpha])
+        })))
     }
 
     /// Creates and returns a white Color with the specified level or intensity, with the alpha
@@ -327,7 +316,7 @@ impl Color {
     ///
     /// This method is not an ideal one to use, but is offered as a convenience method for those
     /// coming from other environments where these are more common.
-    pub fn hexa(hex: &str, alpha: u8) -> Self {
+    pub fn hexa(_hex: &str, _alpha: u8) -> Self {
         Color::SystemRed
     }
 
@@ -351,47 +340,55 @@ impl Color {
     where
         F: Fn(Style) -> Color + 'static
     {
+        // It's *possible* that we shouldn't cache these up-front and let them be truly dynamically
+        // allocated, but this is fine for now (and more predictable, even if perhaps wrong). I'm
+        // not entirely clear on how expensive the dynamic allocation would be pre-10.15/11.0 and
+        // am happy to do this for now and let someone who needs true dynamic allocation look into
+        // it and PR it.
         #[cfg(feature = "macos")]
-        Color::Object(unsafe {
+        Color::Custom(Arc::new(RwLock::new(unsafe {
             let color: id = msg_send![macos_dynamic_color::register_class(), new];
 
-            (&mut *color).set_ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST, handler(Style {
-                theme: Theme::Light,
-                contrast: Contrast::Normal
-            }).to_objc());
+            (&mut *color).set_ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST, {
+                let color: id = handler(Style {
+                    theme: Theme::Light,
+                    contrast: Contrast::Normal
+                }).into();
 
-            (&mut *color).set_ivar(AQUA_LIGHT_COLOR_HIGH_CONTRAST, handler(Style {
-                theme: Theme::Light,
-                contrast: Contrast::High
-            }).to_objc());
+                color
+            });
 
-            (&mut *color).set_ivar(AQUA_DARK_COLOR_NORMAL_CONTRAST, handler(Style {
-                theme: Theme::Dark,
-                contrast: Contrast::Normal
-            }).to_objc());
+            (&mut *color).set_ivar(AQUA_LIGHT_COLOR_HIGH_CONTRAST, {
+                let color: id = handler(Style {
+                    theme: Theme::Light,
+                    contrast: Contrast::High
+                }).into();
 
-            (&mut *color).set_ivar(AQUA_DARK_COLOR_HIGH_CONTRAST, handler(Style {
-                theme: Theme::Light,
-                contrast: Contrast::Normal
-            }).to_objc());
+                color
+            });
+
+            (&mut *color).set_ivar(AQUA_DARK_COLOR_NORMAL_CONTRAST, {
+                let color: id = handler(Style {
+                    theme: Theme::Dark,
+                    contrast: Contrast::Normal
+                }).into();
+
+                color
+            });
+
+            (&mut *color).set_ivar(AQUA_DARK_COLOR_HIGH_CONTRAST, {
+                let color: id = handler(Style {
+                    theme: Theme::Light,
+                    contrast: Contrast::Normal
+                }).into();
+
+                color
+            });
             
-            ShareId::from_ptr(color)
-        })
-    }
-
-    /// Returns a pointer that can be used for the Objective-C runtime.
-    /// 
-    /// This method is primarily for internal use, but is kept public for those who might need to
-    /// work with colors outside of what's available in this enum.
-    pub fn to_objc(&self) -> id {
-        unsafe { to_objc(self) }
+            Id::from_ptr(color)
+        })))
     }
     
-    /// Legacy.
-    pub fn into_platform_specific_color(&self) -> id {
-        unsafe { to_objc(self) }
-    }
-
     /// Returns a CGColor, which can be used in Core Graphics calls as well as other areas.
     ///
     /// Note that CGColor is _not_ a context-aware color, unlike our `NSColor` and `UIColor`
@@ -401,7 +398,7 @@ impl Color {
     pub fn cg_color(&self) -> CGColor {
         // @TODO: This should probably return a CGColorRef...
         unsafe {
-            let objc = to_objc(self);
+            let objc: id = self.into();
             msg_send![objc, CGColor]
         }
     }
@@ -415,19 +412,33 @@ impl AsRef<Color> for Color {
     }
 }
 
+impl From<Color> for id {
+    /// Consumes and returns the pointer to the underlying Color.
+    fn from(color: Color) -> Self {
+        unsafe { to_objc(&color) }
+    }
+}
+
+impl From<&Color> for id {
+    /// Consumes and returns the pointer to the underlying Color.
+    fn from(color: &Color) -> Self {
+        unsafe { to_objc(color) }
+    }
+}
+
 /// Handles color fallback for system-provided colors.
 macro_rules! system_color_with_fallback {
     ($class:ident, $color:ident, $fallback:ident) => ({
         #[cfg(feature = "macos")]
         {
-            #[cfg(feature = "color_fallbacks")]
+            #[cfg(feature = "color-fallbacks")]
             if os::minimum_semversion(10, 10, 0) {
                 msg_send![$class, $color]
             } else {
                 msg_send![$class, $fallback]
             }
 
-            #[cfg(not(feature = "color_fallbacks"))]
+            #[cfg(not(feature = "color-fallbacks"))]
             msg_send![$class, $color]
         }
     })
@@ -450,7 +461,10 @@ unsafe fn to_objc(obj: &Color) -> id {
 
     match obj {
         // Regardless of platform, we can just dereference this one.
-        Color::Object(obj) => msg_send![&**obj, self],
+        Color::Custom(color) => {
+            let mut ptr = color.write().unwrap();
+            &mut **ptr
+        },
 
         Color::SystemBlack => msg_send![color, blackColor],
         Color::SystemWhite => msg_send![color, whiteColor],
@@ -488,7 +502,11 @@ unsafe fn to_objc(obj: &Color) -> id {
         Color::Link => system_color_with_fallback!(color, linkColor, blueColor),
         Color::DarkText => system_color_with_fallback!(color, darkTextColor, blackColor),
         Color::LightText => system_color_with_fallback!(color, lightTextColor, whiteColor),
-        Color::WindowBackgroundColor => system_color_with_fallback!(color, windowBackgroundColor, clearColor),
-        Color::UnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor),
+        
+        #[cfg(feature = "macos")]
+        Color::MacOSWindowBackgroundColor => system_color_with_fallback!(color, windowBackgroundColor, clearColor),
+        
+        #[cfg(feature = "macos")]
+        Color::MacOSUnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor),
     }
 }

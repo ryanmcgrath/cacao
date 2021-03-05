@@ -95,11 +95,10 @@ impl ImageView {
     }
 
     /// Call this to set the background color for the backing layer.
-    pub fn set_background_color(&self, color: Color) {
-        let bg = color.into_platform_specific_color();
+    pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
+        let cg = color.as_ref().cg_color();
         
         unsafe {
-            let cg: id = msg_send![bg, CGColor];
             let layer: id = msg_send![&*self.objc, layer];
             let _: () = msg_send![layer, setBackgroundColor:cg];
         }

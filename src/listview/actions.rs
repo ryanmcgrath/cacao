@@ -84,8 +84,8 @@ impl RowAction {
     }
 
     /// Sets the background color of this action.
-    pub fn set_background_color(&mut self, color: Color) {
-        let color = color.to_objc();
+    pub fn set_background_color<C: AsRef<Color>>(&mut self, color: C) {
+        let color: id = color.as_ref().into();
 
         unsafe {
             let _: () = msg_send![&*self.0, setBackgroundColor:color];

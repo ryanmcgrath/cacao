@@ -36,6 +36,7 @@ impl From<&EventModifierFlag> for NSUInteger {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 pub enum EventType {
     KeyDown
 }

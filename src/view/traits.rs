@@ -3,6 +3,12 @@
 use crate::dragdrop::{DragInfo, DragOperation};
 use crate::view::View;
 
+/// This trait can be used for implementing custom View behavior. You implement this trait on your
+/// struct, and wrap your struct in a `View` or `ViewController`. The view or controller then
+/// handles interfacing between your struct and system events.
+///
+/// It winds up feeling to subclassing, without the ability to subclass multiple levels deep and
+/// get ultra confusing.
 #[allow(unused_variables)]
 pub trait ViewDelegate {
     /// Used to cache subclass creations on the Objective-C side.
@@ -33,20 +39,24 @@ pub trait ViewDelegate {
     /// Called when this has been removed from the view heirarchy.
     fn did_disappear(&self, animated: bool) {}
 
-    /// Invoked when the dragged image enters destination bounds or frame; returns dragging operation to perform.
+    /// Invoked when the dragged image enters destination bounds or frame; returns dragging 
+    /// operation to perform.
     fn dragging_entered(&self, info: DragInfo) -> DragOperation { DragOperation::None }
     
-    /// Invoked when the image is released, allowing the receiver to agree to or refuse drag operation.
+    /// Invoked when the image is released, allowing the receiver to agree to or refuse 
+    /// drag operation.
     fn prepare_for_drag_operation(&self, info: DragInfo) -> bool { false }
 
-    /// Invoked after the released image has been removed from the screen, signaling the receiver to import the pasteboard data.
+    /// Invoked after the released image has been removed from the screen, signaling the 
+    /// receiver to import the pasteboard data.
     fn perform_drag_operation(&self, info: DragInfo) -> bool { false }
 
-    /// Invoked when the dragging operation is complete, signaling the receiver to perform any necessary clean-up.
+    /// Invoked when the dragging operation is complete, signaling the receiver to perform
+    /// any necessary clean-up.
     fn conclude_drag_operation(&self, info: DragInfo) {}
 
-    /// Invoked when the dragged image exits the destination’s bounds rectangle (in the case of a view) or its frame 
-    /// rectangle (in the case of a window object).
+    /// Invoked when the dragged image exits the destination’s bounds rectangle (in the case 
+    /// of a view) or its frame rectangle (in the case of a window object).
     fn dragging_exited(&self, info: DragInfo) {}
 
     //fn perform_key_equivalent(&self, event: Event) -> bool { false }

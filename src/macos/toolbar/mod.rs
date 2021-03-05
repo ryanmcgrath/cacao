@@ -3,6 +3,8 @@
 //!
 //! UNFORTUNATELY, this is a very old and janky API. So... yeah.
 
+use std::fmt;
+
 use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
@@ -32,6 +34,7 @@ pub struct Toolbar<T = ()> {
     /// The Objective-C runtime toolbar.
     pub objc: ShareId<Object>,
 
+    /// A pointer to the underlying delegate.
     pub objc_delegate: ShareId<Object>,
 
     /// The user supplied delegate.
@@ -122,6 +125,22 @@ impl<T> Toolbar<T> {
         unsafe {
             let _: () = msg_send![&*self.objc, setSelectedItemIdentifier:&*identifier];
         }
+    }
+}
+
+impl<T> fmt::Debug for Toolbar<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let delegate = match &self.delegate {
+            Some(d) => format!("Some({:p})", d),
+            None => "None".to_string()
+        };
+
+        f.debug_struct("Toolbar")
+            .field("identifier", &self.identifier)
+            .field("objc", &self.objc)
+            .field("objc_delegate", &self.objc_delegate)
+            .field("delegate", &delegate)
+            .finish()
     }
 }
 

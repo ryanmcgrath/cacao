@@ -85,8 +85,8 @@ impl ProgressIndicator {
 }
 
 impl ProgressIndicator {
-    /// Call this to set the background color for the backing layer.
-    pub fn set_background_color(&self, color: Color) {
+    // Call this to set the background color for the backing layer.
+    /*pub fn set_background_color(&self, color: Color) {
         let bg = color.into_platform_specific_color();
         
         unsafe {
@@ -94,7 +94,7 @@ impl ProgressIndicator {
             let layer: id = msg_send![&*self.objc, layer];
             let _: () = msg_send![layer, setBackgroundColor:cg];
         }
-    }
+    }*/
 
     /// Starts the animation for an indeterminate indicator.
     pub fn start_animation(&self) {

@@ -420,9 +420,9 @@ impl<T> ListView<T> {
     /// Dequeue a reusable cell. If one is not in the queue, will create and cache one for reuse.
     pub fn dequeue<R: ViewDelegate + 'static>(&self, identifier: &'static str) -> ListViewRow<R> {
         #[cfg(target_os = "macos")]
-        unsafe {
+        {
             let key = NSString::new(identifier);
-            let cell: id = msg_send![&*self.objc, makeViewWithIdentifier:&*key owner:nil];
+            let cell: id = unsafe { msg_send![&*self.objc, makeViewWithIdentifier:&*key owner:nil] };
             
             if cell != nil {
                 ListViewRow::from_cached(cell)
@@ -436,13 +436,13 @@ impl<T> ListView<T> {
     }
 
     /// Call this to set the background color for the backing layer.
-    pub fn set_background_color(&self, color: Color) {
-        let bg = color.into_platform_specific_color();
+    pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
+        // @TODO: This is wrong.
+        let color = color.as_ref().cg_color();
         
         unsafe {
-            let cg: id = msg_send![bg, CGColor];
             let layer: id = msg_send![&*self.objc, layer];
-            let _: () = msg_send![layer, setBackgroundColor:cg];
+            let _: () = msg_send![layer, setBackgroundColor:color];
         }
     }
 
