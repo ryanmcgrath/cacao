@@ -1,6 +1,6 @@
 //! Various traits used for Views.
 
-use crate::Node;
+use crate::macos::menu::MenuItem;
 use crate::dragdrop::{DragInfo, DragOperation};
 use crate::listview::{ListView, ListViewRow, RowAction, RowEdge};
 use crate::layout::Layout;
@@ -27,11 +27,22 @@ pub trait ListViewDelegate {
     /// Returns the number of items in the list view.
     fn number_of_items(&self) -> usize;
 
+    /// Called when an item will be displayed.
+    fn will_display_item(&self, row: usize) {}
+
     /// This is temporary and you should not rely on this signature if you
     /// choose to try and work with this. NSTableView & such associated delegate patterns
     /// are tricky to support in Rust, and while I have a few ideas about them, I haven't
     /// had time to sit down and figure them out properly yet.
     fn item_for(&self, row: usize) -> ListViewRow;
+
+    /// Called when an item has been selected (clicked/tapped on).
+    fn item_selected(&self, row: usize) {}
+
+    /// Called when the menu for the tableview is about to be shown. You can update the menu here
+    /// depending on, say, what the user has context-clicked on. You should avoid any expensive
+    /// work in here and return the menu as fast as possible.
+    fn context_menu(&self) -> Vec<MenuItem> { vec![] }
     
     /// An optional delegate method; implement this if you'd like swipe-to-reveal to be
     /// supported for a given row by returning a vector of actions to show.

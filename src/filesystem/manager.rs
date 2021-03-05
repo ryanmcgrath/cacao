@@ -56,7 +56,7 @@ impl FileManager {
                 create:NO
                 error:nil];
 
-            NSString::wrap(msg_send![dir, absoluteString])
+            NSString::retain(msg_send![dir, absoluteString])
         };
         
         Url::parse(directory.to_str()).map_err(|e| e.into())
@@ -70,8 +70,8 @@ impl FileManager {
         let to = NSString::new(to.as_str());
 
         unsafe {
-            let from_url: id = msg_send![class!(NSURL), URLWithString:from.into_inner()];
-            let to_url: id = msg_send![class!(NSURL), URLWithString:to.into_inner()];
+            let from_url: id = msg_send![class!(NSURL), URLWithString:&*from];
+            let to_url: id = msg_send![class!(NSURL), URLWithString:&*to];
 
             // This should potentially be write(), but the backing class handles this logic
             // already, so... going to leave it as read.

@@ -48,7 +48,7 @@ impl TodosListView {
                 self.view.as_ref().unwrap().perform_batch_updates(|listview| {
                     // We know we always insert at the 0 index, so this is a simple calculation.
                     // You'd need to diff yourself for anything more complicated.
-                    listview.insert_rows(0..1, RowAnimation::SlideDown);
+                    listview.insert_rows(&[0], RowAnimation::SlideDown);
                 });
             },
 

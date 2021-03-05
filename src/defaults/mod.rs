@@ -15,7 +15,7 @@
 //! a loop.
 //!
 //! ## Example
-//! ```rust
+//! ```rust,no_run
 //! use std::collections::HashMap;
 //! use cacao::defaults::{UserDefaults, Value};
 //!
@@ -27,7 +27,6 @@
 //!     map
 //! });
 //!
-//! // Ignore the unwrap() calls, it's a demo ;P
 //! let value = defaults.get("test").unwrap().as_str().unwrap();
 //! assert_eq!(value, "value");
 //! ```
@@ -38,7 +37,10 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, nil, to_bool, YES, NO, BOOL, NSData, NSString, NSDictionary, NSNumber};
+use crate::foundation::{
+    id, nil, to_bool, YES, NO, BOOL,
+    NSData, NSString, NSMutableDictionary, NSNumber
+};
 
 mod value;
 pub use value::Value;
@@ -92,7 +94,7 @@ impl UserDefaults {
 
         UserDefaults(unsafe {
             let alloc: id = msg_send![class!(NSUserDefaults), alloc];
-            Id::from_ptr(msg_send![alloc, initWithSuiteName:name.into_inner()])
+            Id::from_ptr(msg_send![alloc, initWithSuiteName:&*name])
         })
     }
 
@@ -114,10 +116,10 @@ impl UserDefaults {
     /// });
     /// ```
     pub fn register<K: AsRef<str>>(&mut self, values: HashMap<K, Value>) {
-        let dictionary = NSDictionary::from(values);
+        let dictionary = NSMutableDictionary::from(values);
         
         unsafe {
-            let _: () = msg_send![&*self.0, registerDefaults:dictionary.into_inner()];
+            let _: () = msg_send![&*self.0, registerDefaults:&*dictionary];
         }
     }
 
@@ -151,7 +153,7 @@ impl UserDefaults {
         let key = NSString::new(key.as_ref());
 
         unsafe {
-            let _: () = msg_send![&*self.0, removeObjectForKey:key.into_inner()];
+            let _: () = msg_send![&*self.0, removeObjectForKey:&*key];
         }
     }
 
@@ -176,7 +178,7 @@ impl UserDefaults {
         let key = NSString::new(key.as_ref());
 
         let result: id = unsafe {
-            msg_send![&*self.0, objectForKey:key.into_inner()]
+            msg_send![&*self.0, objectForKey:&*key]
         };
 
         if result == nil {
@@ -184,12 +186,12 @@ impl UserDefaults {
         }
 
         if NSData::is(result) {
-            let data = NSData::wrap(result);
+            let data = NSData::retain(result);
             return Some(Value::Data(data.into_vec()));
         }
 
         if NSString::is(result) {
-            let s = NSString::wrap(result).to_str().to_string();
+            let s = NSString::retain(result).to_string();
             return Some(Value::String(s));
         }
 
@@ -213,7 +215,7 @@ impl UserDefaults {
                 x => {
                     // Debugging code that should be removed at some point.
                     #[cfg(debug_assertions)]
-                    println!("Code: {}", x);
+                    println!("Unexpected code type found: {}", x);
 
                     None
                 }
@@ -241,7 +243,7 @@ impl UserDefaults {
     pub fn is_forced_for_key<K: AsRef<str>>(&self, key: K) -> bool {
         let result: BOOL = unsafe {
             let key = NSString::new(key.as_ref());
-            msg_send![&*self.0, objectIsForcedForKey:key.into_inner()]
+            msg_send![&*self.0, objectIsForcedForKey:&*key]
         };
 
         to_bool(result)

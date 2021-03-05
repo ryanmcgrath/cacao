@@ -10,6 +10,7 @@
 //! that enables this functionality, we want to be able to provide this with some level of
 //! backwards compatibility for Mojave, as that's still a supported OS.
 
+use std::os::raw::c_void;
 use std::sync::Once;
 
 use core_graphics::base::CGFloat;
@@ -26,7 +27,6 @@ pub(crate) const AQUA_LIGHT_COLOR_HIGH_CONTRAST: &'static str = "AQUA_LIGHT_COLO
 pub(crate) const AQUA_DARK_COLOR_NORMAL_CONTRAST: &'static str = "AQUA_DARK_COLOR_NORMAL_CONTRAST";
 pub(crate) const AQUA_DARK_COLOR_HIGH_CONTRAST: &'static str = "AQUA_DARK_COLOR_HIGH_CONTRAST";
 
-use std::os::raw::c_void;
 
 extern "C" {
     static NSAppearanceNameAqua: id;
@@ -56,7 +56,7 @@ fn get_effective_color(this: &Object) -> id {
                 NSAppearanceNameAccessibilityHighContrastDarkAqua
             ]);
 
-            let style: id = msg_send![appearance, bestMatchFromAppearancesWithNames:names.into_inner()];
+            let style: id = msg_send![appearance, bestMatchFromAppearancesWithNames:&*names];
 
             if style == NSAppearanceNameDarkAqua {
                 return *this.get_ivar(AQUA_DARK_COLOR_NORMAL_CONTRAST);

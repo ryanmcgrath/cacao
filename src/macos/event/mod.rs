@@ -32,11 +32,11 @@ impl Event {
         // @TODO: Check here if key event, invalid otherwise.
         // @TODO: Figure out if we can just return &str here, since the Objective-C side
         // should... make it work, I think.
-        let characters = NSString::wrap(unsafe {
+        let characters = NSString::from_retained(unsafe {
             msg_send![&*self.0, characters]
         });
 
-        characters.to_str().to_string()
+        characters.to_string()
     }
 
     /*pub fn contains_modifier_flags(&self, flags: &[EventModifierFlag]) -> bool {

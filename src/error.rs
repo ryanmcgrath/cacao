@@ -33,16 +33,16 @@ impl Error {
     pub fn new(error: id) -> Self {
         let (code, domain, description) = unsafe {
             let code: usize = msg_send![error, code];
-            let domain = NSString::wrap(msg_send![error, domain]);
-            let description = NSString::wrap(msg_send![error, localizedDescription]);
+            let domain = NSString::retain(msg_send![error, domain]);
+            let description = NSString::retain(msg_send![error, localizedDescription]);
 
             (code, domain, description)
         };
 
         Error {
-            code: code,
-            domain: domain.to_str().to_string(),
-            description: description.to_str().to_string()
+            code,
+            domain: domain.to_string(),
+            description: description.to_string()
         }
     }
 

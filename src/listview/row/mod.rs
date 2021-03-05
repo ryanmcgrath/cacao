@@ -66,6 +66,7 @@ mod ios;
 #[cfg(target_os = "ios")]
 use ios::{register_listview_row_view_class, register_listview_row_class_with_delegate};
 
+pub(crate) static BACKGROUND_COLOR: &str = "alchemyBackgroundColor";
 pub(crate) static LISTVIEW_ROW_DELEGATE_PTR: &str = "rstListViewRowDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
@@ -264,23 +265,20 @@ impl<T> ListViewRow<T> {
 
     /// Sets the identifier, which enables cells to be reused and dequeued properly.
     pub fn set_identifier(&self, identifier: &'static str) {
-        let identifier = NSString::new(identifier).into_inner();
+        let identifier = NSString::new(identifier);
 
         let objc = self.objc.borrow();
         unsafe {
-            let _: () = msg_send![&**objc, setIdentifier:identifier];
+            let _: () = msg_send![&**objc, setIdentifier:&*identifier];
         }
     }
 
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color(&self, color: Color) {
-        let bg = color.into_platform_specific_color();
+        let mut objc = self.objc.borrow_mut();
         
-        let objc = self.objc.borrow();
         unsafe {
-            let cg: id = msg_send![bg, CGColor];
-            let layer: id = msg_send![&**objc, layer];
-            let _: () = msg_send![layer, setBackgroundColor:cg];
+            (&mut **objc).set_ivar(BACKGROUND_COLOR, color.as_ref().to_objc());
         }
     }
 
@@ -290,12 +288,12 @@ impl<T> ListViewRow<T> {
             let types: NSArray = types.into_iter().map(|t| {
                 // This clone probably doesn't need to be here, but it should also be cheap as
                 // this is just an enum... and this is not an oft called method.
-                let x: NSString = t.clone().into();
-                x.into_inner()
+                let x: NSString = (*t).into();
+                x.into()
             }).collect::<Vec<id>>().into();
 
             let objc = self.objc.borrow();
-            let _: () = msg_send![&**objc, registerForDraggedTypes:types.into_inner()];
+            let _: () = msg_send![&**objc, registerForDraggedTypes:&*types];
         }
     }
 }

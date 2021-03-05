@@ -61,9 +61,6 @@ mod ios;
 #[cfg(target_os = "ios")]
 use ios::{register_view_class, register_view_class_with_delegate};
 
-//mod controller;
-//pub use controller::TextFieldController;
-
 mod traits;
 pub use traits::TextFieldDelegate;
 
@@ -199,16 +196,16 @@ impl<T> TextField<T> {
 
     /// Grabs the value from the textfield and returns it as an owned String.
     pub fn get_value(&self) -> String {
-        let value = NSString::wrap(unsafe {
+        let value = NSString::retain(unsafe {
             msg_send![&*self.objc, stringValue]
         });
 
-        value.to_str().to_string()
+        value.to_string()
     }
 
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color(&self, color: Color) {
-        let bg = color.into_platform_specific_color();
+        let bg = color.to_objc();
         
         unsafe {
             let cg: id = msg_send![bg, CGColor];
@@ -222,7 +219,7 @@ impl<T> TextField<T> {
         let s = NSString::new(text);
 
         unsafe {
-            let _: () = msg_send![&*self.objc, setStringValue:s.into_inner()];
+            let _: () = msg_send![&*self.objc, setStringValue:&*s];
         }
     }
 

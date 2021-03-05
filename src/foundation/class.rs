@@ -15,7 +15,7 @@ lazy_static! {
 /// constantly calling into the runtime, we store pointers to Class types here after first lookup
 /// and/or creation. The general store format is (roughly speaking) as follows:
 ///
-/// ```
+/// ```no_run
 /// {
 ///     "subclass_type": {
 ///         "superclass_type": *const Class as usize
@@ -39,8 +39,8 @@ impl ClassMap {
             let mut map = HashMap::new();
 
             // Top-level classes, like `NSView`, we cache here. The reasoning is that if a subclass
-            // is being created, we can avoid querying the runtime for the superclass - i.e, many subclasses
-            // will have `NSView` as their superclass.
+            // is being created, we can avoid querying the runtime for the superclass - i.e, many 
+            // subclasses will have `NSView` as their superclass.
             map.insert("_supers", HashMap::new());
 
             map
@@ -48,7 +48,11 @@ impl ClassMap {
     }
 
     /// Attempts to load a previously registered subclass.
-    pub fn load_subclass(&self, subclass_name: &'static str, superclass_name: &'static str) -> Option<*const Class> {
+    pub fn load_subclass(
+        &self,
+        subclass_name: &'static str,
+        superclass_name: &'static str
+    ) -> Option<*const Class> {
         let reader = self.0.read().unwrap();
 
         if let Some(inner) = (*reader).get(subclass_name) {
@@ -152,7 +156,11 @@ where
             },
 
             None => { 
-                panic!("Subclass of type {}_{} could not be allocated.", subclass_name, superclass_name);
+                panic!(
+                    "Subclass of type {}_{} could not be allocated.",
+                    subclass_name,
+                    superclass_name
+                );
             }
         }
     }

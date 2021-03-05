@@ -47,9 +47,12 @@ impl RowAction {
     /// on your ListViewRow.
     ///
     /// Additional configuration can be done after initialization, if need be.
+    ///
+    /// These run on the main thread, as they're UI handlers - so we can avoid Send + Sync on
+    /// our definitions.
     pub fn new<F>(title: &str, style: RowActionStyle, handler: F) -> Self
     where
-        F: Fn(RowAction, usize) + Send + Sync + 'static
+        F: Fn(RowAction, usize) + 'static
     {
         let title = NSString::new(title);
         let block = ConcreteBlock::new(move |action: id, row: NSUInteger| {
@@ -65,7 +68,7 @@ impl RowAction {
         RowAction(unsafe {
             let cls = class!(NSTableViewRowAction);
             Id::from_ptr(msg_send![cls, rowActionWithStyle:style
-                title:title.into_inner()
+                title:&*title
                 handler:block
             ])
         })
@@ -76,13 +79,13 @@ impl RowAction {
         let title = NSString::new(title);
         
         unsafe {
-            let _: () = msg_send![&*self.0, setTitle:title.into_inner()];
+            let _: () = msg_send![&*self.0, setTitle:&*title];
         }
     }
 
     /// Sets the background color of this action.
     pub fn set_background_color(&mut self, color: Color) {
-        let color = color.into_platform_specific_color();
+        let color = color.to_objc();
 
         unsafe {
             let _: () = msg_send![&*self.0, setBackgroundColor:color];

@@ -48,12 +48,15 @@ use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSString, NSUInteger};
+use crate::foundation::{id, nil, YES, NO, NSArray, NSString, NSInteger, NSUInteger};
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
 use crate::scrollview::ScrollView;
 use crate::utils::CGSize;
+
+#[cfg(target_os = "macos")]
+use crate::macos::menu::MenuItem;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -148,21 +151,24 @@ fn common_init(class: *const Class) -> id {
         // Let's... make NSTableView into UITableView-ish.
         #[cfg(target_os = "macos")]
         {
+            // @TODO: Clean this up in a dealloc method.
+            let menu: id = msg_send![class!(NSMenu), new];
+            let _: () = msg_send![menu, setDelegate:tableview];
+            let _: () = msg_send![tableview, setMenu:menu];
+
             let _: () = msg_send![tableview, setWantsLayer:YES];
             let _: () = msg_send![tableview, setUsesAutomaticRowHeights:YES];
             let _: () = msg_send![tableview, setFloatsGroupRows:YES];
-            let _: () = msg_send![tableview, setIntercellSpacing:CGSize::new(0., 0.)];
+            //let _: () = msg_send![tableview, setIntercellSpacing:CGSize::new(0., 0.)];
             let _: () = msg_send![tableview, setColumnAutoresizingStyle:1];
             //msg_send![tableview, setSelectionHighlightStyle:-1];
-            let _: () = msg_send![tableview, setAllowsEmptySelection:YES];
-            let _: () = msg_send![tableview, setAllowsMultipleSelection:NO];
+            //let _: () = msg_send![tableview, setAllowsMultipleSelection:NO];
             let _: () = msg_send![tableview, setHeaderView:nil];
 
             // NSTableView requires at least one column to be manually added if doing so by code.
-            // A relic of a bygone era, indeed.
-            let identifier = NSString::new("CacaoListViewColumn");
+            let identifier = NSString::no_copy("CacaoListViewColumn");
             let default_column_alloc: id = msg_send![class!(NSTableColumn), new];
-            let default_column: id = msg_send![default_column_alloc, initWithIdentifier:identifier.into_inner()];
+            let default_column: id = msg_send![default_column_alloc, initWithIdentifier:&*identifier];
             let _: () = msg_send![default_column, setResizingMask:(1<<0)];
             let _: () = msg_send![tableview, addTableColumn:default_column];
         }
@@ -171,11 +177,62 @@ fn common_init(class: *const Class) -> id {
     }
 }
 
+use objc_id::Id;
+
+#[derive(Clone, Debug)]
+pub struct ObjcProperty(Rc<RefCell<Id<Object>>>);
+
+impl ObjcProperty {
+    pub fn new(obj: id) -> Self {
+        Self(Rc::new(RefCell::new(unsafe  {
+            Id::from_ptr(obj)
+        })))
+    }
+
+    pub fn with<F>(&self, handler: F)
+    where
+        F: Fn(&Object)
+    {
+        let borrow = self.0.borrow();
+        handler(&borrow);
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct PropertyNullable<T>(Rc<RefCell<Option<T>>>);
+
+impl<T> PropertyNullable<T> {
+    pub fn new(obj: T) -> Self {
+        Self(Rc::new(RefCell::new(Some(obj))))
+    }
+
+    pub fn clone(&self) -> Self {
+        Self(Rc::clone(&self.0))
+    }
+
+    pub fn with<F>(&self, handler: F)
+    where
+        F: Fn(&T)
+    {
+        let borrow = self.0.borrow();
+        if let Some(s) = &*borrow {
+            handler(s);
+        }
+    }
+
+    pub fn set(&self, obj: T) {
+        let mut borrow = self.0.borrow_mut();
+        *borrow = Some(obj);
+    }
+}
+
 #[derive(Debug)]
 pub struct ListView<T = ()> {
     /// Internal map of cell identifers/vendors. These are used for handling dynamic cell
     /// allocation and reuse, which is necessary for an "infinite" listview.
     cell_factory: CellFactory,
+
+    pub menu: PropertyNullable<Vec<MenuItem>>,
 
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ShareId<Object>,
@@ -245,6 +302,7 @@ impl ListView {
 
         ListView {
             cell_factory: CellFactory::new(),
+            menu: PropertyNullable::default(),
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![anchor_view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![anchor_view, leadingAnchor] }),
@@ -302,6 +360,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
 
         let mut view = ListView {
             cell_factory: cell,
+            menu: PropertyNullable::default(),
             delegate: None,
             top: LayoutAnchorY::new(unsafe { msg_send![anchor_view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![anchor_view, leadingAnchor] }),
@@ -331,6 +390,7 @@ impl<T> ListView<T> {
     pub(crate) fn clone_as_handle(&self) -> ListView {
         ListView {
             cell_factory: CellFactory::new(),
+            menu: self.menu.clone(),
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
@@ -361,8 +421,8 @@ impl<T> ListView<T> {
     pub fn dequeue<R: ViewDelegate + 'static>(&self, identifier: &'static str) -> ListViewRow<R> {
         #[cfg(target_os = "macos")]
         unsafe {
-            let key = NSString::new(identifier).into_inner();
-            let cell: id = msg_send![&*self.objc, makeViewWithIdentifier:key owner:nil];
+            let key = NSString::new(identifier);
+            let cell: id = msg_send![&*self.objc, makeViewWithIdentifier:&*key owner:nil];
             
             if cell != nil {
                 ListViewRow::from_cached(cell)
@@ -386,9 +446,46 @@ impl<T> ListView<T> {
         }
     }
 
+    /// Style
+    pub fn set_style(&self, style: crate::foundation::NSInteger) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setStyle:style];
+        }
+    }
+
+    pub fn set_allows_empty_selection(&self, allows: bool) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setAllowsEmptySelection:match allows {
+                true => YES,
+                false => NO
+            }];
+        }
+    }
+
+    pub fn set_selection_highlight_style(&self, style: crate::foundation::NSInteger) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setSelectionHighlightStyle:style];
+        }
+    }
+
+    pub fn select_row_indexes(&self, indexes: &[usize], extends_existing: bool) {
+        unsafe {
+            let index_set: id = msg_send![class!(NSMutableIndexSet), new];
+
+            for index in indexes {
+                let _: () = msg_send![index_set, addIndex:index];
+            }
+
+            let _: () = msg_send![&*self.objc, selectRowIndexes:index_set byExtendingSelection:match extends_existing {
+                true => YES,
+                false => NO
+            }];
+        }
+    }
+
     pub fn perform_batch_updates<F: Fn(ListView)>(&self, update: F) {
         #[cfg(target_os = "macos")]
-        unsafe { 
+        unsafe {
             let _: () = msg_send![&*self.objc, beginUpdates];
            
             let handle = self.clone_as_handle();
@@ -398,13 +495,13 @@ impl<T> ListView<T> {
         }
     }
 
-    pub fn insert_rows<I: IntoIterator<Item = usize>>(&self, indexes: I, animation: RowAnimation) {
+    pub fn insert_rows(&self, indexes: &[usize], animation: RowAnimation) {
         #[cfg(target_os = "macos")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
             
             for index in indexes {
-                let x: NSUInteger = index as NSUInteger;
+                let x: NSUInteger = *index as NSUInteger;
                 let _: () = msg_send![index_set, addIndex:x];
             }
 
@@ -435,13 +532,13 @@ impl<T> ListView<T> {
         }
     }
 
-    pub fn remove_rows<I: IntoIterator<Item = usize>>(&self, indexes: I, animations: RowAnimation) {
+    pub fn remove_rows(&self, indexes: &[usize], animations: RowAnimation) {
         #[cfg(target_os = "macos")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
             
             for index in indexes {
-                let x: NSUInteger = index as NSUInteger;
+                let x: NSUInteger = *index as NSUInteger;
                 let _: () = msg_send![index_set, addIndex:x];
             }
 
@@ -507,11 +604,11 @@ impl<T> ListView<T> {
             let types: NSArray = types.into_iter().map(|t| {
                 // This clone probably doesn't need to be here, but it should also be cheap as
                 // this is just an enum... and this is not an oft called method.
-                let x: NSString = t.clone().into();
-                x.into_inner()
+                let x: NSString = (*t).into();
+                x.into()
             }).collect::<Vec<id>>().into();
 
-            let _: () = msg_send![&*self.objc, registerForDraggedTypes:types.into_inner()];
+            let _: () = msg_send![&*self.objc, registerForDraggedTypes:&*types];
         }
     }
 
@@ -519,6 +616,14 @@ impl<T> ListView<T> {
         unsafe {
             let _: () = msg_send![&*self.objc, reloadData];
         }
+    }
+
+    pub fn get_selected_row_index(&self) -> NSInteger {
+        unsafe { msg_send![&*self.objc, selectedRow] }
+    }
+    
+    pub fn get_clicked_row_index(&self) -> NSInteger {
+        unsafe { msg_send![&*self.objc, clickedRow] }
     }
 }
 

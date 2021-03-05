@@ -119,14 +119,36 @@ impl Image {
         Image(unsafe {
             ShareId::from_ptr(match os::is_minimum_version(11) {
                 true => {
-                    let icon = NSString::new(icon.to_sfsymbol_str()).into_inner();
-                    let desc = NSString::new(accessibility_description).into_inner();
-                    msg_send![class!(NSImage), imageWithSystemSymbolName:icon accessibilityDescription:desc]
+                    let icon = NSString::new(icon.to_sfsymbol_str());
+                    let desc = NSString::new(accessibility_description);
+                    msg_send![class!(NSImage), imageWithSystemSymbolName:&*icon
+                        accessibilityDescription:&*desc]
                 },
 
                 false => {
-                    let icon = NSString::new(icon.to_str()).into_inner();
-                    msg_send![class!(NSImage), imageNamed:icon]
+                    let icon = NSString::new(icon.to_str());
+                    msg_send![class!(NSImage), imageNamed:&*icon]
+                }
+            })
+        })
+    }
+
+    /// Creates and returns an Image with the specified `SFSymbol`. Note that `SFSymbol` is 
+    /// supported on 11.0+; as such, this will panic if called on a lower system. Take care to
+    /// provide a fallback image or user experience if you need to support an older OS.
+    pub fn symbol(symbol: SFSymbol, accessibility_description: &str) -> Self {
+        Image(unsafe {
+            ShareId::from_ptr(match os::is_minimum_version(11) {
+                true => {
+                    let icon = NSString::new(symbol.to_str());
+                    let desc = NSString::new(accessibility_description);
+                    msg_send![class!(NSImage), imageWithSystemSymbolName:&*icon
+                        accessibilityDescription:&*desc]
+                },
+
+                false => {
+                    #[cfg(feature = "macos")]
+                    panic!("SFSymbols are only supported on macOS 11.0 and up.");
                 }
             })
         })

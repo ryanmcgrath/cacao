@@ -110,6 +110,15 @@ impl ImageView {
             let _: () = msg_send![&*self.objc, setImage:&*image.0];
         }
     }
+
+    pub fn set_hidden(&self, hidden: bool) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setHidden:match hidden {
+                true => YES,
+                false => NO
+            }];
+        }
+    }
 }
 
 impl Layout for ImageView {

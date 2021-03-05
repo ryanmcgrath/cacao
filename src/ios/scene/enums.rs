@@ -13,18 +13,18 @@ pub enum SessionRole {
     //CarPlayApplication
 }
 
-impl From<SessionRole> for NSString {
+impl From<SessionRole> for NSString<'_> {
     fn from(role: SessionRole) -> Self {
         NSString::new(match role {
-            SessionRole::Application => "UIWindowSceneSessionRoleApplication",
-            SessionRole::ExternalDisplay => "UIWindowSceneSessionRoleExternalDisplay",
+            SessionRole::Application => NSString::no_copy("UIWindowSceneSessionRoleApplication"),
+            SessionRole::ExternalDisplay => NSString::no_copy("UIWindowSceneSessionRoleExternalDisplay"),
             //SessionRole::CarPlayApplication => ""
         })
     }
 }
 
-impl From<NSString> for SessionRole {
-    fn from(value: NSString) -> Self {
+impl From<NSString<'_>> for SessionRole {
+    fn from(value: NSString<'_>) -> Self {
         match value.to_str() {
             "UIWindowSceneSessionRoleApplication" => SessionRole::Application,
             "UIWindowSceneSessionRoleExternalDisplay" => SessionRole::ExternalDisplay,

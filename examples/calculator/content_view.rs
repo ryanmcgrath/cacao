@@ -107,7 +107,7 @@ impl ViewDelegate for CalculatorView {
             self.results_wrapper.top.constraint_equal_to(&view.top),
             self.results_wrapper.leading.constraint_equal_to(&view.leading),
             self.results_wrapper.trailing.constraint_equal_to(&view.trailing),
-            self.results_wrapper.height.constraint_equal_to_constant(52.),
+            self.results_wrapper.height.constraint_equal_to_constant(80.),
 
             self.label.leading.constraint_equal_to(&self.results_wrapper.leading).offset(22.),
             self.label.trailing.constraint_equal_to(&self.results_wrapper.trailing).offset(-16.),

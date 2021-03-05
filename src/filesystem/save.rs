@@ -102,7 +102,7 @@ pub fn get_url(panel: &Object) -> Option<String> {
             None
         } else {
             let path: id = msg_send![url, path];
-            Some(NSString::wrap(path).to_str().to_string())
+            Some(NSString::retain(path).to_string())
         }
     }
 }

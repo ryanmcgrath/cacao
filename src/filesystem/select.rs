@@ -13,6 +13,8 @@ use objc_id::ShareId;
 use crate::foundation::{id, YES, NO, NSInteger, NSString};
 use crate::filesystem::enums::ModalResponse;
 
+use crate::macos::window::{Window, WindowDelegate};
+
 #[derive(Debug)]
 pub struct FileSelectPanel {
     /// The internal Objective C `NSOpenPanel` instance.
@@ -122,7 +124,13 @@ impl FileSelectPanel {
     /// Note that this clones the underlying `NSOpenPanel` pointer. This is theoretically safe as
     /// the system runs and manages that in another process, and we're still abiding by the general
     /// retain/ownership rules here.
-    pub fn show<F: Fn(Vec<PathBuf>) + 'static>(&self, handler: F) {
+    ///
+    /// This is offered for scenarios where you don't necessarily have a Window (e.g, a shell
+    /// script) or can't easily pass one to use as a sheet.
+    pub fn show<F>(&self, handler: F)
+    where
+        F: Fn(Vec<PathBuf>) + 'static
+    {
         let panel = self.panel.clone();
         let completion = ConcreteBlock::new(move |result: NSInteger| {
             let response: ModalResponse = result.into();
@@ -137,30 +145,46 @@ impl FileSelectPanel {
             let _: () = msg_send![&*self.panel, beginWithCompletionHandler:completion.copy()];
         }
     }
+
+    /// Shows the panel as a modal. Currently, this method accepts `Window`s which use a delegate.
+    /// If you're using a `Window` without a delegate, you may need to opt to use the `show()`
+    /// method.
+    ///
+    /// Note that this clones the underlying `NSOpenPanel` pointer. This is theoretically safe as
+    /// the system runs and manages that in another process, and we're still abiding by the general
+    /// retain/ownership rules here.
+    pub fn begin_sheet<T, F>(&self, window: &Window<T>, handler: F)
+    where
+        F: Fn(Vec<PathBuf>) + 'static
+    {
+        let panel = self.panel.clone();
+        let completion = ConcreteBlock::new(move |result: NSInteger| {
+            let response: ModalResponse = result.into();
+
+            handler(match response {
+                ModalResponse::Ok => get_urls(&panel),
+                _ => Vec::new()
+            });
+        });
+
+        unsafe {
+            let _: () = msg_send![&*self.panel, beginSheetModalForWindow:&*window.objc completionHandler:completion.copy()];
+        }
+    }
 }
 
 /// Retrieves the selected URLs from the provided panel.
 /// This is currently a bit ugly, but it's also not something that needs to be the best thing in
 /// the world as it (ideally) shouldn't be called repeatedly in hot spots.
 pub fn get_urls(panel: &Object) -> Vec<PathBuf> {
-    let mut paths: Vec<PathBuf> = vec![];
-
     unsafe {
         let urls: id = msg_send![&*panel, URLs];
-        let mut count: usize = msg_send![urls, count];
+        let count: usize = msg_send![urls, count];
 
-        loop {
-            if count == 0 {
-                break;
-            }
-
-            let url: id = msg_send![urls, objectAtIndex:count-1];
-            let path = NSString::wrap(msg_send![url, path]).to_str().to_string();
-            paths.push(path.into());
-            count -= 1;
-        }
+        (0..count).map(|index| {
+            let url: id = msg_send![urls, objectAtIndex:index];
+            let path = NSString::retain(msg_send![url, path]).to_string();
+            path.into()
+        }).collect()
     }
-
-    paths.reverse();
-    paths
 }

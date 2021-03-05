@@ -68,6 +68,9 @@ use ios::{register_view_class, register_view_class_with_delegate};
 mod controller;
 pub use controller::ViewController;
 
+mod splitviewcontroller;
+pub use splitviewcontroller::SplitViewController;
+
 mod traits;
 pub use traits::ViewDelegate;
 
@@ -199,7 +202,7 @@ impl<T> View<T> {
             height: self.height.clone(),
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
-            objc: Rc::clone(&self.objc) //.clone()
+            objc: Rc::clone(&self.objc)
         }
     }
 
@@ -210,27 +213,18 @@ impl<T> View<T> {
         unsafe {
             (&mut **objc).set_ivar(BACKGROUND_COLOR, color.as_ref().to_objc());
         }
-        /*let bg = color.as_ref().into_platform_specific_color();
-        
-        unsafe {
-            let cg: id = msg_send![bg, CGColor];
-            let layer: id = msg_send![&*self.objc, layer];
-            let _: () = msg_send![layer, setBackgroundColor:cg];
-        }*/
     }
 
     /// Register this view for drag and drop operations.
     pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
         unsafe {
             let types: NSArray = types.into_iter().map(|t| {
-                // This clone probably doesn't need to be here, but it should also be cheap as
-                // this is just an enum... and this is not an oft called method.
-                let x: NSString = t.clone().into();
-                x.into_inner()
+                let x: NSString = (*t).into();
+                x.into()
             }).collect::<Vec<id>>().into();
 
             let objc = self.objc.borrow();
-            let _: () = msg_send![&**objc, registerForDraggedTypes:types.into_inner()];
+            let _: () = msg_send![&**objc, registerForDraggedTypes:&*types];
         }
     }
 }

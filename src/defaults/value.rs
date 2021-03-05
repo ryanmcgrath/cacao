@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::foundation::{id, NSData, NSDictionary, NSString, NSNumber};
+use crate::foundation::{id, NSData, NSMutableDictionary, NSString, NSNumber};
 
 /// Represents a Value that can be stored or queried with `UserDefaults`.
 ///
@@ -136,22 +136,22 @@ impl From<Value> for id {
     // period.
     fn from(value: Value) -> Self {
         match value {
-            Value::Bool(b) => NSNumber::bool(b).into_inner(),
-            Value::String(s) => NSString::new(&s).into_inner(),
-            Value::Float(f) => NSNumber::float(f).into_inner(),
-            Value::Integer(i) => NSNumber::integer(i).into_inner(),
-            Value::Data(data) => NSData::new(data).into_inner()
+            Value::Bool(b) => NSNumber::bool(b).into(),
+            Value::String(s) => NSString::new(&s).into(),
+            Value::Float(f) => NSNumber::float(f).into(),
+            Value::Integer(i) => NSNumber::integer(i).into(),
+            Value::Data(data) => NSData::new(data).into()
         }
     }
 }
 
-impl<K> From<HashMap<K, Value>> for NSDictionary
+impl<K> From<HashMap<K, Value>> for NSMutableDictionary
 where
     K: AsRef<str>
 {
     /// Translates a `HashMap` of `Value`s into an `NSDictionary`.
     fn from(map: HashMap<K, Value>) -> Self {
-        let mut dictionary = NSDictionary::new();
+        let mut dictionary = NSMutableDictionary::new();
 
         for (key, value) in map.into_iter() {
             let k = NSString::new(key.as_ref()); 

@@ -109,7 +109,7 @@ impl ThumbnailConfig {
         unsafe {
             let size = CGSize::new(self.size.0, self.size.1);
             // @TODO: Check nil here, or other bad conversion
-            let from_url: id = msg_send![class!(NSURL), fileURLWithPath:file.into_inner()];
+            let from_url: id = msg_send![class!(NSURL), fileURLWithPath:&*file];
 
             let request: id = msg_send![class!(QLThumbnailGenerationRequest), alloc];
             let request: id = msg_send![request, initWithFileAtURL:from_url

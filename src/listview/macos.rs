@@ -14,7 +14,8 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel, sel_impl, msg_send};
 use objc_id::Id;
 
-use crate::foundation::{load_or_register_class, id, YES, NO, NSArray, NSInteger, NSUInteger};
+use crate::macos::menu::{Menu, MenuItem};
+use crate::foundation::{load_or_register_class, id, nil, YES, NO, NSArray, NSInteger, NSUInteger};
 use crate::dragdrop::DragInfo;
 use crate::listview::{
     LISTVIEW_DELEGATE_PTR, LISTVIEW_CELL_VENDOR_PTR,
@@ -57,6 +58,45 @@ extern fn view_for_column<T: ListViewDelegate>(
     }
 }
 
+extern fn will_display_cell<T: ListViewDelegate>(
+    this: &Object,
+    _: Sel,
+    _table_view: id,
+    _cell: id,
+    _column: id,
+    item: NSInteger   
+) {
+    let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
+    view.will_display_item(item as usize);
+}
+
+extern fn menu_needs_update<T: ListViewDelegate>(
+    this: &Object,
+    _: Sel,
+    menu: id
+) {
+    let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
+    let items = view.context_menu();
+    let _ = Menu::append(menu, items);
+}
+
+/// NSTableView requires listening to an observer to detect row selection changes, but that is...
+/// even clunkier than what we do in this framework.
+///
+/// The other less obvious way is to subclass and override the `shouldSelectRow:` method; here, we
+/// simply assume things are selectable and call our delegate as if things were selected. This may
+/// need to change in the future, but it works well enough for now.
+extern fn select_row<T: ListViewDelegate>(
+    this: &Object,
+    _: Sel,
+    _table_view: id,
+    item: NSInteger   
+) -> BOOL {
+    let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
+    view.item_selected(item as usize);
+    YES
+}
+
 extern fn row_actions_for_row<T: ListViewDelegate>(
     this: &Object,
     _: Sel,
@@ -67,14 +107,13 @@ extern fn row_actions_for_row<T: ListViewDelegate>(
     let edge: RowEdge = edge.into();
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
     
-    let actions = view.actions_for(row as usize, edge);
+    let mut ids: NSArray = view.actions_for(row as usize, edge)
+        .iter_mut()
+        .map(|action| &*action.0)
+        .collect::<Vec<&Object>>()
+        .into();
 
-    //if actions.len() > 0 {
-        let ids: Vec<&Object> = actions.iter().map(|action| &*action.0).collect();
-        NSArray::from(ids).into_inner()
-    //} else {
-    //    NSArray::new(&[]).into_inner()
-    //}
+    &mut *ids
 }
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
@@ -164,8 +203,15 @@ pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instanc
 
         // Tableview-specific
         decl.add_method(sel!(numberOfRowsInTableView:), number_of_items::<T> as extern fn(&Object, _, id) -> NSInteger);
+        decl.add_method(sel!(tableView:willDisplayCell:forTableColumn:row:), will_display_cell::<T> as extern fn(&Object, _, id, id, id, NSInteger));
         decl.add_method(sel!(tableView:viewForTableColumn:row:), view_for_column::<T> as extern fn(&Object, _, id, id, NSInteger) -> id);
+        decl.add_method(sel!(tableView:shouldSelectRow:), select_row::<T> as extern fn(&Object, _, id, NSInteger) -> BOOL);
         decl.add_method(sel!(tableView:rowActionsForRow:edge:), row_actions_for_row::<T> as extern fn(&Object, _, id, NSInteger, NSInteger) -> id);
+
+        // A slot for some menu handling; we just let it be done here for now rather than do the
+        // whole delegate run, since things are fast enough nowadays to just replace the entire
+        // menu.
+        decl.add_method(sel!(menuNeedsUpdate:), menu_needs_update::<T> as extern fn(&Object, _, id));
 
         // Drag and drop operations (e.g, accepting files)
         decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger);

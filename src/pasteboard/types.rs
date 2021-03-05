@@ -22,7 +22,7 @@ pub enum PasteboardName {
     Ruler
 }
 
-impl From<PasteboardName> for NSString {
+impl From<PasteboardName> for NSString<'_> {
     fn from(name: PasteboardName) -> Self {
         NSString::new(match name {
             PasteboardName::Drag => "Apple CFPasteboard drag",
@@ -83,7 +83,7 @@ pub enum PasteboardType {
     TIFF
 }
 
-impl From<PasteboardType> for NSString {
+impl From<PasteboardType> for NSString<'_> {
     fn from(pboard_type: PasteboardType) -> Self {
         NSString::new(match pboard_type {
             PasteboardType::URL => "public.url",

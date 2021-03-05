@@ -242,7 +242,11 @@ pub enum Color {
     DarkText,
 
     /// The un-adaptable color for text on a dark background.
-    LightText
+    LightText,
+
+    WindowBackgroundColor,
+
+    UnderPageBackgroundColor
 }
 
 impl Color {
@@ -484,5 +488,7 @@ unsafe fn to_objc(obj: &Color) -> id {
         Color::Link => system_color_with_fallback!(color, linkColor, blueColor),
         Color::DarkText => system_color_with_fallback!(color, darkTextColor, blackColor),
         Color::LightText => system_color_with_fallback!(color, lightTextColor, whiteColor),
+        Color::WindowBackgroundColor => system_color_with_fallback!(color, windowBackgroundColor, clearColor),
+        Color::UnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor),
     }
 }

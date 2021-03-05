@@ -7,7 +7,7 @@ use objc_id::Id;
 
 use crate::foundation::{id, to_bool, BOOL, YES, NO, NSInteger};
 
-/// Wrapper for a retained `NSNumber` object.
+/// Wrapper for a `NSNumber` object.
 ///
 /// In general we strive to avoid using this in the codebase, but it's a requirement for moving
 /// objects in and out of certain situations (e.g, `UserDefaults`).
@@ -16,17 +16,25 @@ pub struct NSNumber(pub Id<Object>);
 
 impl NSNumber {
     /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
+    /// wrap (and retain) it while we figure out what to do with it. This does that.
+    pub fn retain(data: id) -> Self {
+        NSNumber(unsafe {
+            Id::from_ptr(data)
+        })
+    }
+    
+    /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
     /// wrap it while we figure out what to do with it. This does that.
     pub fn wrap(data: id) -> Self {
         NSNumber(unsafe {
-            Id::from_ptr(data)
+            Id::from_retained_ptr(data)
         })
     }
 
     /// Constructs a `numberWithBool` instance of `NSNumber` and retains it.
     pub fn bool(value: bool) -> Self {
         NSNumber(unsafe {
-            Id::from_ptr(msg_send![class!(NSNumber), numberWithBool:match value {
+            Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithBool:match value {
                 true => YES,
                 false => NO
             }])
@@ -36,14 +44,14 @@ impl NSNumber {
     /// Constructs a `numberWithInteger` instance of `NSNumber` and retains it.
     pub fn integer(value: i64) -> Self {
         NSNumber(unsafe {
-            Id::from_ptr(msg_send![class!(NSNumber), numberWithInteger:value as NSInteger])
+            Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithInteger:value as NSInteger])
         })
     }
 
     /// Constructs a `numberWithDouble` instance of `NSNumber` and retains it.
     pub fn float(value: f64) -> Self {
         NSNumber(unsafe {
-            Id::from_ptr(msg_send![class!(NSNumber), numberWithDouble:value])
+            Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithDouble:value])
         })
     }
 
@@ -51,7 +59,7 @@ impl NSNumber {
     /// to inform you how you should pull the underlying data out of the `NSNumber`.
     ///
     /// For more information:
-    /// [https://nshipster.com/type-encodings/](https://nshipster.com/type-encodings/)
+    /// <https://nshipster.com/type-encodings/>
     pub fn objc_type(&self) -> &str {
         unsafe {
             let t: *const c_char = msg_send![&*self.0, objCType];
@@ -101,9 +109,11 @@ impl NSNumber {
 
         to_bool(result)
     }
-    
+}
+
+impl From<NSNumber> for id {
     /// Consumes and returns the underlying `NSNumber`.
-    pub fn into_inner(mut self) -> id {
-        &mut *self.0
+    fn from(mut number: NSNumber) -> Self {
+        &mut *number.0
     }
 }

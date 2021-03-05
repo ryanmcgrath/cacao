@@ -1314,10 +1314,10 @@ pub enum NotificationName {
     WKAccessibilityReduceMotionStatusDidChange
 }
 
-impl From<NotificationName> for NSString {
+impl From<NotificationName> for NSString<'_> {
     fn from(name: NotificationName) -> Self {
         match name {
-            _ => NSString::new("")
+            _ => NSString::no_copy("")
         }
     }
 }

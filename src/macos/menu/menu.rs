@@ -6,17 +6,13 @@ use objc_id::{Id, ShareId};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, NSString};
+use crate::foundation::{id, NSInteger, NSString};
 use crate::macos::menu::item::MenuItem;
-use crate::invoker::TargetActionHandler;
 
 /// A struct that represents an `NSMenu`. It takes ownership of items, and handles instrumenting
 /// them throughout the application lifecycle.
 #[derive(Debug)]
-pub struct Menu {
-    pub inner: Id<Object>,
-    pub actions: Vec<TargetActionHandler>
-}
+pub struct Menu(pub Id<Object>);
 
 impl Menu {
     /// Creates a new `Menu` with the given title, and uses the passed items as submenu items.
@@ -29,41 +25,49 @@ impl Menu {
     ///         to get the menu functioning.
     ///
     pub fn new(title: &str, items: Vec<MenuItem>) -> Self {
-        let inner = unsafe {
+        Menu(unsafe {
             let cls = class!(NSMenu);
             let alloc: id = msg_send![cls, alloc];
             let title = NSString::new(title);
-            let inner: id = msg_send![alloc, initWithTitle:title];
-            Id::from_ptr(inner)
-        };
+            let menu: id = msg_send![alloc, initWithTitle:&*title];
 
-        let mut actions = vec![];
+            for item in items.into_iter() {
+                let objc = item.to_objc();
+                let _: () = msg_send![menu, addItem:&*objc];
+            }
 
-        for item in items {
-            match item {
-                MenuItem::Entry((item, action)) => {
-                    unsafe {
-                        let _: () = msg_send![&*inner, addItem:item];
-                    }
+            Id::from_retained_ptr(menu)
+        })
+    }
 
-                    if action.is_some() {
-                        actions.push(action.unwrap());
-                    }
-                },
+    /// Given a set of `MenuItem`s, merges them into an existing Menu (e.g, for a context menu on a
+    /// view).
+    pub fn append(menu: id, items: Vec<MenuItem>) -> id {
+        // You might look at the code below and wonder why we can't just call `removeAllItems`.
+        //
+        // Basically: that doesn't seem to properly decrement the retain count on the underlying
+        // menu item, and we wind up leaking any callbacks for the returned `MenuItem` instances.
+        //
+        // Walking them and calling release after removing them from the underlying store gives us
+        // the correct behavior.
+        unsafe {
+            let mut count: NSInteger = msg_send![menu, numberOfItems];
 
-                MenuItem::Separator => {
-                    unsafe {
-                        let cls = class!(NSMenuItem);
-                        let separator: id = msg_send![cls, separatorItem];
-                        let _: () = msg_send![&*inner, addItem:separator];
-                    }
-                }
+            while count != 0 {
+                count -= 1;
+                let item: id = msg_send![menu, itemAtIndex:count];
+                let _: () = msg_send![menu, removeItemAtIndex:count];
+                let _: () = msg_send![item, release];
             }
         }
 
-        Menu {
-            inner: inner,
-            actions: actions
+        for item in items.into_iter() {
+            unsafe {
+                let objc = item.to_objc();
+                let _: () = msg_send![menu, addItem:&*objc];
+            }
         }
+
+        menu
     }
 }

@@ -229,6 +229,14 @@ impl<T> Window<T> {
         }
     }
 
+    /// Sets the content size for this window.
+    pub fn set_content_size<F: Into<f64>>(&self, width: F, height: F) {
+        unsafe {
+            let size = CGSize::new(width.into(), height.into());
+            let _: () = msg_send![&*self.objc, setContentSize:size];
+        }
+    }
+
     /// Sets the minimum size this window can shrink to.
     pub fn set_minimum_content_size<F: Into<f64>>(&self, width: F, height: F) {
         unsafe {
@@ -242,6 +250,14 @@ impl<T> Window<T> {
         unsafe {
             let size = CGSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.objc, setContentMaxSize:size];
+        }
+    }
+    
+    /// Sets the minimum size this window can shrink to.
+    pub fn set_minimum_size<F: Into<f64>>(&self, width: F, height: F) {
+        unsafe {
+            let size = CGSize::new(width.into(), height.into());
+            let _: () = msg_send![&*self.objc, setMinSize:size];
         }
     }
 
@@ -427,6 +443,12 @@ impl<T> Window<T> {
                 true => YES,
                 false => NO
             }];
+        }
+    }
+
+    pub fn set_titlebar_separator_style(&self, style: crate::foundation::NSInteger) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setTitlebarSeparatorStyle:style];
         }
     }
     

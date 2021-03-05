@@ -46,7 +46,7 @@ impl Default for WindowConfig {
 
         config.set_styles(&[
             WindowStyle::Resizable, WindowStyle::Miniaturizable, WindowStyle::UnifiedTitleAndToolbar,
-            WindowStyle::Closable, WindowStyle::Titled
+            WindowStyle::Closable, WindowStyle::Titled, WindowStyle::FullSizeContentView
         ]);
 
         config

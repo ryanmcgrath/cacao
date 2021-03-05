@@ -51,16 +51,16 @@ impl WindowDelegate for AppWindow {
         window.set_content_view(&self.content);
 
         LayoutConstraint::activate(&[
-            self.blue.top.constraint_equal_to(&self.content.top).offset(16.),
+            self.blue.top.constraint_equal_to(&self.content.top).offset(46.),
             self.blue.leading.constraint_equal_to(&self.content.leading).offset(16.),
             self.blue.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),
             self.blue.width.constraint_equal_to_constant(100.),
 
-            self.red.top.constraint_equal_to(&self.content.top).offset(16.),
+            self.red.top.constraint_equal_to(&self.content.top).offset(46.),
             self.red.leading.constraint_equal_to(&self.blue.trailing).offset(16.),
             self.red.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),
             
-            self.green.top.constraint_equal_to(&self.content.top).offset(16.),
+            self.green.top.constraint_equal_to(&self.content.top).offset(46.),
             self.green.leading.constraint_equal_to(&self.red.trailing).offset(16.),
             self.green.trailing.constraint_equal_to(&self.content.trailing).offset(-16.),
             self.green.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),

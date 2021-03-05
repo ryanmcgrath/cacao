@@ -1,7 +1,10 @@
 //! The main Todos window toolbar. Contains a button to enable adding a new task.
 
 use cacao::button::Button;
-use cacao::macos::toolbar::{Toolbar, ToolbarDelegate, ToolbarItem, ToolbarDisplayMode};
+use cacao::macos::toolbar::{
+    Toolbar, ToolbarDelegate, ToolbarItem,
+    ToolbarDisplayMode, ItemIdentifier
+};
 
 use crate::storage::{dispatch_ui, Message};
 
@@ -31,12 +34,12 @@ impl ToolbarDelegate for TodosToolbar {
         toolbar.set_display_mode(ToolbarDisplayMode::IconOnly);
     }
 
-    fn allowed_item_identifiers(&self) -> Vec<&'static str> {
-        vec!["AddTodoButton"]
+    fn allowed_item_identifiers(&self) -> Vec<ItemIdentifier> {
+        vec![ItemIdentifier::Custom("AddTodoButton")]
     }
 
-    fn default_item_identifiers(&self) -> Vec<&'static str> {
-        vec!["AddTodoButton"]
+    fn default_item_identifiers(&self) -> Vec<ItemIdentifier> {
+        vec![ItemIdentifier::Custom("AddTodoButton")]
     }
 
     // We only have one item, so we don't care about the identifier.

@@ -8,7 +8,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::foundation::id;
+use crate::foundation::{id, YES, NO};
 
 /// A wrapper for `NSLayoutConstraint`. This both acts as a central path through which to activate
 /// constraints, as well as a wrapper for layout constraints that are not axis bound (e.g, width or
@@ -43,17 +43,38 @@ impl LayoutConstraint {
     /// Sets the offset for this constraint.
     pub fn offset<F: Into<f64>>(self, offset: F) -> Self {
         let offset: f64 = offset.into();
-
         unsafe {
             let o = offset as CGFloat;
             let _: () = msg_send![&*self.constraint, setConstant:o];
         }
+
 
         LayoutConstraint {
             constraint: self.constraint,
             offset: offset,
             multiplier: self.multiplier,
             priority: self.priority
+        }
+    }
+
+    pub fn set_offset<F: Into<f64>>(&self, offset: F) {
+        let offset: f64 = offset.into();
+
+        unsafe {
+            let o = offset as CGFloat;
+            let _: () = msg_send![&*self.constraint, setConstant:o];
+        }
+    }
+
+    /// Set whether this constraint is active or not. If you're doing this across a batch of
+    /// constraints, it's often more performant to batch-deactivate with
+    /// `LayoutConstraint::deactivate()`.
+    pub fn set_active(&self, active: bool) {
+        unsafe {
+            let _: () = msg_send![&*self.constraint, setActive:match active {
+                true => YES,
+                false => NO
+            }];
         }
     }
 
@@ -73,6 +94,17 @@ impl LayoutConstraint {
 
             let constraints: id = msg_send![class!(NSArray), arrayWithObjects:ids.as_ptr() count:ids.len()];
             let _: () = msg_send![class!(NSLayoutConstraint), activateConstraints:constraints];
+        }
+    }
+
+    pub fn deactivate(constraints: &[LayoutConstraint]) {
+        unsafe {
+            let ids: Vec<&Object> = constraints.into_iter().map(|constraint| {
+                &*constraint.constraint
+            }).collect();
+
+            let constraints: id = msg_send![class!(NSArray), arrayWithObjects:ids.as_ptr() count:ids.len()];
+            let _: () = msg_send![class!(NSLayoutConstraint), deactivateConstraints:constraints];
         }
     }
 }

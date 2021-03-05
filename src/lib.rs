@@ -1,6 +1,8 @@
 //#![deny(missing_docs)]
 //#![deny(missing_debug_implementations)]
 #![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
+#![cfg_attr(docsrs, deny(rustdoc::broken_intra_doc_links))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 // Copyright 2019+, the Cacao developers.
 // See the COPYRIGHT file at the top-level directory of this distribution.
@@ -8,8 +10,8 @@
 
 //! # Cacao
 //!
-//! This library provides safe Rust bindings for `AppKit` on macOS and (eventually) `UIKit` on iOS. It
-//! tries to do so in a way that, if you've done programming for the framework before (in Swift or
+//! This library provides safe Rust bindings for `AppKit` on macOS and (eventually) `UIKit` on iOS and tvOS.
+//! It tries to do so in a way that, if you've done programming for the framework before (in Swift or
 //! Objective-C), will feel familiar. This is tricky in Rust due to the ownership model, but some
 //! creative coding and assumptions can get us pretty far.
 //!
@@ -18,14 +20,14 @@
 //! already fine for some apps.
 //!
 //! _Note that this crate relies on the Objective-C runtime. Interfacing with the runtime *requires*
-//! unsafe blocks; this crate handles those unsafe interactions for you and provides a safe wrapper, 
+//! unsafe blocks; this crate handles those unsafe interactions for you and provides a mostly safe wrapper, 
 //! but by using this crate you understand that usage of `unsafe` is a given and will be somewhat 
 //! rampant for wrapped controls. This does _not_ mean you can't assess, review, or question unsafe 
 //! usage - just know it's happening, and in large part it's not going away._
 //!
 //! # Hello World
 //!
-//! ```rust
+//! ```rust,no_run
 //! use cacao::macos::app::{App, AppDelegate};
 //! use cacao::macos::window::Window;
 //! 
@@ -48,23 +50,41 @@
 //! ```
 //!
 //! ## Initialization
+//!
 //! Due to the way that AppKit and UIKit programs typically work, you're encouraged to do the bulk
 //! of your work starting from the `did_finish_launching()` method of your `AppDelegate`. This
 //! ensures the application has had time to initialize and do any housekeeping necessary behind the
 //! scenes.
 //!
+//! Note that, in order for this framework to be useful, you must always elect one of the following
+//! features:
+//!
+//! - `macos`: Implements macOS-specific APIs (menus, toolbars, windowing, and so on).
+//! - `ios`: Implements iOS-specific APIs (scenes, navigation controllers, and so on).
+//! - `tvos`: Implements tvOS-specific APIs. Currently barely implemented.
+//!
+//! The rest of the features in this framework attempt to expose a common API across the three
+//! aforementioned feature platforms; if you need something else, you can often implement it
+//! yourself by accessing the underlying `objc` property of a control and sending messages to it
+//! directly.
+//!
 //! ## Optional Features
 //!
 //! The following are a list of [Cargo features][cargo-features] that can be enabled or disabled.
 //!
-//! - **cloudkit**: Links `CloudKit.framework` and provides some wrappers around CloudKit
+//! - `cloudkit`: Links `CloudKit.framework` and provides some wrappers around CloudKit
 //! functionality. Currently not feature complete.
-//! - **user-notifications**: Links `UserNotifications.framework` and provides functionality for
+//! - `quicklook`: Links `QuickLook.framework` and offers methods for generating preview images for
+//! files.
+//! - `user-notifications`: Links `UserNotifications.framework` and provides functionality for
 //! emitting notifications on macOS and iOS. Note that this _requires_ your application be
 //! code-signed, and will not work without it.
-//! - **webview**: Links `WebKit.framework` and provides a `WebView` control backed by `WKWebView`.
-//! - **webview-downloading**: Enables downloading files from the `WebView` via a private
-//! interface. This is not an App-Store-safe feature, so be aware of that before enabling.
+//! - `webview`: Links `WebKit.framework` and provides a `WebView` control backed by `WKWebView`.
+//! This feature is not supported on tvOS, as the platform has no webview control.
+//! - `webview-downloading-macos`: Enables downloading files from the `WebView` via a private
+//! interface. This is not an App-Store-safe feature, so be aware of that before enabling. This
+//! feature is not supported on iOS (a user would handle downloads very differently) or tvOS
+//! (there's no web browser there at all).
 //!
 //! [cargo-features]: https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section
 
@@ -74,20 +94,18 @@ pub use objc;
 pub use url;
 pub use lazy_static;
 
-/// Until we figure out a better way to handle reusable views (i.e, the 
-/// "correct" way for a list view to work), just let the delegates pass
-/// back the pointer and handle keeping the pools for themselves.
-pub type Node = objc_id::ShareId<objc::runtime::Object>;
-
 #[cfg(feature = "macos")]
+#[cfg_attr(docsrs, doc(cfg(feature = "macos")))]
 pub mod macos;
 
 #[cfg(feature = "ios")]
+#[cfg_attr(docsrs, doc(cfg(feature = "ios")))]
 pub mod ios;
 
 pub mod button;
 
-#[cfg(feature = "cloudkit")]
+#[cfg(any(feature = "cloudkit", doc))]
+#[cfg_attr(docsrs, doc(cfg(feature = "cloudkit")))]
 pub mod cloudkit;
 
 pub mod color;
@@ -112,15 +130,18 @@ pub mod switch;
 pub mod text;
 
 #[cfg(feature = "quicklook")]
+#[cfg_attr(docsrs, doc(cfg(feature = "quicklook")))]
 pub mod quicklook;
 
 #[cfg(feature = "user-notifications")]
+#[cfg_attr(docsrs, doc(cfg(feature = "user-notifications")))]
 pub mod user_notifications;
 
 pub mod user_activity;
-pub(crate) mod utils;
+pub mod utils;
 
 pub mod view;
 
-#[cfg(feature = "webview")]
+#[cfg(any(feature = "webview", doc))]
+#[cfg_attr(docsrs, doc(cfg(feature = "webview")))]
 pub mod webview;

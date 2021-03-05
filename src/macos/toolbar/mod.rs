@@ -19,7 +19,7 @@ mod traits;
 pub use traits::ToolbarDelegate;
 
 mod enums;
-pub use enums::{ToolbarDisplayMode, ToolbarSizeMode};
+pub use enums::{ToolbarDisplayMode, ToolbarSizeMode, ItemIdentifier};
 
 pub(crate) static TOOLBAR_PTR: &str = "rstToolbarPtr";
 
@@ -67,9 +67,9 @@ impl<T> Toolbar<T> where T: ToolbarDelegate + 'static {
         });
 
         Toolbar {
-            identifier: identifier,
-            objc: objc,
-            objc_delegate: objc_delegate,
+            identifier,
+            objc,
+            objc_delegate,
             delegate: Some(delegate),
         }
     }
@@ -117,10 +117,10 @@ impl<T> Toolbar<T> {
 
     /// Sets the item represented by the item identifier to be selected.
     pub fn set_selected(&self, item_identifier: &str) {
-        let identifier = NSString::new(item_identifier).into_inner();
+        let identifier = NSString::new(item_identifier);
 
         unsafe {
-            let _: () = msg_send![&*self.objc, setSelectedItemIdentifier:identifier];
+            let _: () = msg_send![&*self.objc, setSelectedItemIdentifier:&*identifier];
         }
     }
 }

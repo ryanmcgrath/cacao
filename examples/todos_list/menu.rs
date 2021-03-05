@@ -12,58 +12,58 @@ use crate::storage::{dispatch_ui, Message};
 pub fn menu() -> Vec<Menu> {
     vec![
         Menu::new("", vec![
-            MenuItem::about("Todos"),
+            MenuItem::About("Todos".to_string()),
             MenuItem::Separator,
             
-            MenuItem::entry("Preferences").key(",").action(|| {
+            MenuItem::new("Preferences").key(",").action(|| {
                 dispatch_ui(Message::OpenPreferencesWindow);
             }),
             
             MenuItem::Separator,
-            MenuItem::services(),
+            MenuItem::Services,
             MenuItem::Separator,
-            MenuItem::hide(),
-            MenuItem::hide_others(),
-            MenuItem::show_all(),
+            MenuItem::Hide,
+            MenuItem::HideOthers,
+            MenuItem::ShowAll,
             MenuItem::Separator,
-            MenuItem::quit()
+            MenuItem::Quit
         ]),
 
         Menu::new("File", vec![
-            MenuItem::entry("Open/Show Window").key("n").action(|| {
+            MenuItem::new("Open/Show Window").key("n").action(|| {
                 dispatch_ui(Message::OpenMainWindow);
             }),
 
             MenuItem::Separator,
             
-            MenuItem::entry("Add Todo").key("+").action(|| {
+            MenuItem::new("Add Todo").key("+").action(|| {
                 dispatch_ui(Message::OpenNewTodoSheet);
             }),
 
             MenuItem::Separator,
-            MenuItem::close_window(),
+            MenuItem::CloseWindow
         ]),
 
         Menu::new("Edit", vec![
-            MenuItem::undo(),
-            MenuItem::redo(),
+            MenuItem::Undo,
+            MenuItem::Redo,
             MenuItem::Separator,
-            MenuItem::cut(),
-            MenuItem::copy(),
-            MenuItem::paste(),
+            MenuItem::Cut,
+            MenuItem::Copy,
+            MenuItem::Paste,
             MenuItem::Separator,
-            MenuItem::select_all()
+            MenuItem::SelectAll
         ]),
         
         Menu::new("View", vec![
-            MenuItem::enter_full_screen()
+            MenuItem::EnterFullScreen
         ]),
 
         Menu::new("Window", vec![
-            MenuItem::minimize(),
-            MenuItem::zoom(),
+            MenuItem::Minimize,
+            MenuItem::Zoom,
             MenuItem::Separator,
-            MenuItem::entry("Bring All to Front")
+            MenuItem::new("Bring All to Front")
         ]),
 
         Menu::new("Help", vec![])

@@ -121,9 +121,9 @@ where
         let dl = register_app_delegate_class::<T>();
         let w = register_window_scene_delegate_class::<W, F>();
 
-        // This probably needs to be Arc<Mutex<>>'d at some point, but this is still exploratory.
         let app_delegate = Box::new(delegate);
         let vendor = Box::new(scene_delegate_vendor);
+
         unsafe {
             let delegate_ptr: *const T = &*app_delegate; 
             APP_DELEGATE = delegate_ptr as usize;
@@ -148,11 +148,11 @@ impl<T, W, F> App<T, W, F> {
         let args = std::env::args().map(|arg| CString::new(arg).unwrap() ).collect::<Vec<CString>>();
         let c_args = args.iter().map(|arg| arg.as_ptr()).collect::<Vec<*const c_char>>();
         
-        let s = NSString::new("RSTApplication");
-        let s2 = NSString::new("RSTAppDelegate");
+        let s = NSString::no_copy("RSTApplication");
+        let s2 = NSString::no_copy("RSTAppDelegate");
 
         unsafe {
-            UIApplicationMain(c_args.len() as c_int, c_args.as_ptr(), s.into_inner(), s2.into_inner());
+            UIApplicationMain(c_args.len() as c_int, c_args.as_ptr(), &*s, &*s2);
         }
 
         self.pool.drain();

@@ -38,7 +38,7 @@ impl Pasteboard {
     pub fn named(name: PasteboardName) -> Self {
         Pasteboard(unsafe {
             let name: NSString = name.into();
-            ShareId::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithName:&*name.0])
+            ShareId::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithName:&*name])
         })
     }
 
@@ -48,6 +48,16 @@ impl Pasteboard {
         Pasteboard(unsafe {
             ShareId::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithUniqueName])
         })
+    }
+
+    /// A shorthand helper method for copying some text to the clipboard.
+    pub fn copy_text(&self, text: &str) {
+        let contents = NSString::new(text);
+        let ptype: NSString = PasteboardType::String.into();
+
+        unsafe {
+            let _: () = msg_send![&*self.0, setString:&*contents forType:ptype];
+        }
     }
 
     /// Releases the receiver’s resources in the pasteboard server. It's rare-ish to need to use
@@ -85,8 +95,8 @@ impl Pasteboard {
                 }));
             }
 
-            let urls = NSArray::wrap(contents).map(|url| {
-                let path = NSString::wrap(msg_send![url, path]);
+            let urls = NSArray::retain(contents).map(|url| {
+                let path = NSString::retain(msg_send![url, path]);
                 Url::parse(&format!("file://{}", path.to_str()))
             }).into_iter().filter_map(|r| r.ok()).collect();
 
@@ -114,8 +124,8 @@ impl Pasteboard {
                 }));
             }
 
-            let urls = NSArray::wrap(contents).map(|url| {
-                let path = NSString::wrap(msg_send![url, path]).to_str().to_string();
+            let urls = NSArray::retain(contents).map(|url| {
+                let path = NSString::retain(msg_send![url, path]).to_str().to_string();
                 PathBuf::from(path)
             }).into_iter().collect();
 

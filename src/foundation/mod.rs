@@ -34,7 +34,7 @@ mod data;
 pub use data::NSData;
 
 mod dictionary;
-pub use dictionary::NSDictionary;
+pub use dictionary::NSMutableDictionary;
 
 mod number;
 pub use number::NSNumber;

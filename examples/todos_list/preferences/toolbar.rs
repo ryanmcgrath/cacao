@@ -1,7 +1,7 @@
 //! Implements an example toolbar for a Preferences app. Could be cleaner, probably worth cleaning
 //! up at some point.
 
-use cacao::macos::toolbar::{Toolbar, ToolbarDelegate, ToolbarItem};
+use cacao::macos::toolbar::{Toolbar, ToolbarDelegate, ToolbarItem, ItemIdentifier};
 use cacao::image::{Image, MacSystemIcon};
 
 use crate::storage::{dispatch_ui, Message};
@@ -46,16 +46,16 @@ impl ToolbarDelegate for PreferencesToolbar {
         toolbar.set_selected("general");
     }
 
-    fn allowed_item_identifiers(&self) -> Vec<&'static str> {
-        vec!["general", "advanced"]
+    fn allowed_item_identifiers(&self) -> Vec<ItemIdentifier> {
+        vec![ItemIdentifier::Custom("general"), ItemIdentifier::Custom("advanced")]
     }
 
-    fn default_item_identifiers(&self) -> Vec<&'static str> {
-        vec!["general", "advanced"]
+    fn default_item_identifiers(&self) -> Vec<ItemIdentifier> {
+        vec![ItemIdentifier::Custom("general"), ItemIdentifier::Custom("advanced")]
     }
 
-    fn selectable_item_identifiers(&self) -> Vec<&'static str> {
-        vec!["general", "advanced"]
+    fn selectable_item_identifiers(&self) -> Vec<ItemIdentifier> {
+        vec![ItemIdentifier::Custom("general"), ItemIdentifier::Custom("advanced")]
     }
 
     fn item_for(&self, identifier: &str) -> &ToolbarItem {

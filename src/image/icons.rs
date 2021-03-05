@@ -19,9 +19,14 @@ pub enum MacSystemIcon {
     PreferencesAdvanced,
 
     /// A standard "Accounts" preferences icon. This is intended for usage in Preferences toolbars.
-    PreferencesUserAccounts
+    PreferencesUserAccounts,
+
+    /// Returns a stock "+" icon that's common to the system. Use this for buttons that need the
+    /// symbol.
+    Add
 }
 
+#[cfg(feature = "macos")]
 impl MacSystemIcon {
     /// Maps system icons to their pre-11.0 framework identifiers.
     pub fn to_str(&self) -> &'static str {
@@ -29,6 +34,7 @@ impl MacSystemIcon {
             MacSystemIcon::PreferencesGeneral => "NSPreferencesGeneral",
             MacSystemIcon::PreferencesAdvanced => "NSAdvanced",
             MacSystemIcon::PreferencesUserAccounts => "NSUserAccounts",
+            MacSystemIcon::Add => "NSImageNameAddTemplate"
         }
     }
 
@@ -37,7 +43,31 @@ impl MacSystemIcon {
          match self {
             MacSystemIcon::PreferencesGeneral => "gearshape",
             MacSystemIcon::PreferencesAdvanced => "slider.vertical.3",
-            MacSystemIcon::PreferencesUserAccounts => "person.crop.circle"
+            MacSystemIcon::PreferencesUserAccounts => "at",
+            MacSystemIcon::Add => "plus"
         }       
+    }
+}
+
+#[derive(Debug)]
+pub enum SFSymbol {
+    PaperPlane,
+    PaperPlaneFilled,
+    SquareAndArrowUpOnSquare,
+    SquareAndArrowUpOnSquareFill,
+    SquareAndArrowDownOnSquare,
+    SquareAndArrowDownOnSquareFill
+}
+
+impl SFSymbol {
+    pub fn to_str(&self) -> &str {
+        match self {
+            Self::PaperPlane => "paperplane",
+            Self::PaperPlaneFilled => "paperplane.fill",
+            Self::SquareAndArrowUpOnSquare => "square.and.arrow.up.on.square",
+            Self::SquareAndArrowUpOnSquareFill => "square.and.arrow.up.on.square.fill",
+            Self::SquareAndArrowDownOnSquare => "square.and.arrow.down.on.square",
+            Self::SquareAndArrowDownOnSquareFill => "square.and.arrow.down.on.square.fill"
+        }
     }
 }

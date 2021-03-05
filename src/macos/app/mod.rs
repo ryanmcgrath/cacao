@@ -82,9 +82,9 @@ pub(crate) static APP_PTR: &str = "rstAppPtr";
 // Calls to App::set_menu() will reconfigure the contents of this Vec, so that's also
 // the easiest way to remove things as necessary - just rebuild your menu. Trying to debug
 // and/or predict NSMenu is a whole task that I'm not even sure is worth trying to do.
-lazy_static! {
+/*lazy_static! {
     static ref MENU_ITEMS_HANDLER_CACHE: Arc<Mutex<Vec<TargetActionHandler>>> = Arc::new(Mutex::new(Vec::new()));
-}
+}*/
 
 /// A handler to make some boilerplate less annoying.
 #[inline]
@@ -257,35 +257,20 @@ impl App {
     /// Sets a set of `Menu`'s as the top level Menu for the current application. Note that behind
     /// the scenes, Cocoa/AppKit make a copy of the menu you pass in - so we don't retain it, and
     /// you shouldn't bother to either.
-    ///
-    /// The one note here: we internally cache actions to avoid them dropping without the
-    /// Objective-C side knowing. The the comments on the 
     pub fn set_menu(mut menus: Vec<Menu>) {
-        let mut handlers = vec![];
-        
         let main_menu = unsafe {
             let menu_cls = class!(NSMenu);
             let item_cls = class!(NSMenuItem);
             let main_menu: id = msg_send![menu_cls, new];
 
             for menu in menus.iter_mut() {
-                handlers.append(&mut menu.actions);
-
                 let item: id = msg_send![item_cls, new];
-                let _: () = msg_send![item, setSubmenu:&*menu.inner];
+                let _: () = msg_send![item, setSubmenu:&*menu.0];
                 let _: () = msg_send![main_menu, addItem:item];
             }
 
             main_menu
         };
-
-        // Cache our menu handlers, whatever they may be - since we're replacing the
-        // existing menu, and macOS only has one menu on screen at a time, we can go
-        // ahead and blow away the old ones.
-        {
-            let mut cache = MENU_ITEMS_HANDLER_CACHE.lock().unwrap();
-            *cache = handlers;
-        }
 
         shared_application(move |app| unsafe {
             let _: () = msg_send![app, setMainMenu:main_menu];

@@ -61,9 +61,6 @@ mod ios;
 #[cfg(target_os = "ios")]
 use ios::{register_view_class, register_view_class_with_delegate};
 
-//mod controller;
-//pub use controller::LabelController;
-
 mod traits;
 pub use traits::LabelDelegate;
 
@@ -75,8 +72,8 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         #[cfg(target_os = "macos")]
         let view: id = {
             // This sucks, but for now, sure.
-            let blank = NSString::new("");
-            msg_send![registration_fn(), labelWithString:blank.into_inner()]
+            let blank = NSString::no_copy("");
+            msg_send![registration_fn(), labelWithString:&*blank]
         };
 
         #[cfg(target_os = "ios")]
@@ -230,17 +227,17 @@ impl<T> Label<T> {
         let s = NSString::new(text);
 
         unsafe {
-            let _: () = msg_send![&*self.objc, setStringValue:s.into_inner()];
+            let _: () = msg_send![&*self.objc, setStringValue:&*s];
         }
     }
 
     /// Retrieve the text currently held in the label.
-    pub fn text(&self) -> String {
-        let s = NSString::wrap(unsafe {
+    pub fn get_text(&self) -> String {
+        let s = NSString::retain(unsafe {
             msg_send![&*self.objc, stringValue]
         });
 
-        s.to_str().to_string()
+        s.to_string()
     }
 
     pub fn set_text_alignment(&self, alignment: TextAlign) {
@@ -253,6 +250,15 @@ impl<T> Label<T> {
     pub fn set_font(&self, font: &Font) {
         unsafe {
             let _: () = msg_send![&*self.objc, setFont:&*font.objc];
+        }
+    }
+
+    pub fn set_hidden(&self, hidden: bool) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setHidden:match hidden {
+                true => YES,
+                false => NO
+            }];
         }
     }
 

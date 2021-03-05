@@ -7,10 +7,10 @@ use std::fmt;
 use core_graphics::geometry::CGSize;
 
 use objc_id::{Id, ShareId};
-use objc::runtime::{Object};
+use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, NSString};
+use crate::foundation::{id, YES, NO, NSString};
 use crate::invoker::TargetActionHandler;
 use crate::button::{Button, BezelStyle};
 use crate::image::Image;
@@ -39,8 +39,18 @@ impl ToolbarItem {
         };
 
         ToolbarItem {
-            identifier: identifier,
-            objc: objc,
+            identifier,
+            objc,
+            button: None,
+            image: None,
+            handler: None
+        }
+    }
+
+    pub(crate) fn wrap(item: id) -> Self {
+        ToolbarItem {
+            identifier: "".to_string(),
+            objc: unsafe { Id::from_retained_ptr(item) },
             button: None,
             image: None,
             handler: None
@@ -50,7 +60,7 @@ impl ToolbarItem {
     /// Sets the title for this item.
     pub fn set_title(&mut self, title: &str) {
         unsafe {
-            let title = NSString::new(title).into_inner();
+            let title = NSString::new(title);
             let _: () = msg_send![&*self.objc, setLabel:&*title];
         }
     }
@@ -91,8 +101,18 @@ impl ToolbarItem {
         }
     }
 
+    /// Sets an action on this item.
     pub fn set_action<F: Fn() + Send + Sync + 'static>(&mut self, action: F) {
         let handler = TargetActionHandler::new(&*self.objc, action);
         self.handler = Some(handler);
+    }
+
+    pub fn set_bordered(&self, bordered: bool) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setBordered:match bordered {
+                true => YES,
+                false => NO
+            }];
+        }
     }
 }

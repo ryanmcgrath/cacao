@@ -10,6 +10,7 @@ use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::color::Color;
+use crate::image::Image;
 use crate::foundation::{id, nil, BOOL, YES, NO, NSString, NSUInteger};
 use crate::invoker::TargetActionHandler;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
@@ -28,6 +29,7 @@ extern "C" {
 #[derive(Debug)]
 pub struct Button {
     pub objc: ShareId<Object>,
+    pub image: Option<Image>,
     handler: Option<TargetActionHandler>,
     
     /// A pointer to the Objective-C runtime top layout constraint.
@@ -62,7 +64,7 @@ impl Button {
         let title = NSString::new(text);
 
         let view: id = unsafe {
-            let button: id = msg_send![register_class(), buttonWithTitle:title target:nil action:nil];
+            let button: id = msg_send![register_class(), buttonWithTitle:&*title target:nil action:nil];
             let _: () = msg_send![button, setWantsLayer:YES];
             let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints:NO];
             button
@@ -70,6 +72,7 @@ impl Button {
         
         Button {
             handler: None,
+            image: None,
             top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
             leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
             trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
@@ -80,6 +83,14 @@ impl Button {
             center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
             objc: unsafe { ShareId::from_ptr(view) },
         }
+    }
+
+    pub fn set_image(&mut self, image: Image) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setImage:&*image.0];
+        }
+
+        self.image = Some(image);
     }
 
     /// Sets the bezel style for this button.
@@ -115,10 +126,10 @@ impl Button {
     }
 
     pub fn set_key_equivalent(&self, key: &str) {
-        let key = NSString::new(key).into_inner();
+        let key = NSString::new(key);
 
         unsafe {
-            let _: () = msg_send![&*self.objc, setKeyEquivalent:key];
+            let _: () = msg_send![&*self.objc, setKeyEquivalent:&*key];
         }
     }
 

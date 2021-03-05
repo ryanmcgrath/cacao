@@ -2,7 +2,6 @@ use std::sync::{Arc, RwLock};
 
 use cacao::lazy_static::lazy_static;
 use cacao::macos::App;
-use cacao::notification_center::Dispatcher;
 
 use crate::CalculatorApp;
 
@@ -24,7 +23,6 @@ pub enum Msg {
 /// on the main thread.
 pub fn dispatch(msg: Msg) {
     println!("Dispatching UI message: {:?}", msg);
-    //App::<CalculatorApp, Msg>::dispatch_main(msg)
     CALCULATOR.run(msg)
 }
 

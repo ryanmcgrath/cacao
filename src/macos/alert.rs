@@ -32,6 +32,7 @@ use crate::foundation::{id, NSString};
 
 /// Represents an `NSAlert`. Has no information other than the retained pointer to the Objective C
 /// side, so... don't bother inspecting this.
+#[derive(Debug)]
 pub struct Alert(Id<Object>);
 
 impl Alert {
@@ -40,13 +41,13 @@ impl Alert {
     pub fn new(title: &str, message: &str) -> Self {
         let title = NSString::new(title);
         let message = NSString::new(message);
-        let x = NSString::new("OK");
+        let ok = NSString::new("OK");
 
         Alert(unsafe {
             let alert: id = msg_send![class!(NSAlert), new];
             let _: () = msg_send![alert, setMessageText:title];
             let _: () = msg_send![alert, setInformativeText:message];
-            let _: () = msg_send![alert, addButtonWithTitle:x];
+            let _: () = msg_send![alert, addButtonWithTitle:ok];
             Id::from_ptr(alert)
         })
     }

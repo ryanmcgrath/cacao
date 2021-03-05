@@ -14,9 +14,9 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, YES, NO, NSUInteger};
+use crate::foundation::{id, nil, YES, NO, NSUInteger};
 use crate::dragdrop::DragInfo;
-use crate::listview::row::{LISTVIEW_ROW_DELEGATE_PTR, ViewDelegate};
+use crate::listview::row::{LISTVIEW_ROW_DELEGATE_PTR, BACKGROUND_COLOR, ViewDelegate};
 use crate::utils::load;
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
@@ -74,6 +74,19 @@ extern fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) 
     });
 }
 
+/// Called for layer updates.
+extern fn update_layer(this: &Object, _: Sel) {
+    unsafe {
+        let background_color: id = *this.get_ivar(BACKGROUND_COLOR);
+
+        if background_color != nil {
+            let layer: id = msg_send![this, layer];
+            let cg: id = msg_send![background_color, CGColor];
+            let _: () = msg_send![layer, setBackgroundColor:cg];
+        }
+    }
+}
+
 /// Normally, you might not want to do a custom dealloc override. However, reusable cells are
 /// tricky - since we "forget" them when we give them to the system, we need to make sure to do
 /// proper cleanup then the backing (cached) version is deallocated on the Objective-C side. Since
@@ -121,8 +134,10 @@ pub(crate) fn register_listview_row_class_with_delegate<T: ViewDelegate>() -> *c
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.
         decl.add_ivar::<usize>(LISTVIEW_ROW_DELEGATE_PTR);
+        decl.add_ivar::<id>(BACKGROUND_COLOR);
         
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(updateLayer), update_layer as extern fn(&Object, _));
 
         // Drag and drop operations (e.g, accepting files)
         decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger);

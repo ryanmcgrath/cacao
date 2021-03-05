@@ -112,9 +112,10 @@ extern fn should_handle_reopen<T: AppDelegate>(this: &Object, _: Sel, _: id, has
 }
 
 /// Fires when the application delegate receives a `applicationDockMenu:` request.
+// @TODO: Make this return Vec<MenuItem>.
 extern fn dock_menu<T: AppDelegate>(this: &Object, _: Sel, _: id) -> id {
     match app::<T>(this).dock_menu() {
-        Some(mut menu) => &mut *menu.inner,
+        Some(mut menu) => &mut *menu.0,
         None => nil
     }
 }
@@ -133,7 +134,7 @@ extern fn did_change_screen_parameters<T: AppDelegate>(this: &Object, _: Sel, _:
 /// Fires when the application receives a `application:willContinueUserActivityWithType:`
 /// notification.
 extern fn will_continue_user_activity_with_type<T: AppDelegate>(this: &Object, _: Sel, _: id, activity_type: id) -> BOOL {
-    let activity = NSString::wrap(activity_type);
+    let activity = NSString::retain(activity_type);
 
     match app::<T>(this).will_continue_user_activity(activity.to_str()) {
         true => YES,
@@ -144,7 +145,7 @@ extern fn will_continue_user_activity_with_type<T: AppDelegate>(this: &Object, _
 /// Fires when the application receives a `application:continueUserActivity:restorationHandler:` notification.
 extern fn continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: id, activity: id, handler: id) -> BOOL {
     // @TODO: This needs to support restorable objects, but it involves a larger question about how
-    // much `NSObject` wrapping we want to do here. For now, pass the handler for whenever it's
+    // much `NSObject` retainping we want to do here. For now, pass the handler for whenever it's
     // useful. 
     let activity = UserActivity::with_inner(activity);
 
@@ -161,7 +162,7 @@ extern fn continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: id, a
 /// `application:didFailToContinueUserActivityWithType:error:` message.
 extern fn failed_to_continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: id, activity_type: id, error: id) {
     app::<T>(this).failed_to_continue_user_activity(
-        NSString::wrap(activity_type).to_str(),
+        NSString::retain(activity_type).to_str(),
         Error::new(error)
     );
 }
@@ -197,8 +198,8 @@ extern fn accepted_cloudkit_share<T: AppDelegate>(this: &Object, _: Sel, _: id, 
 
 /// Fires when the application receives an `application:openURLs` message.
 extern fn open_urls<T: AppDelegate>(this: &Object, _: Sel, _: id, file_urls: id) {
-    let urls = NSArray::wrap(file_urls).map(|url| {
-        let uri = NSString::wrap(unsafe {
+    let urls = NSArray::retain(file_urls).map(|url| {
+        let uri = NSString::retain(unsafe {
             msg_send![url, absoluteString]
         });
         
@@ -210,7 +211,7 @@ extern fn open_urls<T: AppDelegate>(this: &Object, _: Sel, _: id, file_urls: id)
 
 /// Fires when the application receives an `application:openFileWithoutUI:` message.
 extern fn open_file_without_ui<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
-    let filename = NSString::wrap(file);
+    let filename = NSString::retain(file);
 
     match app::<T>(this).open_file_without_ui(filename.to_str()) {
         true => YES,
@@ -236,7 +237,7 @@ extern fn open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BO
 
 /// Fired when the application receives an `application:openTempFile:` message.
 extern fn open_temp_file<T: AppDelegate>(this: &Object, _: Sel, _: id, filename: id) -> BOOL {
-    let filename = NSString::wrap(filename);
+    let filename = NSString::retain(filename);
 
     match app::<T>(this).open_temp_file(filename.to_str()) {
         true => YES,
@@ -246,7 +247,7 @@ extern fn open_temp_file<T: AppDelegate>(this: &Object, _: Sel, _: id, filename:
 
 /// Fired when the application receives an `application:printFile:` message.
 extern fn print_file<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
-    let filename = NSString::wrap(file);
+    let filename = NSString::retain(file);
 
     match app::<T>(this).print_file(filename.to_str()) {
         true => YES,
@@ -257,8 +258,8 @@ extern fn print_file<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> 
 /// Fired when the application receives an `application:printFiles:withSettings:showPrintPanels:`
 /// message.
 extern fn print_files<T: AppDelegate>(this: &Object, _: Sel, _: id, files: id, settings: id, show_print_panels: BOOL) -> NSUInteger {
-    let files = NSArray::wrap(files).map(|file| {
-        NSString::wrap(file).to_str().to_string()
+    let files = NSArray::retain(files).map(|file| {
+        NSString::retain(file).to_str().to_string()
     });
 
     let settings = PrintSettings::with_inner(settings);
@@ -275,7 +276,7 @@ extern fn did_change_occlusion_state<T: AppDelegate>(this: &Object, _: Sel, _: i
 /// Note: this may not fire in sandboxed applications. Apple's documentation is unclear on the
 /// matter.
 extern fn delegate_handles_key<T: AppDelegate>(this: &Object, _: Sel, _: id, key: id) -> BOOL {
-    let key = NSString::wrap(key);
+    let key = NSString::retain(key);
 
     match app::<T>(this).delegate_handles_key(key.to_str()) {
         true => YES,

@@ -1,13 +1,5 @@
-//! A wrapper for `NSData`.
-//!
-//! This more or less exists to try and wrap the specific APIs we use to interface with Cocoa. Note
-//! that in general this is only concerned with bridging for arguments - i.e, we need an `NSData`
-//! from a `Vec<u8>` to satisfy the Cocoa side of things. It's expected that all processing of data
-//! happens solely on the Rust side of things before coming through here.
-//!
-//! tl;dr this is an intentionally limited API.
-
 use std::mem;
+use std::ops::{Deref, DerefMut};
 use std::os::raw::c_void;
 use std::slice;
 
@@ -23,6 +15,8 @@ use crate::foundation::{id, to_bool, BOOL, YES, NO, NSUInteger};
 ///
 /// Supports constructing a new `NSData` from a `Vec<u8>`, wrapping and retaining an existing
 /// pointer from the Objective-C side, and turning an `NSData` into a `Vec<u8>`.
+///
+/// This is an intentionally limited API.
 #[derive(Debug)]
 pub struct NSData(pub Id<Object>);
 
@@ -56,11 +50,18 @@ impl NSData {
         }
     }
 
-    /// If we're vended an NSData from a method (e.g, a push notification token) we might want to
-    /// wrap it while we figure out what to do with it. This does that.
-    pub fn wrap(data: id) -> Self {
+    /// Given a (presumably) `NSData`, wraps and retains it.
+    pub fn retain(data: id) -> Self {
         NSData(unsafe {
             Id::from_ptr(data)
+        })
+    }
+
+    /// If we're vended an NSData from a method (e.g, a push notification token) we might want to
+    /// wrap it while we figure out what to do with it. This does that.
+    pub fn from_retained(data: id) -> Self {
+        NSData(unsafe {
+            Id::from_retained_ptr(data)
         })
     }
 
@@ -117,9 +118,27 @@ impl NSData {
         
         data
     }
+}
 
+impl From<NSData> for id {
     /// Consumes and returns the underlying `NSData`.
-    pub fn into_inner(mut self) -> id {
+    fn from(mut data: NSData) -> Self {
+        &mut *data.0
+    }
+}
+
+impl Deref for NSData {
+    type Target = Object;
+
+    /// Derefs to the underlying Objective-C Object.
+    fn deref(&self) -> &Object {
+        &*self.0
+    }
+}
+
+impl DerefMut for NSData {
+    /// Derefs to the underlying Objective-C Object.
+    fn deref_mut(&mut self) -> &mut Object {
         &mut *self.0
     }
 }

@@ -16,11 +16,10 @@ use cacao::macos::window::{Window, WindowConfig, TitleVisibility};
 use cacao::macos::{Event, EventMask, EventMonitor};
 use cacao::color::Color;
 use cacao::notification_center::Dispatcher;
-use cacao::view::{View, ViewDelegate};
+use cacao::view::View;
 
 mod button_row;
 mod calculator;
-use calculator::{dispatch, Msg};
 
 mod content_view;
 use content_view::CalculatorView;
@@ -38,7 +37,7 @@ impl AppDelegate for CalculatorApp {
         // Event Monitors need to be started after the App has been activated.
         // We use an RwLock here, but it's possible this entire method can be 
         // &mut self and you wouldn't need these kinds of shenanigans.
-        //self.start_monitoring();
+        self.start_monitoring();
 
         self.window.set_title("Calculator");
         self.window.set_background_color(Color::rgb(49,49,49));
@@ -70,7 +69,8 @@ impl CalculatorApp {
             let characters = evt.characters();
             println!("{}", characters);
 
-            match characters.as_ref() {
+            //use calculator::{dispatch, Msg};
+            /*match characters.as_ref() {
                 "0" => dispatch(Msg::Push(0)),
                 "1" => dispatch(Msg::Push(1)),
                 "2" => dispatch(Msg::Push(2)),
@@ -90,7 +90,7 @@ impl CalculatorApp {
                 "c" => dispatch(Msg::Clear),
                 "." => dispatch(Msg::Decimal),
                 _ => {}
-            }
+            }*/
 
             None
         }));
