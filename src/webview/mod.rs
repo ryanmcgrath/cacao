@@ -52,9 +52,9 @@ fn allocate_webview(
         
         if let Some(delegate) = &objc_delegate {
             // Technically private!
-            #[cfg(feature = "webview-downloading")]
+            #[cfg(feature = "webview-downloading-macos")]
             let process_pool: id = msg_send![configuration, processPool]; 
-            #[cfg(feature = "webview-downloading")]
+            #[cfg(feature = "webview-downloading-macos")]
             let _: () = msg_send![process_pool, _setDownloadDelegate:*delegate];
 
             let content_controller: id = msg_send![configuration, userContentController];
@@ -203,7 +203,7 @@ impl<T> WebView<T> {
         let url = NSString::new(url);
 
         unsafe {
-            let u: id = msg_send![class!(NSURL), URLWithString:url.into_inner()];
+            let u: id = msg_send![class!(NSURL), URLWithString:&*url];
             let request: id = msg_send![class!(NSURLRequest), requestWithURL:u];
             let _: () = msg_send![&*self.objc, loadRequest:request];
         }

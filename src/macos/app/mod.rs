@@ -83,10 +83,19 @@ fn shared_application<F: Fn(id)>(handler: F) {
 /// implement the `Dispatcher` trait to receive messages that you might dispatch from deeper in the
 /// application.
 pub struct App<T = (), M = ()> {
+    /// The underlying Objective-C Object.
     pub objc: Id<Object>,
+
+    /// The underlying Objective-C Object, which in this case is a delegate that forwards to the
+    /// app delegate.
     pub objc_delegate: Id<Object>,
+
+    /// The stored `AppDelegate`.
     pub delegate: Box<T>,
+
+    /// The main-thread AutoReleasePool. Drains on app exit.
     pub pool: AutoReleasePool,
+
     _message: std::marker::PhantomData<M>
 }
 

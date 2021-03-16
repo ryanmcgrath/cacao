@@ -53,7 +53,8 @@ use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
 use crate::scrollview::ScrollView;
-use crate::utils::CGSize;
+use crate::utils::{os, CellFactory, CGSize};
+use crate::view::ViewDelegate;
 
 #[cfg(target_os = "macos")]
 use crate::macos::menu::MenuItem;
@@ -83,64 +84,12 @@ mod actions;
 pub use actions::{RowAction, RowActionStyle};
 
 pub(crate) static LISTVIEW_DELEGATE_PTR: &str = "rstListViewDelegatePtr";
-pub(crate) static LISTVIEW_CELL_VENDOR_PTR: &str = "rstListViewCellVendorPtr";
 
 use std::any::Any;
 use std::sync::{Arc, RwLock};
 
 use std::rc::Rc;
 use std::cell::RefCell;
-
-use crate::view::ViewDelegate;
-
-pub(crate) type CellFactoryMap = HashMap<&'static str, Box<dyn Fn() -> Box<dyn Any>>>;
-
-#[derive(Clone)]
-pub struct CellFactory(pub Rc<RefCell<CellFactoryMap>>);
-
-impl std::fmt::Debug for CellFactory {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("CellFactory").finish()
-    }
-}
-
-impl CellFactory {
-    pub fn new() -> Self {
-        CellFactory(Rc::new(RefCell::new(HashMap::new())))
-    }
-
-    pub fn insert<F, T>(&self, identifier: &'static str, vendor: F)
-    where
-        F: Fn() -> T + 'static,
-        T: ViewDelegate + 'static
-    {
-        let mut lock = self.0.borrow_mut();
-        lock.insert(identifier, Box::new(move || {
-            let cell = vendor();
-            Box::new(cell) as Box<dyn Any>
-        }));
-    }
-
-    pub fn get<R>(&self, identifier: &'static str) -> Box<R>
-    where
-        R: ViewDelegate + 'static
-    {
-        let lock = self.0.borrow();
-        let vendor = match lock.get(identifier) {
-            Some(v) => v,
-            None => { 
-                panic!("Unable to dequeue cell of type {}: did you forget to register it?", identifier);
-            }
-        };
-        let view = vendor();
-
-        if let Ok(view) = view.downcast::<R>() {
-            view
-        } else {
-            panic!("Asking for cell of type {}, but failed to match the type!", identifier);
-        }
-    }
-}
 
 /// A helper method for instantiating view classes and applying default settings to them.
 fn common_init(class: *const Class) -> id { 
@@ -232,7 +181,7 @@ pub struct ListView<T = ()> {
     /// allocation and reuse, which is necessary for an "infinite" listview.
     cell_factory: CellFactory,
 
-    pub menu: PropertyNullable<Vec<MenuItem>>,
+    menu: PropertyNullable<Vec<MenuItem>>,
 
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ShareId<Object>,
@@ -277,7 +226,7 @@ impl Default for ListView {
 }
 
 impl ListView {
-    /// Returns a default `View`, suitable for 
+    /// @TODO: The hell is this for? 
     pub fn new() -> Self {
         let class = register_listview_class();
         let view = common_init(class);
@@ -333,9 +282,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
             //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
             //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let delegate_ptr: *const T = &*delegate;
-            let cell_vendor_ptr: *const RefCell<CellFactoryMap> = &*cell.0;
             (&mut *view).set_ivar(LISTVIEW_DELEGATE_PTR, delegate_ptr as usize);
-            (&mut *view).set_ivar(LISTVIEW_CELL_VENDOR_PTR, cell_vendor_ptr as usize);
             let _: () = msg_send![view, setDelegate:view];
             let _: () = msg_send![view, setDataSource:view];
         };
@@ -446,13 +393,23 @@ impl<T> ListView<T> {
         }
     }
 
-    /// Style
+    /// Sets the style for the underlying NSTableView. This property is only supported on macOS
+    /// 11.0+, and will always be `FullWidth` on anything older.
+    #[cfg(feature = "macos")]
     pub fn set_style(&self, style: crate::foundation::NSInteger) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setStyle:style];
+        if os::is_minimum_version(11) {
+            unsafe {
+                let _: () = msg_send![&*self.objc, setStyle:style];
+            }
         }
     }
 
+    /// Set whether this control can appear with no row selected.
+    ///
+    /// This defaults to `true`, but some macOS pieces (e.g, a sidebar) may want this set to
+    /// `false`. This can be particularly useful when implementing a Source List style sidebar
+    /// view for navigation purposes.
+    #[cfg(feature = "macos")]
     pub fn set_allows_empty_selection(&self, allows: bool) {
         unsafe {
             let _: () = msg_send![&*self.objc, setAllowsEmptySelection:match allows {
@@ -462,12 +419,14 @@ impl<T> ListView<T> {
         }
     }
 
+    /// Set the selection highlight style. 
     pub fn set_selection_highlight_style(&self, style: crate::foundation::NSInteger) {
         unsafe {
             let _: () = msg_send![&*self.objc, setSelectionHighlightStyle:style];
         }
     }
 
+    /// Select the rows at the specified indexes, optionally adding to any existing selections.
     pub fn select_row_indexes(&self, indexes: &[usize], extends_existing: bool) {
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
@@ -483,6 +442,16 @@ impl<T> ListView<T> {
         }
     }
 
+    /// This method should be used when inserting or removing multiple rows at once. Under the
+    /// hood, it batches the changes and tries to ensure things are done properly. The provided
+    /// `ListView` for the handler is your `ListView`, and you can call `insert_rows`,
+    /// `reload_rows`, or `remove_rows` from there.
+    ///
+    /// ```rust,no_run
+    /// list_view.perform_batch_updates(|listview| {
+    ///     listview.insert_rows(&[0, 2], RowAnimation::SlideDown);
+    /// });
+    /// ```
     pub fn perform_batch_updates<F: Fn(ListView)>(&self, update: F) {
         #[cfg(target_os = "macos")]
         unsafe {
@@ -495,6 +464,11 @@ impl<T> ListView<T> {
         }
     }
 
+    /// Insert new rows at the specified indexes, with the specified animation.
+    ///
+    /// Your underlying data store must be updated *before* calling this. If inserting multiple
+    /// rows at once, you should also run this inside a `perform_batch_updates` call, as that will
+    /// optimize things accordingly.
     pub fn insert_rows(&self, indexes: &[usize], animation: RowAnimation) {
         #[cfg(target_os = "macos")]
         unsafe {
@@ -514,6 +488,7 @@ impl<T> ListView<T> {
         }
     }
 
+    /// Reload the rows at the specified indexes.
     pub fn reload_rows(&self, indexes: &[usize]) {
         #[cfg(target_os = "macos")]
         unsafe {
@@ -532,6 +507,11 @@ impl<T> ListView<T> {
         }
     }
 
+    /// Remove rows at the specified indexes, with the specified animation.
+    ///
+    /// Your underlying data store must be updated *before* calling this. If removing multiple
+    /// rows at once, you should also run this inside a `perform_batch_updates` call, as that will
+    /// optimize things accordingly.
     pub fn remove_rows(&self, indexes: &[usize], animations: RowAnimation) {
         #[cfg(target_os = "macos")]
         unsafe {
@@ -612,16 +592,43 @@ impl<T> ListView<T> {
         }
     }
 
+    /// Reloads the underlying ListView. This is more expensive than handling insert/reload/remove
+    /// calls yourself, but often easier to implement.
+    ///
+    /// Calling this will reload (and redraw) your listview based on whatever the data source
+    /// reports back.
     pub fn reload(&self) {
         unsafe {
             let _: () = msg_send![&*self.objc, reloadData];
         }
     }
 
+    /// Returns the selected row.
     pub fn get_selected_row_index(&self) -> NSInteger {
         unsafe { msg_send![&*self.objc, selectedRow] }
     }
     
+    /// Returns the currently clicked row. This is macOS-specific, and is generally used in context
+    /// menu generation to determine what item the context menu should be for. If the clicked area
+    /// is not an actual row, this will return `-1`.
+    ///
+    /// For example (minus the other necessary ListViewDelegate pieces):
+    ///
+    /// ```rust,no_run
+    /// impl ListViewDelegate for MyListView {
+    ///     fn context_menu(&self) -> Vec<MenuItem> {
+    ///         let clicked_row = self.list_view.get_clicked_row_index();
+    ///
+    ///         // You could treat this as a "new" menu.
+    ///         if clicked_row == -1 {
+    ///             return vec![];
+    ///         }
+    ///
+    ///         // User right-clicked on a row, so let's show an edit menu.
+    ///         vec![MenuItem::new("Edit")]
+    ///     }
+    /// }
+    /// ```
     pub fn get_clicked_row_index(&self) -> NSInteger {
         unsafe { msg_send![&*self.objc, clickedRow] }
     }

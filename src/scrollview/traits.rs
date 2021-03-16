@@ -1,6 +1,9 @@
 use crate::dragdrop::{DragInfo, DragOperation};
 use crate::scrollview::ScrollView;
 
+/// A ScrollViewDelegate implements methods that you might need or want to respond to. In addition
+/// to scroll-specific events, it enables implementing certain standard `View` handlers for things
+/// like drag and drop.
 pub trait ScrollViewDelegate {
     /// Called when the View is ready to work with. You're passed a `View` - this is safe to
     /// store and use repeatedly, but it's not thread safe - any UI calls must be made from the

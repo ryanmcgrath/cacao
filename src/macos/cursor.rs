@@ -1,34 +1,91 @@
-
 use objc::{class, msg_send, sel, sel_impl};
-use crate::foundation::id;
 
+use crate::foundation::{id, YES, NO};
+
+/// Represents a type of cursor that you can associate with mouse movement.
+/// @TODO: Loading?
 #[derive(Debug)]
 pub enum CursorType {
+    /// A standard arrow.
     Arrow,
+
+    /// A crosshair.
     Crosshair,
+
+    /// A closed hand, typically for mousedown and drag.
     ClosedHand,
+
+    /// An open hand, typically for indicating draggable.
     OpenHand,
+
+    /// A pointing hand, like clicking a link.
     PointingHand,
     
+    /// Indicator that something can be resized to the left.
     ResizeLeft,
+
+    /// Indicator that something can be resized to the right.
     ResizeRight,
+    
+    /// Indicator  that something can be resized on the horizontal axis.
     ResizeLeftRight,
 
+    /// Indicates that something can be resized up.
     ResizeUp,
+    
+    /// Indicates that something can be resized down.
     ResizeDown,
+
+    /// Indicator  that something can be resized on the vertical axis.
     ResizeUpDown,
 
+    /// Otherwise known as the "poof" or "cloud" cursor. Indicates something will vanish, like
+    /// dragging into the Trash.
     DisappearingItem,
 
+    /// Indicate an insertion point, like for text.
     IBeam,
+
+    /// The vertical version of `CursorType::IBeam`.
     IBeamVertical,
 
+    /// Indicates an operation is illegal.
     OperationNotAllowed,
+
+    /// The drag link cursor.
     DragLink,
+
+    /// Used for drag-and-drop usually, will displayu the standard "+" icon next to the cursor.
     DragCopy,
+
+    /// Indicates a context menu will open. 
     ContextMenu
 }
 
+/// A wrapper around NSCursor.
+///
+/// You use then when you need to control how the cursor (pointer) should appear. Like `NSCursor`,
+/// this is stack based - you push, and you pop. You are responsible for ensuring that this is
+/// correctly popped!
+///
+/// For a very abbreviated example:
+///
+/// ```rust,no_run
+/// impl ViewDelegate for MyView {
+///     fn dragging_entered(&self, _info: DragInfo) -> DragOperation {
+///         Cursor::push(CursorType::DragCopy);
+///         DragOperation::Copy
+///     }
+///
+///     fn dragging_exited(&self, _info: DragInfo) {
+///         Cursor::pop();
+///     }
+/// }
+/// ```
+///
+/// This will show the "add files +" indicator when the user has entered the dragging threshold
+/// with some items that trigger it, and undo the cursor when the user leaves (regardless of drop
+/// status).
 #[derive(Debug)]
 pub struct Cursor;
 
@@ -80,6 +137,21 @@ impl Cursor {
     pub fn unhide() {
         unsafe {
             let _: () = msg_send![class!(NSCursor), unhide];
+        }
+    }
+
+    /// Sets the cursor to hidden, but will reveal it if the user moves the mouse.
+    ///
+    /// Potentially useful for games and other immersive experiences.
+    ///
+    /// If you use this, do _not_ use `unhide` - just call this with the inverted boolean value.
+    /// Trying to invert this with `unhide` will result in undefined system behavior.
+    pub fn set_hidden_until_mouse_moves(status: bool) {
+        unsafe {
+            let _: () = msg_send![class!(NSCursor), setHiddenUntilMouseMoves:match status {
+                true => YES,
+                false => NO
+            }];
         }
     }
 }

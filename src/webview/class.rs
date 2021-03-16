@@ -47,8 +47,8 @@ extern fn on_message<T: WebViewDelegate>(this: &Object, _: Sel, _: id, script_me
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     unsafe {
-        let name = NSString::wrap(msg_send![script_message, name]);
-        let body = NSString::wrap(msg_send![script_message, body]);
+        let name = NSString::from_retained(msg_send![script_message, name]);
+        let body = NSString::from_retained(msg_send![script_message, body]);
         delegate.on_message(name.to_str(), body.to_str());
     }
 }
@@ -88,10 +88,10 @@ extern fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, param
             Some(u) => {
                 let nsurls: NSArray = u.iter().map(|s| {
                     let s = NSString::new(s);
-                    msg_send![class!(NSURL), URLWithString:s.into_inner()]
+                    msg_send![class!(NSURL), URLWithString:&*s]
                 }).collect::<Vec<id>>().into();
 
-                (*handler).call((nsurls.into_inner(),));
+                (*handler).call((nsurls.into(),));
             },
 
             None => { (*handler).call((nil,)); }
@@ -102,12 +102,12 @@ extern fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, param
 /// Called when a download has been initiated in the WebView, and when the navigation policy
 /// response is upgraded to BecomeDownload. Only called when explicitly linked since it's a private
 /// API.
-#[cfg(feature = "webview-downloading")]
+#[cfg(feature = "webview-downloading-macos")]
 extern fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     let handler = handler as *const Block<(objc::runtime::BOOL, id), c_void>; 
-    let filename = NSString::wrap(suggested_filename);
+    let filename = NSString::from_retained(suggested_filename);
 
     delegate.run_save_panel(filename.to_str(), move |can_overwrite, path| unsafe {
         if path.is_none() {
@@ -119,7 +119,7 @@ extern fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: i
         (*handler).call((match can_overwrite {
             true => YES,
             false => NO
-        }, path.into_inner()));
+        }, path.into()));
     });
 }
 
@@ -166,7 +166,7 @@ pub fn register_webview_delegate_class<T: WebViewDelegate>() -> *const Class {
         // WKDownloadDelegate is a private class on macOS that handles downloading (saving) files.
         // It's absurd that this is still private in 2020. This probably couldn't get into the app
         // store, so... screw it, feature-gate it.
-        #[cfg(feature = "webview-downloading")]
+        #[cfg(feature = "webview-downloading-macos")]
         decl.add_method(sel!(_download:decideDestinationWithSuggestedFilename:completionHandler:), handle_download::<T> as extern fn(&Object, _, id, id, usize));
 
         VIEW_CLASS = decl.register();

@@ -82,6 +82,14 @@ impl FileSelectPanel {
         self.can_choose_files = can_choose;
     }
 
+    /// Set the message text displayed in the panel.
+    pub fn set_message<S: AsRef<str>>(&mut self, message: S) {
+        unsafe {
+            let message = NSString::new(message.as_ref());
+            let _: () = msg_send![&*self.panel, setMessage:&*message];
+        }
+    }
+
     /// Sets whether the user can choose directories.
     pub fn set_can_choose_directories(&mut self, can_choose: bool) {
         unsafe {

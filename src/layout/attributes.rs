@@ -208,7 +208,12 @@ impl From<NSUInteger> for LayoutFormat {
 /// Specifies layout priority.
 #[derive(Debug)]
 pub enum LayoutPriority {
+    /// Highest priority.
     Required,
+
+    /// High priority. Will bend if absolutely necessary.
     High,
+
+    /// Low priority.
     Low
 }

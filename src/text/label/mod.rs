@@ -223,7 +223,8 @@ impl<T> Label<T> {
     }
 
     /// Call this to set the text for the label.
-    pub fn set_text(&self, text: &str) {
+    pub fn set_text<S: AsRef<str>>(&self, text: S) {
+        let text = text.as_ref();
         let s = NSString::new(text);
 
         unsafe {
@@ -269,12 +270,20 @@ impl<T> Label<T> {
         }
     }
 
+    /// Sets the maximum number of lines.
+    pub fn set_max_number_of_lines(&self, num: NSInteger) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, setMaximumNumberOfLines:num];
+        }
+    }
+
     /// Set the line break mode for this label.
     pub fn set_line_break_mode(&self, mode: LineBreakMode) {
         #[cfg(target_os = "macos")]
         unsafe {
             let cell: id = msg_send![&*self.objc, cell];
             let mode = mode as NSUInteger;
+            let _: () = msg_send![cell, setTruncatesLastVisibleLine:YES];
             let _: () = msg_send![cell, setLineBreakMode:mode];
         }
     }

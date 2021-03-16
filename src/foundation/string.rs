@@ -17,6 +17,7 @@ const UTF8_ENCODING: usize = 4;
 /// side is fairly battle tested.
 #[derive(Debug)]
 pub struct NSString<'a> {
+    /// A reference to the backing `NSString`.
     pub objc: Id<Object>,
     phantom: PhantomData<&'a ()>
 }

@@ -47,12 +47,23 @@ impl FileSavePanel {
         }
     }
 
+    /// @TODO: Do we even need this?
     pub fn set_delegate(&mut self) {}
 
-    pub fn set_suggested_filename(&mut self, suggested_filename: &str) {
+    /// Sets a suggested filename for the save dialog. The user can still change this if they
+    /// choose to, but it's generally best practice to call this.
+    pub fn set_suggested_filename<S: AsRef<str>>(&mut self, suggested_filename: S) {
         unsafe {
-            let filename = NSString::new(suggested_filename);
-            let _: () = msg_send![&*self.panel, setNameFieldStringValue:filename];
+            let filename = NSString::new(suggested_filename.as_ref());
+            let _: () = msg_send![&*self.panel, setNameFieldStringValue:&*filename];
+        }
+    }
+
+    /// Set the message text displayed in the panel.
+    pub fn set_message<S: AsRef<str>>(&mut self, message: S) {
+        unsafe {
+            let message = NSString::new(message.as_ref());
+            let _: () = msg_send![&*self.panel, setMessage:&*message];
         }
     }
 

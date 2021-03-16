@@ -18,6 +18,7 @@ use crate::utils::load;
 /// where our `NSSwitch` lives.
 #[derive(Debug)]
 pub struct Switch {
+    /// A pointer to the underlying Objective-C Object.
     pub objc: ShareId<Object>,
     handler: Option<TargetActionHandler>,
     

@@ -24,8 +24,12 @@ use crate::macos::FocusRingType;
 /// where our `NSButton` lives.
 #[derive(Debug)]
 pub struct Button {
+    /// A handle for the underlying Objective-C object.
     pub objc: ShareId<Object>,
+
+    /// A reference to an image, if set. We keep a copy to avoid any ownership snafus.
     pub image: Option<Image>,
+
     handler: Option<TargetActionHandler>,
     
     /// A pointer to the Objective-C runtime top layout constraint.
@@ -60,7 +64,11 @@ impl Button {
         let title = NSString::new(text);
 
         let view: id = unsafe {
-            let button: id = msg_send![register_class(), buttonWithTitle:&*title target:nil action:nil];
+            let button: id = msg_send![register_class(), buttonWithTitle:&*title
+                target:nil
+                action:nil
+            ];
+
             let _: () = msg_send![button, setWantsLayer:YES];
             let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints:NO];
             button
@@ -81,6 +89,7 @@ impl Button {
         }
     }
 
+    /// Sets an image on the underlying button.
     pub fn set_image(&mut self, image: Image) {
         unsafe {
             let _: () = msg_send![&*self.objc, setImage:&*image.0];
@@ -117,6 +126,8 @@ impl Button {
         }
     }
 
+    /// Set a key to be bound to this button. When the key is pressed, the action coupled to this
+    /// button will fire.
     pub fn set_key_equivalent(&self, key: &str) {
         let key = NSString::new(key);
 
@@ -241,19 +252,47 @@ fn register_class() -> *const Class {
 #[cfg(feature = "macos")]
 #[derive(Debug)]
 pub enum BezelStyle {
+    /// A standard circular button.
     Circular,
+
+    /// A standard disclosure style button.
     Disclosure,
+
+    /// The standard looking "Help" (?) button.
     HelpButton,
+
+    /// An inline style, varies across OS's.
     Inline,
+
+    /// A recessed style, varies slightly across OS's.
     Recessed,
+
+    /// A regular square style, with no special styling.
     RegularSquare,
+
+    /// A standard rounded rectangle.
     RoundRect,
+
+    /// A standard rounded button.
     Rounded,
+
+    /// A standard rounded disclosure button.
     RoundedDisclosure,
+
+    /// A shadowless square styl.e
     ShadowlessSquare,
+
+    /// A small square style.
     SmallSquare,
+
+    /// A textured rounded style.
     TexturedRounded,
+
+    /// A textured square style.
     TexturedSquare,
+
+    /// Any style that's not known by this framework (e.g, if Apple 
+    /// introduces something new).
     Unknown(NSUInteger)
 }
 

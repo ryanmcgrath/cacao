@@ -3,12 +3,22 @@
 
 use crate::foundation::NSUInteger;
 
+/// Flags that indicate a key is in the mix for an event.
 #[derive(Clone, Copy, Debug)]
 pub enum EventModifierFlag {
+    /// CapsLock (or shift... oddly named...) is held.
     CapsLock,
+
+    /// Control is held.
     Control,
+
+    /// Option is held.
     Option,
+
+    /// Command (CMD) is held.
     Command,
+
+    /// Device independent flags mask.
     DeviceIndependentFlagsMask
 }
 
@@ -36,7 +46,9 @@ impl From<&EventModifierFlag> for NSUInteger {
     }
 }
 
+/// Represents an event type that you can request to be notified about.
 #[derive(Clone, Copy, Debug)]
 pub enum EventType {
+    /// A keydown event.
     KeyDown
 }

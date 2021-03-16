@@ -12,6 +12,9 @@ use objc_id::ShareId;
 
 use crate::foundation::{id, BOOL, YES, NO};
 
+mod cell_factory;
+pub use cell_factory::CellFactory;
+
 pub mod os;
 
 /// A generic trait that's used throughout multiple different controls in this framework - acts as

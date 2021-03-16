@@ -223,6 +223,7 @@ impl<T> TextField<T> {
         }
     }
 
+    /// The the text alignment style for this control.
     pub fn set_text_alignment(&self, alignment: TextAlign) {
         unsafe {
             let alignment: NSInteger = alignment.into();
@@ -232,7 +233,7 @@ impl<T> TextField<T> {
 
     /// Sets the font for this input.
     pub fn set_font<F: AsRef<Font>>(&self, font: F) {
-        let font = font.as_ref();
+        let font = font.as_ref().clone();
 
         unsafe {
             let _: () = msg_send![&*self.objc, setFont:&*font];

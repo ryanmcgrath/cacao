@@ -2,7 +2,7 @@
 //! tricky, and this transparently handles it for you).
 
 use std::error::Error;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
 use objc_id::Id;
 use objc::runtime::{BOOL, Object};
@@ -10,47 +10,51 @@ use objc::{class, msg_send, sel, sel_impl};
 use url::Url;
 
 use crate::foundation::{id, nil, NO, NSString, NSUInteger};
-use crate::error::{Error as AppKitError};
+use crate::error::Error as AppKitError;
 use crate::filesystem::enums::{SearchPathDirectory, SearchPathDomainMask};
 
-#[derive(Debug)]
-pub struct FileManager {
-    pub manager: RwLock<Id<Object>>
-}
+/// A FileManager can be used for file operations (moving files, etc).
+///
+/// If your app is not sandboxed, you can use your favorite Rust library - 
+/// but if you _are_ operating in the sandbox, there's a good chance you'll want to use this.
+///
+/// @TODO: Couldn't this just be a ShareId?
+#[derive(Clone, Debug)]
+pub struct FileManager(pub Arc<RwLock<Id<Object>>>);
 
 impl Default for FileManager {
     /// Returns a default file manager, which maps to the default system file manager. For common
     /// and simple tasks, with no callbacks, you might want this.
     fn default() -> Self {
-        FileManager {
-            manager: RwLock::new(unsafe {
-                let manager: id = msg_send![class!(NSFileManager), defaultManager];
-                Id::from_ptr(manager)
-            })
-        }
+        FileManager(Arc::new(RwLock::new(unsafe {
+            let manager: id = msg_send![class!(NSFileManager), defaultManager];
+            Id::from_ptr(manager)
+        })))
     }
 }
 
 impl FileManager {
     /// Returns a new FileManager that opts in to delegate methods.
     pub fn new() -> Self {
-        FileManager {
-            manager: RwLock::new(unsafe {
-                let manager: id = msg_send![class!(NSFileManager), new];
-                Id::from_ptr(manager)
-            })
-        }
+        FileManager(Arc::new(RwLock::new(unsafe {
+            let manager: id = msg_send![class!(NSFileManager), new];
+            Id::from_ptr(manager)
+        })))
     }
 
     /// Given a directory/domain combination, will attempt to get the directory that matches.
     /// Returns a PathBuf that wraps the given location. If there's an error on the Objective-C
     /// side, we attempt to catch it and bubble it up.
-    pub fn get_directory(&self, directory: SearchPathDirectory, in_domain: SearchPathDomainMask) -> Result<Url, Box<dyn Error>> {
+    pub fn get_directory(
+        &self,
+        directory: SearchPathDirectory,
+        in_domain: SearchPathDomainMask
+    ) -> Result<Url, Box<dyn Error>> {
         let dir: NSUInteger = directory.into();
         let mask: NSUInteger = in_domain.into();
 
         let directory = unsafe {
-            let manager = self.manager.read().unwrap();
+            let manager = self.0.read().unwrap();
             let dir: id = msg_send![&**manager, URLForDirectory:dir 
                 inDomain:mask
                 appropriateForURL:nil
@@ -76,7 +80,7 @@ impl FileManager {
 
             // This should potentially be write(), but the backing class handles this logic
             // already, so... going to leave it as read.
-            let manager = self.manager.read().unwrap();
+            let manager = self.0.read().unwrap();
 
             let error: id = nil;
             let result: BOOL = msg_send![&**manager, moveItemAtURL:from_url toURL:to_url error:&error];

@@ -18,7 +18,7 @@ use crate::macos::menu::{Menu, MenuItem};
 use crate::foundation::{load_or_register_class, id, nil, YES, NO, NSArray, NSInteger, NSUInteger};
 use crate::dragdrop::DragInfo;
 use crate::listview::{
-    LISTVIEW_DELEGATE_PTR, LISTVIEW_CELL_VENDOR_PTR,
+    LISTVIEW_DELEGATE_PTR,
     ListViewDelegate, RowEdge
 };
 use crate::utils::load;
@@ -197,7 +197,6 @@ pub(crate) fn register_listview_class() -> *const Class {
 pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instance: &T) -> *const Class {
     load_or_register_class("NSTableView", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(LISTVIEW_DELEGATE_PTR);
-        decl.add_ivar::<usize>(LISTVIEW_CELL_VENDOR_PTR);
         
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
 

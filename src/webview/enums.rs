@@ -85,7 +85,7 @@ pub enum NavigationResponsePolicy {
 
     /// This is a private API, and likely won't make it into the App Store. Will only be available
     /// if you opt in via the `webview-downloading` feature.
-    #[cfg(feature = "webview-downloading")]
+    #[cfg(feature = "webview-downloading-macos")]
     BecomeDownload
 }
 
@@ -95,7 +95,7 @@ impl From<NavigationResponsePolicy> for NSInteger {
             NavigationResponsePolicy::Cancel => 0,
             NavigationResponsePolicy::Allow => 1,
             
-            #[cfg(feature = "webview-downloading")]
+            #[cfg(feature = "webview-downloading-macos")]
             NavigationResponsePolicy::BecomeDownload => 2
         }
     }

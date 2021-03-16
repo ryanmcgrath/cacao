@@ -56,6 +56,8 @@ impl From<id> for OpenPanelParameters {
                 match msg_send![params, allowsDirectories] {
                     YES => true,
                     NO => false,
+                    
+                    #[cfg(not(target_arch = "aarch64"))]
                     _ => { panic!("Invalid value from WKOpenPanelParameters:allowsDirectories"); }
                 }
             },
@@ -64,6 +66,8 @@ impl From<id> for OpenPanelParameters {
                 match msg_send![params, allowsMultipleSelection] {
                     YES => true,
                     NO => false,
+                    
+                    #[cfg(not(target_arch = "aarch64"))]
                     _ => { panic!("Invalid value from WKOpenPanelParameters:allowsMultipleSelection"); }
                 }
             }

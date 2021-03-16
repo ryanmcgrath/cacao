@@ -42,9 +42,15 @@ impl Into<NSUInteger> for RowAnimation {
     }
 }
 
+/// Specifies a row edge.
+///
+/// Generally used to indicate where row actions (swipe-to-reveal) should appear.
 #[derive(Copy, Clone, Debug)]
 pub enum RowEdge {
+    /// The leading edge.
     Leading,
+
+    /// The trailing edge.
     Trailing
 }
 

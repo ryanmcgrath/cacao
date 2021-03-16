@@ -10,6 +10,7 @@ use crate::webview::enums::InjectAt;
 
 /// A wrapper for `WKWebViewConfiguration`. Holds (retains) pointers for the Objective-C runtime 
 /// where everything lives.
+#[derive(Debug)]
 pub struct WebViewConfig {
     pub objc: Id<Object>,
     pub handlers: Vec<String>

@@ -15,11 +15,19 @@ use crate::foundation::{id, YES, NO, NSString};
 use crate::utils::os;
 use super::icons::*;
 
-#[derive(Debug)]
+/// Specifies resizing behavior for image drawing.
+#[derive(Copy, Clone, Debug)]
 pub enum ResizeBehavior {
+    /// Fit to the aspect ratio.
     AspectFit,
+
+    /// Fill the aspect ratio.
     AspectFill,
+
+    /// Stretch as necessary.
     Stretch,
+
+    /// Center and then let whatever else flow around it.
     Center
 }
 
@@ -42,6 +50,8 @@ fn min_cgfloat(x: CGFloat, y: CGFloat) -> CGFloat {
 }
 
 impl ResizeBehavior {
+    /// Given a source and target rectangle, configures and returns a new rectangle configured with
+    /// the resizing properties of this enum.
     pub fn apply(&self, source: CGRect, target: CGRect) -> CGRect {
         // if equal, just return source
         if
@@ -94,13 +104,22 @@ impl ResizeBehavior {
     }
 }
 
-#[derive(Debug)]
+/// A config object that specifies how drawing into an image context should scale.
+#[derive(Copy, Clone, Debug)]
 pub struct DrawConfig {
+    /// The size of the source.
     pub source: (CGFloat, CGFloat),
+
+    /// The size of the target. This may be the same as the source; if not, the source will be
+    /// scaled to this size.
     pub target: (CGFloat, CGFloat),
+
+    /// The type of resizing to use during drawing and scaling.
     pub resize: ResizeBehavior
 }
 
+/// Wraps `NSImage` on macOS, and `UIImage` on iOS and tvOS. Can be used to display images, icons,
+/// and so on.
 #[derive(Clone, Debug)]
 pub struct Image(pub ShareId<Object>);
 
@@ -195,7 +214,11 @@ impl Image {
         let block = block.copy();
 
         Image(unsafe {
-            let img: id = msg_send![class!(NSImage), imageWithSize:target_frame.size flipped:YES drawingHandler:block];
+            let img: id = msg_send![class!(NSImage), imageWithSize:target_frame.size 
+                flipped:YES 
+                drawingHandler:block
+            ];
+
             ShareId::from_ptr(img)
         })
     }
