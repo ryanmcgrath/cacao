@@ -89,15 +89,21 @@ pub struct TextField<T = ()> {
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
-
+    
     /// A pointer to the Objective-C runtime top layout constraint.
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
     pub leading: LayoutAnchorX,
 
+    /// A pointer to the Objective-C runtime left layout constraint.
+    pub left: LayoutAnchorX,
+
     /// A pointer to the Objective-C runtime trailing layout constraint.
     pub trailing: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime right layout constraint.
+    pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
     pub bottom: LayoutAnchorY,
@@ -128,14 +134,16 @@ impl TextField {
 
         TextField {
             delegate: None,
-            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
+            top: LayoutAnchorY::top(view),
+            left: LayoutAnchorX::left(view),
+            leading: LayoutAnchorX::leading(view),
+            right: LayoutAnchorX::right(view),
+            trailing: LayoutAnchorX::trailing(view),
+            bottom: LayoutAnchorY::bottom(view),
+            width: LayoutAnchorDimension::width(view),
+            height: LayoutAnchorDimension::height(view),
+            center_x: LayoutAnchorX::center(view),
+            center_y: LayoutAnchorY::center(view),
             objc: unsafe { ShareId::from_ptr(view) },
         }
     }
@@ -157,14 +165,16 @@ impl<T> TextField<T> where T: TextFieldDelegate + 'static {
 
         let mut label = TextField {
             delegate: None,
-            top: LayoutAnchorY::new(unsafe { msg_send![label, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![label, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![label, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![label, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![label, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![label, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![label, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![label, centerYAnchor] }),
+            top: LayoutAnchorY::top(label),
+            left: LayoutAnchorX::left(label),
+            leading: LayoutAnchorX::leading(label),
+            right: LayoutAnchorX::right(label),
+            trailing: LayoutAnchorX::trailing(label),
+            bottom: LayoutAnchorY::bottom(label),
+            width: LayoutAnchorDimension::width(label),
+            height: LayoutAnchorDimension::height(label),
+            center_x: LayoutAnchorX::center(label),
+            center_y: LayoutAnchorY::center(label),
             objc: unsafe { ShareId::from_ptr(label) },
         };
 
@@ -184,7 +194,9 @@ impl<T> TextField<T> {
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
+            left: self.left.clone(),
             trailing: self.trailing.clone(),
+            right: self.right.clone(),
             bottom: self.bottom.clone(),
             width: self.width.clone(),
             height: self.height.clone(),

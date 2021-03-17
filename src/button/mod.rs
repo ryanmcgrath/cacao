@@ -38,8 +38,14 @@ pub struct Button {
     /// A pointer to the Objective-C runtime leading layout constraint.
     pub leading: LayoutAnchorX,
 
+    /// A pointer to the Objective-C runtime left layout constraint.
+    pub left: LayoutAnchorX,
+
     /// A pointer to the Objective-C runtime trailing layout constraint.
     pub trailing: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime right layout constraint.
+    pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
     pub bottom: LayoutAnchorY,
@@ -77,14 +83,16 @@ impl Button {
         Button {
             handler: None,
             image: None,
-            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
+            top: LayoutAnchorY::top(view),
+            left: LayoutAnchorX::left(view),
+            leading: LayoutAnchorX::leading(view),
+            right: LayoutAnchorX::right(view),
+            trailing: LayoutAnchorX::trailing(view),
+            bottom: LayoutAnchorY::bottom(view),
+            width: LayoutAnchorDimension::width(view),
+            height: LayoutAnchorDimension::height(view),
+            center_x: LayoutAnchorX::center(view),
+            center_y: LayoutAnchorY::center(view),
             objc: unsafe { ShareId::from_ptr(view) },
         }
     }

@@ -92,15 +92,21 @@ pub struct ListViewRow<T = ()> {
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
-
+    
     /// A pointer to the Objective-C runtime top layout constraint.
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
     pub leading: LayoutAnchorX,
 
+    /// A pointer to the Objective-C runtime left layout constraint.
+    pub left: LayoutAnchorX,
+
     /// A pointer to the Objective-C runtime trailing layout constraint.
     pub trailing: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime right layout constraint.
+    pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
     pub bottom: LayoutAnchorY,
@@ -131,14 +137,16 @@ impl ListViewRow {
 
         ListViewRow {
             delegate: None,
-            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
+            top: LayoutAnchorY::top(view),
+            left: LayoutAnchorX::left(view),
+            leading: LayoutAnchorX::leading(view),
+            right: LayoutAnchorX::right(view),
+            trailing: LayoutAnchorX::trailing(view),
+            bottom: LayoutAnchorY::bottom(view),
+            width: LayoutAnchorDimension::width(view),
+            height: LayoutAnchorDimension::height(view),
+            center_x: LayoutAnchorX::center(view),
+            center_y: LayoutAnchorY::center(view),
             objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
         }
     }
@@ -166,14 +174,16 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
 
         let view = ListViewRow {
             delegate: Some(delegate),
-            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
+            top: LayoutAnchorY::top(view),
+            left: LayoutAnchorX::left(view),
+            leading: LayoutAnchorX::leading(view),
+            right: LayoutAnchorX::right(view),
+            trailing: LayoutAnchorX::trailing(view),
+            bottom: LayoutAnchorY::bottom(view),
+            width: LayoutAnchorDimension::width(view),
+            height: LayoutAnchorDimension::height(view),
+            center_x: LayoutAnchorX::center(view),
+            center_y: LayoutAnchorY::center(view),
             objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
         };
 
@@ -198,14 +208,16 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
 
         let mut view = ListViewRow {
             delegate: None,
-            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
+            top: LayoutAnchorY::top(view),
+            left: LayoutAnchorX::left(view),
+            leading: LayoutAnchorX::leading(view),
+            right: LayoutAnchorX::right(view),
+            trailing: LayoutAnchorX::trailing(view),
+            bottom: LayoutAnchorY::bottom(view),
+            width: LayoutAnchorDimension::width(view),
+            height: LayoutAnchorDimension::height(view),
+            center_x: LayoutAnchorX::center(view),
+            center_y: LayoutAnchorY::center(view),
             objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
         };
 
@@ -226,7 +238,9 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
+            left: self.left.clone(),
             trailing: self.trailing.clone(),
+            right: self.right.clone(),
             bottom: self.bottom.clone(),
             width: self.width.clone(),
             height: self.height.clone(),
@@ -253,7 +267,9 @@ impl<T> ListViewRow<T> {
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
+            left: self.left.clone(),
             trailing: self.trailing.clone(),
+            right: self.right.clone(),
             bottom: self.bottom.clone(),
             width: self.width.clone(),
             height: self.height.clone(),

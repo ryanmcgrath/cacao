@@ -200,8 +200,14 @@ pub struct ListView<T = ()> {
     /// A pointer to the Objective-C runtime leading layout constraint.
     pub leading: LayoutAnchorX,
 
+    /// A pointer to the Objective-C runtime left layout constraint.
+    pub left: LayoutAnchorX,
+
     /// A pointer to the Objective-C runtime trailing layout constraint.
     pub trailing: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime right layout constraint.
+    pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
     pub bottom: LayoutAnchorY,
@@ -243,24 +249,27 @@ impl ListView {
         };
 
         // For macOS, we need to use the NSScrollView anchor points, not the NSTableView.
+        // @TODO: Fix this with proper mutable access.
         #[cfg(target_os = "macos")]
-        let anchor_view = &*scrollview.objc;
+        let anchor_view: id = unsafe { msg_send![&*scrollview.objc, self] };
         
         #[cfg(target_os = "ios")]
-        let anchor_view = view;
+        let anchor_view: id = view;
 
         ListView {
             cell_factory: CellFactory::new(),
             menu: PropertyNullable::default(),
             delegate: None,
-            top: LayoutAnchorY::new(unsafe { msg_send![anchor_view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![anchor_view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![anchor_view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![anchor_view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![anchor_view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![anchor_view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![anchor_view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![anchor_view, centerYAnchor] }),
+            top: LayoutAnchorY::top(anchor_view),
+            left: LayoutAnchorX::left(anchor_view),
+            leading: LayoutAnchorX::leading(anchor_view),
+            right: LayoutAnchorX::right(anchor_view),
+            trailing: LayoutAnchorX::trailing(anchor_view),
+            bottom: LayoutAnchorY::bottom(anchor_view),
+            width: LayoutAnchorDimension::width(anchor_view),
+            height: LayoutAnchorDimension::height(anchor_view),
+            center_x: LayoutAnchorX::center(anchor_view),
+            center_y: LayoutAnchorY::center(anchor_view),
             objc: unsafe { ShareId::from_ptr(view) },
 
             #[cfg(target_os = "macos")]
@@ -300,7 +309,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
 
         // For macOS, we need to use the NSScrollView anchor points, not the NSTableView.
         #[cfg(target_os = "macos")]
-        let anchor_view = &*scrollview.objc;
+        let anchor_view: id = unsafe { msg_send![&*scrollview.objc, self] };
         
         #[cfg(target_os = "ios")]
         let anchor_view = view;
@@ -309,14 +318,16 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
             cell_factory: cell,
             menu: PropertyNullable::default(),
             delegate: None,
-            top: LayoutAnchorY::new(unsafe { msg_send![anchor_view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![anchor_view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![anchor_view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![anchor_view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![anchor_view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![anchor_view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![anchor_view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![anchor_view, centerYAnchor] }),
+            top: LayoutAnchorY::top(anchor_view),
+            left: LayoutAnchorX::left(anchor_view),
+            leading: LayoutAnchorX::leading(anchor_view),
+            right: LayoutAnchorX::right(anchor_view),
+            trailing: LayoutAnchorX::trailing(anchor_view),
+            bottom: LayoutAnchorY::bottom(anchor_view),
+            width: LayoutAnchorDimension::width(anchor_view),
+            height: LayoutAnchorDimension::height(anchor_view),
+            center_x: LayoutAnchorX::center(anchor_view),
+            center_y: LayoutAnchorY::center(anchor_view),
             objc: unsafe { ShareId::from_ptr(view) },
             
             #[cfg(target_os = "macos")]
@@ -341,7 +352,9 @@ impl<T> ListView<T> {
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
+            left: self.left.clone(),
             trailing: self.trailing.clone(),
+            right: self.right.clone(),
             bottom: self.bottom.clone(),
             width: self.width.clone(),
             height: self.height.clone(),

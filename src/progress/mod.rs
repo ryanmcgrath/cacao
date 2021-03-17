@@ -35,29 +35,35 @@ pub use enums::ProgressIndicatorStyle;
 pub struct ProgressIndicator {
     /// A pointer to the Objective-C Object.
     pub objc: ShareId<Object>,
-
-    /// A pointer to the Objective-C top layout constraint.
+    
+    /// A pointer to the Objective-C runtime top layout constraint.
     pub top: LayoutAnchorY,
 
-    /// A pointer to the Objective-C leading layout constraint.
+    /// A pointer to the Objective-C runtime leading layout constraint.
     pub leading: LayoutAnchorX,
 
-    /// A pointer to the Objective-C trailing layout constraint.
+    /// A pointer to the Objective-C runtime left layout constraint.
+    pub left: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime trailing layout constraint.
     pub trailing: LayoutAnchorX,
 
-    /// A pointer to the Objective-C bottom layout constraint.
+    /// A pointer to the Objective-C runtime right layout constraint.
+    pub right: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime bottom layout constraint.
     pub bottom: LayoutAnchorY,
 
-    /// A pointer to the Objective-C width layout constraint.
+    /// A pointer to the Objective-C runtime width layout constraint.
     pub width: LayoutAnchorDimension,
 
-    /// A pointer to the Objective-C height layout constraint.
+    /// A pointer to the Objective-C runtime height layout constraint.
     pub height: LayoutAnchorDimension,
 
-    /// A pointer to the Objective-C center X layout constraint.
+    /// A pointer to the Objective-C runtime center X layout constraint.
     pub center_x: LayoutAnchorX,
 
-    /// A pointer to the Objective-C center Y layout constraint.
+    /// A pointer to the Objective-C runtime center Y layout constraint.
     pub center_y: LayoutAnchorY
 }
 
@@ -83,14 +89,16 @@ impl ProgressIndicator {
         };
 
         ProgressIndicator {
-            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
+            top: LayoutAnchorY::top(view),
+            left: LayoutAnchorX::left(view),
+            leading: LayoutAnchorX::leading(view),
+            right: LayoutAnchorX::right(view),
+            trailing: LayoutAnchorX::trailing(view),
+            bottom: LayoutAnchorY::bottom(view),
+            width: LayoutAnchorDimension::width(view),
+            height: LayoutAnchorDimension::height(view),
+            center_x: LayoutAnchorX::center(view),
+            center_y: LayoutAnchorY::center(view),
             objc: unsafe { ShareId::from_ptr(view) },
         }
     }
