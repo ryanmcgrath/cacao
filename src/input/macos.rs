@@ -1,12 +1,3 @@
-//! This module does one specific thing: register a custom `NSView` class that's... brought to the
-//! modern era.
-//!
-//! I kid, I kid.
-//!
-//! It just enforces that coordinates are judged from the top-left, which is what most people look
-//! for in the modern era. It also implements a few helpers for things like setting a background
-//! color, and enforcing layer backing by default.
-
 use std::sync::Once;
 
 use objc::declare::ClassDecl;
@@ -15,57 +6,54 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::dragdrop::DragInfo;
-use crate::foundation::{id, NSString, NSUInteger, NO, YES};
+use crate::foundation::{load_or_register_class, id, NSString, NSUInteger, NO, YES};
 use crate::input::{TextFieldDelegate, TEXTFIELD_DELEGATE_PTR};
 use crate::utils::load;
 
 /// Called when editing this text field has ended (e.g. user pressed enter).
-extern "C" fn text_did_end_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, info: id) {
+extern "C" fn text_did_end_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
-    view.text_did_end_editing({
-        let s = NSString::wrap(unsafe { msg_send![this, stringValue] });
-        s.to_str().to_string()
-    });
+    let s = NSString::from_retained(unsafe { msg_send![this, stringValue] });
+    view.text_did_end_editing(s.to_str());
 }
 
-extern "C" fn text_did_begin_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, info: id) {
+extern "C" fn text_did_begin_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
-    view.text_did_begin_editing({
-        let s = NSString::wrap(unsafe { msg_send![this, stringValue] });
-        s.to_str().to_string()
-    });
+    let s = NSString::from_retained(unsafe { msg_send![this, stringValue] });
+    view.text_did_begin_editing(s.to_str());
 }
 
-extern "C" fn text_did_change<T: TextFieldDelegate>(this: &mut Object, _: Sel, info: id) {
+extern "C" fn text_did_change<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
-    view.text_did_change({
-        let s = NSString::wrap(unsafe { msg_send![this, stringValue] });
-        s.to_str().to_string()
-    });
+    let s = NSString::from_retained(unsafe { msg_send![this, stringValue] });
+    view.text_did_change(s.to_str());
 }
 
 extern "C" fn text_should_begin_editing<T: TextFieldDelegate>(
     this: &mut Object,
     _: Sel,
-    info: id,
-) -> bool {
+    _info: id,
+) -> BOOL {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
-    view.text_should_begin_editing({
-        let s = NSString::wrap(unsafe { msg_send![this, stringValue] });
-        s.to_str().to_string()
-    })
+    let s = NSString::from_retained(unsafe { msg_send![this, stringValue] });
+    
+    match view.text_should_begin_editing(s.to_str()) {
+        true => YES,
+        false => NO
+    }
 }
 
 extern "C" fn text_should_end_editing<T: TextFieldDelegate>(
     this: &mut Object,
     _: Sel,
-    info: id,
-) -> bool {
+    _info: id,
+) -> BOOL {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
-    view.text_should_end_editing({
-        let s = NSString::wrap(unsafe { msg_send![this, stringValue] });
-        s.to_str().to_string()
-    })
+    let s = NSString::from_retained(unsafe { msg_send![this, stringValue] });
+    match view.text_should_end_editing(s.to_str()) {
+        true => YES,
+        false => NO
+    }
 }
 
 /// Injects an `NSTextField` subclass. This is used for the default views that don't use delegates - we
@@ -86,15 +74,8 @@ pub(crate) fn register_view_class() -> *const Class {
 
 /// Injects an `NSTextField` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSTextField);
-        // let superclass = class!(NSView);
-        let mut decl = ClassDecl::new("RSTTextInputFieldWithDelegate", superclass).unwrap();
-
+pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>(instance: &T) -> *const Class {
+    load_or_register_class("NSTextField", instance.subclass_name(), |decl| unsafe {
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.
         decl.add_ivar::<usize>(TEXTFIELD_DELEGATE_PTR);
@@ -113,15 +94,11 @@ pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>() -> *cons
         );
         decl.add_method(
             sel!(textShouldBeginEditing:),
-            text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, *mut Object) -> bool,
+            text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> bool,
         );
         decl.add_method(
             sel!(textShouldEndEditing:),
-            text_should_end_editing::<T> as extern "C" fn(&mut Object, Sel, *mut Object) -> bool,
+            text_should_end_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> bool,
         );
-
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    })
 }

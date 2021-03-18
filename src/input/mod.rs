@@ -67,9 +67,9 @@ pub use traits::TextFieldDelegate;
 pub(crate) static TEXTFIELD_DELEGATE_PTR: &str = "rstTextFieldDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id {
+fn common_init(class: *const Class) -> id {
     unsafe {
-        let view: id = msg_send![registration_fn(), new];
+        let view: id = msg_send![class, new];
 
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
@@ -130,7 +130,8 @@ impl Default for TextField {
 impl TextField {
     /// Returns a default `TextField`, suitable for
     pub fn new() -> Self {
-        let view = allocate_view(register_view_class);
+        let class = register_view_class();
+        let view = common_init(class);
 
         TextField {
             delegate: None,
@@ -156,15 +157,13 @@ where
     /// Initializes a new TextField with a given `TextFieldDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> TextField<T> {
+        let class = register_view_class_with_delegate(&delegate);
         let mut delegate = Box::new(delegate);
 
-        let label = allocate_view(register_view_class_with_delegate::<T>);
+        let label = common_init(class);
         unsafe {
-            //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
-            //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let ptr: *const T = &*delegate;
             (&mut *label).set_ivar(TEXTFIELD_DELEGATE_PTR, ptr as usize);
-            // let _: () = msg_send![self., setDelegate: label];
         };
 
         let mut label = TextField {
