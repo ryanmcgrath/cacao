@@ -18,8 +18,24 @@ pub trait Layout {
     /// this shouldn't affect your code too much (if at all).
     fn get_backing_node(&self) -> ShareId<Object>;
 
-    /// This trait method should implement adding a view to the subview tree for a given view.
-    fn add_subview<V: Layout>(&self, view: &V);
+    /// Adds another Layout-backed control or view as a subview of this view.
+    fn add_subview<V: Layout>(&self, view: &V) {
+        let backing_node = self.get_backing_node();
+        let subview_node = view.get_backing_node();
+
+        unsafe {
+            let _: () = msg_send![&*backing_node, addSubview:&*subview_node];
+        }
+    }
+
+    /// Removes a control or view from the superview.
+    fn remove_from_superview(&self) {
+        let backing_node = self.get_backing_node();
+
+        unsafe {
+            let _: () = msg_send![&*backing_node, removeFromSuperview];
+        }
+    }
 
     /// Sets the `frame` for the view this trait is applied to.
     ///
