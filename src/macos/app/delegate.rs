@@ -227,6 +227,14 @@ extern fn should_open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id
     }
 }
 
+/// Fired when the application receives an `applicationShouldTerminateAfterLastWindowClosed:` message.
+extern fn should_terminate_after_last_window_closed<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
+    match app::<T>(this).should_terminate_after_last_window_closed() {
+        true => YES,
+        false => NO
+    }
+}
+
 /// Fired when the application receives an `applicationOpenUntitledFile:` message.
 extern fn open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
     match app::<T>(this).open_untitled_file() {
@@ -309,6 +317,7 @@ pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> *co
         // Terminating Applications
         decl.add_method(sel!(applicationShouldTerminate:), should_terminate::<T> as extern fn(&Object, _, _) -> NSUInteger);
         decl.add_method(sel!(applicationWillTerminate:), will_terminate::<T> as extern fn(&Object, _, _));
+        decl.add_method(sel!(applicationShouldTerminateAfterLastWindowClosed:), should_terminate_after_last_window_closed::<T> as extern fn(&Object, _, _) -> BOOL);
 
         // Hiding Applications
         decl.add_method(sel!(applicationWillHide:), will_hide::<T> as extern fn(&Object, _, _));
