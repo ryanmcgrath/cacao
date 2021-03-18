@@ -94,11 +94,11 @@ pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>(instance: 
         );
         decl.add_method(
             sel!(textShouldBeginEditing:),
-            text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> bool,
+            text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL,
         );
         decl.add_method(
             sel!(textShouldEndEditing:),
-            text_should_end_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> bool,
+            text_should_end_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL,
         );
     })
 }
