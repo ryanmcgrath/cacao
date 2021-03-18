@@ -3,7 +3,7 @@
 //! the implementation.
 //!
 //! TextFields implement Autolayout, which enable you to specify how things should appear on the screen.
-//! 
+//!
 //! ```rust,no_run
 //! use cacao::color::rgb;
 //! use cacao::layout::{Layout, LayoutConstraint};
@@ -16,7 +16,7 @@
 //!     label: TextField,
 //!     window: Window
 //! }
-//! 
+//!
 //! impl WindowDelegate for AppWindow {
 //!     fn did_load(&mut self, window: Window) {
 //!         window.set_minimum_content_size(300., 300.);
@@ -40,13 +40,13 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSInteger, NSString};
 use crate::color::Color;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
+use crate::layout::{Layout, LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 use crate::text::{Font, TextAlign};
 
 #[cfg(target_os = "macos")]
@@ -70,20 +70,20 @@ pub use traits::TextFieldDelegate;
 pub(crate) static TEXTFIELD_DELEGATE_PTR: &str = "rstTextFieldDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
+fn allocate_view(registration_fn: fn() -> *const Class) -> id {
     unsafe {
         let view: id = msg_send![registration_fn(), new];
 
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
         #[cfg(target_os = "macos")]
-        let _: () = msg_send![view, setWantsLayer:YES];
+        let _: () = msg_send![view, setWantsLayer: YES];
 
-        view 
+        view
     }
 }
 
-/// A clone-able handler to an `NSTextField/UITextField` reference in the 
+/// A clone-able handler to an `NSTextField/UITextField` reference in the
 /// Objective-C runtime.
 #[derive(Debug)]
 pub struct TextField<T = ()> {
@@ -115,7 +115,7 @@ pub struct TextField<T = ()> {
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
-    pub center_y: LayoutAnchorY
+    pub center_y: LayoutAnchorY,
 }
 
 impl Default for TextField {
@@ -125,7 +125,7 @@ impl Default for TextField {
 }
 
 impl TextField {
-    /// Returns a default `TextField`, suitable for 
+    /// Returns a default `TextField`, suitable for
     pub fn new() -> Self {
         let view = allocate_view(register_view_class);
 
@@ -144,18 +144,22 @@ impl TextField {
     }
 }
 
-impl<T> TextField<T> where T: TextFieldDelegate + 'static {
+impl<T> TextField<T>
+where
+    T: TextFieldDelegate + 'static,
+{
     /// Initializes a new TextField with a given `TextFieldDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> TextField<T> {
-        let delegate = Box::new(delegate);
-        
+        let mut delegate = Box::new(delegate);
+
         let label = allocate_view(register_view_class_with_delegate::<T>);
         unsafe {
             //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
             //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let ptr: *const T = &*delegate;
             (&mut *label).set_ivar(TEXTFIELD_DELEGATE_PTR, ptr as usize);
+            // let _: () = msg_send![self., setDelegate: label];
         };
 
         let mut label = TextField {
@@ -171,7 +175,7 @@ impl<T> TextField<T> where T: TextFieldDelegate + 'static {
             objc: unsafe { ShareId::from_ptr(label) },
         };
 
-        //(&mut delegate).did_load(label.clone_as_handle()); 
+        (&mut delegate).did_load(label.clone_as_handle());
         label.delegate = Some(delegate);
         label
     }
@@ -193,15 +197,13 @@ impl<T> TextField<T> {
             height: self.height.clone(),
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
-            objc: self.objc.clone()
+            objc: self.objc.clone(),
         }
     }
 
     /// Grabs the value from the textfield and returns it as an owned String.
     pub fn get_value(&self) -> String {
-        let value = NSString::wrap(unsafe {
-            msg_send![&*self.objc, stringValue]
-        });
+        let value = NSString::wrap(unsafe { msg_send![&*self.objc, stringValue] });
 
         value.to_str().to_string()
     }
@@ -209,11 +211,11 @@ impl<T> TextField<T> {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color(&self, color: Color) {
         let bg = color.into_platform_specific_color();
-        
+
         unsafe {
             let cg: id = msg_send![bg, CGColor];
             let layer: id = msg_send![&*self.objc, layer];
-            let _: () = msg_send![layer, setBackgroundColor:cg];
+            let _: () = msg_send![layer, setBackgroundColor: cg];
         }
     }
 
@@ -229,7 +231,7 @@ impl<T> TextField<T> {
     pub fn set_text_alignment(&self, alignment: TextAlign) {
         unsafe {
             let alignment: NSInteger = alignment.into();
-            let _: () = msg_send![&*self.objc, setAlignment:alignment];
+            let _: () = msg_send![&*self.objc, setAlignment: alignment];
         }
     }
 
@@ -249,7 +251,7 @@ impl<T> Layout for TextField<T> {
         let backing_node = view.get_backing_node();
 
         unsafe {
-            let _: () = msg_send![&*self.objc, addSubview:backing_node];
+            let _: () = msg_send![&*self.objc, addSubview: backing_node];
         }
     }
 }
