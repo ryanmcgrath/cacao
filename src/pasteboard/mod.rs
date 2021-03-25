@@ -1,6 +1,17 @@
 //! A wrapper for NSPasteBoard, which is the interface for copy/paste and general transferring
 //! (think: drag and drop between applications). It exposes a Rust interface that tries to be
 //! complete, but might not cover everything 100% right now - feel free to pull request.
+//!
+//! ## Example
+//! ```rust,no_run
+//! use cacao::pasteboard::Pasteboard;
+//!
+//! // Get the default system pasteboard
+//! let pasteboard = Pasteboard::default();
+//!
+//! // Copy a piece of text to the clipboard
+//! pasteboard.copy_text("My message here");
+//! ```
 
 use std::path::PathBuf;
 
@@ -20,6 +31,7 @@ pub use types::{PasteboardName, PasteboardType};
 pub struct Pasteboard(pub ShareId<Object>);
 
 impl Default for Pasteboard {
+    /// Returns the default system pasteboard (the "general" pasteboard).
     fn default() -> Self {
         Pasteboard(unsafe {
             ShareId::from_ptr(msg_send![class!(NSPasteboard), generalPasteboard])
@@ -52,8 +64,8 @@ impl Pasteboard {
     }
 
     /// A shorthand helper method for copying some text to the clipboard.
-    pub fn copy_text(&self, text: &str) {
-        let contents = NSString::new(text);
+    pub fn copy_text<S: AsRef<str>>(&self, text: S) {
+        let contents = NSString::new(text.as_ref());
         let ptype: NSString = PasteboardType::String.into();
 
         unsafe {
@@ -77,6 +89,10 @@ impl Pasteboard {
     }
 
     /// Looks inside the pasteboard contents and extracts what FileURLs are there, if any.
+    ///
+    /// _Note that this method returns a list of `Url` entities, in an attempt to be closer to how
+    /// Cocoa & co operate. This method may go away in the future if it's determined that people
+    /// wind up just using `get_file_paths()`._
     pub fn get_file_urls(&self) -> Result<Vec<Url>, Box<dyn std::error::Error>> {
         unsafe {
             let class: id = msg_send![class!(NSURL), class];
@@ -106,6 +122,9 @@ impl Pasteboard {
     }
 
     /// Looks inside the pasteboard contents and extracts what FileURLs are there, if any.
+    ///
+    /// Note that this method operates on file paths, as opposed to URLs, and returns a list of
+    /// results in a format more Rust-y.
     pub fn get_file_paths(&self) -> Result<Vec<PathBuf>, Box<dyn std::error::Error>> {
         unsafe {
             let class: id = msg_send![class!(NSURL), class];
