@@ -5,6 +5,7 @@ use objc::{msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::utils::properties::ObjcProperty;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -43,7 +44,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 #[derive(Clone, Debug)]
 pub struct ImageView {
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: ShareId<Object>,
+    pub objc: ObjcProperty,
     
     /// A pointer to the Objective-C runtime top layout constraint.
     pub top: LayoutAnchorY,
@@ -98,47 +99,38 @@ impl ImageView {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: ObjcProperty::retain(view),
         }
     }
 
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
-        let cg = color.as_ref().cg_color();
-        
-        unsafe {
-            let layer: id = msg_send![&*self.objc, layer];
+        self.objc.with_mut(|obj| unsafe {
+            let cg = color.as_ref().cg_color();
+            let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor:cg];
-        }
+        });
     }
 
     pub fn set_image(&self, image: &Image) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setImage:&*image.0];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setImage:&*image.0];
+        });
     }
 
     pub fn set_hidden(&self, hidden: bool) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setHidden:match hidden {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setHidden:match hidden {
                 true => YES,
                 false => NO
             }];
-        }
+        });
     }
 }
 
 impl Layout for ImageView {
-    fn get_backing_node(&self) -> ShareId<Object> {
-        self.objc.clone()
-    }
-
-    fn add_subview<V: Layout>(&self, view: &V) {
-        let backing_node = view.get_backing_node();
-
-        unsafe {
-            let _: () = msg_send![&*self.objc, addSubview:backing_node];
-        }
+    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+        self.objc.with_mut(handler);
     }
 }
 

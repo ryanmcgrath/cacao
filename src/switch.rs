@@ -12,14 +12,14 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, BOOL, YES, NO, NSString};
 use crate::invoker::TargetActionHandler;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
-use crate::utils::load;
+use crate::utils::{load, properties::ObjcProperty};
 
 /// A wrapper for `NSSwitch`. Holds (retains) pointers for the Objective-C runtime 
 /// where our `NSSwitch` lives.
 #[derive(Debug)]
 pub struct Switch {
     /// A pointer to the underlying Objective-C Object.
-    pub objc: ShareId<Object>,
+    pub objc: ObjcProperty,
     handler: Option<TargetActionHandler>,
     
     /// A pointer to the Objective-C runtime top layout constraint.
@@ -79,35 +79,35 @@ impl Switch {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: ObjcProperty::retain(view),
         }
     }
 
     /// Sets whether this is checked on or off.
     pub fn set_checked(&mut self, checked: bool) {
-        unsafe {
+        self.objc.with_mut(|obj| unsafe {
             // @TODO: The constants to use here changed back in 10.13ish, so... do we support that,
             // or just hide it?
-            let _: () = msg_send![&*self.objc, setState:match checked {
+            let _: () = msg_send![obj, setState:match checked {
                 true => 1,
                 false => 0
             }];
-        }
+        });
     }
 
     /// Attaches a callback for button press events. Don't get too creative now...
     /// best just to message pass or something.
     pub fn set_action<F: Fn() + Send + Sync + 'static>(&mut self, action: F) {
-        let handler = TargetActionHandler::new(&*self.objc, action);
-        self.handler = Some(handler);
+        //let handler = TargetActionHandler::new(&*self.objc, action);
+        //self.handler = Some(handler);
     }
 }
 
 impl Layout for Switch {
-    fn get_backing_node(&self) -> ShareId<Object> {
-        self.objc.clone()
+    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+        self.objc.with_mut(handler);
     }
-
+    
     fn add_subview<V: Layout>(&self, _view: &V) { 
         panic!(r#"
             Tried to add a subview to a Button. This is not allowed in Cacao. If you think this should be supported, 
@@ -120,10 +120,10 @@ impl Drop for Switch {
     // Just to be sure, let's... nil these out. They should be weak references,
     // but I'd rather be paranoid and remove them later.
     fn drop(&mut self) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setTarget:nil];
-            let _: () = msg_send![&*self.objc, setAction:nil];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setTarget:nil];
+            let _: () = msg_send![obj, setAction:nil];
+        });
     }
 }
 

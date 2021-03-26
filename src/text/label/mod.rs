@@ -48,6 +48,7 @@ use crate::foundation::{id, nil, YES, NO, NSArray, NSInteger, NSUInteger, NSStri
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::text::{Font, TextAlign, LineBreakMode};
+use crate::utils::properties::ObjcProperty;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -90,10 +91,51 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 
 /// A clone-able handler to an `NSTextField/UILabel` reference in the 
 /// Objective-C runtime.
+/// Wraps `NSTextField` and `UILabel` across platforms, explicitly as a Label.
+/// In AppKit, `NSTextField` does double duty, and for clarity we just double
+/// the implementation.
+///
+/// Labels implement Autolayout, which enable you to specify how things should appear on the screen.
+/// 
+/// ```rust,no_run
+/// use cacao::color::rgb;
+/// use cacao::layout::{Layout, LayoutConstraint};
+/// use cacao::view::Label;
+/// use cacao::window::{Window, WindowDelegate};
+///
+/// #[derive(Default)]
+/// struct AppWindow {
+///     content: Label,
+///     label: Label,
+///     window: Window
+/// }
+/// 
+/// impl WindowDelegate for AppWindow {
+///     fn did_load(&mut self, window: Window) {
+///         window.set_minimum_content_size(300., 300.);
+///         self.window = window;
+///
+///         self.label.set_background_color(rgb(224, 82, 99));
+///         self.label.set_text("LOL");
+///         self.content.add_subview(&self.red);
+///         
+///         self.window.set_content_view(&self.content);
+///
+///         LayoutConstraint::activate(&[
+///             self.red.top.constraint_equal_to(&self.content.top).offset(16.),
+///             self.red.leading.constraint_equal_to(&self.content.leading).offset(16.),
+///             self.red.trailing.constraint_equal_to(&self.content.trailing).offset(-16.),
+///             self.red.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),
+///         ]);
+///     }
+/// }
+/// ```
+///
+/// For more information on Autolayout, view the module or check out the examples folder.
 #[derive(Debug)]
 pub struct Label<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: ShareId<Object>,
+    pub objc: ObjcProperty,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
@@ -152,7 +194,7 @@ impl Label {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: ObjcProperty::retain(view),
         }
     }
 }
@@ -183,7 +225,7 @@ impl<T> Label<T> where T: LabelDelegate + 'static {
             height: LayoutAnchorDimension::height(label),
             center_x: LayoutAnchorX::center(label),
             center_y: LayoutAnchorY::center(label),
-            objc: unsafe { ShareId::from_ptr(label) },
+            objc: ObjcProperty::retain(label),
         };
 
         //(&mut delegate).did_load(label.clone_as_handle()); 
@@ -217,21 +259,21 @@ impl<T> Label<T> {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         // @TODO: This is wrong.
-        let color = color.as_ref().cg_color();
-        
-        unsafe {
-            let layer: id = msg_send![&*self.objc, layer];
+        // Needs to set ivar and such, akin to View. 
+        self.objc.with_mut(|obj| unsafe {
+            let color = color.as_ref().cg_color();
+            let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor:color];
-        }
+        });
     }
 
     /// Call this to set the color of the text.
     pub fn set_text_color<C: AsRef<Color>>(&self, color: C) {
         let color: id = color.as_ref().into();
 
-        unsafe {
-            let _: () = msg_send![&*self.objc, setTextColor:color];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setTextColor:color];
+        });
     }
 
     /// Call this to set the text for the label.
@@ -239,26 +281,24 @@ impl<T> Label<T> {
         let text = text.as_ref();
         let s = NSString::new(text);
 
-        unsafe {
-            let _: () = msg_send![&*self.objc, setStringValue:&*s];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setStringValue:&*s];
+        });
     }
 
     /// Retrieve the text currently held in the label.
     pub fn get_text(&self) -> String {
-        let s = NSString::retain(unsafe {
-            msg_send![&*self.objc, stringValue]
-        });
-
-        s.to_string()
+        self.objc.get(|obj| unsafe {
+            NSString::retain(msg_send![obj, stringValue]).to_string()
+        })
     }
 
     /// Sets the text alignment for this label.
     pub fn set_text_alignment(&self, alignment: TextAlign) {
-        unsafe {
+        self.objc.with_mut(|obj| unsafe {
             let alignment: NSInteger = alignment.into();
-            let _: () = msg_send![&*self.objc, setAlignment:alignment];
-        }
+            let _: () = msg_send![obj, setAlignment:alignment];
+        });
     }
 
     /// Sets the font for this label.
@@ -267,51 +307,43 @@ impl<T> Label<T> {
         // font object - it seems like it can be optimized away otherwise.
         let font = font.as_ref().clone();
 
-        unsafe {
-            let _: () = msg_send![&*self.objc, setFont:&*font];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setFont:&*font];
+        });
     }
 
     /// Set whether this is hidden or not.
     pub fn set_hidden(&self, hidden: bool) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setHidden:match hidden {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setHidden:match hidden {
                 true => YES,
                 false => NO
             }];
-        }
+        });
     }
 
     /// Sets the maximum number of lines.
     pub fn set_max_number_of_lines(&self, num: NSInteger) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setMaximumNumberOfLines:num];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setMaximumNumberOfLines:num];
+        });
     }
 
     /// Set the line break mode for this label.
     pub fn set_line_break_mode(&self, mode: LineBreakMode) {
         #[cfg(target_os = "macos")]
-        unsafe {
-            let cell: id = msg_send![&*self.objc, cell];
+        self.objc.with_mut(|obj| unsafe {
+            let cell: id = msg_send![obj, cell];
             let mode = mode as NSUInteger;
             let _: () = msg_send![cell, setTruncatesLastVisibleLine:YES];
             let _: () = msg_send![cell, setLineBreakMode:mode];
-        }
+        });
     }
 }
 
 impl<T> Layout for Label<T> {
-    fn get_backing_node(&self) -> ShareId<Object> {
-        self.objc.clone()
-    }
-
-    fn add_subview<V: Layout>(&self, view: &V) {
-        let backing_node = view.get_backing_node();
-
-        unsafe {
-            let _: () = msg_send![&*self.objc, addSubview:backing_node];
-        }
+    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+        self.objc.with_mut(handler);
     }
 }
 
@@ -323,13 +355,13 @@ impl<T> Drop for Label<T> {
     ///
     /// There are, thankfully, no delegates we need to break here.
     fn drop(&mut self) {
-        if self.delegate.is_some() {
+        /*if self.delegate.is_some() {
             unsafe {
                 let superview: id = msg_send![&*self.objc, superview];
                 if superview != nil {
                     let _: () = msg_send![&*self.objc, removeFromSuperview];
                 }
             }
-        }
+        }*/
     }
 }

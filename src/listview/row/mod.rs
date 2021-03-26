@@ -53,6 +53,7 @@ use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
 use crate::view::ViewDelegate;
+use crate::utils::properties::ObjcProperty;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -88,7 +89,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 #[derive(Debug)]
 pub struct ListViewRow<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: Rc<RefCell<Id<Object>>>,
+    pub objc: ObjcProperty,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
@@ -147,7 +148,7 @@ impl ListViewRow {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-            objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
+            objc: ObjcProperty::retain(view),
         }
     }
 }
@@ -184,7 +185,7 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-            objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
+            objc: ObjcProperty::retain(view),
         };
 
         view
@@ -218,7 +219,7 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-            objc: Rc::new(RefCell::new(unsafe { Id::from_ptr(view) })),
+            objc: ObjcProperty::retain(view),
         };
 
         (&mut delegate).did_load(view.clone_as_handle()); 
@@ -246,16 +247,10 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             height: self.height.clone(),
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
-            objc: Rc::clone(&self.objc)
+            objc: self.objc.clone()
         }
     }
 }
-
-/*impl<T> From<&ListViewRow<T>> for ShareId<Object> {
-    fn from(row: &ListViewRow<T>) -> ShareId<Object> {
-        row.objc.clone()
-    }
-}*/
 
 impl<T> ListViewRow<T> {
     /// An internal method that returns a clone of this object, sans references to the delegate or
@@ -275,7 +270,7 @@ impl<T> ListViewRow<T> {
             height: self.height.clone(),
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
-            objc: Rc::clone(&self.objc)
+            objc: self.objc.clone()
         }
     }
 
@@ -283,56 +278,38 @@ impl<T> ListViewRow<T> {
     pub fn set_identifier(&self, identifier: &'static str) {
         let identifier = NSString::new(identifier);
 
-        let objc = self.objc.borrow();
-        unsafe {
-            let _: () = msg_send![&**objc, setIdentifier:&*identifier];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setIdentifier:&*identifier];
+        });
     }
 
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
-        let mut objc = self.objc.borrow_mut();
         let color: id = color.as_ref().into();
         
-        unsafe {
-            (&mut **objc).set_ivar(BACKGROUND_COLOR, color);
-        }
+        self.objc.with_mut(|obj| unsafe {
+            (&mut *obj).set_ivar(BACKGROUND_COLOR, color);
+        });
     }
 
     /// Register this view for drag and drop operations.
     pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        unsafe {
-            let types: NSArray = types.into_iter().map(|t| {
-                // This clone probably doesn't need to be here, but it should also be cheap as
-                // this is just an enum... and this is not an oft called method.
-                let x: NSString = (*t).into();
-                x.into()
-            }).collect::<Vec<id>>().into();
+        let types: NSArray = types.into_iter().map(|t| {
+            // This clone probably doesn't need to be here, but it should also be cheap as
+            // this is just an enum... and this is not an oft called method.
+            let x: NSString = (*t).into();
+            x.into()
+        }).collect::<Vec<id>>().into();
 
-            let objc = self.objc.borrow();
-            let _: () = msg_send![&**objc, registerForDraggedTypes:&*types];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, registerForDraggedTypes:&*types];
+        });
     }
 }
 
 impl<T> Layout for ListViewRow<T> {
-    fn get_backing_node(&self) -> ShareId<Object> {
-        let objc = self.objc.borrow();
-
-        unsafe {
-            // @TODO: Need a better solution here.
-            let x: id = msg_send![&**objc, self];
-            ShareId::from_ptr(x)
-        }
-    }
-
-    fn add_subview<V: Layout>(&self, view: &V) {
-        let backing_node = view.get_backing_node();
-
-        let objc = self.objc.borrow();
-        unsafe {
-            let _: () = msg_send![&**objc, addSubview:backing_node];
-        }
+    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+        self.objc.with_mut(handler);
     }
 }
 

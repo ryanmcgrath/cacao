@@ -49,6 +49,7 @@ use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
+use crate::utils::properties::ObjcProperty;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -90,7 +91,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 #[derive(Debug)]
 pub struct ScrollView<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: ShareId<Object>,
+    pub objc: ObjcProperty,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
@@ -149,7 +150,7 @@ impl ScrollView {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: ObjcProperty::retain(view),
         }
     }
 }
@@ -178,7 +179,7 @@ impl<T> ScrollView<T> where T: ScrollViewDelegate + 'static {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: ObjcProperty::retain(view),
         };
 
         (&mut delegate).did_load(view.clone_as_handle()); 
@@ -212,26 +213,17 @@ impl<T> ScrollView<T> {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         // @TODO: This is wrong.
-        let color = color.as_ref().cg_color();
-        
-        unsafe {
-            let layer: id = msg_send![&*self.objc, layer];
+        self.objc.with_mut(|obj| unsafe {
+            let color = color.as_ref().cg_color();
+            let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor:color];
-        }
+        });
     }
 }
 
 impl<T> Layout for ScrollView<T> {
-    fn get_backing_node(&self) -> ShareId<Object> {
-        self.objc.clone()
-    }
-
-    fn add_subview<V: Layout>(&self, view: &V) {
-        let backing_node = view.get_backing_node();
-
-        unsafe {
-            let _: () = msg_send![&*self.objc, addSubview:backing_node];
-        }
+    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+        self.objc.with_mut(handler);
     }
 }
 
@@ -243,13 +235,13 @@ impl<T> Drop for ScrollView<T> {
     ///
     /// There are, thankfully, no delegates we need to break here.
     fn drop(&mut self) {
-        if self.delegate.is_some() {
+        /*if self.delegate.is_some() {
             unsafe {
                 let superview: id = msg_send![&*self.objc, superview];
                 if superview != nil {
                     let _: () = msg_send![&*self.objc, removeFromSuperview];
                 }
             }
-        }
+        }*/
     }
 }

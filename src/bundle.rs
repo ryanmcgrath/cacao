@@ -1,9 +1,12 @@
-//! Implements some stuff to handle dynamically setting the `NSBundle` identifier.
-//! This is not currently in use, but does have places where it's useful... and to be honest I'm
-//! kinda happy this is done as a swizzling implementation in pure Rust, which I couldn't find
-//! examples of anywhere else.
+//! Implements some functionality to handle dynamically setting the `NSBundle` identifier.
 //!
-//! Disregard until you can't, I guess.
+//!
+//
+// This is not currently in use, but does have places where it's useful... and to be honest I'm
+// kinda happy this is done as a swizzling implementation in pure Rust, which I couldn't find
+// examples of anywhere else.
+//
+// Disregard until you can't, I guess.
 
 use std::ffi::CString;
 use std::mem;

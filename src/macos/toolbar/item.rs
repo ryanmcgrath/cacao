@@ -69,9 +69,9 @@ impl ToolbarItem {
     pub fn set_button(&mut self, button: Button) {
         button.set_bezel_style(BezelStyle::TexturedRounded);
 
-        unsafe {
-            let _: () = msg_send![&*self.objc, setView:&*button.objc];
-        }
+        button.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![&*self.objc, setView:obj];
+        });
         
         self.button = Some(button);
     }

@@ -16,25 +16,22 @@ pub trait Layout {
     /// Returns a reference to the backing Objective-C layer. This is optional, as we try to keep
     /// the general lazy-loading approach Cocoa has. This may change in the future, and in general
     /// this shouldn't affect your code too much (if at all).
-    fn get_backing_node(&self) -> ShareId<Object>;
+    fn with_backing_node<F: Fn(id)>(&self, handler: F);
 
     /// Adds another Layout-backed control or view as a subview of this view.
     fn add_subview<V: Layout>(&self, view: &V) {
-        let backing_node = self.get_backing_node();
-        let subview_node = view.get_backing_node();
-
-        unsafe {
-            let _: () = msg_send![&*backing_node, addSubview:&*subview_node];
-        }
+        self.with_backing_node(|backing_node| {
+            view.with_backing_node(|subview_node| unsafe {
+                let _: () = msg_send![backing_node, addSubview:subview_node];
+            });
+        });
     }
 
     /// Removes a control or view from the superview.
     fn remove_from_superview(&self) {
-        let backing_node = self.get_backing_node();
-
-        unsafe {
-            let _: () = msg_send![&*backing_node, removeFromSuperview];
-        }
+        self.with_backing_node(|backing_node| unsafe {
+            let _: () = msg_send![backing_node, removeFromSuperview];
+        });
     }
 
     /// Sets the `frame` for the view this trait is applied to.
@@ -43,12 +40,11 @@ pub trait Layout {
     /// `set_translates_autoresizing_mask_into_constraints` to enable frame-based layout calls (or
     /// use an appropriate initializer for a given view type).
     fn set_frame<R: Into<CGRect>>(&self, rect: R) {
-        let backing_node = self.get_backing_node();
         let frame: CGRect = rect.into();
-
-        unsafe {
-            let _: () = msg_send![&*backing_node, setFrame:frame];
-        }
+        
+        self.with_backing_node(move |backing_node| unsafe {
+            let _: () = msg_send![backing_node, setFrame:frame];
+        });
     }
     
     /// Sets whether the view for this trait should translate autoresizing masks into layout
@@ -57,13 +53,11 @@ pub trait Layout {
     /// Cacao defaults this to `false`; if you need to set frame-based layout pieces,
     /// then you should set this to `true` (or use an appropriate initializer that does it for you).
     fn set_translates_autoresizing_mask_into_constraints(&self, translates: bool) {
-        let backing_node = self.get_backing_node();
-        
-        unsafe {
-            let _: () = msg_send![&*backing_node, setTranslatesAutoresizingMaskIntoConstraints:match translates {
+        self.with_backing_node(|backing_node| unsafe {
+            let _: () = msg_send![backing_node, setTranslatesAutoresizingMaskIntoConstraints:match translates {
                 true => YES,
                 false => NO
             }];
-        }
+        });
     }
 }

@@ -2,7 +2,8 @@
 
 use core_graphics::geometry::{CGRect, CGPoint, CGSize};
 
-/// A struct that represents a box - top, left, width and height.
+/// A struct that represents a box - top, left, width and height. You might use this for, say,
+/// setting the initial frame of a view.
 #[derive(Copy, Clone, Debug)]
 pub struct Rect {
     /// Distance from the top, in points.

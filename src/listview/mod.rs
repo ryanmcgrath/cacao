@@ -54,6 +54,7 @@ use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension}
 use crate::pasteboard::PasteboardType;
 use crate::scrollview::ScrollView;
 use crate::utils::{os, CellFactory, CGSize};
+use crate::utils::properties::{ObjcProperty, PropertyNullable};
 use crate::view::ViewDelegate;
 
 #[cfg(target_os = "macos")]
@@ -126,55 +127,6 @@ fn common_init(class: *const Class) -> id {
     }
 }
 
-use objc_id::Id;
-
-#[derive(Clone, Debug)]
-pub struct ObjcProperty(Rc<RefCell<Id<Object>>>);
-
-impl ObjcProperty {
-    pub fn new(obj: id) -> Self {
-        Self(Rc::new(RefCell::new(unsafe  {
-            Id::from_ptr(obj)
-        })))
-    }
-
-    pub fn with<F>(&self, handler: F)
-    where
-        F: Fn(&Object)
-    {
-        let borrow = self.0.borrow();
-        handler(&borrow);
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct PropertyNullable<T>(Rc<RefCell<Option<T>>>);
-
-impl<T> PropertyNullable<T> {
-    pub fn new(obj: T) -> Self {
-        Self(Rc::new(RefCell::new(Some(obj))))
-    }
-
-    pub fn clone(&self) -> Self {
-        Self(Rc::clone(&self.0))
-    }
-
-    pub fn with<F>(&self, handler: F)
-    where
-        F: Fn(&T)
-    {
-        let borrow = self.0.borrow();
-        if let Some(s) = &*borrow {
-            handler(s);
-        }
-    }
-
-    pub fn set(&self, obj: T) {
-        let mut borrow = self.0.borrow_mut();
-        *borrow = Some(obj);
-    }
-}
-
 #[derive(Debug)]
 pub struct ListView<T = ()> {
     /// Internal map of cell identifers/vendors. These are used for handling dynamic cell
@@ -184,7 +136,7 @@ pub struct ListView<T = ()> {
     menu: PropertyNullable<Vec<MenuItem>>,
 
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: ShareId<Object>,
+    pub objc: ObjcProperty,
 
     /// On macOS, we need to manage the NSScrollView ourselves. It's a bit
     /// more old school like that...
@@ -241,9 +193,9 @@ impl ListView {
         let scrollview = {
             let sview = ScrollView::new();
             
-            unsafe {
-                let _: () = msg_send![&*sview.objc, setDocumentView:view];
-            }
+            sview.objc.with_mut(|obj| unsafe {
+                let _: () = msg_send![obj, setDocumentView:view];
+            });
 
             sview
         };
@@ -251,7 +203,9 @@ impl ListView {
         // For macOS, we need to use the NSScrollView anchor points, not the NSTableView.
         // @TODO: Fix this with proper mutable access.
         #[cfg(target_os = "macos")]
-        let anchor_view: id = unsafe { msg_send![&*scrollview.objc, self] };
+        let anchor_view: id = scrollview.objc.get(|obj| unsafe {
+            msg_send![obj, self]
+        });
         
         #[cfg(target_os = "ios")]
         let anchor_view: id = view;
@@ -270,7 +224,7 @@ impl ListView {
             height: LayoutAnchorDimension::height(anchor_view),
             center_x: LayoutAnchorX::center(anchor_view),
             center_y: LayoutAnchorY::center(anchor_view),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: ObjcProperty::retain(view),
 
             #[cfg(target_os = "macos")]
             scrollview: scrollview
@@ -300,16 +254,18 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
         let scrollview = {
             let sview = ScrollView::new();
             
-            unsafe {
-                let _: () = msg_send![&*sview.objc, setDocumentView:view];
-            }
+            sview.objc.with_mut(|obj| unsafe {
+                let _: () = msg_send![obj, setDocumentView:view];
+            });
 
             sview
         };
 
         // For macOS, we need to use the NSScrollView anchor points, not the NSTableView.
         #[cfg(target_os = "macos")]
-        let anchor_view: id = unsafe { msg_send![&*scrollview.objc, self] };
+        let anchor_view: id = scrollview.objc.get(|obj| unsafe {
+            msg_send![obj, self]
+        });
         
         #[cfg(target_os = "ios")]
         let anchor_view = view;
@@ -328,7 +284,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
             height: LayoutAnchorDimension::height(anchor_view),
             center_x: LayoutAnchorX::center(anchor_view),
             center_y: LayoutAnchorY::center(anchor_view),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: ObjcProperty::retain(view),
             
             #[cfg(target_os = "macos")]
             scrollview: scrollview
@@ -382,7 +338,9 @@ impl<T> ListView<T> {
         #[cfg(target_os = "macos")]
         {
             let key = NSString::new(identifier);
-            let cell: id = unsafe { msg_send![&*self.objc, makeViewWithIdentifier:&*key owner:nil] };
+            let cell: id = self.objc.get(|obj| unsafe {
+                msg_send![obj, makeViewWithIdentifier:&*key owner:nil]
+            });
             
             if cell != nil {
                 ListViewRow::from_cached(cell)
@@ -398,12 +356,11 @@ impl<T> ListView<T> {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         // @TODO: This is wrong.
-        let color = color.as_ref().cg_color();
-        
-        unsafe {
-            let layer: id = msg_send![&*self.objc, layer];
+        self.objc.with_mut(|obj| unsafe {
+            let color = color.as_ref().cg_color();
+            let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor:color];
-        }
+        });
     }
 
     /// Sets the style for the underlying NSTableView. This property is only supported on macOS
@@ -411,9 +368,9 @@ impl<T> ListView<T> {
     #[cfg(feature = "macos")]
     pub fn set_style(&self, style: crate::foundation::NSInteger) {
         if os::is_minimum_version(11) {
-            unsafe {
-                let _: () = msg_send![&*self.objc, setStyle:style];
-            }
+            self.objc.with_mut(|obj| unsafe {
+                let _: () = msg_send![obj, setStyle:style];
+            });
         }
     }
 
@@ -424,19 +381,19 @@ impl<T> ListView<T> {
     /// view for navigation purposes.
     #[cfg(feature = "macos")]
     pub fn set_allows_empty_selection(&self, allows: bool) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setAllowsEmptySelection:match allows {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setAllowsEmptySelection:match allows {
                 true => YES,
                 false => NO
             }];
-        }
+        });
     }
 
     /// Set the selection highlight style. 
     pub fn set_selection_highlight_style(&self, style: crate::foundation::NSInteger) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setSelectionHighlightStyle:style];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setSelectionHighlightStyle:style];
+        });
     }
 
     /// Select the rows at the specified indexes, optionally adding to any existing selections.
@@ -448,10 +405,12 @@ impl<T> ListView<T> {
                 let _: () = msg_send![index_set, addIndex:index];
             }
 
-            let _: () = msg_send![&*self.objc, selectRowIndexes:index_set byExtendingSelection:match extends_existing {
-                true => YES,
-                false => NO
-            }];
+            self.objc.with_mut(|obj| {
+                let _: () = msg_send![obj, selectRowIndexes:index_set byExtendingSelection:match extends_existing {
+                    true => YES,
+                    false => NO
+                }];
+            });
         }
     }
 
@@ -466,14 +425,19 @@ impl<T> ListView<T> {
     /// });
     /// ```
     pub fn perform_batch_updates<F: Fn(ListView)>(&self, update: F) {
+        // Note that we need to thread the `with_mut` calls carefully, to avoid deadlocking.
         #[cfg(target_os = "macos")]
-        unsafe {
-            let _: () = msg_send![&*self.objc, beginUpdates];
+        {
+            self.objc.with_mut(|obj| unsafe {
+                let _: () = msg_send![obj, beginUpdates];
+            });
            
             let handle = self.clone_as_handle();
             update(handle);
 
-            let _: () = msg_send![&*self.objc, endUpdates];
+            self.objc.with_mut(|obj| unsafe {
+                let _: () = msg_send![obj, endUpdates];
+            });
         }
     }
 
@@ -497,7 +461,9 @@ impl<T> ListView<T> {
             // We need to temporarily retain this; it can drop after the underlying NSTableView
             // has also retained it.
             let x = ShareId::from_ptr(index_set);
-            let _: () = msg_send![&*self.objc, insertRowsAtIndexes:&*x withAnimation:animation_options];
+            self.objc.with_mut(|obj| {
+                let _: () = msg_send![obj, insertRowsAtIndexes:&*x withAnimation:animation_options];
+            });
         }
     }
 
@@ -516,7 +482,10 @@ impl<T> ListView<T> {
 
             let ye: id = msg_send![class!(NSIndexSet), indexSetWithIndex:0];
             let y = ShareId::from_ptr(ye);
-            let _: () = msg_send![&*self.objc, reloadDataForRowIndexes:&*x columnIndexes:&*y];
+
+            self.objc.with_mut(|obj| {
+                let _: () = msg_send![obj, reloadDataForRowIndexes:&*x columnIndexes:&*y];
+            });
         }
     }
 
@@ -540,16 +509,18 @@ impl<T> ListView<T> {
             // We need to temporarily retain this; it can drop after the underlying NSTableView
             // has also retained it.
             let x = ShareId::from_ptr(index_set);
-            let _: () = msg_send![&*self.objc, removeRowsAtIndexes:&*x withAnimation:animation_options];
+            self.objc.with_mut(|obj| {
+                let _: () = msg_send![obj, removeRowsAtIndexes:&*x withAnimation:animation_options];
+            });
         }
     }
 
     /// Sets an enforced row-height; if you need dynamic rows, you'll want to
     /// look at ListViewDelegate methods, or use AutoLayout.
     pub fn set_row_height(&self, height: CGFloat) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, setRowHeight:height];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setRowHeight:height];
+        });
     }
 
     /// This defaults to true. If you're using manual heights, you may want to set this to `false`,
@@ -559,12 +530,12 @@ impl<T> ListView<T> {
     /// It can make some scrolling situations much smoother.
     pub fn set_uses_automatic_row_heights(&self, uses: bool) {
         #[cfg(target_os = "macos")]
-        unsafe {
-            let _: () = msg_send![&*self.objc, setUsesAutomaticRowHeights:match uses {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setUsesAutomaticRowHeights:match uses {
                 true => YES,
                 false => NO
             }];
-        }
+        });
     }
 
     /// On macOS, this will instruct the underlying NSTableView to alternate
@@ -572,37 +543,37 @@ impl<T> ListView<T> {
     /// to hard-set a row height as well.
     pub fn set_uses_alternating_backgrounds(&self, uses: bool) {
         #[cfg(target_os = "macos")]
-        unsafe {
-            let _: () = msg_send![&*self.objc, setUsesAlternatingRowBackgroundColors:match uses {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setUsesAlternatingRowBackgroundColors:match uses {
                 true => YES,
                 false => NO
             }];
-        }
+        });
     }
 
     /// End actions for a row. API subject to change.
     pub fn set_row_actions_visible(&self, visible: bool) {
         #[cfg(target_os = "macos")]
-        unsafe {
-            let _: () = msg_send![&*self.objc, setRowActionsVisible:match visible {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setRowActionsVisible:match visible {
                 true => YES,
                 false => NO
             }];
-        }
+        });
     }
 
     /// Register this view for drag and drop operations.
     pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        unsafe {
-            let types: NSArray = types.into_iter().map(|t| {
-                // This clone probably doesn't need to be here, but it should also be cheap as
-                // this is just an enum... and this is not an oft called method.
-                let x: NSString = (*t).into();
-                x.into()
-            }).collect::<Vec<id>>().into();
+        let types: NSArray = types.into_iter().map(|t| {
+            // This clone probably doesn't need to be here, but it should also be cheap as
+            // this is just an enum... and this is not an oft called method.
+            let x: NSString = (*t).into();
+            x.into()
+        }).collect::<Vec<id>>().into();
 
-            let _: () = msg_send![&*self.objc, registerForDraggedTypes:&*types];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, registerForDraggedTypes:&*types];
+        });
     }
 
     /// Reloads the underlying ListView. This is more expensive than handling insert/reload/remove
@@ -611,14 +582,14 @@ impl<T> ListView<T> {
     /// Calling this will reload (and redraw) your listview based on whatever the data source
     /// reports back.
     pub fn reload(&self) {
-        unsafe {
-            let _: () = msg_send![&*self.objc, reloadData];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, reloadData];
+        });
     }
 
     /// Returns the selected row.
     pub fn get_selected_row_index(&self) -> NSInteger {
-        unsafe { msg_send![&*self.objc, selectedRow] }
+        self.objc.get(|obj| unsafe { msg_send![obj, selectedRow] })
     }
     
     /// Returns the currently clicked row. This is macOS-specific, and is generally used in context
@@ -643,32 +614,13 @@ impl<T> ListView<T> {
     /// }
     /// ```
     pub fn get_clicked_row_index(&self) -> NSInteger {
-        unsafe { msg_send![&*self.objc, clickedRow] }
+        self.objc.get(|obj| unsafe { msg_send![obj, clickedRow] })
     }
 }
 
 impl<T> Layout for ListView<T> {
-    /// On macOS, this returns the NSScrollView, not the NSTableView.
-    fn get_backing_node(&self) -> ShareId<Object> {
-        #[cfg(target_os = "macos")]
-        let val = self.scrollview.objc.clone();
-
-        #[cfg(target_os = "ios")]
-        let val = self.objc.clone();
-
-        val
-    }
-
-    fn add_subview<V: Layout>(&self, view: &V) {
-        let backing_node = view.get_backing_node();
-
-        unsafe {
-            #[cfg(target_os = "macos")]
-            let _: () = msg_send![&*self.scrollview.objc, addSubview:backing_node];
-            
-            #[cfg(target_os = "ios")]
-            let _: () = msg_send![&*self.objc, addSubview:backing_node];
-        }
+    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+        self.objc.with_mut(handler);
     }
 }
 
@@ -680,13 +632,13 @@ impl<T> Drop for ListView<T> {
     ///
     /// There are, thankfully, no delegates we need to break here.
     fn drop(&mut self) {
-        if self.delegate.is_some() {
+        /*if self.delegate.is_some() {
             unsafe {
                 let superview: id = msg_send![&*self.objc, superview];
                 if superview != nil {
                     let _: () = msg_send![&*self.objc, removeFromSuperview];
                 }
             }
-        }
+        }*/
     }
 }

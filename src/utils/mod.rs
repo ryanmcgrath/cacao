@@ -16,6 +16,7 @@ mod cell_factory;
 pub use cell_factory::CellFactory;
 
 pub mod os;
+pub mod properties;
 
 /// A generic trait that's used throughout multiple different controls in this framework - acts as
 /// a guard for whether something is a (View|Window|etc)Controller. 

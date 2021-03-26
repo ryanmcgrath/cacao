@@ -27,7 +27,6 @@ pub(crate) const AQUA_LIGHT_COLOR_HIGH_CONTRAST: &'static str = "AQUA_LIGHT_COLO
 pub(crate) const AQUA_DARK_COLOR_NORMAL_CONTRAST: &'static str = "AQUA_DARK_COLOR_NORMAL_CONTRAST";
 pub(crate) const AQUA_DARK_COLOR_HIGH_CONTRAST: &'static str = "AQUA_DARK_COLOR_HIGH_CONTRAST";
 
-
 extern "C" {
     static NSAppearanceNameAqua: id;
     static NSAppearanceNameAccessibilityHighContrastAqua: id;

@@ -63,7 +63,9 @@ where
                 (&mut *vc).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
             }
 
-            let _: () = msg_send![vc, setView:&*view.get_backing_node()];
+            view.with_backing_node(|backing_node| {
+                let _: () = msg_send![vc, setView:backing_node];
+            });
 
             ShareId::from_ptr(vc)
         };

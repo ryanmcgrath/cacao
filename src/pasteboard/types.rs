@@ -1,6 +1,3 @@
-//! This module provides some basic wrappers for Pasteboard functionality. It's currently not an
-//! exhaustive clone, but feel free to pull request accordingly!
-
 use crate::foundation::NSString;
 
 /// Constants for the standard system pasteboard names.

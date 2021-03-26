@@ -52,10 +52,9 @@ extern fn view_for_column<T: ListViewDelegate>(
     //
     // @TODO: Finish investing the `Rc` approach, might be able to just take
     // ownership and rely on Rust being correct.
-    let objc = item.objc.borrow();
-    unsafe {
-        msg_send![&**objc, self]
-    }
+    item.objc.get(|obj| unsafe {
+        msg_send![obj, self]
+    })
 }
 
 extern fn will_display_cell<T: ListViewDelegate>(

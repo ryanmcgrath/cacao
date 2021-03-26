@@ -48,6 +48,7 @@ use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
 use crate::layout::{Layout, LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 use crate::text::{Font, TextAlign};
+use crate::utils::properties::ObjcProperty;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -85,7 +86,7 @@ fn common_init(class: *const Class) -> id {
 #[derive(Debug)]
 pub struct TextField<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: ShareId<Object>,
+    pub objc: ObjcProperty,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
@@ -145,7 +146,7 @@ impl TextField {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-            objc: unsafe { ShareId::from_ptr(view) },
+            objc: ObjcProperty::retain(view),
         }
     }
 }
@@ -178,7 +179,7 @@ where
             height: LayoutAnchorDimension::height(label),
             center_x: LayoutAnchorX::center(label),
             center_y: LayoutAnchorY::center(label),
-            objc: unsafe { ShareId::from_ptr(label) },
+            objc: ObjcProperty::retain(label),
         };
 
         (&mut delegate).did_load(label.clone_as_handle());
@@ -211,61 +212,50 @@ impl<T> TextField<T> {
 
     /// Grabs the value from the textfield and returns it as an owned String.
     pub fn get_value(&self) -> String {
-        let value = NSString::retain(unsafe {
-            msg_send![&*self.objc, stringValue]
-        });
-
-        value.to_string()
+        self.objc.get(|obj| unsafe {
+            NSString::retain(msg_send![obj, stringValue]).to_string()
+        })
     }
 
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
-        let cg = color.as_ref().cg_color();
-        
-        unsafe {
-            let layer: id = msg_send![&*self.objc, layer];
+        self.objc.with_mut(|obj| unsafe {
+            let cg = color.as_ref().cg_color();
+            let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: cg];
-        }
+        });
     }
 
     /// Call this to set the text for the label.
     pub fn set_text(&self, text: &str) {
         let s = NSString::new(text);
 
-        unsafe {
-            let _: () = msg_send![&*self.objc, setStringValue:&*s];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setStringValue:&*s];
+        });
     }
 
     /// The the text alignment style for this control.
     pub fn set_text_alignment(&self, alignment: TextAlign) {
-        unsafe {
+        self.objc.with_mut(|obj| unsafe {
             let alignment: NSInteger = alignment.into();
-            let _: () = msg_send![&*self.objc, setAlignment: alignment];
-        }
+            let _: () = msg_send![obj, setAlignment: alignment];
+        });
     }
 
     /// Sets the font for this input.
     pub fn set_font<F: AsRef<Font>>(&self, font: F) {
         let font = font.as_ref().clone();
 
-        unsafe {
-            let _: () = msg_send![&*self.objc, setFont:&*font];
-        }
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setFont:&*font];
+        });
     }
 }
 
 impl<T> Layout for TextField<T> {
-    fn get_backing_node(&self) -> ShareId<Object> {
-        self.objc.clone()
-    }
-
-    fn add_subview<V: Layout>(&self, view: &V) {
-        let backing_node = view.get_backing_node();
-
-        unsafe {
-            let _: () = msg_send![&*self.objc, addSubview: backing_node];
-        }
+    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+        self.objc.with_mut(handler);
     }
 }
 
@@ -277,13 +267,13 @@ impl<T> Drop for TextField<T> {
     ///
     /// There are, thankfully, no delegates we need to break here.
     fn drop(&mut self) {
-        if self.delegate.is_some() {
+        /*if self.delegate.is_some() {
             unsafe {
                 let superview: id = msg_send![&*self.objc, superview];
                 if superview != nil {
                     let _: () = msg_send![&*self.objc, removeFromSuperview];
                 }
             }
-        }
+        }*/
     }
 }
