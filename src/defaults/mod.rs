@@ -212,10 +212,10 @@ impl UserDefaults {
                 "d" => Some(Value::Float(number.as_f64())),
                 "q" => Some(Value::Integer(number.as_i64())),
 
-                x => {
+                _x => {
                     // Debugging code that should be removed at some point.
                     #[cfg(debug_assertions)]
-                    println!("Unexpected code type found: {}", x);
+                    println!("Unexpected code type found: {}", _x);
 
                     None
                 }

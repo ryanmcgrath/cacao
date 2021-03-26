@@ -46,10 +46,11 @@ use std::cell::RefCell;
 
 use objc_id::{Id, ShareId};
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
+use crate::layer::Layer;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
 use crate::view::ViewDelegate;
@@ -260,6 +261,8 @@ impl<T> ListViewRow<T> {
     pub(crate) fn clone_as_handle(&self) -> crate::view::View {
         crate::view::View {
             delegate: None,
+            is_handle: true,
+            layer: Layer::new(),
             top: self.top.clone(),
             leading: self.leading.clone(),
             left: self.left.clone(),

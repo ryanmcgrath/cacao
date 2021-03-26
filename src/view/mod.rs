@@ -7,7 +7,7 @@
 //! Views implement Autolayout, which enable you to specify how things should appear on the screen.
 //! 
 //! ```rust,no_run
-//! use cacao::color::rgb;
+//! use cacao::color::Color;
 //! use cacao::layout::{Layout, LayoutConstraint};
 //! use cacao::view::View;
 //! use cacao::window::{Window, WindowDelegate};
@@ -24,7 +24,7 @@
 //!         window.set_minimum_content_size(300., 300.);
 //!         self.window = window;
 //!
-//!         self.red.set_background_color(rgb(224, 82, 99));
+//!         self.red.set_background_color(Color::SystemRed);
 //!         self.content.add_subview(&self.red);
 //!         
 //!         self.window.set_content_view(&self.content);
@@ -41,12 +41,12 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use objc_id::{Id, ShareId};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
+use crate::layer::Layer;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::pasteboard::PasteboardType;
 use crate::utils::properties::ObjcProperty;
@@ -75,26 +75,22 @@ pub use traits::ViewDelegate;
 pub(crate) static BACKGROUND_COLOR: &str = "alchemyBackgroundColor";
 pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
 
-/// A helper method for instantiating view classes and applying default settings to them.
-fn common_init(class: *const Class) -> id { 
-    unsafe {
-        let view: id = msg_send![class, new];
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
-
-        #[cfg(target_os = "macos")]
-        let _: () = msg_send![view, setWantsLayer:YES];
-
-        view 
-    }
-}
-
 /// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
 /// instead of a stock `View` for easier recordkeeping, since it'll need to hold the `View` on that
 /// side anyway.
 #[derive(Debug)]
 pub struct View<T = ()> {
+    /// An internal flag for whether an instance of a View<T> is a handle. Typically, there's only
+    /// one instance that should have this set to `false` - if that one drops, we need to know to
+    /// do some extra cleanup.
+    pub is_handle: bool,
+
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
+
+    /// References the underlying layer. This is consistent across macOS, iOS and tvOS - on macOS
+    /// we explicitly opt in to layer backed views.
+    pub layer: Layer,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
@@ -131,17 +127,28 @@ pub struct View<T = ()> {
 }
 
 impl Default for View {
+    /// Returns a stock view, for... well, whatever you want.
     fn default() -> Self {
         View::new()
     }
 }
 
 impl View {
-    /// Returns a default `View`, suitable for 
-    pub fn new() -> Self {
-        let view = common_init(register_view_class());
+    /// An internal initializer method for very common things that we need to do, regardless of
+    /// what type the end user is creating.
+    ///
+    /// This handles grabbing autolayout anchor pointers, as well as things related to layering and
+    /// so on. It returns a generic `View<T>`, which the caller can then customize as needed.
+    pub(crate) fn init<T>(view: id) -> View<T> {
+        unsafe {
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+
+            #[cfg(target_os = "macos")]
+            let _: () = msg_send![view, setWantsLayer:YES];
+        }
 
         View {
+            is_handle: false,
             delegate: None,
             top: LayoutAnchorY::top(view),
             left: LayoutAnchorX::left(view),
@@ -153,8 +160,20 @@ impl View {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
+            
+            layer: Layer::wrap(unsafe {
+                msg_send![view, layer]
+            }),
+
             objc: ObjcProperty::retain(view),
         }
+    }
+
+    /// Returns a default `View`, suitable for customizing and displaying.
+    pub fn new() -> Self {
+        View::init(unsafe {
+            msg_send![register_view_class(), new]
+        })
     }
 }
 
@@ -166,28 +185,14 @@ impl<T> View<T> where T: ViewDelegate + 'static {
         let mut delegate = Box::new(delegate);
         
         let view = unsafe {
-            let view: id = common_init(class);
+            let view: id = msg_send![class, new];
             let ptr = Box::into_raw(delegate);
             (&mut *view).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
             delegate = Box::from_raw(ptr);
             view
         };
 
-        let mut view = View {
-            delegate: None,
-            top: LayoutAnchorY::top(view),
-            left: LayoutAnchorX::left(view),
-            leading: LayoutAnchorX::leading(view),
-            right: LayoutAnchorX::right(view),
-            trailing: LayoutAnchorX::trailing(view),
-            bottom: LayoutAnchorY::bottom(view),
-            width: LayoutAnchorDimension::width(view),
-            height: LayoutAnchorDimension::height(view),
-            center_x: LayoutAnchorX::center(view),
-            center_y: LayoutAnchorY::center(view),
-            objc: ObjcProperty::retain(view),
-        };
-
+        let mut view = View::init(view);
         (&mut delegate).did_load(view.clone_as_handle()); 
         view.delegate = Some(delegate);
         view
@@ -202,6 +207,8 @@ impl<T> View<T> {
     pub(crate) fn clone_as_handle(&self) -> View {
         View {
             delegate: None,
+            is_handle: true,
+            layer: self.layer.clone(),
             top: self.top.clone(),
             leading: self.leading.clone(),
             left: self.left.clone(),
@@ -245,20 +252,17 @@ impl<T> Layout for View<T> {
 }
 
 impl<T> Drop for View<T> {
-    /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being
-    /// dropped, we do some logic to clean it all up (e.g, we go ahead and check to see if
-    /// this has a superview (i.e, it's in the heirarchy) on the AppKit side. If it does, we go
-    /// ahead and remove it - this is intended to match the semantics of how Rust handles things).
+    /// If the instance being dropped is _not_ a handle, then we want to go ahead and explicitly
+    /// remove it from any super views.
     ///
-    /// There are, thankfully, no delegates we need to break here.
+    /// Why do we do this? It's to try and match Rust's ownership model/semantics. If a Rust value
+    /// drops, it (theoretically) makes sense that the View would drop... and not be visible, etc.
+    ///
+    /// If you're venturing into unsafe code for the sake of custom behavior via the Objective-C
+    /// runtime, you can consider flagging your instance as a handle - it will avoid the drop logic here.
     fn drop(&mut self) {
-        /*if self.delegate.is_some() {
-            unsafe {
-                let superview: id = msg_send![&*self.objc, superview];
-                if superview != nil {
-                    let _: () = msg_send![&*self.objc, removeFromSuperview];
-                }
-            }
-        }*/
+        if !self.is_handle {
+            self.remove_from_superview();
+        }
     }
 }

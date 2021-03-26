@@ -40,6 +40,7 @@ impl WindowDelegate for AppWindow {
         });
 
         self.blue.set_background_color(Color::SystemBlue);
+        self.blue.layer.set_corner_radius(16.);
         self.content.add_subview(&self.blue);
 
         self.red.set_background_color(Color::SystemRed);

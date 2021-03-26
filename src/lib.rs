@@ -120,6 +120,7 @@ pub mod foundation;
 pub mod geometry;
 pub mod image;
 pub mod input;
+pub mod layer;
 pub(crate) mod invoker;
 pub mod layout;
 pub mod listview;
