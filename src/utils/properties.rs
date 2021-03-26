@@ -24,6 +24,13 @@ impl ObjcProperty {
             Id::from_ptr(obj)
         })))
     }
+    
+    /// Given an Objective-C object, retains it and wraps it as a `Property`.
+    pub fn from_retained(obj: id) -> Self {
+        ObjcProperty(Rc::new(RefCell::new(unsafe {
+            Id::from_retained_ptr(obj)
+        })))
+    }
 
     /// Runs a handler with mutable access for the underlying Objective-C object.
     ///

@@ -428,14 +428,21 @@ impl<T> ListView<T> {
         // Note that we need to thread the `with_mut` calls carefully, to avoid deadlocking.
         #[cfg(target_os = "macos")]
         {
-            self.objc.with_mut(|obj| unsafe {
+            self.objc.get(|obj| unsafe {
                 let _: () = msg_send![obj, beginUpdates];
             });
            
             let handle = self.clone_as_handle();
             update(handle);
 
-            self.objc.with_mut(|obj| unsafe {
+            // This is cheating, but there's no good way around it at the moment. If we (mutably) lock in
+            // Rust here, firing this call will loop back around into `dequeue`, which will then
+            // hit a double lock.
+            //
+            // Personally, I can live with this - `endUpdates` is effectively just flushing the
+            // already added updates, so with this small hack here we're able to keep the mutable
+            // borrow structure everywhere else, which feels "correct".
+            self.objc.get(|obj| unsafe {
                 let _: () = msg_send![obj, endUpdates];
             });
         }
@@ -461,6 +468,7 @@ impl<T> ListView<T> {
             // We need to temporarily retain this; it can drop after the underlying NSTableView
             // has also retained it.
             let x = ShareId::from_ptr(index_set);
+            
             self.objc.with_mut(|obj| {
                 let _: () = msg_send![obj, insertRowsAtIndexes:&*x withAnimation:animation_options];
             });
@@ -483,7 +491,8 @@ impl<T> ListView<T> {
             let ye: id = msg_send![class!(NSIndexSet), indexSetWithIndex:0];
             let y = ShareId::from_ptr(ye);
 
-            self.objc.with_mut(|obj| {
+            // Must use `get` to avoid a double lock.
+            self.objc.get(|obj| {
                 let _: () = msg_send![obj, reloadDataForRowIndexes:&*x columnIndexes:&*y];
             });
         }
@@ -620,7 +629,10 @@ impl<T> ListView<T> {
 
 impl<T> Layout for ListView<T> {
     fn with_backing_node<F: Fn(id)>(&self, handler: F) {
-        self.objc.with_mut(handler);
+        // On macOS, we need to provide the scrollview for layout purposes - iOS and tvOS will know
+        // what to do normally.
+        #[cfg(target_os = "macos")]
+        self.scrollview.objc.with_mut(handler);
     }
 }
 
