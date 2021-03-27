@@ -51,7 +51,6 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString, NSInteger, NSUInteger};
 use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
-use crate::pasteboard::PasteboardType;
 use crate::scrollview::ScrollView;
 use crate::utils::{os, CellFactory, CGSize};
 use crate::utils::properties::{ObjcProperty, PropertyNullable};
@@ -571,20 +570,6 @@ impl<T> ListView<T> {
         });
     }
 
-    /// Register this view for drag and drop operations.
-    pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        let types: NSArray = types.into_iter().map(|t| {
-            // This clone probably doesn't need to be here, but it should also be cheap as
-            // this is just an enum... and this is not an oft called method.
-            let x: NSString = (*t).into();
-            x.into()
-        }).collect::<Vec<id>>().into();
-
-        self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, registerForDraggedTypes:&*types];
-        });
-    }
-
     /// Reloads the underlying ListView. This is more expensive than handling insert/reload/remove
     /// calls yourself, but often easier to implement.
     ///
@@ -633,6 +618,16 @@ impl<T> Layout for ListView<T> {
         // what to do normally.
         #[cfg(target_os = "macos")]
         self.scrollview.objc.with_mut(handler);
+    }
+
+    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+        // On macOS, we need to provide the scrollview for layout purposes - iOS and tvOS will know
+        // what to do normally.
+        //
+        // @TODO: Review this, as property access isn't really used in the same place as layout
+        // stuff... hmm...
+        #[cfg(target_os = "macos")]
+        self.scrollview.objc.get(handler)
     }
 }
 

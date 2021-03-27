@@ -176,6 +176,10 @@ impl Layout for ProgressIndicator {
     fn with_backing_node<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
+
+    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+        self.objc.get(handler)
+    }
 }
 
 impl Drop for ProgressIndicator {

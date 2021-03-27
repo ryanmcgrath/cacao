@@ -117,20 +117,15 @@ impl ImageView {
             let _: () = msg_send![obj, setImage:&*image.0];
         });
     }
-
-    pub fn set_hidden(&self, hidden: bool) {
-        self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setHidden:match hidden {
-                true => YES,
-                false => NO
-            }];
-        });
-    }
 }
 
 impl Layout for ImageView {
     fn with_backing_node<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
+    }
+
+    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+        self.objc.get(handler)
     }
 }
 

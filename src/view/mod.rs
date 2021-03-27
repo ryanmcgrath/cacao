@@ -232,22 +232,15 @@ impl<T> View<T> {
         });
     }
 
-    /// Register this view for drag and drop operations.
-    pub fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        let types: NSArray = types.into_iter().map(|t| {
-            let x: NSString = (*t).into();
-            x.into()
-        }).collect::<Vec<id>>().into();
-
-        self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, registerForDraggedTypes:&*types];
-        });
-    }
 }
 
 impl<T> Layout for View<T> {
     fn with_backing_node<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
+    }
+
+    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+        self.objc.get(handler)
     }
 }
 

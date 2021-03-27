@@ -211,9 +211,14 @@ impl<T> WebView<T> {
 }
 
 impl<T> Layout for WebView<T> {
-    /// Returns the Objective-C object used for handling the view heirarchy.
-    fn get_backing_node(&self) -> ShareId<Object> {
-        self.objc.clone()
+    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+        // @TODO: Fix.
+        //self.objc.with_mut(handler);
+    }
+
+    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+        // @TODO: Fix.
+        //self.objc.get(handler)
     }
 
     /// Currently, this is a noop. Theoretically there is reason to support this, but in practice
