@@ -22,6 +22,8 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO, NSString};
 use crate::geometry::Rect;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layer::Layer;
+use crate::utils::properties::ObjcProperty;
 
 mod actions;
 pub use actions::*;
@@ -54,13 +56,15 @@ fn allocate_webview(
             // Technically private!
             #[cfg(feature = "webview-downloading-macos")]
             let process_pool: id = msg_send![configuration, processPool]; 
+            
+            // Technically private!
             #[cfg(feature = "webview-downloading-macos")]
             let _: () = msg_send![process_pool, _setDownloadDelegate:*delegate];
 
             let content_controller: id = msg_send![configuration, userContentController];
             for handler in handlers {
                 let name = NSString::new(&handler);
-                let _: () = msg_send![content_controller, addScriptMessageHandler:*delegate name:name];
+                let _: () = msg_send![content_controller, addScriptMessageHandler:*delegate name:&*name];
             }
         }
 
@@ -80,8 +84,16 @@ fn allocate_webview(
 }
 
 pub struct WebView<T = ()> {
+    /// An internal flag for whether an instance of a View<T> is a handle. Typically, there's only
+    /// one instance that should have this set to `false` - if that one drops, we need to know to
+    /// do some extra cleanup.
+    pub is_handle: bool,
+
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: ShareId<Object>,
+    pub objc: ObjcProperty,
+
+    /// A reference to the underlying CALayer.
+    pub layer: Layer,
 
     /// We need to store the underlying delegate separately from the `WKWebView` - this is a where
     /// we do so.
@@ -96,8 +108,14 @@ pub struct WebView<T = ()> {
     /// A pointer to the Objective-C runtime leading layout constraint.
     pub leading: LayoutAnchorX,
 
+    /// A pointer to the Objective-C runtime left layout constraint.
+    pub left: LayoutAnchorX,
+
     /// A pointer to the Objective-C runtime trailing layout constraint.
     pub trailing: LayoutAnchorX,
+
+    /// A pointer to the Objective-C runtime right layout constraint.
+    pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
     pub bottom: LayoutAnchorY,
@@ -122,22 +140,47 @@ impl Default for WebView {
 }
 
 impl WebView {
-    pub fn new(config: WebViewConfig) -> Self {
-        let view = allocate_webview(config, None);
+    /// An internal initializer method for very common things that we need to do, regardless of
+    /// what type the end user is creating.
+    ///
+    /// This handles grabbing autolayout anchor pointers, as well as things related to layering and
+    /// so on. It returns a generic `WebView<T>`, which the caller can then customize as needed.
+    pub(crate) fn init<T>(view: id) -> WebView<T> {
+        unsafe {
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+
+            #[cfg(target_os = "macos")]
+            let _: () = msg_send![view, setWantsLayer:YES];
+        }
 
         WebView {
+            is_handle: false,
             delegate: None,
             objc_delegate: None,
-            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: unsafe { ShareId::from_ptr(view) },
-        }        
+            top: LayoutAnchorY::top(view),
+            left: LayoutAnchorX::left(view),
+            leading: LayoutAnchorX::leading(view),
+            right: LayoutAnchorX::right(view),
+            trailing: LayoutAnchorX::trailing(view),
+            bottom: LayoutAnchorY::bottom(view),
+            width: LayoutAnchorDimension::width(view),
+            height: LayoutAnchorDimension::height(view),
+            center_x: LayoutAnchorX::center(view),
+            center_y: LayoutAnchorY::center(view),
+            
+            layer: Layer::wrap(unsafe {
+                msg_send![view, layer]
+            }),
+
+            objc: ObjcProperty::retain(view),
+        }
+    }
+    
+
+    /// Returns a default `WebView`, suitable for customizing and displaying.
+    pub fn new(config: WebViewConfig) -> Self {
+        let view = allocate_webview(config, None);
+        WebView::init(view)
     }
 }
 
@@ -155,20 +198,7 @@ impl<T> WebView<T> where T: WebViewDelegate + 'static {
         };
 
         let view = allocate_webview(config, Some(&objc_delegate));
-
-        let mut view = WebView {
-            delegate: None,
-            objc_delegate: Some(objc_delegate),
-            top: LayoutAnchorY::new(unsafe { msg_send![view, topAnchor] }),
-            leading: LayoutAnchorX::new(unsafe { msg_send![view, leadingAnchor] }),
-            trailing: LayoutAnchorX::new(unsafe { msg_send![view, trailingAnchor] }),
-            bottom: LayoutAnchorY::new(unsafe { msg_send![view, bottomAnchor] }),
-            width: LayoutAnchorDimension::new(unsafe { msg_send![view, widthAnchor] }),
-            height: LayoutAnchorDimension::new(unsafe { msg_send![view, heightAnchor] }),
-            center_x: LayoutAnchorX::new(unsafe { msg_send![view, centerXAnchor] }),
-            center_y: LayoutAnchorY::new(unsafe { msg_send![view, centerYAnchor] }),
-            objc: unsafe { ShareId::from_ptr(view) },
-        };
+        let mut view = WebView::init(view);
 
         &delegate.did_load(view.clone_as_handle()); 
         view.delegate = Some(delegate);
@@ -186,12 +216,16 @@ impl<T> WebView<T> {
             delegate: None,
             top: self.top.clone(),
             leading: self.leading.clone(),
+            left: self.left.clone(),
+            right: self.right.clone(),
+            is_handle: true,
             trailing: self.trailing.clone(),
             bottom: self.bottom.clone(),
             width: self.width.clone(),
             height: self.height.clone(),
             center_x: self.center_x.clone(),
             center_y: self.center_y.clone(),
+            layer: self.layer.clone(),
             objc: self.objc.clone(),
             objc_delegate: None
         }
@@ -202,23 +236,21 @@ impl<T> WebView<T> {
     pub fn load_url(&self, url: &str) {
         let url = NSString::new(url);
 
-        unsafe {
+        self.objc.with_mut(|obj| unsafe {
             let u: id = msg_send![class!(NSURL), URLWithString:&*url];
             let request: id = msg_send![class!(NSURLRequest), requestWithURL:u];
-            let _: () = msg_send![&*self.objc, loadRequest:request];
-        }
+            let _: () = msg_send![&*obj, loadRequest:request];
+        });
     }
 }
 
 impl<T> Layout for WebView<T> {
     fn with_backing_node<F: Fn(id)>(&self, handler: F) {
-        // @TODO: Fix.
-        //self.objc.with_mut(handler);
+        self.objc.with_mut(handler);
     }
 
     fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        // @TODO: Fix.
-        //self.objc.get(handler)
+        self.objc.get(handler)
     }
 
     /// Currently, this is a noop. Theoretically there is reason to support this, but in practice
@@ -235,11 +267,13 @@ impl<T> std::fmt::Debug for WebView<T> {
 impl<T> Drop for WebView<T> {
     /// A bit of extra cleanup for delegate callback pointers.
     fn drop(&mut self) {
-        if self.delegate.is_some() {
-            unsafe {
-                let _: () = msg_send![&*self.objc, setNavigationDelegate:nil];
-                let _: () = msg_send![&*self.objc, setUIDelegate:nil];
-            }
+        if !self.is_handle {
+            self.objc.with_mut(|obj| unsafe {
+                let _: () = msg_send![&*obj, setNavigationDelegate:nil];
+                let _: () = msg_send![&*obj, setUIDelegate:nil];
+            });
+            
+            self.remove_from_superview();
         }
     }
 }
