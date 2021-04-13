@@ -1,12 +1,11 @@
 //! This example showcases setting up a basic application and window, setting up some views to
 //! work with autolayout, and some basic ways to handle colors.
 
-use cacao::webview::{WebView, WebViewConfig, WebViewDelegate};
-
+use cacao::layout::{Layout, LayoutConstraint};
 use cacao::input::{TextField, TextFieldDelegate};
+use cacao::view::View;
 
 use cacao::macos::{App, AppDelegate};
-use cacao::macos::toolbar::{Toolbar, ToolbarItem, ItemIdentifier, ToolbarDelegate};
 use cacao::macos::menu::{Menu, MenuItem};
 use cacao::macos::window::{Window, WindowConfig, WindowDelegate};
 
@@ -42,6 +41,7 @@ impl AppDelegate for BasicApp {
                 MenuItem::SelectAll
             ]),
 
+            // Sidebar option is 11.0+ only.
             Menu::new("View", vec![
                 MenuItem::EnterFullScreen
             ]),
@@ -61,48 +61,38 @@ impl AppDelegate for BasicApp {
     }
 }
 
-pub struct URLBar;
+#[derive(Debug, Default)]
+pub struct ConsoleLogger;
 
-impl TextFieldDelegate for URLBar {
-    const NAME: &'static str = "URLBar";
-}
+impl TextFieldDelegate for ConsoleLogger {
+    const NAME: &'static str = "ConsoleLogger";
 
-struct BrowserToolbar {
-    url_bar: TextField<URLBar>
-}
+    fn text_should_begin_editing(&self, value: &str) -> bool {
+        println!("Should begin with value: {}", value);
+        true
+    }
 
-impl BrowserToolbar {
-    pub fn new() -> Self {
-        BrowserToolbar {
-            url_bar: TextField::with(URLBar)
-        }
+    fn text_did_change(&self, value: &str) {
+        println!("Did change to: {}", value);
+    }
+
+
+    fn text_did_end_editing(&self, value: &str) {
+        println!("Ended: {}", value);
     }
 }
 
-impl ToolbarDelegate for BrowserToolbar {
-    const NAME: &'static str = "BrowserToolbar";
-
-    fn allowed_item_identifiers(&self) -> Vec<ItemIdentifier> { vec![] }
-    fn default_item_identifiers(&self) -> Vec<ItemIdentifier> { vec![] }
-
-    fn item_for(&self, _identifier: &str) -> &ToolbarItem { std::unreachable!(); }
-}
-
-#[derive(Default)]
-pub struct WebViewInstance;
-
-impl WebViewDelegate for WebViewInstance {}
-
+#[derive(Debug)]
 struct AppWindow {
-    toolbar: Toolbar<BrowserToolbar>,
-    content: WebView<WebViewInstance>
+    input: TextField<ConsoleLogger>,
+    content: View
 }
 
 impl AppWindow {
     pub fn new() -> Self {
         AppWindow {
-            toolbar: Toolbar::new("com.example.BrowserToolbar", BrowserToolbar::new()),
-            content: WebView::with(WebViewConfig::default(), WebViewInstance::default())
+            input: TextField::with(ConsoleLogger),
+            content: View::new(),
         }
     }
 }
@@ -111,13 +101,17 @@ impl WindowDelegate for AppWindow {
     const NAME: &'static str = "WindowDelegate";
 
     fn did_load(&mut self, window: Window) {
-        window.set_title("Browser Example");
-        window.set_minimum_content_size(400., 400.);
+        window.set_title("Input Logger Example");
+        window.set_minimum_content_size(300., 300.);
 
-        window.set_toolbar(&self.toolbar);
+        self.content.add_subview(&self.input);
         window.set_content_view(&self.content);
 
-        self.content.load_url("https://www.duckduckgo.com/");
+        LayoutConstraint::activate(&[
+            self.input.center_x.constraint_equal_to(&self.content.center_x),
+            self.input.center_y.constraint_equal_to(&self.content.center_y),
+            self.input.width.constraint_equal_to_constant(280.)
+        ]);
     }
 }
 
