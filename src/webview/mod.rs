@@ -242,6 +242,20 @@ impl<T> WebView<T> {
             let _: () = msg_send![&*obj, loadRequest:request];
         });
     }
+
+    /// Go back in history, if possible.
+    pub fn go_back(&self) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![&*obj, goBack];
+        });
+    }
+
+    /// Go forward in history, if possible.
+    pub fn go_forward(&self) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![&*obj, goForward];
+        });
+    }
 }
 
 impl<T> Layout for WebView<T> {

@@ -1,14 +1,29 @@
 //! This example showcases setting up a basic application and window, setting up some views to
 //! work with autolayout, and some basic ways to handle colors.
 
+use cacao::notification_center::Dispatcher;
 use cacao::webview::{WebView, WebViewConfig, WebViewDelegate};
 
-use cacao::input::{TextField, TextFieldDelegate};
-
 use cacao::macos::{App, AppDelegate};
-use cacao::macos::toolbar::{Toolbar, ToolbarItem, ItemIdentifier, ToolbarDelegate};
 use cacao::macos::menu::{Menu, MenuItem};
-use cacao::macos::window::{Window, WindowConfig, WindowDelegate};
+use cacao::macos::toolbar::Toolbar;
+use cacao::macos::window::{Window, WindowConfig, WindowDelegate, WindowToolbarStyle};
+
+mod toolbar;
+use toolbar::BrowserToolbar;
+
+#[derive(Debug)]
+pub enum Action {
+    Back,
+    Forwards,
+    Load(String)
+}
+
+impl Action {
+    pub fn dispatch(self) {
+        App::<BasicApp, Self>::dispatch_main(self);
+    }
+}
 
 struct BasicApp {
     window: Window<AppWindow>
@@ -61,31 +76,19 @@ impl AppDelegate for BasicApp {
     }
 }
 
-pub struct URLBar;
+impl Dispatcher for BasicApp {
+    type Message = Action;
 
-impl TextFieldDelegate for URLBar {
-    const NAME: &'static str = "URLBar";
-}
+    fn on_ui_message(&self, message: Self::Message) {
+        let window = self.window.delegate.as_ref().unwrap();
+        let webview = &window.content;
 
-struct BrowserToolbar {
-    url_bar: TextField<URLBar>
-}
-
-impl BrowserToolbar {
-    pub fn new() -> Self {
-        BrowserToolbar {
-            url_bar: TextField::with(URLBar)
+        match message {
+            Action::Back => { webview.go_back(); },
+            Action::Forwards => { webview.go_forward(); },
+            Action::Load(url) => { window.load_url(&url); } 
         }
     }
-}
-
-impl ToolbarDelegate for BrowserToolbar {
-    const NAME: &'static str = "BrowserToolbar";
-
-    fn allowed_item_identifiers(&self) -> Vec<ItemIdentifier> { vec![] }
-    fn default_item_identifiers(&self) -> Vec<ItemIdentifier> { vec![] }
-
-    fn item_for(&self, _identifier: &str) -> &ToolbarItem { std::unreachable!(); }
 }
 
 #[derive(Default)]
@@ -105,6 +108,11 @@ impl AppWindow {
             content: WebView::with(WebViewConfig::default(), WebViewInstance::default())
         }
     }
+
+    pub fn load_url(&self, url: &str) {
+        self.toolbar.delegate.as_ref().unwrap().set_url(url);
+        self.content.load_url(url);
+    }
 }
 
 impl WindowDelegate for AppWindow {
@@ -112,17 +120,25 @@ impl WindowDelegate for AppWindow {
 
     fn did_load(&mut self, window: Window) {
         window.set_title("Browser Example");
+        window.set_autosave_name("CacaoBrowserExample");
         window.set_minimum_content_size(400., 400.);
 
         window.set_toolbar(&self.toolbar);
         window.set_content_view(&self.content);
 
-        self.content.load_url("https://www.duckduckgo.com/");
+        self.load_url("https://www.duckduckgo.com/");
     }
 }
 
 fn main() {
     App::new("com.test.window", BasicApp {
-        window: Window::with(WindowConfig::default(), AppWindow::new())
+        window: Window::with({
+            let mut config = WindowConfig::default();
+
+            // This flag is necessary for Big Sur to use the correct toolbar style.
+            config.toolbar_style = WindowToolbarStyle::Expanded;
+
+            config
+        }, AppWindow::new())
     }).run();
 }
