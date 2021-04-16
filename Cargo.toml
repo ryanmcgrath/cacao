@@ -31,12 +31,17 @@ url = "2.1.1"
 eval = "0.4"
 
 [features]
-default = ["macos"]
+default = []
 cloudkit = []
-ios = []
-macos = []
 color_fallbacks = []
 quicklook = []
 user-notifications = ["uuid"]
 webview = []
 webview-downloading-macos = []
+
+[package.metadata.bundle.example.ios-beta]
+name = "ios-beta"
+identifier = "com.cacao.ios-test"
+category = "Developer Tool"
+short_description = "An example Cacao iOS app."
+long_description = "An example Cacao iOS app."

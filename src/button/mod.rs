@@ -36,7 +36,7 @@ use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension}
 use crate::text::{AttributedString, Font};
 use crate::utils::{load, properties::ObjcProperty};
 
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 use crate::macos::FocusRingType;
 
 mod enums;
@@ -145,7 +145,7 @@ impl Button {
     }
 
     /// Sets the bezel style for this button. Only supported on macOS.
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     pub fn set_bezel_style(&self, bezel_style: BezelStyle) {
         let style: NSUInteger = bezel_style.into();
         
@@ -167,7 +167,7 @@ impl Button {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         let color: id = color.as_ref().into();
         
-        #[cfg(feature = "macos")]
+        #[cfg(target_os = "macos")]
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
             let _: () = msg_send![cell, setBackgroundColor:color];
@@ -188,7 +188,7 @@ impl Button {
     ///
     /// On macOS, this is done by way of an `AttributedString` under the hood. 
     pub fn set_text_color<C: AsRef<Color>>(&self, color: C) {
-        #[cfg(feature = "macos")]
+        #[cfg(target_os = "macos")]
         self.objc.with_mut(move |obj| unsafe {
             let text: id = msg_send![obj, attributedTitle];
             let len: isize = msg_send![text, length];
@@ -202,7 +202,7 @@ impl Button {
 
     // @TODO: Figure out how to handle oddities like this.
     /// For buttons on macOS, one might need to disable the border. This does that.
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     pub fn set_bordered(&self, is_bordered: bool) {
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setBordered:match is_bordered {
@@ -224,7 +224,7 @@ impl Button {
     /// Sets how the control should draw a focus ring when a user is focused on it.
     ///
     /// This is a macOS-only method.
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     pub fn set_focus_ring_type(&self, focus_ring_type: FocusRingType) {
         let ring_type: NSUInteger = focus_ring_type.into();
 

@@ -48,8 +48,10 @@ use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layer::Layer;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
-use crate::pasteboard::PasteboardType;
 use crate::utils::properties::ObjcProperty;
+
+#[cfg(target_os = "macos")]
+use crate::pasteboard::PasteboardType;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -66,7 +68,9 @@ use ios::{register_view_class, register_view_class_with_delegate};
 mod controller;
 pub use controller::ViewController;
 
+#[cfg(target_os = "macos")]
 mod splitviewcontroller;
+#[cfg(target_os = "macos")]
 pub use splitviewcontroller::SplitViewController;
 
 mod traits;
@@ -227,8 +231,14 @@ impl<T> View<T> {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         let color: id = color.as_ref().into();
 
+        #[cfg(target_os = "macos")]
         self.objc.with_mut(|obj| unsafe {
             (&mut *obj).set_ivar(BACKGROUND_COLOR, color);
+        });
+
+        #[cfg(target_os = "ios")]
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![&*obj, setBackgroundColor:color];
         });
     }
 

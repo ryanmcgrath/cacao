@@ -15,11 +15,11 @@ pub enum SessionRole {
 
 impl From<SessionRole> for NSString<'_> {
     fn from(role: SessionRole) -> Self {
-        NSString::new(match role {
+        match role {
             SessionRole::Application => NSString::no_copy("UIWindowSceneSessionRoleApplication"),
             SessionRole::ExternalDisplay => NSString::no_copy("UIWindowSceneSessionRoleExternalDisplay"),
             //SessionRole::CarPlayApplication => ""
-        })
+        }
     }
 }
 

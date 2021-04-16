@@ -10,7 +10,7 @@
 ///
 /// The goal here is to make sure that this can't reasonably break on OS's, as `Color` is kind of
 /// an important piece. It's not on the framework to make your app look good, though. To enable
-/// fallbacks, specify the `color_fallbacks` feature in your `Cargo.toml`.
+/// fallbacks, specify the `color_fallbacks` target_os in your `Cargo.toml`.
 ///
 /// @TODO: bundle iOS/tvOS support.
 
@@ -26,10 +26,10 @@ use objc_id::Id;
 use crate::foundation::id;
 use crate::utils::os;
 
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 mod macos_dynamic_color; 
 
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 use macos_dynamic_color::{
     AQUA_LIGHT_COLOR_NORMAL_CONTRAST, AQUA_LIGHT_COLOR_HIGH_CONTRAST,
     AQUA_DARK_COLOR_NORMAL_CONTRAST, AQUA_DARK_COLOR_HIGH_CONTRAST
@@ -230,11 +230,11 @@ pub enum Color {
     LightText,
 
     /// The background color for a given window in the system theme.
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     MacOSWindowBackgroundColor,
 
     /// The background color that should appear under a page per the system theme.
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     MacOSUnderPageBackgroundColor
 }
 
@@ -246,16 +246,13 @@ impl Color {
         let g = green as CGFloat / 255.0;
         let b = blue as CGFloat / 255.0;
         let a = alpha as CGFloat / 255.0;
-        
-        #[cfg(feature = "macos")]
-        let color = class!(NSColor);
-
-        #[cfg(feature = "ios")]
-        let color = class!(UIColor);
 
         Color::Custom(Arc::new(RwLock::new(unsafe {
-            #[cfg(feature = "macos")]
-            Id::from_ptr(msg_send![color, colorWithCalibratedRed:r green:g blue:b alpha:a])
+            #[cfg(target_os = "macos")]
+            { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed:r green:g blue:b alpha:a]) }
+
+            #[cfg(target_os = "ios")]
+            { Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a]) }
         })))
     }
     
@@ -273,15 +270,12 @@ impl Color {
         let b = brightness as CGFloat / 255.0;
         let a = alpha as CGFloat / 255.0;
 
-        #[cfg(feature = "macos")]
-        let color = class!(NSColor);
-
-        #[cfg(feature = "ios")]
-        let color = class!(UIColor);
-
         Color::Custom(Arc::new(RwLock::new(unsafe {
-            #[cfg(feature = "macos")]
-            Id::from_ptr(msg_send![color, colorWithCalibratedHue:h saturation:s brightness:b alpha:a])
+            #[cfg(target_os = "macos")]
+            { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedHue:h saturation:s brightness:b alpha:a]) }
+
+            #[cfg(target_os = "ios")]
+            { Id::from_ptr(msg_send![class!(UIColor), colorWithHue:h saturation:s brightness:b alpha:a]) }
         })))
     }
     
@@ -294,15 +288,12 @@ impl Color {
     /// Creates and returns a white color with the specified level or intensity, along with the
     /// specified alpha.
     pub fn white_alpha(level: CGFloat, alpha: CGFloat) -> Self {
-        #[cfg(feature = "macos")]
-        let color = class!(NSColor);
-
-        #[cfg(feature = "ios")]
-        let color = class!(UIColor);
-
         Color::Custom(Arc::new(RwLock::new(unsafe {
-            #[cfg(feature = "macos")]
-            Id::from_ptr(msg_send![color, colorWithCalibratedWhite:level alpha:alpha])
+            #[cfg(target_os = "macos")]
+            { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedWhite:level alpha:alpha]) }
+            
+            #[cfg(target_os = "ios")]
+            { Id::from_ptr(msg_send![class!(UIColor), colorWithWhite:level alpha:alpha]) }
         })))
     }
 
@@ -336,6 +327,7 @@ impl Color {
     /// "default" or "light" color.
     ///
     /// Returning a dynamic color in your handler is unsupported and may panic.
+    #[cfg(target_os = "macos")]
     pub fn dynamic<F>(handler: F) -> Self
     where
         F: Fn(Style) -> Color + 'static
@@ -345,7 +337,7 @@ impl Color {
         // not entirely clear on how expensive the dynamic allocation would be pre-10.15/11.0 and
         // am happy to do this for now and let someone who needs true dynamic allocation look into
         // it and PR it.
-        #[cfg(feature = "macos")]
+        #[cfg(target_os = "macos")]
         Color::Custom(Arc::new(RwLock::new(unsafe {
             let color: id = msg_send![macos_dynamic_color::register_class(), new];
 
@@ -429,7 +421,7 @@ impl From<&Color> for id {
 /// Handles color fallback for system-provided colors.
 macro_rules! system_color_with_fallback {
     ($class:ident, $color:ident, $fallback:ident) => ({
-        #[cfg(feature = "macos")]
+        #[cfg(target_os = "macos")]
         {
             #[cfg(feature = "color-fallbacks")]
             if os::minimum_semversion(10, 10, 0) {
@@ -439,6 +431,11 @@ macro_rules! system_color_with_fallback {
             }
 
             #[cfg(not(feature = "color-fallbacks"))]
+            msg_send![$class, $color]
+        }
+
+        #[cfg(target_os = "ios")]
+        {
             msg_send![$class, $color]
         }
     })
@@ -453,10 +450,10 @@ macro_rules! system_color_with_fallback {
 /// The goal here is to make sure that this can't reasonably break on OS's, as `Color` is kind of
 /// an important piece. It's not on the framework to make your app look good, though.
 unsafe fn to_objc(obj: &Color) -> id {
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     let color = class!(NSColor);
 
-    #[cfg(feature = "ios")]
+    #[cfg(target_os = "ios")]
     let color = class!(UIColor);
 
     match obj {
@@ -503,10 +500,10 @@ unsafe fn to_objc(obj: &Color) -> id {
         Color::DarkText => system_color_with_fallback!(color, darkTextColor, blackColor),
         Color::LightText => system_color_with_fallback!(color, lightTextColor, whiteColor),
         
-        #[cfg(feature = "macos")]
+        #[cfg(target_os = "macos")]
         Color::MacOSWindowBackgroundColor => system_color_with_fallback!(color, windowBackgroundColor, clearColor),
         
-        #[cfg(feature = "macos")]
+        #[cfg(target_os = "macos")]
         Color::MacOSUnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor),
     }
 }

@@ -16,7 +16,7 @@ impl SceneSession {
     }
 
     pub fn role(&self) -> SessionRole {
-        NSString::wrap(unsafe {
+        NSString::from_retained(unsafe {
             msg_send![&*self.0, role]
         }).into()
     }

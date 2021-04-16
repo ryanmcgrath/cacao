@@ -96,14 +96,15 @@ pub use objc;
 pub use url;
 pub use lazy_static;
 
-#[cfg(feature = "macos")]
-#[cfg_attr(docsrs, doc(cfg(feature = "macos")))]
+#[cfg(target_os = "macos")]
+#[cfg_attr(docsrs, doc(cfg(target_os = "macos")))]
 pub mod macos;
 
-#[cfg(feature = "ios")]
-#[cfg_attr(docsrs, doc(cfg(feature = "ios")))]
+#[cfg(target_os = "ios")]
+#[cfg_attr(docsrs, doc(cfg(target_os = "ios")))]
 pub mod ios;
 
+#[cfg(target_os = "macos")]
 pub mod button;
 
 #[cfg(any(feature = "cloudkit", doc))]
@@ -111,25 +112,51 @@ pub mod button;
 pub mod cloudkit;
 
 pub mod color;
+
+#[cfg(target_os = "macos")]
 pub mod dragdrop;
+
 pub mod error;
+
+#[cfg(target_os = "macos")]
 pub mod events;
+
 pub mod defaults;
+
+#[cfg(target_os = "macos")]
 pub mod filesystem;
+
 pub mod foundation;
 pub mod geometry;
+
+#[cfg(target_os = "macos")]
 pub mod image;
+
+#[cfg(target_os = "macos")]
 pub mod input;
+
 pub mod layer;
 pub(crate) mod invoker;
 pub mod layout;
+
+#[cfg(target_os = "macos")]
 pub mod listview;
 pub mod networking;
 pub mod notification_center;
+
+#[cfg(target_os = "macos")]
 pub mod pasteboard;
+
+#[cfg(target_os = "macos")]
 pub mod progress;
+
+#[cfg(target_os = "macos")]
 pub mod scrollview;
+
+#[cfg(target_os = "macos")]
 pub mod switch;
+
+#[cfg(target_os = "macos")]
 pub mod text;
 
 #[cfg(feature = "quicklook")]

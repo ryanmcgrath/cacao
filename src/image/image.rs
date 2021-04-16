@@ -133,7 +133,7 @@ impl Image {
 
     /// Returns a stock system icon. These are guaranteed to exist across all versions of macOS
     /// supported.
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     pub fn system_icon(icon: MacSystemIcon, accessibility_description: &str) -> Self {
         Image(unsafe {
             ShareId::from_ptr(match os::is_minimum_version(11) {
@@ -166,7 +166,7 @@ impl Image {
                 },
 
                 false => {
-                    #[cfg(feature = "macos")]
+                    #[cfg(target_os = "macos")]
                     panic!("SFSymbols are only supported on macOS 11.0 and up.");
                 }
             })

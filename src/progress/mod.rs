@@ -79,11 +79,11 @@ impl ProgressIndicator {
     /// need it to stay around.
     pub fn new() -> Self {
         let view = unsafe {
-            #[cfg(feature = "macos")]
+            #[cfg(target_os = "macos")]
             let view: id = msg_send![class!(NSProgressIndicator), new];
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-            #[cfg(feature = "macos")]
+            #[cfg(target_os = "macos")]
             let _: () = msg_send![view, setWantsLayer:YES];
 
             view

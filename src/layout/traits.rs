@@ -9,6 +9,8 @@ use objc_id::ShareId;
 
 use crate::foundation::{id, nil, to_bool, YES, NO, NSArray, NSString};
 use crate::geometry::Rect;
+
+#[cfg(target_os = "macos")]
 use crate::pasteboard::PasteboardType;
 
 /// A trait that view wrappers must conform to. Enables managing the subview tree.
@@ -103,6 +105,7 @@ pub trait Layout {
     }
     
     /// Returns whether this is hidden, *or* whether an ancestor view is hidden.
+    #[cfg(target_os = "macos")]
     fn is_hidden_or_ancestor_is_hidden(&self) -> bool {
         self.get_from_backing_node(|obj| {
             to_bool(unsafe {
@@ -112,6 +115,7 @@ pub trait Layout {
     }
 
     /// Register this view for drag and drop operations.
+    #[cfg(target_os = "macos")]
     fn register_for_dragged_types(&self, types: &[PasteboardType]) {
         let types: NSArray = types.into_iter().map(|t| {
             let x: NSString = (*t).into();
@@ -124,6 +128,7 @@ pub trait Layout {
     }
 
     /// Unregisters this as a target for drag and drop operations.
+    #[cfg(target_os = "macos")]
     fn unregister_dragged_types(&self) { 
         self.with_backing_node(|obj| unsafe {
             let _: () = msg_send![obj, unregisterDraggedTypes];
@@ -134,6 +139,7 @@ pub trait Layout {
     ///
     /// If you have a high performance tableview or collectionview that has issues, disabling these
     /// can be helpful - but always test!
+    #[cfg(target_os = "macos")]
     fn set_posts_frame_change_notifications(&self, posts: bool) {
         self.with_backing_node(|obj| unsafe {
             let _: () = msg_send![obj, setPostsFrameChangedNotifications:match posts {
@@ -147,6 +153,7 @@ pub trait Layout {
     ///
     /// If you have a high performance tableview or collectionview that has issues, disabling these
     /// can be helpful - but always test!
+    #[cfg(target_os = "macos")]
     fn set_posts_bounds_change_notifications(&self, posts: bool) {
         self.with_backing_node(|obj| unsafe {
             let _: () = msg_send![obj, setPostsBoundsChangedNotifications:match posts {

@@ -364,7 +364,7 @@ impl<T> ListView<T> {
 
     /// Sets the style for the underlying NSTableView. This property is only supported on macOS
     /// 11.0+, and will always be `FullWidth` on anything older.
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     pub fn set_style(&self, style: crate::foundation::NSInteger) {
         if os::is_minimum_version(11) {
             self.objc.with_mut(|obj| unsafe {
@@ -378,7 +378,7 @@ impl<T> ListView<T> {
     /// This defaults to `true`, but some macOS pieces (e.g, a sidebar) may want this set to
     /// `false`. This can be particularly useful when implementing a Source List style sidebar
     /// view for navigation purposes.
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     pub fn set_allows_empty_selection(&self, allows: bool) {
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setAllowsEmptySelection:match allows {

@@ -3,7 +3,7 @@
 use crate::foundation::{NSUInteger};
 
 /// Used to set whether and/or how a view or cell draws a focus ring.
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 #[derive(Debug)]
 pub enum FocusRingType {
     /// Whatever the default is.
@@ -20,7 +20,7 @@ pub enum FocusRingType {
     Unknown(NSUInteger)
 }
 
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 impl From<FocusRingType> for NSUInteger {
     fn from(ring_type: FocusRingType) -> Self {
         match ring_type {

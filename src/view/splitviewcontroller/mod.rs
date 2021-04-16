@@ -71,7 +71,7 @@ where
     /// You'd use this if, say, you wanted a border under one part of the `SplitViewController` but
     /// not the other. This API was introduced in macOS 11.0 (Big Sur) and is a noop on anything
     /// prior.
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     pub fn set_titlebar_separator_style(&self, style: crate::foundation::NSInteger) {
         if os::is_minimum_version(11) {
             unsafe {

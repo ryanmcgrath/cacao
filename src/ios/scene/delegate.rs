@@ -1,7 +1,3 @@
-//! This module implements forwarding methods for standard `UIApplicationDelegate` calls. It also
-//! creates a custom `UIApplication` subclass that currently does nothing; this is meant as a hook
-//! for potential future use.
-
 use std::ffi::c_void;
 use std::sync::Once;
 use std::unreachable;
@@ -39,7 +35,7 @@ extern fn init<
         let factory: &F = &*scene_delegate_vendor;
         let scene_delegate = factory();
         let scene_delegate_ptr = Box::into_raw(scene_delegate);
-        println!("scene ptr: {:p}", scene_delegate_ptr);
+        //println!("scene ptr: {:p}", scene_delegate_ptr);
         this.set_ivar(WINDOW_SCENE_PTR, scene_delegate_ptr as usize);
 
         this

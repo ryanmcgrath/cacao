@@ -2,7 +2,7 @@ use crate::foundation::NSUInteger;
 
 /// Represents a bezel style for a button. This is a macOS-specific control, and has no effect
 /// under iOS or tvOS.
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 #[derive(Debug)]
 pub enum BezelStyle {
     /// A standard circular button.
@@ -49,7 +49,7 @@ pub enum BezelStyle {
     Unknown(NSUInteger)
 }
 
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 impl From<BezelStyle> for NSUInteger {
     fn from(style: BezelStyle) -> Self {
         match style {
@@ -71,7 +71,7 @@ impl From<BezelStyle> for NSUInteger {
     }
 }
 
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 impl From<NSUInteger> for BezelStyle {
     fn from(i: NSUInteger) -> Self {
         match i {

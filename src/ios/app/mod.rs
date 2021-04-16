@@ -49,7 +49,7 @@ mod class;
 use class::register_app_class;
 
 mod delegate;
-use delegate::{register_app_delegate_class};
+use delegate::register_app_delegate_class;
 
 mod enums;
 pub use enums::*;
@@ -95,6 +95,14 @@ pub struct App<
     _w: std::marker::PhantomData<W>
 }
 
+// Temporary. ;P
+impl<W, T, F> std::fmt::Debug for App<W, T, F> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("App<W, T, F>")
+            .finish()
+    }
+}
+
 impl<T, W, F> App<T, W, F>
 where 
     T: AppDelegate + 'static,
@@ -134,8 +142,8 @@ where
         
         App {
             delegate: app_delegate,
-            vendor: vendor,
-            pool: pool,
+            vendor,
+            pool,
             _w: std::marker::PhantomData
         }
     }
@@ -145,14 +153,24 @@ impl<T, W, F> App<T, W, F> {
     /// Handles calling through to `UIApplicationMain()`, ensuring that it's using our custom
     /// `UIApplication` and `UIApplicationDelegate` classes.
     pub fn run(&self) {
-        let args = std::env::args().map(|arg| CString::new(arg).unwrap() ).collect::<Vec<CString>>();
-        let c_args = args.iter().map(|arg| arg.as_ptr()).collect::<Vec<*const c_char>>();
+        let args = std::env::args().map(|arg| {
+            CString::new(arg).unwrap()
+        }).collect::<Vec<CString>>();
+
+        let c_args = args.iter().map(|arg| {
+            arg.as_ptr()
+        }).collect::<Vec<*const c_char>>();
         
-        let s = NSString::no_copy("RSTApplication");
-        let s2 = NSString::no_copy("RSTAppDelegate");
+        let mut s = NSString::new("RSTApplication");
+        let mut s2 = NSString::new("RSTAppDelegate");
 
         unsafe {
-            UIApplicationMain(c_args.len() as c_int, c_args.as_ptr(), &*s, &*s2);
+            UIApplicationMain(
+                c_args.len() as c_int,
+                c_args.as_ptr(),
+                s.into(),
+                s2.into()
+            );
         }
 
         self.pool.drain();

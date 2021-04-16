@@ -9,7 +9,7 @@
 ///
 /// You can opt to include vector assets in your bundle, or draw icons with `Image::draw` by
 /// converting Core Graphics calls (e.g, PaintCode can work well for this).
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 #[derive(Debug)]
 pub enum MacSystemIcon {
     /// A standard "General" preferences icon. This is intended for usage in Preferences toolbars.
@@ -26,7 +26,7 @@ pub enum MacSystemIcon {
     Add
 }
 
-#[cfg(feature = "macos")]
+#[cfg(target_os = "macos")]
 impl MacSystemIcon {
     /// Maps system icons to their pre-11.0 framework identifiers.
     pub fn to_str(&self) -> &'static str {

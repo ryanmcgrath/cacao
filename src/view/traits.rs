@@ -1,6 +1,8 @@
 //! Various traits used for Views.
 
+#[cfg(target_os = "macos")]
 use crate::dragdrop::{DragInfo, DragOperation};
+
 use crate::view::View;
 
 /// This trait can be used for implementing custom View behavior. You implement this trait on your
@@ -41,22 +43,27 @@ pub trait ViewDelegate {
 
     /// Invoked when the dragged image enters destination bounds or frame; returns dragging 
     /// operation to perform.
+    #[cfg(target_os = "macos")]
     fn dragging_entered(&self, info: DragInfo) -> DragOperation { DragOperation::None }
     
     /// Invoked when the image is released, allowing the receiver to agree to or refuse 
     /// drag operation.
+    #[cfg(target_os = "macos")]
     fn prepare_for_drag_operation(&self, info: DragInfo) -> bool { false }
 
     /// Invoked after the released image has been removed from the screen, signaling the 
     /// receiver to import the pasteboard data.
+    #[cfg(target_os = "macos")]
     fn perform_drag_operation(&self, info: DragInfo) -> bool { false }
 
     /// Invoked when the dragging operation is complete, signaling the receiver to perform
     /// any necessary clean-up.
+    #[cfg(target_os = "macos")]
     fn conclude_drag_operation(&self, info: DragInfo) {}
 
     /// Invoked when the dragged image exits the destination’s bounds rectangle (in the case 
     /// of a view) or its frame rectangle (in the case of a window object).
+    #[cfg(target_os = "macos")]
     fn dragging_exited(&self, info: DragInfo) {}
 
     //fn perform_key_equivalent(&self, event: Event) -> bool { false }
