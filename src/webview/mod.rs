@@ -71,7 +71,10 @@ fn allocate_webview(
         let zero: CGRect = Rect::zero().into();
         let webview_alloc: id = msg_send![register_webview_class(), alloc];
         let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration:configuration];
+
+        #[cfg(target_os = "macos")]
         let _: () = msg_send![webview, setWantsLayer:YES];
+
         let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         if let Some(delegate) = &objc_delegate {
