@@ -13,7 +13,8 @@ use crate::webview::enums::InjectAt;
 #[derive(Debug)]
 pub struct WebViewConfig {
     pub objc: Id<Object>,
-    pub handlers: Vec<String>
+    pub handlers: Vec<String>,
+    pub protocols: Vec<String>
 }
 
 impl Default for WebViewConfig {
@@ -26,7 +27,8 @@ impl Default for WebViewConfig {
 
         WebViewConfig {
             objc: config,
-            handlers: vec![]
+            handlers: vec![],
+            protocols: vec![]
         }
     }
 }
@@ -53,6 +55,12 @@ impl WebViewConfig {
             let content_controller: id = msg_send![&*self.objc, userContentController];
             let _: () = msg_send![content_controller, addUserScript:user_script];
         }
+    }
+
+    /// Register the given protocol to the underlying `WKWebView`.
+    /// Example; protocol_name: `demo` will allow request to `demo://`
+    pub fn add_custom_protocol(&mut self, protocol_name: &str) {
+        self.protocols.push(protocol_name.to_string());
     }
 
     /// Enables access to the underlying inspector view for `WKWebView`.

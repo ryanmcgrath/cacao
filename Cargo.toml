@@ -26,6 +26,7 @@ objc_id = "0.1.1"
 os_info = "3.0.1"
 uuid = { version = "0.8", features = ["v4"], optional = true }
 url = "2.1.1"
+infer = "0.4"
 
 [dev-dependencies]
 eval = "0.4"
