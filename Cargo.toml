@@ -26,6 +26,7 @@ objc_id = "0.1.1"
 os_info = "3.0.1"
 uuid = { version = "0.8", features = ["v4"], optional = true }
 url = "2.1.1"
+infer = { version = "0.4", optional = true }
 
 [dev-dependencies]
 eval = "0.4"
@@ -36,7 +37,7 @@ cloudkit = []
 color_fallbacks = []
 quicklook = []
 user-notifications = ["uuid"]
-webview = []
+webview = ["infer"]
 webview-downloading-macos = []
 
 [package.metadata.bundle.example.ios-beta]

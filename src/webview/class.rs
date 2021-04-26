@@ -4,6 +4,7 @@
 
 use std::ffi::c_void;
 use std::sync::Once;
+use std::ptr::null;
 
 use block::Block;
 
@@ -12,7 +13,7 @@ use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSString, NSArray, NSInteger};
-use crate::webview::{WEBVIEW_DELEGATE_PTR, WebViewDelegate};
+use crate::webview::{WEBVIEW_DELEGATE_PTR, WebViewDelegate, mimetype::MimeType};
 use crate::webview::actions::{NavigationAction, NavigationResponse};//, OpenPanelParameters};
 //use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
 use crate::utils::load;
@@ -52,6 +53,39 @@ extern fn on_message<T: WebViewDelegate>(this: &Object, _: Sel, _: id, script_me
         delegate.on_message(name.to_str(), body.to_str());
     }
 }
+
+/// Fires when a custom protocol URI is requested from the underlying `WKWebView`.
+extern fn start_url_scheme_task<T: WebViewDelegate>(this: &Object, _: Sel, _webview: id, task: id) {
+    let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
+
+    unsafe {
+        let request: id = msg_send![task, request];
+        let url: id = msg_send![request, URL];
+
+        let uri = NSString::from_retained(msg_send![url, absoluteString]);
+        let uri_str = uri.to_str();
+
+        if let Some(content) = delegate.on_custom_protocol_request(uri_str) {
+            let mime = MimeType::parse(&content, uri_str);
+            let nsurlresponse: id = msg_send![class!(NSURLResponse), alloc];
+            let response: id = msg_send![nsurlresponse, initWithURL:url MIMEType:NSString::new(&mime)
+                expectedContentLength:content.len() textEncodingName:null::<c_void>()];
+            let _: () = msg_send![task, didReceiveResponse: response];
+
+            // Send data
+            let bytes = content.as_ptr() as *mut c_void;
+            let data: id = msg_send![class!(NSData), alloc];
+            let data: id = msg_send![data, initWithBytes:bytes length:content.len()];
+            let _: () = msg_send![task, didReceiveData: data];
+
+            // Finish
+            let () = msg_send![task, didFinish];
+        }
+    }
+}
+
+/// Fires when a custom protocol completed the task from the underlying `WKWebView`.
+extern fn stop_url_scheme_task<T: WebViewDelegate>(_: &Object, _: Sel, _webview: id, _task: id) {}
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
 extern fn decide_policy_for_action<T: WebViewDelegate>(this: &Object, _: Sel, _: id, action: id, handler: usize) {
@@ -159,6 +193,10 @@ pub fn register_webview_delegate_class<T: WebViewDelegate>() -> *const Class {
         // WKScriptMessageHandler
         decl.add_method(sel!(userContentController:didReceiveScriptMessage:), on_message::<T> as extern fn(&Object, _, _, id));
  
+        // Custom protocol handler
+        decl.add_method(sel!(webView:startURLSchemeTask:), start_url_scheme_task::<T> as extern fn(&Object, Sel, id, id));
+        decl.add_method(sel!(webView:stopURLSchemeTask:), stop_url_scheme_task::<T> as extern fn(&Object, Sel, id, id));
+
         // WKUIDelegate
         decl.add_method(sel!(webView:runJavaScriptAlertPanelWithMessage:initiatedByFrame:completionHandler:), alert::<T> as extern fn(&Object, _, _, id, _, _));
         decl.add_method(sel!(webView:runOpenPanelWithParameters:initiatedByFrame:completionHandler:), run_open_panel::<T> as extern fn(&Object, _, _, id, _, usize));
