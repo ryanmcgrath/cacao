@@ -254,11 +254,14 @@ impl<T> WebView<T> {
     }
 
     /// Given a HTML string, instructs the WebView to load it.
-    /// Usefull for small html file, but better to use custom protocol.
+    /// Useful for small html files, but often better to use custom protocol.
     pub fn load_html(&self, html_string: &str) {
+        let html = NSString::new(html_string);
+        let blank =  NSString::no_copy("");
+        
         self.objc.with_mut(|obj| unsafe {
-            let empty: id = msg_send![class!(NSURL), URLWithString: NSString::new("")];
-            let _: () = msg_send![&*obj, loadHTMLString:NSString::new(html_string) baseURL:empty];
+            let empty: id = msg_send![class!(NSURL), URLWithString:&*blank];
+            let _: () = msg_send![&*obj, loadHTMLString:&*html baseURL:empty];
         });
     }
 
