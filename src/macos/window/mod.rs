@@ -475,7 +475,7 @@ impl<T> Window<T> {
         F: Fn() + Send + Sync + 'static,
         W: WindowDelegate + 'static
     {
-        let block = ConcreteBlock::new(move |response: NSInteger| {
+        let block = ConcreteBlock::new(move |_response: NSInteger| {
             completion();
         });
         let block = block.copy();
