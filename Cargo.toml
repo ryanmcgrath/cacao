@@ -8,7 +8,7 @@ build = "build.rs"
 repository = "https://github.com/ryanmcgrath/cacao"
 categories = ["gui", "os::macos-apis", "os::ios-apis"]
 keywords = ["gui", "macos", "ios", "appkit", "uikit"]
-license = "MIT OR MPL 2.0"
+license = "MIT OR MPL-2.0+"
 
 [badges]
 maintenance = { status = "actively-developed" }
