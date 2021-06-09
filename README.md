@@ -1,19 +1,19 @@
 # Cacao
 
-This library provides safe Rust bindings for `AppKit` on macOS and (eventually) `UIKit` on iOS. It
-tries to do so in a way that, if you've done programming for the framework before (in Swift or
+This library provides safe Rust bindings for `AppKit` on macOS (beta quality, fairly usable) and `UIKit` on iOS/tvOS (alpha quality, see repo).
+It tries to do so in a way that, if you've done programming for the framework before (in Swift or
 Objective-C), will feel familiar. This is tricky in Rust due to the ownership model, but some
 creative coding and assumptions can get us pretty far.
 
-This library is currently _very_ early stage and may have bugs. Your usage of it is at
+This library is currently early stages and may have bugs. Your usage of it is at
 your own risk. With that said, provided you follow the rules (regarding memory/ownership) it's
-already fine for some apps.
+already fine for some apps. The core repository has a wealth of examples to help you get started.
 
 >_Note that this crate relies on the Objective-C runtime. Interfacing with the runtime **requires**
 unsafe blocks; this crate handles those unsafe interactions for you and provides a safe wrapper, 
 but by using this crate you understand that usage of `unsafe` is a given and will be somewhat 
 rampant for wrapped controls. This does **not** mean you can't assess, review, or question unsafe 
-usage - just know it's happening, and in large part it's not going away. Issues pertaining to the 
+usage - just know it's happening, and in large part it's not going away. Issues pertaining to the mere 
 existence of unsafe will be closed without comment._
 
 # Hello World
@@ -40,7 +40,7 @@ fn main() {
 }
 ```
 
-For more thorough examples, check the `examples/` folder - for each UI control that's supported there will (ideally) be an example to accompany it.
+For more thorough examples, check the `examples/` folder.
 
 If you're interested in a more "kitchen sink" example, check out the todos_list with:
 
@@ -55,31 +55,34 @@ ensures the application has had time to initialize and do any housekeeping neces
 scenes.
 
 ## Currently Supported
-In terms of mostly working pieces, the following currently work:
+In terms of mostly working pieces, the following currently work. This list is not exhaustive and you're encouraged to check out the documentation for more info:
 
 - `App` initialization and event delegation
 - `Window` construction, handling, and event delegation
 - `View` construction, basic styling, some event delegation
 - `ViewController` construction, lifecycle delegation
-- `ListView` support, including cell reuse (still needs testing).
+- `Color`, for handling system-established color types
+- `ListView` support, including cell reuse (still needs testing)
+- `Button` support, as well as enabling them in Toolbars
+- `Label` and `TextField` support for basic text handling.
+- `Image`, `ImageView` and `SystemIcon` for image usage. Images can use a custom draw handler, and draw graphics with the [core_graphics]() crate
 - `Toolbar` construction and basic API
+- `SplitViewController` support, including some Big-Sur-only additions
 - `WebView` with a basic API for handling callbacks
 - `Autolayout` for View layout and such.
-
-There are other components in this repository that exist as testbeds; they'll be added to this list as they reach some level of stability.
 
 ## Optional Features
 
 The following are a list of [Cargo features][cargo-features] that can be enabled or disabled.
 
-- **cloudkit**: Links `CloudKit.framework` and provides some wrappers around CloudKit
-functionality. Currently not feature complete.
-- **user-notifications**: Links `UserNotifications.framework` and provides functionality for
-emitting notifications on macOS and iOS. Note that this _requires_ your application be
-code-signed, and will not work without it.
-- **webview**: Links `WebKit.framework` and provides a `WebView` control backed by `WKWebView`.
-- **webview-downloading**: Enables downloading files from the `WebView` via a private
-interface. This is not an App-Store-safe feature, so be aware of that before enabling.
+The following are a list of [Cargo features][cargo-features] that can be enabled or disabled.
+
+- `cloudkit`: Links `CloudKit.framework` and provides some wrappers around CloudKit functionality. Currently not feature complete.
+- `color_fallbacks`: Provides fallback colors for older systems where `systemColor` types don't exist. This feature is very uncommon and you probably don't need it.
+- `quicklook`: Links `QuickLook.framework` and offers methods for generating preview images for files.
+- `user-notifications`: Links `UserNotifications.framework` and provides functionality for emitting notifications on macOS and iOS. Note that this _requires_ your application be code-signed, and will not work without it.
+- `webview`: Links `WebKit.framework` and provides a `WebView` control backed by `WKWebView`. This feature is not supported on tvOS, as the platform has no webview control.
+- `webview-downloading-macos`: Enables downloading files from the `WebView` via a private interface. This is not an App-Store-safe feature, so be aware of that before enabling. This feature is not supported on iOS (a user would handle downloads very differently) or tvOS (there's no web browser there at all).
 
 [cargo-features]: https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section
 
@@ -92,7 +95,7 @@ In _my_ case, I want to be able to write native applications for my devices (and
 
 _(This is the part where the internet lights up and rants about some combination of Electron, Qt, and so on - we're not bothering here as it's beaten to death elsewhere)_
 
-You'll like this crate if you like Rust. There is no perfect language, so write in whatever you think is best.
+This crate is useful for people who don't need to go all-in on the Apple ecosystem, but want to port their work there with some relative ease. It's not expected that everyone will suddenly want to rewrite their macOS/iOS/tvOS apps in Rust.
 
 **Isn't Objective-C dead?**  
 Yes, and no.
@@ -104,7 +107,7 @@ One thing to note is that Apple _has_ started releasing Swift-only frameworks. F
 Some might also decry Objective-C as slow. To that, I'd note the following:
 
 - Your UI engine is probably not the bottleneck.
-- Swift is generally better as it fixes a class of bugs that Objective-C doesn't catch; for the most part it still sits on top of the existing Cocoa frameworks anyway.
+- Swift is generally better as it fixes a class of bugs that Objective-C doesn't catch; for the most part it still sits on top of the existing Cocoa frameworks anyway (though this statement will not age well~).
 - Message dispatching in Objective-C is more optimized than significant chunks of the code you'll write, and is fast enough for most things.
 
 **tl;dr** it's probably fine, and you have Rust for your performance needs.
@@ -117,11 +120,6 @@ Correct! Each UI control contains a `objc` field, which you can use as an escape
 
 **Why don't you use bindings to automatically generate this stuff?**  
 For initial exploration purposes I've done most of this by hand, as I wanted to find an approach that fit well in the Rust model before committing to binding generation. This is something I'll likely focus on next now that I've got things "working" well enough.
-
-**Can I use this now?**  
-For now, you can clone this repository and link it into your `Cargo.toml` by path. I'm squatting the names on `crates.io`, as I (in time) will throw this up there, but only when it's at a point where there's reasonable expectation that things won't be changing around much.
-
-If you're interested in seeing this in use in a shipping app, head on over to [subatomic](https://github.com/ryanmcgrath/subatomic/).
 
 **Is this related to Cacao, the Swift project?**  
 No. The project referred to in this question aimed to map portions of Cocoa and UIKit over to run on Linux, but hasn't seen activity in some time (it was really cool, too!).

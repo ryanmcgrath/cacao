@@ -1,13 +1,14 @@
 [package]
 name = "cacao"
-description = "Rust bindings for AppKit (macOS) and UIKit (iOS/tvOS). Experimental, but working!"
-version = "0.1.0"
+description = "Rust bindings for AppKit (macOS, beta) and UIKit (iOS/tvOS, alpha)."
+version = "0.2.0"
 edition = "2018"
 authors = ["Ryan McGrath <ryan@rymc.io>"]
 build = "build.rs"
 repository = "https://github.com/ryanmcgrath/cacao"
 categories = ["gui", "os::macos-apis", "os::ios-apis"]
 keywords = ["gui", "macos", "ios", "appkit", "uikit"]
+license = "MIT OR MPL 2.0"
 
 [package.metadata.docs.rs]
 all-features = true
