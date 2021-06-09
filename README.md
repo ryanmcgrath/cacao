@@ -5,8 +5,9 @@ It tries to do so in a way that, if you've done programming for the framework be
 Objective-C), will feel familiar. This is tricky in Rust due to the ownership model, but some
 creative coding and assumptions can get us pretty far.
 
-This library is currently early stages and may have bugs. Your usage of it is at
-your own risk. With that said, provided you follow the rules (regarding memory/ownership) it's
+`0.2.0` exists on crates.io in part to enable the project to see wider usage, which can
+inform development. That said, this library is currently early stages and may have bugs - your usage of it is at
+your own risk. However, provided you follow the rules (regarding memory/ownership) it's
 already fine for some apps. The core repository has a wealth of examples to help you get started.
 
 >_Note that this crate relies on the Objective-C runtime. Interfacing with the runtime **requires**
@@ -69,7 +70,8 @@ In terms of mostly working pieces, the following currently work. This list is no
 - `Toolbar` construction and basic API
 - `SplitViewController` support, including some Big-Sur-only additions
 - `WebView` with a basic API for handling callbacks
-- `Autolayout` for View layout and such.
+- `UserDefaults` for persisting small pieces of data per-application
+- `Autolayout` for View layout and such
 
 ## Optional Features
 

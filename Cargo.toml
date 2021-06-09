@@ -10,6 +10,9 @@ categories = ["gui", "os::macos-apis", "os::ios-apis"]
 keywords = ["gui", "macos", "ios", "appkit", "uikit"]
 license = "MIT OR MPL 2.0"
 
+[badges]
+maintenance = { status = "actively-developed" }
+
 [package.metadata.docs.rs]
 all-features = true
 default-target = "x86_64-apple-darwin"
