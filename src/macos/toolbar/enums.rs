@@ -87,7 +87,6 @@ extern "C" {
     static NSToolbarShowColorsItemIdentifier: id;
     static NSToolbarShowFontsItemIdentifier: id;
     static NSToolbarSpaceItemIdentifier: id;
-    static NSToolbarSidebarTrackingSeparatorItemIdentifier: id;
 }
 
 impl ItemIdentifier {
@@ -103,7 +102,10 @@ impl ItemIdentifier {
                 Self::Fonts => NSToolbarShowFontsItemIdentifier,
                 Self::Space => NSToolbarSpaceItemIdentifier,
                 Self::ToggleSidebar => NSToolbarToggleSidebarItemIdentifier,
-                Self::SidebarTracker => NSToolbarSidebarTrackingSeparatorItemIdentifier
+
+                // This ensures that the framework compiles and runs on 10.15.7 and lower; it will
+                // not actually work on anything except 11.0+. Use a runtime check to be safe.
+                Self::SidebarTracker => NSString::no_copy("NSToolbarSidebarTrackingSeparatorItemIdentifier").into()
             }
         }
     }
