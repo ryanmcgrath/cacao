@@ -49,7 +49,7 @@ extern fn on_message<T: WebViewDelegate>(this: &Object, _: Sel, _: id, script_me
 
     unsafe {
         let name = NSString::from_retained(msg_send![script_message, name]);
-        let body = NSString::from_retained(msg_send![script_message, body]);
+        let body = NSString::retain(msg_send![script_message, body]);
         delegate.on_message(name.to_str(), body.to_str());
     }
 }
