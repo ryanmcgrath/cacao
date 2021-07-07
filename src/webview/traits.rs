@@ -11,7 +11,7 @@ pub trait WebViewDelegate {
     /// Called when the View is ready to work with. You're passed a `ViewHandle` - this is safe to
     /// store and use repeatedly, but it's not thread safe - any UI calls must be made from the
     /// main thread!
-    fn did_load(&self, _webview: WebView) {}
+    fn did_load(&mut self, _webview: WebView) {}
 
     /// Called when this is about to be added to the view heirarchy.
     fn will_appear(&self) {}

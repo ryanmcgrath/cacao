@@ -198,7 +198,7 @@ impl<T> WebView<T> where T: WebViewDelegate + 'static {
     /// Initializes a new WebView with a given `WebViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(config: WebViewConfig, delegate: T) -> WebView<T> {
-        let delegate = Box::new(delegate);
+        let mut delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
             let objc_delegate: id = msg_send![register_webview_delegate_class::<T>(), new];
