@@ -79,7 +79,7 @@ fn allocate_webview(
         let webview_alloc: id = msg_send![register_webview_class(), alloc];
         let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration:configuration];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![webview, setWantsLayer:YES];
 
         let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -159,7 +159,7 @@ impl WebView {
         unsafe {
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![view, setWantsLayer:YES];
         }
 

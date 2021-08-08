@@ -1,4 +1,4 @@
-//! Wraps `NSButton` on macOS, and `UIButton` on iOS and tvOS.
+//! Wraps `NSButton` on appkit, and `UIButton` on iOS and tvOS.
 //!
 //! You'd use this type to create a button that a user can interact with. Buttons can be configured
 //! a number of ways, and support setting a callback to fire when they're clicked or tapped.
@@ -36,13 +36,13 @@ use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension}
 use crate::text::{AttributedString, Font};
 use crate::utils::{load, properties::ObjcProperty};
 
-#[cfg(target_os = "macos")]
-use crate::macos::FocusRingType;
+#[cfg(feature = "appkit")]
+use crate::appkit::FocusRingType;
 
 mod enums;
 pub use enums::*;
 
-/// Wraps `NSButton` on macOS, and `UIButton` on iOS and tvOS.
+/// Wraps `NSButton` on appkit, and `UIButton` on iOS and tvOS.
 ///
 /// You'd use this type to create a button that a user can interact with. Buttons can be configured
 /// a number of ways, and support setting a callback to fire when they're clicked or tapped.
@@ -144,8 +144,8 @@ impl Button {
         self.image = Some(image);
     }
 
-    /// Sets the bezel style for this button. Only supported on macOS.
-    #[cfg(target_os = "macos")]
+    /// Sets the bezel style for this button. Only supported on appkit.
+    #[cfg(feature = "appkit")]
     pub fn set_bezel_style(&self, bezel_style: BezelStyle) {
         let style: NSUInteger = bezel_style.into();
         
@@ -167,7 +167,7 @@ impl Button {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         let color: id = color.as_ref().into();
         
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
             let _: () = msg_send![cell, setBackgroundColor:color];
@@ -186,9 +186,9 @@ impl Button {
 
     /// Sets the text color for this button.
     ///
-    /// On macOS, this is done by way of an `AttributedString` under the hood. 
+    /// On appkit, this is done by way of an `AttributedString` under the hood. 
     pub fn set_text_color<C: AsRef<Color>>(&self, color: C) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(move |obj| unsafe {
             let text: id = msg_send![obj, attributedTitle];
             let len: isize = msg_send![text, length];
@@ -201,8 +201,8 @@ impl Button {
     }
 
     // @TODO: Figure out how to handle oddities like this.
-    /// For buttons on macOS, one might need to disable the border. This does that.
-    #[cfg(target_os = "macos")]
+    /// For buttons on appkit, one might need to disable the border. This does that.
+    #[cfg(feature = "appkit")]
     pub fn set_bordered(&self, is_bordered: bool) {
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setBordered:match is_bordered {
@@ -223,8 +223,8 @@ impl Button {
 
     /// Sets how the control should draw a focus ring when a user is focused on it.
     ///
-    /// This is a macOS-only method.
-    #[cfg(target_os = "macos")]
+    /// This is an appkit-only method.
+    #[cfg(feature = "appkit")]
     pub fn set_focus_ring_type(&self, focus_ring_type: FocusRingType) {
         let ring_type: NSUInteger = focus_ring_type.into();
 

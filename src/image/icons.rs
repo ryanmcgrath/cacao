@@ -1,4 +1,3 @@
-
 /// These icons are system-provided icons that are guaranteed to exist in all versions of macOS
 /// that Cacao supports. These will use SFSymbols on Big Sur and onwards (11.0+), and the correct
 /// controls for prior macOS versions.

@@ -11,9 +11,9 @@
 
 use std::sync::RwLock;
 
-use cacao::macos::{App, AppDelegate};
-use cacao::macos::window::{Window, WindowConfig, TitleVisibility};
-use cacao::macos::{Event, EventMask, EventMonitor};
+use cacao::appkit::{App, AppDelegate};
+use cacao::appkit::window::{Window, WindowConfig, TitleVisibility};
+use cacao::appkit::{Event, EventMask, EventMonitor};
 use cacao::color::Color;
 use cacao::notification_center::Dispatcher;
 use cacao::view::View;
@@ -48,6 +48,7 @@ impl AppDelegate for CalculatorApp {
         self.window.set_content_view(&self.content);
         self.window.show();
     }
+
     fn should_terminate_after_last_window_closed(&self) -> bool {
         true
     }

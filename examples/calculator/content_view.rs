@@ -2,7 +2,7 @@ use cacao::text::{Font, Label, TextAlign};
 use cacao::layout::{LayoutConstraint, Layout};
 use cacao::button::{Button, BezelStyle};
 use cacao::color::Color;
-use cacao::macos::FocusRingType;
+use cacao::appkit::FocusRingType;
 use cacao::view::{View, ViewDelegate};
 
 use crate::button_row::ButtonRow;

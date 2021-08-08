@@ -7,20 +7,20 @@ use crate::layout::Layout;
 use crate::view::{VIEW_DELEGATE_PTR, View, ViewDelegate};
 use crate::utils::Controller;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "macos")]
-use macos::register_view_controller_class;
+#[cfg(feature = "appkit")]
+use appkit::register_view_controller_class;
 
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(feature = "uikit")]
+mod uikit;
 
-#[cfg(target_os = "ios")]
-use ios::register_view_controller_class;
+#[cfg(feature = "uikit")]
+use uikit::register_view_controller_class;
 
-/// A `ViewController` is a wrapper around `NSViewController` on macOS, and `UIViewController` on
-/// iOS and tvOS.
+/// A `ViewController` is a wrapper around `NSViewController` in AppKit, and `UIViewController` in
+/// UIKit
 ///
 /// This type is interchangeable with a standard `View<T>`, in that using this simply forwards
 /// standard view controller lifecycle methods onto your `ViewDelegate`. You would use this if you

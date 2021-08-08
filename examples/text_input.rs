@@ -5,9 +5,9 @@ use cacao::layout::{Layout, LayoutConstraint};
 use cacao::input::{TextField, TextFieldDelegate};
 use cacao::view::View;
 
-use cacao::macos::{App, AppDelegate};
-use cacao::macos::menu::{Menu, MenuItem};
-use cacao::macos::window::{Window, WindowConfig, WindowDelegate};
+use cacao::appkit::{App, AppDelegate};
+use cacao::appkit::menu::{Menu, MenuItem};
+use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
 
 struct BasicApp {
     window: Window<AppWindow>
@@ -41,7 +41,6 @@ impl AppDelegate for BasicApp {
                 MenuItem::SelectAll
             ]),
 
-            // Sidebar option is 11.0+ only.
             Menu::new("View", vec![
                 MenuItem::EnterFullScreen
             ]),
@@ -58,6 +57,10 @@ impl AppDelegate for BasicApp {
 
         App::activate();
         self.window.show();
+    }
+
+    fn should_terminate_after_last_window_closed(&self) -> bool {
+        true
     }
 }
 

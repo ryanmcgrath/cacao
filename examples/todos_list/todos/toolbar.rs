@@ -1,7 +1,7 @@
 //! The main Todos window toolbar. Contains a button to enable adding a new task.
 
 use cacao::button::Button;
-use cacao::macos::toolbar::{
+use cacao::appkit::toolbar::{
     Toolbar, ToolbarDelegate, ToolbarItem,
     ToolbarDisplayMode, ItemIdentifier
 };

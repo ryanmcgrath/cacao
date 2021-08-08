@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use cacao::lazy_static::lazy_static;
-use cacao::macos::App;
+use cacao::appkit::App;
 
 use crate::CalculatorApp;
 

@@ -1,7 +1,7 @@
 //! Implements an example toolbar for a Preferences app. Could be cleaner, probably worth cleaning
 //! up at some point.
 
-use cacao::macos::toolbar::{Toolbar, ToolbarDelegate, ToolbarItem, ItemIdentifier};
+use cacao::appkit::toolbar::{Toolbar, ToolbarDelegate, ToolbarItem, ItemIdentifier};
 use cacao::image::{Image, MacSystemIcon};
 
 use crate::storage::{dispatch_ui, Message};

@@ -1,7 +1,7 @@
 [package]
 name = "cacao"
-description = "Rust bindings for AppKit (macOS, beta) and UIKit (iOS/tvOS, alpha)."
-version = "0.2.1"
+description = "Rust bindings for AppKit (macOS/Airyx/GNUStep, beta) and UIKit (iOS/tvOS, alpha)."
+version = "0.3.0"
 edition = "2018"
 authors = ["Ryan McGrath <ryan@rymc.io>"]
 build = "build.rs"
@@ -20,7 +20,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 block = "0.1.6"
-core-foundation = { version = "0.9", features = ["with-chrono", "mac_os_10_8_features"] }
+core-foundation = { version = "0.9", features = ["with-chrono"] }
 core-graphics = "0.22"
 dispatch = "0.2.0"
 lazy_static = "1.4.0"
@@ -36,7 +36,9 @@ infer = { version = "0.4", optional = true }
 eval = "0.4"
 
 [features]
-default = []
+appkit = ["core-foundation/mac_os_10_8_features"]
+uikit = []
+default = ["appkit"]
 cloudkit = []
 color_fallbacks = []
 quicklook = []

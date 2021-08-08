@@ -118,7 +118,7 @@ pub struct DrawConfig {
     pub resize: ResizeBehavior
 }
 
-/// Wraps `NSImage` on macOS, and `UIImage` on iOS and tvOS. Can be used to display images, icons,
+/// Wraps `NSImage` under AppKit, and `UIImage` on under UIKit (iOS and tvOS). Can be used to display images, icons,
 /// and so on.
 #[derive(Clone, Debug)]
 pub struct Image(pub ShareId<Object>);
@@ -131,6 +131,8 @@ impl Image {
         })
     }
 
+    // @TODO: for Airyx, unsure if this is supported - and it's somewhat modern macOS-specific, so
+    // let's keep the os flag here for now.
     /// Returns a stock system icon. These are guaranteed to exist across all versions of macOS
     /// supported.
     #[cfg(target_os = "macos")]

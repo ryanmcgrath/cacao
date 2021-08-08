@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use cacao::macos::{App, AppDelegate};
+use cacao::appkit::{App, AppDelegate};
 use cacao::defaults::{UserDefaults, Value};
 
 #[derive(Default)]

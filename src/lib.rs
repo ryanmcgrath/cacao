@@ -10,7 +10,7 @@
 
 //! # Cacao
 //!
-//! This library provides safe Rust bindings for `AppKit` on macOS and (eventually) `UIKit` on iOS and tvOS.
+//! This library provides safe Rust bindings for `AppKit` on appkit and (eventually) `UIKit` on uikit and tvOS.
 //! It tries to do so in a way that, if you've done programming for the framework before (in Swift or
 //! Objective-C), will feel familiar. This is tricky in Rust due to the ownership model, but some
 //! creative coding and assumptions can get us pretty far.
@@ -28,8 +28,8 @@
 //! # Hello World
 //!
 //! ```rust,no_run
-//! use cacao::macos::app::{App, AppDelegate};
-//! use cacao::macos::window::Window;
+//! use cacao::appkit::app::{App, AppDelegate};
+//! use cacao::appkit::window::Window;
 //! 
 //! #[derive(Default)]
 //! struct BasicApp {
@@ -59,9 +59,9 @@
 //! Note that, in order for this framework to be useful, you must always elect one of the following
 //! features:
 //!
-//! - `macos`: Implements macOS-specific APIs (menus, toolbars, windowing, and so on).
-//! - `ios`: Implements iOS-specific APIs (scenes, navigation controllers, and so on).
-//! - `tvos`: Implements tvOS-specific APIs. Currently barely implemented.
+//! - `appkit`: Implements appkit-specific APIs (menus, toolbars, windowing, and so on).
+//! - `uikit`: Implements uikit-specific APIs (scenes, navigation controllers, and so on).
+//! - `tvos`: Implements tvOS-specific APIs. Currently not actually implemented.
 //!
 //! The rest of the features in this framework attempt to expose a common API across the three
 //! aforementioned feature platforms; if you need something else, you can often implement it
@@ -79,13 +79,13 @@
 //! - `quicklook`: Links `QuickLook.framework` and offers methods for generating preview images for
 //! files.
 //! - `user-notifications`: Links `UserNotifications.framework` and provides functionality for
-//! emitting notifications on macOS and iOS. Note that this _requires_ your application be
+//! emitting notifications on appkit and uikit. Note that this _requires_ your application be
 //! code-signed, and will not work without it.
 //! - `webview`: Links `WebKit.framework` and provides a `WebView` control backed by `WKWebView`.
-//! This feature is not supported on tvOS, as the platform has no webview control.
-//! - `webview-downloading-macos`: Enables downloading files from the `WebView` via a private
+//! This feature will not be supported on tvOS, as the platform has no webview control.
+//! - `webview-downloading-appkit`: Enables downloading files from the `WebView` via a private
 //! interface. This is not an App-Store-safe feature, so be aware of that before enabling. This
-//! feature is not supported on iOS (a user would handle downloads very differently) or tvOS
+//! feature is not supported on uikit (a user would handle downloads very differently) or tvOS
 //! (there's no web browser there at all).
 //!
 //! [cargo-features]: https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section
@@ -96,15 +96,15 @@ pub use objc;
 pub use url;
 pub use lazy_static;
 
-#[cfg(target_os = "macos")]
-#[cfg_attr(docsrs, doc(cfg(target_os = "macos")))]
-pub mod macos;
+#[cfg(feature = "appkit")]
+#[cfg_attr(docsrs, doc(cfg(target_os = "appkit")))]
+pub mod appkit;
 
-#[cfg(target_os = "ios")]
-#[cfg_attr(docsrs, doc(cfg(target_os = "ios")))]
-pub mod ios;
+#[cfg(feature = "uikit")]
+#[cfg_attr(docsrs, doc(cfg(target_os = "uikit")))]
+pub mod uikit;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod button;
 
 #[cfg(any(feature = "cloudkit", doc))]
@@ -113,50 +113,50 @@ pub mod cloudkit;
 
 pub mod color;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod dragdrop;
 
 pub mod error;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod events;
 
 pub mod defaults;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod filesystem;
 
 pub mod foundation;
 pub mod geometry;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod image;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod input;
 
 pub mod layer;
 pub(crate) mod invoker;
 pub mod layout;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod listview;
 pub mod networking;
 pub mod notification_center;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod pasteboard;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod progress;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod scrollview;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod switch;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub mod text;
 
 #[cfg(feature = "quicklook")]

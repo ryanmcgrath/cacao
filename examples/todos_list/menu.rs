@@ -4,7 +4,7 @@
 //! Correctly functioning menus are a key part of what makes a macOS app feel right, though, so
 //! this is here for those who might want to use this todos example as a starting point.
 
-use cacao::macos::menu::{Menu, MenuItem};
+use cacao::appkit::menu::{Menu, MenuItem};
 
 use crate::storage::{dispatch_ui, Message};
 

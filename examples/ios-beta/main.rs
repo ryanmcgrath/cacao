@@ -1,6 +1,6 @@
 use std::sync::RwLock;
 
-use cacao::ios::{
+use cacao::uikit::{
     App, AppDelegate, Scene, SceneConfig, SceneSession,
     SceneConnectionOptions, WindowSceneDelegate, Window
 };

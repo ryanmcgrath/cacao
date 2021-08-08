@@ -3,7 +3,7 @@
 //!
 //! This may get extracted into a different repo some day in the future.
 
-use cacao::macos::App;
+use cacao::appkit::App;
 
 mod add;
 mod app;

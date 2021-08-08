@@ -50,17 +50,17 @@ use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension}
 use crate::text::{Font, TextAlign, LineBreakMode};
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "macos")]
-use macos::{register_view_class, register_view_class_with_delegate};
+#[cfg(feature = "appkit")]
+use appkit::{register_view_class, register_view_class_with_delegate};
 
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(feature = "uikit")]
+mod uikit;
 
-#[cfg(target_os = "ios")]
-use ios::{register_view_class, register_view_class_with_delegate};
+#[cfg(feature = "uikit")]
+use uikit::{register_view_class, register_view_class_with_delegate};
 
 mod traits;
 pub use traits::LabelDelegate;
@@ -70,7 +70,7 @@ pub(crate) static LABEL_DELEGATE_PTR: &str = "rstLabelDelegatePtr";
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
     unsafe {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let view: id = {
             // This sucks, but for now, sure.
             let blank = NSString::no_copy("");
@@ -82,7 +82,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![view, setWantsLayer:YES];
 
         view 
@@ -331,7 +331,7 @@ impl<T> Label<T> {
 
     /// Set the line break mode for this label.
     pub fn set_line_break_mode(&self, mode: LineBreakMode) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
             let mode = mode as NSUInteger;

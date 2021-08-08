@@ -50,17 +50,17 @@ use crate::layout::{Layout, LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY}
 use crate::text::{Font, TextAlign};
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "macos")]
-use macos::{register_view_class, register_view_class_with_delegate};
+#[cfg(feature = "appkit")]
+use appkit::{register_view_class, register_view_class_with_delegate};
 
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(feature = "uikit")]
+mod uikit;
 
-#[cfg(target_os = "ios")]
-use ios::{register_view_class, register_view_class_with_delegate};
+#[cfg(feature = "uikit")]
+use uikit::{register_view_class, register_view_class_with_delegate};
 
 mod traits;
 pub use traits::TextFieldDelegate;
@@ -74,7 +74,7 @@ fn common_init(class: *const Class) -> id {
 
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![view, setWantsLayer: YES];
 
         view

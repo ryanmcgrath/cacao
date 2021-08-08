@@ -7,16 +7,16 @@ use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "macos")]
-use macos::register_image_view_class;
+#[cfg(feature = "appkit")]
+use appkit::register_image_view_class;
 
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(feature = "uikit")]
+mod uikit;
 
-#[cfg(target_os = "ios")]
+#[cfg(feature = "uikit")]
 use ios::register_image_view_class;
 
 mod image;
@@ -31,7 +31,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         let view: id = msg_send![registration_fn(), new];
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![view, setWantsLayer:YES];
 
         view 

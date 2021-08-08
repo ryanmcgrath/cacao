@@ -50,33 +50,33 @@ use crate::layer::Layer;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 use crate::pasteboard::PasteboardType;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "macos")]
-use macos::{register_view_class, register_view_class_with_delegate};
+#[cfg(feature = "appkit")]
+use appkit::{register_view_class, register_view_class_with_delegate};
 
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(feature = "uikit")]
+mod uikit;
 
-#[cfg(target_os = "ios")]
-use ios::{register_view_class, register_view_class_with_delegate};
+#[cfg(feature = "uikit")]
+use uikit::{register_view_class, register_view_class_with_delegate};
 
 mod controller;
 pub use controller::ViewController;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 mod splitviewcontroller;
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 pub use splitviewcontroller::SplitViewController;
 
 mod traits;
 pub use traits::ViewDelegate;
 
-pub(crate) static BACKGROUND_COLOR: &str = "alchemyBackgroundColor";
+pub(crate) static BACKGROUND_COLOR: &str = "cacaoBackgroundColor";
 pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
 
 /// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
@@ -92,7 +92,7 @@ pub struct View<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
 
-    /// References the underlying layer. This is consistent across macOS, iOS and tvOS - on macOS
+    /// References the underlying layer. This is consistent across AppKit & UIKit - in AppKit
     /// we explicitly opt in to layer backed views.
     pub layer: Layer,
 
@@ -147,7 +147,7 @@ impl View {
         unsafe {
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![view, setWantsLayer:YES];
         }
 
@@ -231,12 +231,12 @@ impl<T> View<T> {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         let color: id = color.as_ref().into();
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             (&mut *obj).set_ivar(BACKGROUND_COLOR, color);
         });
 
-        #[cfg(target_os = "ios")]
+        #[cfg(feature = "uikit")]
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![&*obj, setBackgroundColor:color];
         });

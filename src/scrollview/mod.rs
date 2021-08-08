@@ -51,16 +51,16 @@ use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension}
 use crate::pasteboard::PasteboardType;
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "macos")]
-use macos::{register_scrollview_class, register_scrollview_class_with_delegate};
+#[cfg(feature = "appkit")]
+use appkit::{register_scrollview_class, register_scrollview_class_with_delegate};
 
-#[cfg(target_os = "ios")]
+#[cfg(feature = "uikit")]
 mod ios;
 
-#[cfg(target_os = "ios")]
+#[cfg(feature = "uikit")]
 use ios::{register_view_class, register_view_class_with_delegate};
 
 mod traits;
@@ -74,7 +74,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         let view: id = msg_send![registration_fn(), new];
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         {
             let _: () = msg_send![view, setDrawsBackground:NO];
             let _: () = msg_send![view, setWantsLayer:YES];

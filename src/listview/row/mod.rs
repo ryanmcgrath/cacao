@@ -55,20 +55,20 @@ use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension}
 use crate::view::ViewDelegate;
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "macos")]
-use macos::{register_listview_row_class, register_listview_row_class_with_delegate};
+#[cfg(feature = "appkit")]
+use appkit::{register_listview_row_class, register_listview_row_class_with_delegate};
 
-#[cfg(target_os = "ios")]
-mod ios;
+//#[cfg(feature = "uikit")]
+//mod ios;
 
-#[cfg(target_os = "ios")]
-use ios::{register_listview_row_view_class, register_listview_row_class_with_delegate};
+//#[cfg(feature = "uikit")]
+//use ios::{register_listview_row_view_class, register_listview_row_class_with_delegate};
 
-pub(crate) static BACKGROUND_COLOR: &str = "alchemyBackgroundColor";
-pub(crate) static LISTVIEW_ROW_DELEGATE_PTR: &str = "rstListViewRowDelegatePtr";
+pub(crate) static BACKGROUND_COLOR: &str = "cacaoBackgroundColor";
+pub(crate) static LISTVIEW_ROW_DELEGATE_PTR: &str = "cacaoListViewRowDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
@@ -76,7 +76,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         let view: id = msg_send![registration_fn(), new];
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![view, setWantsLayer:YES];
 
         view 

@@ -1,6 +1,6 @@
 //! Various traits used for Views.
 
-use crate::macos::menu::MenuItem;
+use crate::appkit::menu::MenuItem;
 use crate::dragdrop::{DragInfo, DragOperation};
 use crate::listview::{ListView, ListViewRow, RowAction, RowEdge};
 use crate::layout::Layout;

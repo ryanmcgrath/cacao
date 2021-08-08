@@ -13,7 +13,8 @@ use objc_id::ShareId;
 use crate::foundation::{id, YES, NO, NSInteger, NSString};
 use crate::filesystem::enums::ModalResponse;
 
-use crate::macos::window::{Window, WindowDelegate};
+#[cfg(feature = "appkit")]
+use crate::appkit::window::{Window, WindowDelegate};
 
 #[derive(Debug)]
 pub struct FileSelectPanel {

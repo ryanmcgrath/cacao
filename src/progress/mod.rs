@@ -22,12 +22,6 @@ use crate::color::Color;
 use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "ios")]
-mod ios;
-
-#[cfg(target_os = "ios")]
-use ios::register_progress_indicator_class;
-
 mod enums;
 pub use enums::ProgressIndicatorStyle;
 
@@ -79,11 +73,11 @@ impl ProgressIndicator {
     /// need it to stay around.
     pub fn new() -> Self {
         let view = unsafe {
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             let view: id = msg_send![class!(NSProgressIndicator), new];
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![view, setWantsLayer:YES];
 
             view
