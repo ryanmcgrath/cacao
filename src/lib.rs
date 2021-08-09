@@ -96,6 +96,9 @@ pub use objc;
 pub use url;
 pub use lazy_static;
 
+#[cfg(all(feature = "appkit", feature = "uikit", not(feature = "no-intrinsics")))]
+compile_error!("The \"appkit\" and \"uikit\" features cannot be enabled together. Pick one. :)");
+
 #[cfg(feature = "appkit")]
 #[cfg_attr(docsrs, doc(cfg(target_os = "appkit")))]
 pub mod appkit;

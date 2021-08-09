@@ -50,7 +50,12 @@ use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString, NSInteger, NSUInteger};
 use crate::color::Color;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+
+use crate::layout::Layout;
+
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+
 use crate::scrollview::ScrollView;
 use crate::utils::{os, CellFactory, CGSize};
 use crate::utils::properties::{ObjcProperty, PropertyNullable};
@@ -95,6 +100,8 @@ use std::cell::RefCell;
 fn common_init(class: *const Class) -> id { 
     unsafe {
         let tableview: id = msg_send![class, new];
+
+        #[cfg(feature = "autolayout")]
         let _: () = msg_send![tableview, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         // Let's... make NSTableView into UITableView-ish.
@@ -139,40 +146,51 @@ pub struct ListView<T = ()> {
 
     /// In AppKit, we need to manage the NSScrollView ourselves. It's a bit
     /// more old school like that...
-    #[cfg(feature = "appkit")]
+    ///
+    /// In iOS, this is a pointer to the UITableView-owned UIScrollView.
     pub scrollview: ScrollView,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
 
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -201,32 +219,52 @@ impl ListView {
 
         // For AppKit, we need to use the NSScrollView anchor points, not the NSTableView.
         // @TODO: Fix this with proper mutable access.
-        #[cfg(feature = "appkit")]
+        #[cfg(all(feature = "appkit", feature = "autolayout"))]
         let anchor_view: id = scrollview.objc.get(|obj| unsafe {
             msg_send![obj, self]
         });
         
-        #[cfg(target_os = "ios")]
-        let anchor_view: id = view;
+        //#[cfg(all(feature = "uikit", feature = "autolayout"))]
+        //let anchor_view: id = view;
 
         ListView {
             cell_factory: CellFactory::new(),
             menu: PropertyNullable::default(),
             delegate: None,
+            
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(anchor_view),
+            
             objc: ObjcProperty::retain(view),
 
-            #[cfg(feature = "appkit")]
-            scrollview: scrollview
+            scrollview
         }
     }
 }
@@ -241,8 +279,6 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
         let cell = CellFactory::new();
         
         unsafe {
-            //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
-            //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let delegate_ptr: *const T = &*delegate;
             (&mut *view).set_ivar(LISTVIEW_DELEGATE_PTR, delegate_ptr as usize);
             let _: () = msg_send![view, setDelegate:view];
@@ -261,7 +297,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
         };
 
         // For AppKit, we need to use the NSScrollView anchor points, not the NSTableView.
-        #[cfg(feature = "appkit")]
+        #[cfg(all(feature = "appkit", feature = "autolayout"))]
         let anchor_view: id = scrollview.objc.get(|obj| unsafe {
             msg_send![obj, self]
         });
@@ -273,20 +309,39 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
             cell_factory: cell,
             menu: PropertyNullable::default(),
             delegate: None,
-            top: LayoutAnchorY::top(anchor_view),
-            left: LayoutAnchorX::left(anchor_view),
-            leading: LayoutAnchorX::leading(anchor_view),
-            right: LayoutAnchorX::right(anchor_view),
-            trailing: LayoutAnchorX::trailing(anchor_view),
-            bottom: LayoutAnchorY::bottom(anchor_view),
-            width: LayoutAnchorDimension::width(anchor_view),
-            height: LayoutAnchorDimension::height(anchor_view),
-            center_x: LayoutAnchorX::center(anchor_view),
-            center_y: LayoutAnchorY::center(anchor_view),
             objc: ObjcProperty::retain(view),
+
+            #[cfg(feature = "autolayout")]
+            top: LayoutAnchorY::top(anchor_view),
             
-            #[cfg(feature = "appkit")]
-            scrollview: scrollview
+            #[cfg(feature = "autolayout")]
+            left: LayoutAnchorX::left(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            leading: LayoutAnchorX::leading(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            right: LayoutAnchorX::right(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: LayoutAnchorX::trailing(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: LayoutAnchorY::bottom(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            width: LayoutAnchorDimension::width(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            height: LayoutAnchorDimension::height(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: LayoutAnchorX::center(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: LayoutAnchorY::center(anchor_view),
+            
+            scrollview
         };
 
         (&mut delegate).did_load(view.clone_as_handle()); 
@@ -305,19 +360,38 @@ impl<T> ListView<T> {
             cell_factory: CellFactory::new(),
             menu: self.menu.clone(),
             delegate: None,
-            top: self.top.clone(),
-            leading: self.leading.clone(),
-            left: self.left.clone(),
-            trailing: self.trailing.clone(),
-            right: self.right.clone(),
-            bottom: self.bottom.clone(),
-            width: self.width.clone(),
-            height: self.height.clone(),
-            center_x: self.center_x.clone(),
-            center_y: self.center_y.clone(),
             objc: self.objc.clone(),
 
-            #[cfg(feature = "appkit")]
+            #[cfg(feature = "autolayout")]
+            top: self.top.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            leading: self.leading.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            left: self.left.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: self.trailing.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            right: self.right.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: self.bottom.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            width: self.width.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            height: self.height.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: self.center_x.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: self.center_y.clone(),
+
             scrollview: self.scrollview.clone_as_handle()
         }
     }

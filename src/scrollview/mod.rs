@@ -47,9 +47,13 @@ use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+
+use crate::layout::Layout;
 use crate::pasteboard::PasteboardType;
 use crate::utils::properties::ObjcProperty;
+
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
 #[cfg(feature = "appkit")]
 mod appkit;
@@ -72,6 +76,8 @@ pub(crate) static SCROLLVIEW_DELEGATE_PTR: &str = "rstScrollViewDelegatePtr";
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
     unsafe {
         let view: id = msg_send![registration_fn(), new];
+        
+        #[cfg(feature = "autolayout")]
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         #[cfg(feature = "appkit")]
@@ -97,33 +103,43 @@ pub struct ScrollView<T = ()> {
     pub delegate: Option<Box<T>>,
     
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -140,16 +156,37 @@ impl ScrollView {
 
         ScrollView {
             delegate: None,
+            
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
+            
             objc: ObjcProperty::retain(view),
         }
     }
@@ -169,16 +206,37 @@ impl<T> ScrollView<T> where T: ScrollViewDelegate + 'static {
 
         let mut view = ScrollView {
             delegate: None,
+            
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
+            
             objc: ObjcProperty::retain(view),
         };
 
@@ -196,16 +254,37 @@ impl<T> ScrollView<T> {
     pub(crate) fn clone_as_handle(&self) -> ScrollView {
         ScrollView {
             delegate: None,
+            
+            #[cfg(feature = "autolayout")]
             top: self.top.clone(),
+            
+            #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
+            
+            #[cfg(feature = "autolayout")]
             left: self.left.clone(),
+            
+            #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
+            
+            #[cfg(feature = "autolayout")]
             right: self.right.clone(),
+            
+            #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
+            
+            #[cfg(feature = "autolayout")]
             width: self.width.clone(),
+            
+            #[cfg(feature = "autolayout")]
             height: self.height.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
+            
             objc: self.objc.clone()
         }
     }

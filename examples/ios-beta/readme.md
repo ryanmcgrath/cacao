@@ -6,7 +6,7 @@ Since this needs to run in an iOS simulator or on a device, you can't run it lik
 
 - Start a simulator (Simulator.app).
 - `cargo install cargo-bundle`
-- `cargo bundle --example ios-beta --target x86_64-apple-ios`
+- `cargo bundle --example ios-beta --no-default-features --features uikit,autolayout --target x86_64-apple-ios`
 - `xcrun simctl install booted target/x86_64-apple-ios/debug/examples/bundle/ios/cacao-ios-beta.app`
 - `xcrun simctl launch --console booted com.cacao.ios-test`
 

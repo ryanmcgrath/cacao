@@ -71,6 +71,7 @@ pub trait Layout {
     ///
     /// Cacao defaults this to `false`; if you need to set frame-based layout pieces,
     /// then you should set this to `true` (or use an appropriate initializer that does it for you).
+    #[cfg(feature = "autolayout")]
     fn set_translates_autoresizing_mask_into_constraints(&self, translates: bool) {
         self.with_backing_node(|backing_node| unsafe {
             let _: () = msg_send![backing_node, setTranslatesAutoresizingMaskIntoConstraints:match translates {
