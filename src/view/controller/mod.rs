@@ -7,17 +7,9 @@ use crate::layout::Layout;
 use crate::view::{VIEW_DELEGATE_PTR, View, ViewDelegate};
 use crate::utils::Controller;
 
-#[cfg(feature = "appkit")]
-mod appkit;
-
-#[cfg(feature = "appkit")]
-use appkit::register_view_controller_class;
-
-#[cfg(feature = "uikit")]
-mod uikit;
-
-#[cfg(feature = "uikit")]
-use uikit::register_view_controller_class;
+#[cfg_attr(feature = "appkit", path = "appkit.rs")]
+#[cfg_attr(feature = "uikit", path = "uikit.rs")]
+mod native_interface;
 
 /// A `ViewController` is a wrapper around `NSViewController` in AppKit, and `UIViewController` in
 /// UIKit
@@ -52,7 +44,7 @@ where
 {
     /// Creates and returns a new `ViewController` with the provided `delegate`.
     pub fn new(delegate: T) -> Self {
-        let class = register_view_controller_class::<T>(&delegate);
+        let class = native_interface::register_view_controller_class::<T>(&delegate);
         let view = View::with(delegate);
 
         let objc = unsafe {

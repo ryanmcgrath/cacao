@@ -23,6 +23,11 @@ rampant for wrapped controls. This does **not** mean you can't assess, review, o
 usage - just know it's happening, and in large part it's not going away. Issues pertaining to the mere 
 existence of unsafe will be closed without comment._
 
+If you're looking to build the docs for this on your local machine, you'll want the following due to the way feature flags work
+with `cargo doc`:
+
+`RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --all-features --open`
+
 # Hello World
 
 ```rust
@@ -62,22 +67,28 @@ ensures the application has had time to initialize and do any housekeeping neces
 scenes.
 
 ## Currently Supported
-In terms of mostly working pieces, the following currently work. This list is not exhaustive and you're encouraged to check out the documentation for more info:
+In terms of mostly working pieces, the table below showcases the level of support for varying features. This list is not exhaustive just by virtue of documentation updating being hell - so you're encouraged to check out the code-built documentation for more info:
 
-- `App` initialization and event delegation
-- `Window` construction, handling, and event delegation
-- `View` construction, basic styling, some event delegation
-- `ViewController` construction, lifecycle delegation
-- `Color`, for handling system-established color types
-- `ListView` support, including cell reuse (still needs testing)
-- `Button` support, as well as enabling them in Toolbars
-- `Label` and `TextField` support for basic text handling.
-- `Image`, `ImageView` and `SystemIcon` for image usage. Images can use a custom draw handler, and draw graphics with the [core_graphics]() crate
-- `Toolbar` construction and basic API
-- `SplitViewController` support, including some Big-Sur-only additions
-- `WebView` with a basic API for handling callbacks
-- `UserDefaults` for persisting small pieces of data per-application
-- `Autolayout` for View layout and such
+Note that while iOS has green checkmarks, some components still aren't as well defined (e.g, Views/ViewControllers are still very alpha there).
+
+Non-Apple platforms that shim or provide a form of AppKit may be able to use a good chunk of the AppKit support in this library.
+
+| Component           | Description                         | AppKit | iOS | tvOS |
+| ------------------- | ----------------------------------- | ------ | --- | ---- |
+| App                 | Initialization & events             |   ✅   | ✅  |  ❌  |
+| Window              | Construction, handling, events      |   ✅   | ✅  |  ❌  |
+| View                | Construction, styling, events       |   ✅   | ✅  |  ❌  |
+| ViewController      | Construction, lifecycle events      |   ✅   | ✅  |  ❌  |
+| Color               | System-backed colors, theming       |   ✅   | ✅  |  ❌  |
+| ListView            | Reusable list w/ cached rows        |   ✅   | ❌  |  ❌  |
+| Button              | Styling, events, toolbar support    |   ✅   | ❌  |  ❌  |
+| Label/TextField     | Text rendering & input              |   ✅   | ❌  |  ❌  |
+| Image/ImageView     | Loading, drawing, etc               |   ✅   | ❌  |  ❌  |
+| Toolbar             | Basic native toolbar                |   ✅   | ❌  |  ❌  |
+| SplitViewController | Split views (Big Sur friendly)      |   ✅   | ❌  |  ❌  |
+| WebView             | Wrapper for WKWebView               |   ✅   | ❌  |  ❌  |
+| UserDefaults        | Persisting small data               |   ✅   | ✅  |  ❌  |
+| Autolayout          | View layout for varying screens     |   ✅   | ✅  |  ❌  |
 
 ## Optional Features
 

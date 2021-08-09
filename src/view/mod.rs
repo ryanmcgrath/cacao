@@ -56,17 +56,9 @@ use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 #[cfg(feature = "appkit")]
 use crate::pasteboard::PasteboardType;
 
-#[cfg(feature = "appkit")]
-mod appkit;
-
-#[cfg(feature = "appkit")]
-use appkit::{register_view_class, register_view_class_with_delegate};
-
-#[cfg(feature = "uikit")]
-mod uikit;
-
-#[cfg(feature = "uikit")]
-use uikit::{register_view_class, register_view_class_with_delegate};
+#[cfg_attr(feature = "appkit", path = "appkit.rs")]
+#[cfg_attr(feature = "uikit", path = "uikit.rs")]
+mod native_interface;
 
 mod controller;
 pub use controller::ViewController;
@@ -211,7 +203,7 @@ impl View {
     /// Returns a default `View`, suitable for customizing and displaying.
     pub fn new() -> Self {
         View::init(unsafe {
-            msg_send![register_view_class(), new]
+            msg_send![native_interface::register_view_class(), new]
         })
     }
 }
@@ -220,7 +212,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> View<T> {
-        let class = register_view_class_with_delegate(&delegate);
+        let class = native_interface::register_view_class_with_delegate(&delegate);
         let mut delegate = Box::new(delegate);
         
         let view = unsafe {

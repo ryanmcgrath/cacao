@@ -59,11 +59,11 @@ mod appkit;
 #[cfg(feature = "appkit")]
 use appkit::{register_view_class, register_view_class_with_delegate};
 
-#[cfg(feature = "uikit")]
-mod uikit;
+//#[cfg(feature = "uikit")]
+//mod uikit;
 
-#[cfg(feature = "uikit")]
-use uikit::{register_view_class, register_view_class_with_delegate};
+//#[cfg(feature = "uikit")]
+//use uikit::{register_view_class, register_view_class_with_delegate};
 
 mod traits;
 pub use traits::LabelDelegate;

@@ -16,11 +16,11 @@ mod appkit;
 #[cfg(feature = "appkit")]
 use appkit::register_image_view_class;
 
-#[cfg(feature = "uikit")]
-mod uikit;
+//#[cfg(feature = "uikit")]
+//mod uikit;
 
-#[cfg(feature = "uikit")]
-use ios::register_image_view_class;
+//#[cfg(feature = "uikit")]
+//use uikit::register_image_view_class;
 
 mod image;
 pub use image::{Image, DrawConfig, ResizeBehavior};

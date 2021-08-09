@@ -26,7 +26,7 @@ use crate::layer::Layer;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
 mod actions;
 pub use actions::*;
