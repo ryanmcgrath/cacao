@@ -83,7 +83,7 @@ impl Default for ThumbnailConfig {
             
             // #TODO: Should query the current screen size maybe? 2x is fairly safe
             // for most moderns Macs right now.
-            scale: 2.,
+            scale: 1.,
             
             minimum_dimension: 0.,
 

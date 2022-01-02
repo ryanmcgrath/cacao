@@ -50,16 +50,16 @@ use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString, NSInteger, NSUInteger};
 use crate::color::Color;
-
 use crate::layout::Layout;
 
 #[cfg(feature = "autolayout")]
 use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
+use crate::objc_access::ObjcAccess;
 use crate::scrollview::ScrollView;
 use crate::utils::{os, CellFactory, CGSize};
 use crate::utils::properties::{ObjcProperty, PropertyNullable};
-use crate::view::ViewDelegate;
+use crate::view::{ViewAnimatorProxy, ViewDelegate};
 
 #[cfg(feature = "appkit")]
 use crate::appkit::menu::MenuItem;
@@ -99,10 +99,9 @@ use std::cell::RefCell;
 /// A helper method for instantiating view classes and applying default settings to them.
 fn common_init(class: *const Class) -> id { 
     unsafe {
+        // Note: we do *not* enable AutoLayout here as we're by default placing this in a scroll
+        // view, and we want it to just do its thing.
         let tableview: id = msg_send![class, new];
-
-        #[cfg(feature = "autolayout")]
-        let _: () = msg_send![tableview, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         // Let's... make NSTableView into UITableView-ish.
         #[cfg(feature = "appkit")]
@@ -143,6 +142,9 @@ pub struct ListView<T = ()> {
 
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
+
+    /// An object that supports limited animations. Can be cloned into animation closures.
+    pub animator: ViewAnimatorProxy,
 
     /// In AppKit, we need to manage the NSScrollView ourselves. It's a bit
     /// more old school like that...
@@ -262,6 +264,11 @@ impl ListView {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(anchor_view),
             
+            // Note that AppKit needs this to be the ScrollView!
+            // @TODO: Figure out if there's a use case for exposing the inner tableview animator
+            // property...
+            animator: ViewAnimatorProxy::new(anchor_view),
+
             objc: ObjcProperty::retain(view),
 
             scrollview
@@ -310,6 +317,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
             menu: PropertyNullable::default(),
             delegate: None,
             objc: ObjcProperty::retain(view),
+            animator: ViewAnimatorProxy::new(anchor_view),
 
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(anchor_view),
@@ -355,12 +363,13 @@ impl<T> ListView<T> {
     /// callback pointer. We use this in calling `did_load()` - implementing delegates get a way to
     /// reference, customize and use the view but without the trickery of holding pieces of the
     /// delegate - the `View` is the only true holder of those.
-    pub(crate) fn clone_as_handle(&self) -> ListView {
+    pub fn clone_as_handle(&self) -> ListView {
         ListView {
             cell_factory: CellFactory::new(),
             menu: self.menu.clone(),
             delegate: None,
             objc: self.objc.clone(),
+            animator: self.animator.clone(),
 
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
@@ -490,6 +499,34 @@ impl<T> ListView<T> {
         }
     }
 
+    /// This hack exists to avoid a bug with how Rust's model isn't really friendly with more
+    /// old-school GUI models. The tl;dr is that we unfortunately have to cheat a bit to gracefully
+    /// handle two conditions.
+    ///
+    /// The gist of it is that there are two situations (`perform_batch_updates` and `insert_rows`)
+    /// where we call over to the list view to, well, perform updates. This causes the internal
+    /// machinery of AppKit to call to the delegate, and the delegate then - rightfully - calls to
+    /// dequeue a cell.
+    ///
+    /// The problem is then that dequeue'ing a cell requires borrowing the underlying cell handler,
+    /// per Rust's model. We haven't been able to drop our existing lock though! Thus it winds up
+    /// panic'ing and all hell breaks loose.
+    ///
+    /// For now, we just drop to Objective-C and message pass directly to avoid a
+    /// double-locking-attempt on the Rust side of things. This is explicitly not ideal, and if
+    /// you're reading this and rightfully going "WTF?", I encourage you to contribute a solution
+    /// if you can come up with one.
+    ///
+    /// In practice, this hack isn't that bad - at least, no worse than existing Objective-C code.
+    /// The behavior is relatively well understood and documented in the above paragraph, so I'm
+    /// comfortable with the hack for now.
+    ///
+    /// To be ultra-clear: the hack is that we don't `borrow_mut` before sending a message. It just
+    /// feels dirty, hence the novel. ;P
+    fn hack_avoid_dequeue_loop<F: Fn(&Object)>(&self, handler: F) {
+        self.objc.get(handler);
+    }
+
     /// This method should be used when inserting or removing multiple rows at once. Under the
     /// hood, it batches the changes and tries to ensure things are done properly. The provided
     /// `ListView` for the handler is your `ListView`, and you can call `insert_rows`,
@@ -511,14 +548,9 @@ impl<T> ListView<T> {
             let handle = self.clone_as_handle();
             update(handle);
 
-            // This is cheating, but there's no good way around it at the moment. If we (mutably) lock in
-            // Rust here, firing this call will loop back around into `dequeue`, which will then
-            // hit a double lock.
-            //
-            // Personally, I can live with this - `endUpdates` is effectively just flushing the
-            // already added updates, so with this small hack here we're able to keep the mutable
-            // borrow structure everywhere else, which feels "correct".
-            self.objc.get(|obj| unsafe {
+            // This is done for a very explicit reason; see the comments on the method itself for
+            // an explanation.
+            self.hack_avoid_dequeue_loop(|obj| unsafe {
                 let _: () = msg_send![obj, endUpdates];
             });
         }
@@ -545,7 +577,9 @@ impl<T> ListView<T> {
             // has also retained it.
             let x = ShareId::from_ptr(index_set);
             
-            self.objc.with_mut(|obj| {
+            // This is done for a very explicit reason; see the comments on the method itself for
+            // an explanation.
+            self.hack_avoid_dequeue_loop(|obj| {
                 let _: () = msg_send![obj, insertRowsAtIndexes:&*x withAnimation:animation_options];
             });
         }
@@ -647,6 +681,15 @@ impl<T> ListView<T> {
         });
     }
 
+    /// Makes this table view the first responder.
+    #[cfg(feature = "appkit")]
+    pub fn make_first_responder(&self) {
+        self.objc.with_mut(|obj| unsafe {
+            let window: id = msg_send![&*obj, window];
+            let _: () = msg_send![window, makeFirstResponder:&*obj];
+        });
+    }
+
     /// Reloads the underlying ListView. This is more expensive than handling insert/reload/remove
     /// calls yourself, but often easier to implement.
     ///
@@ -689,15 +732,15 @@ impl<T> ListView<T> {
     }
 }
 
-impl<T> Layout for ListView<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for ListView<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         // In AppKit, we need to provide the scrollview for layout purposes - iOS and tvOS will know
         // what to do normally.
         #[cfg(feature = "appkit")]
         self.scrollview.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         // In AppKit, we need to provide the scrollview for layout purposes - iOS and tvOS will know
         // what to do normally.
         //
@@ -707,6 +750,8 @@ impl<T> Layout for ListView<T> {
         self.scrollview.objc.get(handler)
     }
 }
+
+impl<T> Layout for ListView<T> {}
 
 impl<T> Drop for ListView<T> {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being

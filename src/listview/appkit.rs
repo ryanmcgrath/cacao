@@ -37,9 +37,16 @@ extern fn view_for_column<T: ListViewDelegate>(
     this: &Object,
     _: Sel,
     _table_view: id,
-    _: id,
+    _table_column: id,
     item: NSInteger
 ) -> id {
+    /*use core_graphics::geometry::CGRect;
+    unsafe {
+        //let superview: id = msg_send![table_view, superview];
+        let frame: CGRect = msg_send![table_view, frame];
+        let _: () = msg_send![table_column, setWidth:frame.size.width];
+    }*/
+
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
     let item = view.item_for(item as usize);
 
@@ -79,7 +86,7 @@ extern fn menu_needs_update<T: ListViewDelegate>(
     let _ = Menu::append(menu, items);
 }
 
-/// NSTableView requires listening to an observer to detect row selection changes, but that is...
+/*/// NSTableView requires listening to an observer to detect row selection changes, but that is...
 /// even clunkier than what we do in this framework.
 ///
 /// The other less obvious way is to subclass and override the `shouldSelectRow:` method; here, we
@@ -94,6 +101,24 @@ extern fn select_row<T: ListViewDelegate>(
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
     view.item_selected(item as usize);
     YES
+}*/
+
+extern fn selection_did_change<T: ListViewDelegate>(
+    this: &Object,
+    _: Sel,
+    notification: id
+) {
+    let selected_row: NSInteger = unsafe {
+        let tableview: id = msg_send![notification, object];
+        msg_send![tableview, selectedRow]
+    };
+
+    let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
+    if selected_row == -1 {
+        view.item_selected(None);
+    } else {
+        view.item_selected(Some(selected_row as usize));
+    }
 }
 
 extern fn row_actions_for_row<T: ListViewDelegate>(
@@ -203,7 +228,7 @@ pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instanc
         decl.add_method(sel!(numberOfRowsInTableView:), number_of_items::<T> as extern fn(&Object, _, id) -> NSInteger);
         decl.add_method(sel!(tableView:willDisplayCell:forTableColumn:row:), will_display_cell::<T> as extern fn(&Object, _, id, id, id, NSInteger));
         decl.add_method(sel!(tableView:viewForTableColumn:row:), view_for_column::<T> as extern fn(&Object, _, id, id, NSInteger) -> id);
-        decl.add_method(sel!(tableView:shouldSelectRow:), select_row::<T> as extern fn(&Object, _, id, NSInteger) -> BOOL);
+        decl.add_method(sel!(tableViewSelectionDidChange:), selection_did_change::<T> as extern fn(&Object, _, id));
         decl.add_method(sel!(tableView:rowActionsForRow:edge:), row_actions_for_row::<T> as extern fn(&Object, _, id, NSInteger, NSInteger) -> id);
 
         // A slot for some menu handling; we just let it be done here for now rather than do the

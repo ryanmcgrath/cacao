@@ -36,8 +36,9 @@ pub trait ListViewDelegate {
     /// had time to sit down and figure them out properly yet.
     fn item_for(&self, row: usize) -> ListViewRow;
 
-    /// Called when an item has been selected (clicked/tapped on).
-    fn item_selected(&self, row: usize) {}
+    /// Called when an item has been selected (clicked/tapped on). If the selection was cleared,
+    /// then this will be called with `None`.
+    fn item_selected(&self, row: Option<usize>) {}
 
     /// Called when the menu for the tableview is about to be shown. You can update the menu here
     /// depending on, say, what the user has context-clicked on. You should avoid any expensive

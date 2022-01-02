@@ -23,14 +23,14 @@ block = "0.1.6"
 core-foundation = { version = "0.9", features = ["with-chrono"] }
 core-graphics = "0.22"
 dispatch = "0.2.0"
+infer = { version = "0.4", optional = true }
 lazy_static = "1.4.0"
 libc = "0.2"
 objc = "0.2.7"
 objc_id = "0.1.1"
 os_info = "3.0.1"
-uuid = { version = "0.8", features = ["v4"], optional = true }
 url = "2.1.1"
-infer = { version = "0.4", optional = true }
+uuid = { version = "0.8", features = ["v4"], optional = true }
 
 [dev-dependencies]
 eval = "0.4"

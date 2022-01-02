@@ -20,6 +20,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO, NSUInteger};
 use crate::color::Color;
 use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
@@ -201,15 +202,17 @@ impl ProgressIndicator {
     }
 }
 
-impl Layout for ProgressIndicator {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl ObjcAccess for ProgressIndicator {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl Layout for ProgressIndicator {}
 
 impl Drop for ProgressIndicator {
     /// A bit of extra cleanup for delegate callback pointers. 

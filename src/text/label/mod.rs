@@ -47,7 +47,8 @@ use objc::{msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO, NSArray, NSInteger, NSUInteger, NSString};
 use crate::color::Color;
 use crate::layout::Layout;
-use crate::text::{Font, TextAlign, LineBreakMode};
+use crate::objc_access::ObjcAccess;
+use crate::text::{AttributedString, Font, TextAlign, LineBreakMode};
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
@@ -77,7 +78,12 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         let view: id = {
             // This sucks, but for now, sure.
             let blank = NSString::no_copy("");
-            msg_send![registration_fn(), labelWithString:&*blank]
+            let label: id = msg_send![registration_fn(), wrappingLabelWithString:&*blank];
+            
+            // We sub this in to get the general expected behavior for 202*.
+            let _: () = msg_send![label, setSelectable:NO];
+
+            label
         };
 
         #[cfg(feature = "uikit")]
@@ -361,6 +367,13 @@ impl<T> Label<T> {
         });
     }
 
+    /// Sets the attributed string to be the attributed string value on this label.
+    pub fn set_attributed_text(&self, text: AttributedString) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setAttributedStringValue:&*text];
+        });
+    }
+
     /// Retrieve the text currently held in the label.
     pub fn get_text(&self) -> String {
         self.objc.get(|obj| unsafe {
@@ -416,15 +429,17 @@ impl<T> Label<T> {
     }
 }
 
-impl<T> Layout for Label<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for Label<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl<T> Layout for Label<T> {}
 
 impl<T> Drop for Label<T> {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `Label` is being

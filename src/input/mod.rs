@@ -45,8 +45,10 @@ use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::color::Color;
+use crate::control::Control;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
 use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::text::{Font, TextAlign};
 use crate::utils::properties::ObjcProperty;
 
@@ -309,11 +311,49 @@ impl<T> TextField<T> {
         });
     }
 
+    /// Call this to set the text for the label.
+    pub fn set_placeholder_text(&self, text: &str) {
+        let s = NSString::new(text);
+
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setPlaceholderString:&*s];
+        });
+    }
+
     /// The the text alignment style for this control.
     pub fn set_text_alignment(&self, alignment: TextAlign) {
         self.objc.with_mut(|obj| unsafe {
             let alignment: NSInteger = alignment.into();
             let _: () = msg_send![obj, setAlignment: alignment];
+        });
+    }
+
+    /// Set whether this field operates in single-line mode.
+    pub fn set_uses_single_line(&self, uses_single_line: bool) {
+        self.objc.with_mut(|obj| unsafe {
+            let cell: id = msg_send![obj, cell];
+            let _: () = msg_send![cell, setUsesSingleLineMode:match uses_single_line {
+                true => YES,
+                false => NO
+            }];
+        });
+    }
+
+    /// Set whether this field operates in single-line mode.
+    pub fn set_wraps(&self, uses_single_line: bool) {
+        self.objc.with_mut(|obj| unsafe {
+            let cell: id = msg_send![obj, cell];
+            let _: () = msg_send![cell, setWraps:match uses_single_line {
+                true => YES,
+                false => NO
+            }];
+        });
+    }
+
+    /// Sets the maximum number of lines.
+    pub fn set_max_number_of_lines(&self, num: NSInteger) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setMaximumNumberOfLines:num];
         });
     }
 
@@ -327,15 +367,19 @@ impl<T> TextField<T> {
     }
 }
 
-impl<T> Layout for TextField<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for TextField<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl<T> Layout for TextField<T> {}
+
+impl<T> Control for TextField<T> {}
 
 impl<T> Drop for TextField<T> {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `TextField` is being

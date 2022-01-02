@@ -48,13 +48,17 @@ use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layer::Layer;
 use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension, SafeAreaLayoutGuide};
 
 #[cfg(feature = "appkit")]
 use crate::pasteboard::PasteboardType;
+
+mod animator;
+pub use animator::ViewAnimatorProxy;
 
 #[cfg_attr(feature = "appkit", path = "appkit.rs")]
 #[cfg_attr(feature = "uikit", path = "uikit.rs")]
@@ -88,12 +92,19 @@ pub struct View<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
 
+    /// An object that supports limited animations. Can be cloned into animation closures.
+    pub animator: ViewAnimatorProxy,
+
     /// References the underlying layer. This is consistent across AppKit & UIKit - in AppKit
     /// we explicitly opt in to layer backed views.
     pub layer: Layer,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
+
+    /// A property containing safe layout guides.
+    #[cfg(feature = "autolayout")]
+    pub safe_layout_guide: SafeAreaLayoutGuide,
 
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
@@ -161,6 +172,9 @@ impl View {
         View {
             is_handle: false,
             delegate: None,
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: SafeAreaLayoutGuide::new(view),
             
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
@@ -196,6 +210,7 @@ impl View {
                 msg_send![view, layer]
             }),
 
+            animator: ViewAnimatorProxy::new(view),
             objc: ObjcProperty::retain(view),
         }
     }
@@ -231,17 +246,21 @@ impl<T> View<T> where T: ViewDelegate + 'static {
 }
 
 impl<T> View<T> {
-    /// An internal method that returns a clone of this object, sans references to the delegate or
+    /// Returns a clone of this object, sans references to the delegate or
     /// callback pointer. We use this in calling `did_load()` - implementing delegates get a way to
     /// reference, customize and use the view but without the trickery of holding pieces of the
     /// delegate - the `View` is the only true holder of those.
-    pub(crate) fn clone_as_handle(&self) -> View {
+    pub fn clone_as_handle(&self) -> View {
         View {
             delegate: None,
             is_handle: true,
             layer: self.layer.clone(),
             objc: self.objc.clone(),
+            animator: self.animator.clone(),
             
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: self.safe_layout_guide.clone(),
+
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
             
@@ -291,15 +310,17 @@ impl<T> View<T> {
 
 }
 
-impl<T> Layout for View<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for View<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl<T> Layout for View<T> {}
 
 impl<T> Drop for View<T> {
     /// If the instance being dropped is _not_ a handle, then we want to go ahead and explicitly

@@ -3,35 +3,44 @@
 //! `AutoLayout` feature, each widget will default to using AutoLayout, which can be beneficial in
 //! more complicated views that need to deal with differing screen sizes.
 
-pub mod traits;
+mod traits;
 pub use traits::Layout;
 
+mod animator;
+pub use animator::LayoutConstraintAnimatorProxy;
+
 #[cfg(feature = "autolayout")]
-pub mod attributes;
+mod attributes;
 
 #[cfg(feature = "autolayout")]
 pub use attributes::*;
 
 #[cfg(feature = "autolayout")]
-pub mod constraint;
+mod constraint;
 
 #[cfg(feature = "autolayout")]
 pub use constraint::LayoutConstraint;
 
 #[cfg(feature = "autolayout")]
-pub mod dimension;
+mod dimension;
 
 #[cfg(feature = "autolayout")]
 pub use dimension::LayoutAnchorDimension;
 
 #[cfg(feature = "autolayout")]
-pub mod horizontal;
+mod horizontal;
 
 #[cfg(feature = "autolayout")]
 pub use horizontal::LayoutAnchorX;
 
 #[cfg(feature = "autolayout")]
-pub mod vertical;
+mod vertical;
 
 #[cfg(feature = "autolayout")]
 pub use vertical::LayoutAnchorY;
+
+#[cfg(feature = "autolayout")]
+mod safe_guide;
+
+#[cfg(feature = "autolayout")]
+pub use safe_guide::SafeAreaLayoutGuide;

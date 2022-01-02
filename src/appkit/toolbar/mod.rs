@@ -23,7 +23,7 @@ pub use traits::ToolbarDelegate;
 mod enums;
 pub use enums::{ToolbarDisplayMode, ToolbarSizeMode, ItemIdentifier};
 
-pub(crate) static TOOLBAR_PTR: &str = "rstToolbarPtr";
+pub(crate) static TOOLBAR_PTR: &str = "cacaoToolbarPtr";
 
 /// A wrapper for `NSToolbar`. Holds (retains) pointers for the Objective-C runtime 
 /// where our `NSToolbar` and associated delegate live.
@@ -62,7 +62,7 @@ impl<T> Toolbar<T> where T: ToolbarDelegate + 'static {
             (ShareId::from_ptr(toolbar), ShareId::from_ptr(objc_delegate))
         };
 
-        &mut delegate.did_load(Toolbar {
+        let _ret = &mut delegate.did_load(Toolbar {
             objc: objc.clone(),
             objc_delegate: objc_delegate.clone(),
             identifier: identifier.clone(),

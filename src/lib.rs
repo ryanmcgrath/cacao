@@ -104,6 +104,8 @@ pub use lazy_static;
 #[cfg_attr(docsrs, doc(cfg(feature = "appkit")))]
 pub mod appkit;
 
+//pub mod bundle;
+
 #[cfg(feature = "uikit")]
 #[cfg_attr(docsrs, doc(cfg(feature = "uikit")))]
 pub mod uikit;
@@ -116,6 +118,9 @@ pub mod button;
 pub mod cloudkit;
 
 pub mod color;
+
+#[cfg(feature = "appkit")]
+pub mod control;
 
 #[cfg(feature = "appkit")]
 pub mod dragdrop;
@@ -138,14 +143,17 @@ pub mod image;
 
 #[cfg(feature = "appkit")]
 pub mod input;
+pub(crate) mod invoker;
+
+pub mod keys;
 
 pub mod layer;
-pub(crate) mod invoker;
 pub mod layout;
 
 #[cfg(feature = "appkit")]
 pub mod listview;
 pub mod networking;
+pub(crate) mod objc_access;
 pub mod notification_center;
 
 #[cfg(feature = "appkit")]
@@ -159,6 +167,9 @@ pub mod scrollview;
 
 #[cfg(feature = "appkit")]
 pub mod switch;
+
+#[cfg(feature = "appkit")]
+pub mod select;
 
 #[cfg(feature = "appkit")]
 pub mod text;

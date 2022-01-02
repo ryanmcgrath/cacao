@@ -17,10 +17,11 @@ use objc::{msg_send, sel, sel_impl, class};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
+use crate::appkit::toolbar::{Toolbar, ToolbarDelegate};
 use crate::color::Color;
 use crate::foundation::{id, nil, to_bool, YES, NO, NSString, NSInteger, NSUInteger};
-use crate::layout::traits::Layout;
-use crate::appkit::toolbar::{Toolbar, ToolbarDelegate};
+use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::utils::{os, Controller};
 
 mod class;
@@ -289,7 +290,7 @@ impl<T> Window<T> {
 
     /// Given a view, sets it as the content view for this window.
     pub fn set_content_view<L: Layout + 'static>(&self, view: &L) {
-        view.with_backing_node(|backing_node| unsafe {
+        view.with_backing_obj_mut(|backing_node| unsafe {
             let _: () = msg_send![&*self.objc, setContentView:&*backing_node];
         });
     }
@@ -446,6 +447,7 @@ impl<T> Window<T> {
         }
     }
 
+    /// Sets the separator style for this window.
     pub fn set_titlebar_separator_style(&self, style: crate::foundation::NSInteger) {
         unsafe {
             let _: () = msg_send![&*self.objc, setTitlebarSeparatorStyle:style];

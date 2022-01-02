@@ -4,6 +4,7 @@ use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::id;
 use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::view::{VIEW_DELEGATE_PTR, View, ViewDelegate};
 use crate::utils::Controller;
 
@@ -55,7 +56,7 @@ where
                 (&mut *vc).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
             }
 
-            view.with_backing_node(|backing_node| {
+            view.with_backing_obj_mut(|backing_node| {
                 let _: () = msg_send![vc, setView:backing_node];
             });
 

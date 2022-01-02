@@ -49,6 +49,8 @@ use crate::appkit::menu::Menu;
 use crate::notification_center::Dispatcher;
 use crate::utils::activate_cocoa_multithreading;
 
+//use crate::bundle::set_bundle_id;
+
 mod class;
 use class::register_app_class;
 
@@ -131,7 +133,7 @@ impl<T> App<T> where T: AppDelegate + 'static {
     /// policies), injects an `NSObject` delegate wrapper, and retains everything on the
     /// Objective-C side of things.
     pub fn new(_bundle_id: &str, delegate: T) -> Self {
-        // set_bundle_id(bundle_id);
+        //set_bundle_id(bundle_id);
         
         activate_cocoa_multithreading();
         

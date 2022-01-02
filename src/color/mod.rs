@@ -217,6 +217,7 @@ pub enum Color {
     /// The default color to use for thin separators/lines that
     /// do not allow content underneath to be visible.
     /// This value automatically switches to the correct variant depending on light or dark mode.
+    #[cfg(feature = "uikit")]
     OpaqueSeparator,
 
     /// The default color to use for rendering links.
@@ -495,7 +496,10 @@ unsafe fn to_objc(obj: &Color) -> id {
         Color::SystemBackgroundSecondary => system_color_with_fallback!(color, secondarySystemBackgroundColor, clearColor),
         Color::SystemBackgroundTertiary => system_color_with_fallback!(color, tertiarySystemBackgroundColor, clearColor),
         Color::Separator => system_color_with_fallback!(color, separatorColor, lightGrayColor),
+        
+        #[cfg(feature = "uikit")]
         Color::OpaqueSeparator => system_color_with_fallback!(color, opaqueSeparatorColor, darkGrayColor),
+
         Color::Link => system_color_with_fallback!(color, linkColor, blueColor),
         Color::DarkText => system_color_with_fallback!(color, darkTextColor, blackColor),
         Color::LightText => system_color_with_fallback!(color, lightTextColor, whiteColor),

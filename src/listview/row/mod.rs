@@ -52,11 +52,12 @@ use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layer::Layer;
 use crate::layout::Layout;
-use crate::view::ViewDelegate;
+use crate::objc_access::ObjcAccess;
+use crate::view::{ViewAnimatorProxy, ViewDelegate};
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension, SafeAreaLayoutGuide};
 
 #[cfg(feature = "appkit")]
 mod appkit;
@@ -93,11 +94,18 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 /// side anyway.
 #[derive(Debug)]
 pub struct ListViewRow<T = ()> {
+    /// An object that supports limited animations. Can be cloned into animation closures.
+    pub animator: ViewAnimatorProxy,
+
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
+
+    /// A safe layout guide property.
+    #[cfg(feature = "autolayout")]
+    pub safe_layout_guide: SafeAreaLayoutGuide,
     
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
@@ -154,6 +162,10 @@ impl ListViewRow {
         ListViewRow {
             delegate: None,
             objc: ObjcProperty::retain(view),
+            animator: ViewAnimatorProxy::new(view),
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: SafeAreaLayoutGuide::new(view),
             
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
@@ -211,6 +223,10 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
         let view = ListViewRow {
             delegate: Some(delegate),
             objc: ObjcProperty::retain(view),
+            animator: ViewAnimatorProxy::new(view),
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: SafeAreaLayoutGuide::new(view),
             
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
@@ -263,6 +279,10 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
         let mut view = ListViewRow {
             delegate: None,
             objc: ObjcProperty::retain(view),
+            animator: ViewAnimatorProxy::new(view),
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: SafeAreaLayoutGuide::new(view),
             
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
@@ -311,7 +331,11 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
         ListViewRow {
             delegate: None,
             objc: self.objc.clone(),
+            animator: self.animator.clone(),
             
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: self.safe_layout_guide.clone(),
+
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
 
@@ -354,9 +378,13 @@ impl<T> ListViewRow<T> {
         crate::view::View {
             delegate: None,
             is_handle: true,
-            layer: Layer::new(),
+            layer: Layer::new(), // @TODO: Fix & return cloned true layer for this row.
             objc: self.objc.clone(),
-            
+            animator: self.animator.clone(),
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: self.safe_layout_guide.clone(),
+
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
             
@@ -408,15 +436,17 @@ impl<T> ListViewRow<T> {
     }
 }
 
-impl<T> Layout for ListViewRow<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for ListViewRow<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl<T> Layout for ListViewRow<T> {}
 
 impl<T> Drop for ListViewRow<T> {
     fn drop(&mut self) {

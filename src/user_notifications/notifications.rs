@@ -9,6 +9,7 @@ use crate::foundation::{id, NSString};
 
 /// A wrapper for `UNMutableNotificationContent`. Retains the pointer from the Objective C side,
 /// and is ultimately dropped upon sending.
+#[derive(Debug)]
 pub struct Notification(pub Id<Object>);
 
 impl Notification {

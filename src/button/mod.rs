@@ -29,10 +29,13 @@ use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::color::Color;
+use crate::control::Control;
 use crate::image::Image;
 use crate::foundation::{id, nil, BOOL, YES, NO, NSString, NSUInteger};
 use crate::invoker::TargetActionHandler;
+use crate::keys::Key;
 use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::text::{AttributedString, Font};
 use crate::utils::{load, properties::ObjcProperty};
 
@@ -213,11 +216,21 @@ impl Button {
 
     /// Set a key to be bound to this button. When the key is pressed, the action coupled to this
     /// button will fire.
-    pub fn set_key_equivalent(&self, key: &str) {
-        let key = NSString::new(key);
+    pub fn set_key_equivalent<'a, K>(&self, key: K)
+    where
+        K: Into<Key<'a>>
+    {
+        let key: Key<'a> = key.into();
 
-        self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setKeyEquivalent:&*key];
+        self.objc.with_mut(|obj| {
+            let keychar = match key {
+                Key::Char(s) => NSString::new(s),
+                Key::Delete => NSString::new("\u{08}")
+            };
+            
+            unsafe {
+                let _: () = msg_send![obj, setKeyEquivalent:&*keychar];
+            }
         });
     }
 
@@ -281,25 +294,31 @@ impl Button {
     }
 }
 
-impl Layout for Button {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl ObjcAccess for Button {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
 
-impl Layout for &Button {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl Layout for Button {}
+impl Control for Button {}
+
+impl ObjcAccess for &Button {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl Layout for &Button {}
+impl Control for &Button {}
 
 impl Drop for Button {
     /// Nils out references on the Objective-C side and removes this from the backing view.

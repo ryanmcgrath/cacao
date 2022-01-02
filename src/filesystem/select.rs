@@ -10,7 +10,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::foundation::{id, YES, NO, NSInteger, NSString};
+use crate::foundation::{id, nil, YES, NO, NSInteger, NSString, NSURL};
 use crate::filesystem::enums::ModalResponse;
 
 #[cfg(feature = "appkit")]
@@ -127,8 +127,7 @@ impl FileSelectPanel {
         self.allows_multiple_selection = allows;
     }
 
-    /// Shows the panel as a modal. Currently sheets are not supported, but you're free (and able
-    /// to) thread the Objective C calls yourself by using the panel field on this struct.
+    /// Shows the panel as a modal.
     ///
     /// Note that this clones the underlying `NSOpenPanel` pointer. This is theoretically safe as
     /// the system runs and manages that in another process, and we're still abiding by the general
@@ -138,7 +137,7 @@ impl FileSelectPanel {
     /// script) or can't easily pass one to use as a sheet.
     pub fn show<F>(&self, handler: F)
     where
-        F: Fn(Vec<PathBuf>) + 'static
+        F: Fn(Vec<NSURL>) + 'static
     {
         let panel = self.panel.clone();
         let completion = ConcreteBlock::new(move |result: NSInteger| {
@@ -155,6 +154,16 @@ impl FileSelectPanel {
         }
     }
 
+    /// As panels descend behind the scenes from `NSWindow`, we can call through to close it.
+    ///
+    /// You should really prefer to utilize sheets to display panels; this is offered as a
+    /// convenience for rare cases where you might need to retain a panel and close it later on.
+    pub fn close(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.panel, close];
+        }
+    }
+
     /// Shows the panel as a modal. Currently, this method accepts `Window`s which use a delegate.
     /// If you're using a `Window` without a delegate, you may need to opt to use the `show()`
     /// method.
@@ -164,7 +173,7 @@ impl FileSelectPanel {
     /// retain/ownership rules here.
     pub fn begin_sheet<T, F>(&self, window: &Window<T>, handler: F)
     where
-        F: Fn(Vec<PathBuf>) + 'static
+        F: Fn(Vec<NSURL>) + 'static
     {
         let panel = self.panel.clone();
         let completion = ConcreteBlock::new(move |result: NSInteger| {
@@ -185,15 +194,16 @@ impl FileSelectPanel {
 /// Retrieves the selected URLs from the provided panel.
 /// This is currently a bit ugly, but it's also not something that needs to be the best thing in
 /// the world as it (ideally) shouldn't be called repeatedly in hot spots.
-pub fn get_urls(panel: &Object) -> Vec<PathBuf> {
+///
+/// (We mostly do this to find the sweet spot between Rust constructs and necessary Foundation
+/// interaction patterns)
+fn get_urls(panel: &Object) -> Vec<NSURL> {
     unsafe {
         let urls: id = msg_send![&*panel, URLs];
         let count: usize = msg_send![urls, count];
 
         (0..count).map(|index| {
-            let url: id = msg_send![urls, objectAtIndex:index];
-            let path = NSString::retain(msg_send![url, path]).to_string();
-            path.into()
+            NSURL::retain(msg_send![urls, objectAtIndex:index])
         }).collect()
     }
 }

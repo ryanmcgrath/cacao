@@ -49,6 +49,21 @@ impl NSData {
             NSData(Id::from_ptr(obj))
         }
     }
+    
+    /// Given a slice of bytes, creates, retains, and returns a wrapped `NSData`.
+    ///
+    /// This method is borrowed straight out of [objc-foundation](objc-foundation) by the amazing
+    /// Steven Sheldon, and just tweaked slightly to fit the desired API semantics here.
+    ///
+    /// [objc-foundation]: https://crates.io/crates/objc-foundation
+    pub fn with_slice(bytes: &[u8]) -> Self {
+        let bytes_ptr = bytes.as_ptr() as *mut c_void;
+
+        unsafe {
+            let obj: id = msg_send![class!(NSData), dataWithBytes:bytes_ptr length:bytes.len()];
+            NSData(Id::from_ptr(obj))
+        }
+    }
 
     /// Given a (presumably) `NSData`, wraps and retains it.
     pub fn retain(data: id) -> Self {

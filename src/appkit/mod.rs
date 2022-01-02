@@ -8,6 +8,9 @@
 mod alert;
 pub use alert::Alert;
 
+mod animation;
+pub use animation::AnimationContext;
+
 mod app;
 pub use app::*;
 

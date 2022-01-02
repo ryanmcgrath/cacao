@@ -5,6 +5,7 @@ use objc::{msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
@@ -147,22 +148,33 @@ impl ImageView {
         });
     }
 
+    /// Given an image reference, sets it on the image view. You're currently responsible for
+    /// retaining this yourself.
     pub fn set_image(&self, image: &Image) {
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setImage:&*image.0];
         });
     }
+
+    /*pub fn set_image_scaling(&self, scaling_type: ImageScale) {
+        self.objc.with_mut(|obj| unsafe {
+
+            let _: () = msg_send![obj, setImageScaling:
+        });
+    }*/
 }
 
-impl Layout for ImageView {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl ObjcAccess for ImageView {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl Layout for ImageView {}
 
 impl Drop for ImageView {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being
