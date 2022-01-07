@@ -32,7 +32,7 @@ impl Event {
         // @TODO: Check here if key event, invalid otherwise.
         // @TODO: Figure out if we can just return &str here, since the Objective-C side
         // should... make it work, I think.
-        let characters = NSString::from_retained(unsafe {
+        let characters = NSString::retain(unsafe {
             msg_send![&*self.0, characters]
         });
 
