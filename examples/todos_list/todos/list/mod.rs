@@ -64,6 +64,7 @@ impl ListViewDelegate for TodosListView {
     fn did_load(&mut self, view: ListView) {
         view.register(TODO_ROW, TodoViewRow::default);
         view.set_uses_alternating_backgrounds(true);
+        view.set_row_height(64.);
         self.view = Some(view);
     }
 

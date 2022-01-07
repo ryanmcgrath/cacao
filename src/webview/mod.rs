@@ -23,6 +23,7 @@ use crate::foundation::{id, nil, YES, NO, NSString};
 use crate::geometry::Rect;
 use crate::layout::Layout;
 use crate::layer::Layer;
+use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
@@ -334,15 +335,17 @@ impl<T> WebView<T> {
     }
 }
 
-impl<T> Layout for WebView<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for WebView<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
+}
 
+impl<T> Layout for WebView<T> {
     /// Currently, this is a noop. Theoretically there is reason to support this, but in practice
     /// I've never seen it needed... but am open to discussion.
     fn add_subview<V: Layout>(&self, _: &V) {}

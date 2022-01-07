@@ -37,7 +37,7 @@ impl AppDelegate for CalculatorApp {
         // Event Monitors need to be started after the App has been activated.
         // We use an RwLock here, but it's possible this entire method can be 
         // &mut self and you wouldn't need these kinds of shenanigans.
-        self.start_monitoring();
+        //self.start_monitoring();
 
         self.window.set_title("Calculator");
         self.window.set_background_color(Color::rgb(49,49,49));

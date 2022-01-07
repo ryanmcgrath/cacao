@@ -15,7 +15,7 @@ impl Default for PreferencesToolbar {
             let mut item = ToolbarItem::new("general");
             item.set_title("General");
 
-            let icon = Image::system_icon(MacSystemIcon::PreferencesGeneral, "General");
+            let icon = Image::toolbar_icon(MacSystemIcon::PreferencesGeneral, "General");
             item.set_image(icon);
             
             item.set_action(|| {
@@ -27,7 +27,7 @@ impl Default for PreferencesToolbar {
             let mut item = ToolbarItem::new("advanced");
             item.set_title("Advanced");
             
-            let icon = Image::system_icon(MacSystemIcon::PreferencesAdvanced, "Advanced");
+            let icon = Image::toolbar_icon(MacSystemIcon::PreferencesAdvanced, "Advanced");
             item.set_image(icon);
             
             item.set_action(|| {

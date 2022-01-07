@@ -49,6 +49,7 @@ impl ViewDelegate for AddNewTodoContentView {
         let input = TextField::new();
         
         let mut button = Button::new("Add");
+        button.set_key_equivalent("\r");
         button.set_action(|| dispatch_ui(Message::ProcessNewTodo));
         
         view.add_subview(&instructions);
@@ -65,7 +66,8 @@ impl ViewDelegate for AddNewTodoContentView {
             input.trailing.constraint_equal_to(&view.trailing).offset(-16.),
 
             button.top.constraint_equal_to(&input.bottom).offset(8.),
-            button.trailing.constraint_equal_to(&view.trailing).offset(-16.)
+            button.trailing.constraint_equal_to(&view.trailing).offset(-16.),
+            button.bottom.constraint_equal_to(&view.bottom).offset(-16.)
         ]);
 
         self.view = Some(view);

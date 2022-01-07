@@ -10,6 +10,12 @@ use cacao::appkit::{App, AppDelegate};
 use cacao::appkit::menu::{Menu, MenuItem};
 use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
 
+const CORNER_RADIUS: f64 = 16.;
+const SPACING: f64 = 10.;
+const TOP: f64 = 40.;
+const WIDTH: f64 = 100.;
+const HEIGHT: f64 = 100.;
+
 struct BasicApp {
     window: Window<AppWindow>
 }
@@ -46,6 +52,7 @@ impl AppDelegate for BasicApp {
         App::activate();
 
         self.window.show();
+        self.window.delegate.as_ref().unwrap().layout();
     }
 
     fn should_terminate_after_last_window_closed(&self) -> bool {
@@ -61,19 +68,8 @@ struct AppWindow {
     green: View
 }
 
-const CORNER_RADIUS: f64 = 16.;
-const SPACING: f64 = 10.;
-const TOP: f64 = 40.;
-const WIDTH: f64 = 100.;
-const HEIGHT: f64 = 100.;
-
-impl WindowDelegate for AppWindow {
-    const NAME: &'static str = "WindowDelegate";
-
-    fn did_load(&mut self, window: Window) {
-        window.set_title("Frame Layout Example");
-        window.set_minimum_content_size(300., 300.);
-
+impl AppWindow {
+    pub fn layout(&self) {
         self.blue.set_background_color(Color::SystemBlue);
         self.blue.set_frame(Rect {
             top: TOP,
@@ -103,7 +99,15 @@ impl WindowDelegate for AppWindow {
         });
         self.green.layer.set_corner_radius(CORNER_RADIUS);
         self.content.add_subview(&self.green);
+    }
+}
 
+impl WindowDelegate for AppWindow {
+    const NAME: &'static str = "WindowDelegate";
+
+    fn did_load(&mut self, window: Window) {
+        window.set_title("Frame Layout Example");
+        window.set_minimum_content_size(300., 300.);
         window.set_content_view(&self.content);
     }
 }

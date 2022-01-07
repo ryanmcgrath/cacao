@@ -172,12 +172,12 @@ impl Image {
     ///
     /// A system symbol will swap an SFSymbol in for macOS 11.0+, but return the correct
     /// MacSystemIcon image type for versions prior to that. This is mostly helpful in situations
-    /// like Preferences windows, where you want to have the correct modern styling for newer OS
+    /// like Preferences windows toolbars, where you want to have the correct modern styling for newer OS
     /// versions.
     ///
     /// However, if you need the correct "folder" icon for instance, you probably want `system_icon`.
     #[cfg(target_os = "macos")]
-    pub fn system_symbol(icon: MacSystemIcon, accessibility_description: &str) -> Self {
+    pub fn toolbar_icon(icon: MacSystemIcon, accessibility_description: &str) -> Self {
         Image(unsafe {
             ShareId::from_ptr(match os::is_minimum_version(11) {
                 true => {
