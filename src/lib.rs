@@ -28,7 +28,7 @@
 //! # Hello World
 //!
 //! ```rust,no_run
-//! use cacao::macos::app::{App, AppDelegate};
+//! use cacao::macos::{App, AppDelegate};
 //! use cacao::macos::window::Window;
 //! 
 //! #[derive(Default)]
