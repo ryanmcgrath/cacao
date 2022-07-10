@@ -9,7 +9,8 @@ use std::time::Instant;
 
 use lazy_static::lazy_static;
 use objc::declare::ClassDecl;
-use objc::runtime::{objc_getClass, Class};
+use objc::ffi;
+use objc::runtime::Class;
 
 lazy_static! {
     static ref CLASSES: ClassMap = ClassMap::new();
@@ -83,7 +84,7 @@ impl ClassMap {
         // runtime, and we can wind up in a situation where we're attempting to register a Class
         // that already exists but we can't see.
         let objc_class_name = CString::new(class_name).unwrap();
-        let class = unsafe { objc_getClass(objc_class_name.as_ptr() as *const _) };
+        let class = unsafe { ffi::objc_getClass(objc_class_name.as_ptr() as *const _) };
 
         // This should not happen for our use-cases, but it's conceivable that this could actually
         // be expected, so just return None and let the caller panic if so desired.
@@ -101,7 +102,7 @@ impl ClassMap {
             });
         }
 
-        Some(class)
+        Some(class.cast())
     }
 
     /// Store a newly created subclass type.

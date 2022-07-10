@@ -11,14 +11,9 @@
 use std::ffi::CString;
 use std::mem;
 
-use objc::{class, msg_send, sel, Encode, Encoding, EncodeArguments, Message};
-use objc::runtime::{Class, Sel, Method, Object, Imp};
-use objc::runtime::{
-    objc_getClass,
-    class_addMethod,
-    class_getInstanceMethod,
-    method_exchangeImplementations
-};
+use objc::ffi;
+use objc::runtime::{Class, Imp, Object, Sel};
+use objc::{class, msg_send, sel, Encode, EncodeArguments, Encoding, Message};
 
 use crate::foundation::{id, nil, BOOL, YES, NSString};
 
@@ -73,24 +68,27 @@ extern "C" fn get_bundle_id(this: &Object, s: Sel, v: id) -> id {
     }
 }
 
-unsafe fn swizzle_bundle_id<F>(bundle_id: &str, func: F) where F: MethodImplementation<Callee=Object> {
+unsafe fn swizzle_bundle_id<F>(bundle_id: &str, func: F)
+where
+    F: MethodImplementation<Callee = Object>,
+{
     let name = CString::new("NSBundle").unwrap();
-    let cls = objc_getClass(name.as_ptr());
+    let cls = ffi::objc_getClass(name.as_ptr());
 
     // let mut cls = class!(NSBundle) as *mut Class;
     // Class::get("NSBundle").unwrap();
     // let types = format!("{}{}{}", Encoding::String, <*mut Object>::ENCODING, Sel::ENCODING);
 
-    let added = class_addMethod(
-        cls as *mut Class,
-        sel!(__bundleIdentifier),
+    let added = ffi::class_addMethod(
+        cls as *mut ffi::objc_class,
+        sel!(__bundleIdentifier).as_ptr(),
         func.imp(),
-        CString::new("*@:").unwrap().as_ptr()
+        CString::new("*@:").unwrap().as_ptr(),
     );
 
-    let method1 = class_getInstanceMethod(cls, sel!(bundleIdentifier)) as *mut Method;
-    let method2 = class_getInstanceMethod(cls, sel!(__bundleIdentifier)) as *mut Method;
-    method_exchangeImplementations(method1, method2);
+    let method1 = ffi::class_getInstanceMethod(cls, sel!(bundleIdentifier).as_ptr()) as *mut ffi::objc_method;
+    let method2 = ffi::class_getInstanceMethod(cls, sel!(__bundleIdentifier).as_ptr()) as *mut ffi::objc_method;
+    ffi::method_exchangeImplementations(method1, method2);
 }
 
 pub fn set_bundle_id(bundle_id: &str) {
