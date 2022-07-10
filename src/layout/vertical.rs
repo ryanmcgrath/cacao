@@ -5,7 +5,7 @@ use objc_id::ShareId;
 use crate::foundation::id;
 use crate::layout::constraint::LayoutConstraint;
 
-/// A wrapper for `NSLayoutAnchorY`, used to handle values for how a given view should 
+/// A wrapper for `NSLayoutAnchorY`, used to handle values for how a given view should
 /// layout along the y-axis.
 #[derive(Clone, Debug)]
 pub enum LayoutAnchorY {
@@ -59,7 +59,7 @@ impl LayoutAnchorY {
     {
         match (self, anchor_to) {
             (Self::Top(from), Self::Top(to)) | (Self::Top(from), Self::Bottom(to)) |
-            (Self::Top(from), Self::Center(to)) | 
+            (Self::Top(from), Self::Center(to)) |
 
             (Self::Bottom(from), Self::Bottom(to)) | (Self::Bottom(from), Self::Top(to)) |
             (Self::Bottom(from), Self::Center(to)) |

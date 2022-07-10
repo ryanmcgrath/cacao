@@ -5,7 +5,7 @@
 //! people expect in 2020, and layer-backing all views by default.
 //!
 //! Views implement Autolayout, which enable you to specify how things should appear on the screen.
-//! 
+//!
 //! ```rust,no_run
 //! use cacao::color::Color;
 //! use cacao::layout::{Layout, LayoutConstraint};
@@ -18,7 +18,7 @@
 //!     red: View,
 //!     window: Window
 //! }
-//! 
+//!
 //! impl WindowDelegate for AppWindow {
 //!     fn did_load(&mut self, window: Window) {
 //!         window.set_minimum_content_size(300., 300.);
@@ -26,7 +26,7 @@
 //!
 //!         self.red.set_background_color(Color::SystemRed);
 //!         self.content.add_subview(&self.red);
-//!         
+//!
 //!         self.window.set_content_view(&self.content);
 //!
 //!         LayoutConstraint::activate(&[
@@ -175,37 +175,37 @@ impl View {
 
             #[cfg(feature = "autolayout")]
             safe_layout_guide: SafeAreaLayoutGuide::new(view),
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
+
             layer: Layer::wrap(unsafe {
                 msg_send![view, layer]
             }),
@@ -229,7 +229,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
     pub fn with(delegate: T) -> View<T> {
         let class = native_interface::register_view_class_with_delegate(&delegate);
         let mut delegate = Box::new(delegate);
-        
+
         let view = unsafe {
             let view: id = msg_send![class, new];
             let ptr = Box::into_raw(delegate);
@@ -239,7 +239,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
         };
 
         let mut view = View::init(view);
-        (&mut delegate).did_load(view.clone_as_handle()); 
+        (&mut delegate).did_load(view.clone_as_handle());
         view.delegate = Some(delegate);
         view
     }
@@ -257,37 +257,37 @@ impl<T> View<T> {
             layer: self.layer.clone(),
             objc: self.objc.clone(),
             animator: self.animator.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             safe_layout_guide: self.safe_layout_guide.clone(),
 
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             left: self.left.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             right: self.right.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             width: self.width.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             height: self.height.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
         }

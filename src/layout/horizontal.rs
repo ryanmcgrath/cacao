@@ -5,7 +5,7 @@ use objc_id::ShareId;
 use crate::foundation::id;
 use crate::layout::constraint::LayoutConstraint;
 
-/// A wrapper for `NSLayoutAnchorX`, used to handle values for how a given view should 
+/// A wrapper for `NSLayoutAnchorX`, used to handle values for how a given view should
 /// layout along the x-axis.
 ///
 /// Of note: mismatches of incorrect left/leading and right/trailing anchors are detected at
@@ -114,25 +114,25 @@ impl LayoutAnchorX {
             // undefined/unexpected layout behavior when a system has differing ltr/rtl setups.
             (Self::Leading(_), Self::Left(_)) | (Self::Left(_), Self::Leading(_)) => {
                 panic!(r#"
-                    Attempted to attach a "leading" constraint to a "left" constraint. This will 
+                    Attempted to attach a "leading" constraint to a "left" constraint. This will
                     result in undefined behavior for LTR and RTL system settings, and Cacao blocks this.
-                    
+
                     Use either left/right or leading/trailing.
                 "#);
             },
-            
+
             (Self::Leading(_), Self::Right(_)) | (Self::Right(_), Self::Leading(_)) => {
                 panic!(r#"
-                    Attempted to attach a "leading" constraint to a "right" constraint. This will 
+                    Attempted to attach a "leading" constraint to a "right" constraint. This will
                     result in undefined behavior for LTR and RTL system settings, and Cacao blocks this.
-                    
+
                     Use either left/right or leading/trailing.
                 "#);
             },
 
             (Self::Trailing(_), Self::Left(_)) | (Self::Left(_), Self::Trailing(_)) => {
                 panic!(r#"
-                    Attempted to attach a "trailing" constraint to a "left" constraint. This will 
+                    Attempted to attach a "trailing" constraint to a "left" constraint. This will
                     result in undefined behavior for LTR and RTL system settings, and Cacao blocks this.
 
                     Use either left/right or leading/trailing.
@@ -141,7 +141,7 @@ impl LayoutAnchorX {
 
             (Self::Trailing(_), Self::Right(_)) | (Self::Right(_), Self::Trailing(_)) => {
                 panic!(r#"
-                    Attempted to attach a "trailing" constraint to a "right" constraint. This will 
+                    Attempted to attach a "trailing" constraint to a "right" constraint. This will
                     result in undefined behavior for LTR and RTL system settings, and Cacao blocks this.
 
                     Use either left/right or leading/trailing.

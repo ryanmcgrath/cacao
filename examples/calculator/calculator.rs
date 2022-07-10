@@ -40,7 +40,7 @@ impl Calculator {
 
     pub fn run(&self, message: Msg) {
         let mut expression = self.0.write().unwrap();
-        
+
         match message {
             Msg::Push(i) => {
                 // Realistically you might want to check decimal length here or something.
@@ -49,7 +49,7 @@ impl Calculator {
                 let display = (*expression).join("").split(" ").last().unwrap_or("0").to_string();
                 App::<CalculatorApp, String>::dispatch_main(display);
             },
-            
+
             Msg::Decimal => {
                 let display = (*expression).join("").split(" ").last().unwrap_or("0").to_string();
                 if !display.contains(".") {
@@ -65,11 +65,11 @@ impl Calculator {
                     }
                 }
             },
-            
+
             Msg::Subtract => {
                 (*expression).push(" - ".to_string());
             },
-            
+
             Msg::Multiply => {
                 (*expression).push(" * ".to_string());
             },
@@ -90,7 +90,7 @@ impl Calculator {
                 }
 
                 println!("Expr: {}", expr);
-                
+
                 match eval::eval(&expr) {
                     Ok(val) => { App::<CalculatorApp, String>::dispatch_main(val.to_string()); },
                     Err(e) => { eprintln!("Error parsing expression: {:?}", e); }
@@ -98,6 +98,6 @@ impl Calculator {
             }
 
             _ => {}
-        }       
+        }
     }
 }

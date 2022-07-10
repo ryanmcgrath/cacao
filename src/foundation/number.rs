@@ -22,7 +22,7 @@ impl NSNumber {
             Id::from_ptr(data)
         })
     }
-    
+
     /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
     /// wrap it while we figure out what to do with it. This does that.
     pub fn wrap(data: id) -> Self {

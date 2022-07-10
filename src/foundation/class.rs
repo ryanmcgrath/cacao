@@ -39,7 +39,7 @@ impl ClassMap {
             let mut map = HashMap::new();
 
             // Top-level classes, like `NSView`, we cache here. The reasoning is that if a subclass
-            // is being created, we can avoid querying the runtime for the superclass - i.e, many 
+            // is being created, we can avoid querying the runtime for the superclass - i.e, many
             // subclasses will have `NSView` as their superclass.
             map.insert("_supers", HashMap::new());
 
@@ -118,15 +118,15 @@ impl ClassMap {
 }
 
 /// Attempts to load a subclass, given a `superclass_name` and subclass_name. If
-/// the subclass cannot be loaded, it's dynamically created and injected into 
+/// the subclass cannot be loaded, it's dynamically created and injected into
 /// the runtime, and then returned. The returned value can be used for allocating new instances of
 /// this class in the Objective-C runtime.
 ///
 /// The `config` block can be used to customize the Class declaration before it's registered with
 /// the runtime. This is useful for adding method handlers and ivar storage.
 ///
-/// If the superclass cannot be loaded, this will panic. If the subclass cannot be 
-/// created, this will panic. In general, this is expected to work, and if it doesn't, 
+/// If the superclass cannot be loaded, this will panic. If the subclass cannot be
+/// created, this will panic. In general, this is expected to work, and if it doesn't,
 /// the entire framework will not really work.
 ///
 /// There's definitely room to optimize here, but it works for now.
@@ -155,7 +155,7 @@ where
                 return class;
             },
 
-            None => { 
+            None => {
                 panic!(
                     "Subclass of type {}_{} could not be allocated.",
                     subclass_name,

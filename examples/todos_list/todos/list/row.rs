@@ -34,7 +34,7 @@ impl TodoViewRow {
 
 impl ViewDelegate for TodoViewRow {
     const NAME: &'static str = "TodoViewRow";
-    
+
     /// Called when the view is first created; handles setup of layout and associated styling that
     /// doesn't change.
     fn did_load(&mut self, view: View) {
@@ -50,7 +50,7 @@ impl ViewDelegate for TodoViewRow {
             self.title.top.constraint_equal_to(&view.top).offset(16.),
             self.title.leading.constraint_equal_to(&view.leading).offset(16.),
             self.title.trailing.constraint_equal_to(&view.trailing).offset(-16.),
-            
+
             self.status.top.constraint_equal_to(&self.title.bottom).offset(8.),
             self.status.leading.constraint_equal_to(&view.leading).offset(16.),
             self.status.trailing.constraint_equal_to(&view.trailing).offset(-16.),

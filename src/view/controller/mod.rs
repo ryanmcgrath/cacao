@@ -23,7 +23,7 @@ mod native_interface;
 /// ## Example
 /// ```rust,no_run
 /// struct ContentViewDelegate;
-///     
+///
 /// impl ViewDelegate for ContentViewDelegate {
 ///     fn will_appear(&self, animated: bool) {
 ///         println!("This controller is about to appear!");
@@ -50,7 +50,7 @@ where
 
         let objc = unsafe {
             let vc: id = msg_send![class, new];
-            
+
             if let Some(delegate)= &view.delegate {
                 let ptr: *const T = &**delegate;
                 (&mut *vc).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);

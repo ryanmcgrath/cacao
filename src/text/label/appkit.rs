@@ -47,8 +47,8 @@ pub(crate) fn register_view_class_with_delegate<T: LabelDelegate>() -> *const Cl
 
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.
-        decl.add_ivar::<usize>(LABEL_DELEGATE_PTR);        
-       
+        decl.add_ivar::<usize>(LABEL_DELEGATE_PTR);
+
         VIEW_CLASS = decl.register();
     });
 

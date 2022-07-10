@@ -58,7 +58,7 @@ extern fn item_for_identifier<T: ToolbarDelegate>(
 ) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
     let identifier = NSString::from_retained(identifier);
-    
+
     let item = toolbar.item_for(identifier.to_str());
     unsafe {
         msg_send![&*item.objc, self]

@@ -55,7 +55,7 @@ impl ResizeBehavior {
     pub fn apply(&self, source: CGRect, target: CGRect) -> CGRect {
         // if equal, just return source
         if
-            source.origin.x == target.origin.x && 
+            source.origin.x == target.origin.x &&
             source.origin.y == target.origin.y &&
             source.size.width == target.size.width &&
             source.size.height == target.size.height
@@ -64,10 +64,10 @@ impl ResizeBehavior {
         }
 
         if
-            source.origin.x == 0. && 
+            source.origin.x == 0. &&
             source.origin.y == 0. &&
             source.size.width == 0. &&
-            source.size.height == 0. 
+            source.size.height == 0.
         {
             return source;
         }
@@ -195,7 +195,7 @@ impl Image {
         })
     }
 
-    /// Creates and returns an Image with the specified `SFSymbol`. Note that `SFSymbol` is 
+    /// Creates and returns an Image with the specified `SFSymbol`. Note that `SFSymbol` is
     /// supported on 11.0+; as such, this will panic if called on a lower system. Take care to
     /// provide a fallback image or user experience if you need to support an older OS.
     pub fn symbol(symbol: SFSymbol, accessibility_description: &str) -> Self {
@@ -246,7 +246,7 @@ impl Image {
             );
 
             let result = handler(resized_frame, &context);
-            
+
             let _: () = msg_send![class!(NSGraphicsContext), restoreGraphicsState];
 
             match result {
@@ -257,8 +257,8 @@ impl Image {
         let block = block.copy();
 
         Image(unsafe {
-            let img: id = msg_send![class!(NSImage), imageWithSize:target_frame.size 
-                flipped:YES 
+            let img: id = msg_send![class!(NSImage), imageWithSize:target_frame.size
+                flipped:YES
                 drawingHandler:block
             ];
 

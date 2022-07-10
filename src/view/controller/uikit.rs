@@ -54,7 +54,7 @@ extern fn did_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BO
 pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>(instance: &T) -> *const Class {
     load_or_register_class("UIViewController", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
-        
+
         decl.add_method(sel!(viewWillAppear:), will_appear::<T> as extern fn(&mut Object, _, BOOL));
         decl.add_method(sel!(viewDidAppear:), did_appear::<T> as extern fn(&mut Object, _, BOOL));
         decl.add_method(sel!(viewWillDisappear:), will_disappear::<T> as extern fn(&mut Object, _, BOOL));

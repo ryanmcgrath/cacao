@@ -45,8 +45,8 @@ impl BrowserToolbar {
 
         let url_bar = TextField::with(URLBar);
         let url_bar_item = ToolbarItem::new(URL_BAR);
-        
-        // We cheat for now to link these, as there's no API for Toolbar yet 
+
+        // We cheat for now to link these, as there's no API for Toolbar yet
         // to support arbitrary view types. The framework is designed to support this kind of
         // cheating, though: it's not outlandish to need to just manage things yourself when it
         // comes to Objective-C/AppKit sometimes.

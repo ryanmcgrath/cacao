@@ -41,17 +41,17 @@ pub trait ViewDelegate {
     /// Called when this has been removed from the view heirarchy.
     fn did_disappear(&self, animated: bool) {}
 
-    /// Invoked when the dragged image enters destination bounds or frame; returns dragging 
+    /// Invoked when the dragged image enters destination bounds or frame; returns dragging
     /// operation to perform.
     #[cfg(feature = "appkit")]
     fn dragging_entered(&self, info: DragInfo) -> DragOperation { DragOperation::None }
-    
-    /// Invoked when the image is released, allowing the receiver to agree to or refuse 
+
+    /// Invoked when the image is released, allowing the receiver to agree to or refuse
     /// drag operation.
     #[cfg(feature = "appkit")]
     fn prepare_for_drag_operation(&self, info: DragInfo) -> bool { false }
 
-    /// Invoked after the released image has been removed from the screen, signaling the 
+    /// Invoked after the released image has been removed from the screen, signaling the
     /// receiver to import the pasteboard data.
     #[cfg(feature = "appkit")]
     fn perform_drag_operation(&self, info: DragInfo) -> bool { false }
@@ -61,7 +61,7 @@ pub trait ViewDelegate {
     #[cfg(feature = "appkit")]
     fn conclude_drag_operation(&self, info: DragInfo) {}
 
-    /// Invoked when the dragged image exits the destination’s bounds rectangle (in the case 
+    /// Invoked when the dragged image exits the destination’s bounds rectangle (in the case
     /// of a view) or its frame rectangle (in the case of a window object).
     #[cfg(feature = "appkit")]
     fn dragging_exited(&self, info: DragInfo) {}

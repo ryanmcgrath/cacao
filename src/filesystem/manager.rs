@@ -15,7 +15,7 @@ use crate::filesystem::enums::{SearchPathDirectory, SearchPathDomainMask};
 
 /// A FileManager can be used for file operations (moving files, etc).
 ///
-/// If your app is not sandboxed, you can use your favorite Rust library - 
+/// If your app is not sandboxed, you can use your favorite Rust library -
 /// but if you _are_ operating in the sandbox, there's a good chance you'll want to use this.
 ///
 /// @TODO: Couldn't this just be a ShareId?
@@ -55,7 +55,7 @@ impl FileManager {
 
         let directory = unsafe {
             let manager = self.0.read().unwrap();
-            let dir: id = msg_send![&**manager, URLForDirectory:dir 
+            let dir: id = msg_send![&**manager, URLForDirectory:dir
                 inDomain:mask
                 appropriateForURL:nil
                 create:NO
@@ -63,7 +63,7 @@ impl FileManager {
 
             NSString::retain(msg_send![dir, absoluteString])
         };
-        
+
         Url::parse(directory.to_str()).map_err(|e| e.into())
     }
 

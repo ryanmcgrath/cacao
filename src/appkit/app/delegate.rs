@@ -146,12 +146,12 @@ extern fn will_continue_user_activity_with_type<T: AppDelegate>(this: &Object, _
 extern fn continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: id, activity: id, handler: id) -> BOOL {
     // @TODO: This needs to support restorable objects, but it involves a larger question about how
     // much `NSObject` retainping we want to do here. For now, pass the handler for whenever it's
-    // useful. 
+    // useful.
     let activity = UserActivity::with_inner(activity);
 
     match app::<T>(this).continue_user_activity(activity, || unsafe {
         let handler = handler as *const Block<(id,), c_void>;
-        (*handler).call((nil,));        
+        (*handler).call((nil,));
     }) {
         true => YES,
         false => NO
@@ -202,7 +202,7 @@ extern fn open_urls<T: AppDelegate>(this: &Object, _: Sel, _: id, file_urls: id)
         let uri = NSString::retain(unsafe {
             msg_send![url, absoluteString]
         });
-        
+
         Url::parse(uri.to_str())
     }).into_iter().filter_map(|url| url.ok()).collect();
 
@@ -307,7 +307,7 @@ pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> *co
         // Launching Applications
         decl.add_method(sel!(applicationWillFinishLaunching:), will_finish_launching::<T> as extern fn(&Object, _, _));
         decl.add_method(sel!(applicationDidFinishLaunching:), did_finish_launching::<T> as extern fn(&Object, _, _));
-        
+
         // Managing Active Status
         decl.add_method(sel!(applicationWillBecomeActive:), will_become_active::<T> as extern fn(&Object, _, _));
         decl.add_method(sel!(applicationDidBecomeActive:), did_become_active::<T> as extern fn(&Object, _, _));

@@ -13,7 +13,7 @@ pub enum ControlSize {
 
     /// A smaller control size.
     Small,
-    
+
     /// The default, regular, size.
     Regular,
 
@@ -36,7 +36,7 @@ pub trait Control: ObjcAccess {
         });
     }
 
-    /// Sets the underlying control size. 
+    /// Sets the underlying control size.
     fn set_control_size(&self, size: ControlSize) {
         let control_size: NSUInteger = match size {
             ControlSize::Mini => 2,

@@ -23,7 +23,7 @@ impl Default for ToggleOptionView {
 
         let title = Label::new();
         view.add_subview(&title);
-        
+
         let subtitle = Label::new();
         view.add_subview(&subtitle);
 
@@ -31,7 +31,7 @@ impl Default for ToggleOptionView {
             switch.top.constraint_equal_to(&view.top),
             switch.leading.constraint_equal_to(&view.leading),
             switch.width.constraint_equal_to_constant(24.),
- 
+
             title.top.constraint_equal_to(&view.top),
             title.leading.constraint_equal_to(&switch.trailing),
             title.trailing.constraint_equal_to(&view.trailing),

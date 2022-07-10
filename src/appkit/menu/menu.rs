@@ -99,7 +99,7 @@ impl Menu {
                 MenuItem::Separator,
                 MenuItem::SelectAll
             ]),
-     
+
             Menu::new("View", vec![
                 MenuItem::EnterFullScreen
             ]),

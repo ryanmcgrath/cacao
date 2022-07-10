@@ -44,7 +44,7 @@ pub enum BezelStyle {
     /// A textured square style.
     TexturedSquare,
 
-    /// Any style that's not known by this framework (e.g, if Apple 
+    /// Any style that's not known by this framework (e.g, if Apple
     /// introduces something new).
     Unknown(NSUInteger)
 }

@@ -67,7 +67,7 @@ impl MacSystemIcon {
             MacSystemIcon::Add => SFSymbol::Plus.to_str(),
             MacSystemIcon::Remove => SFSymbol::Minus.to_str(),
             MacSystemIcon::Folder => SFSymbol::FolderFilled.to_str()
-        }       
+        }
     }
 }
 

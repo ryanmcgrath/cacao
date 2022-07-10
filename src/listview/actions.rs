@@ -59,7 +59,7 @@ impl RowAction {
             let action = RowAction(unsafe {
                 Id::from_ptr(action)
             });
-            
+
             handler(action, row as usize);
         });
         let block = block.copy();
@@ -77,7 +77,7 @@ impl RowAction {
     /// Sets the title of this action.
     pub fn set_title(&mut self, title: &str) {
         let title = NSString::new(title);
-        
+
         unsafe {
             let _: () = msg_send![&*self.0, setTitle:&*title];
         }

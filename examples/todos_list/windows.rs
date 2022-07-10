@@ -29,7 +29,7 @@ where
     F: Fn() -> (WindowConfig, T)
 {
     let mut lock = window.write().unwrap();
-    
+
     if let Some(win) = &*lock {
         win.show();
     } else {
@@ -55,7 +55,7 @@ impl WindowManager {
         F: Fn() + Send + Sync + 'static
     {
         let main = self.main.write().unwrap();
-        
+
         if let Some(main_window) = &*main {
             main_window.begin_sheet(window, completion);
         }

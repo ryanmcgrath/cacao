@@ -40,7 +40,7 @@ use crate::appkit::window::{Window, WindowConfig, WindowDelegate, WINDOW_DELEGAT
 mod class;
 use class::register_window_controller_class;
 
-/// A `WindowController` wraps your `WindowDelegate` into an underlying `Window`, and 
+/// A `WindowController` wraps your `WindowDelegate` into an underlying `Window`, and
 /// provides some extra lifecycle methods.
 pub struct WindowController<T> {
     /// A handler to the underlying `NSWindowController`.

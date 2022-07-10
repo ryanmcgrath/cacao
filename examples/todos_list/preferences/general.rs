@@ -1,5 +1,5 @@
-//! The main guts of the Preferences window. We store all our preferences in 
-//! `UserDefaults`, so there's not too much extra needed here - we can do most 
+//! The main guts of the Preferences window. We store all our preferences in
+//! `UserDefaults`, so there's not too much extra needed here - we can do most
 //! event handlers inline.
 
 use cacao::layout::{Layout, LayoutConstraint};
@@ -17,7 +17,7 @@ pub struct GeneralPreferencesContentView {
 
 impl ViewDelegate for GeneralPreferencesContentView {
     const NAME: &'static str = "GeneralPreferencesContentView";
-    
+
     fn did_load(&mut self, view: View) {
         self.example_option.configure(
             "An example preference",

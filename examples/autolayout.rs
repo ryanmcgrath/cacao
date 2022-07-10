@@ -93,7 +93,7 @@ impl WindowDelegate for AppWindow {
             self.red.top.constraint_equal_to(&self.content.top).offset(46.),
             self.red.leading.constraint_equal_to(&self.blue.trailing).offset(16.),
             self.red.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),
-            
+
             self.green.top.constraint_equal_to(&self.content.top).offset(46.),
             self.green.leading.constraint_equal_to(&self.red.trailing).offset(16.),
             self.green.trailing.constraint_equal_to(&self.content.trailing).offset(-16.),

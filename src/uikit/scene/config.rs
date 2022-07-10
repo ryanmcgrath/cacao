@@ -24,7 +24,7 @@ impl SceneConfig {
 
             let _: () = msg_send![config, setSceneClass:class!(UIWindowScene)];
             let _: () = msg_send![config, setDelegateClass:class!(RSTWindowSceneDelegate)];
-            
+
             Id::from_ptr(config)
         })
     }

@@ -13,7 +13,7 @@ const UTF8_ENCODING: usize = 4;
 
 /// A wrapper for `NSString`.
 ///
-/// We can make a few safety guarantees in this module as the UTF8 code on the Foundation 
+/// We can make a few safety guarantees in this module as the UTF8 code on the Foundation
 /// side is fairly battle tested.
 #[derive(Debug)]
 pub struct NSString<'a> {
@@ -37,7 +37,7 @@ impl<'a> NSString<'a> {
             phantom: PhantomData
         }
     }
-    
+
     /// Creates a new `NSString` without copying the bytes for the passed-in string.
     pub fn no_copy(s: &'a str) -> Self {
         NSString {
@@ -89,14 +89,14 @@ impl<'a> NSString<'a> {
     fn bytes_len(&self) -> usize {
         unsafe {
             msg_send![&*self.objc, lengthOfBytesUsingEncoding:UTF8_ENCODING]
-        } 
+        }
     }
 
     /// A utility method for taking an `NSString` and bridging it to a Rust `&str`.
     pub fn to_str(&self) -> &str {
         let bytes = self.bytes();
         let len = self.bytes_len();
-        
+
         unsafe {
             let bytes = slice::from_raw_parts(bytes, len);
             str::from_utf8(bytes).unwrap()

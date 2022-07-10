@@ -65,8 +65,8 @@ impl From<Vec<&Object>> for NSArray {
     /// Given a set of `Object`s, creates an `NSArray` that holds them.
     fn from(objects: Vec<&Object>) -> Self {
         NSArray(unsafe {
-            Id::from_ptr(msg_send![class!(NSArray), 
-                arrayWithObjects:objects.as_ptr() 
+            Id::from_ptr(msg_send![class!(NSArray),
+                arrayWithObjects:objects.as_ptr()
                 count:objects.len()
             ])
         })
@@ -77,7 +77,7 @@ impl From<Vec<id>> for NSArray {
     /// Given a set of `*mut Object`s, creates an `NSArray` that holds them.
     fn from(objects: Vec<id>) -> Self {
         NSArray(unsafe {
-            Id::from_ptr(msg_send![class!(NSArray), 
+            Id::from_ptr(msg_send![class!(NSArray),
                 arrayWithObjects:objects.as_ptr()
                 count:objects.len()
             ])

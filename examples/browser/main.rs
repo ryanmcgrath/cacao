@@ -86,7 +86,7 @@ impl Dispatcher for BasicApp {
         match message {
             Action::Back => { webview.go_back(); },
             Action::Forwards => { webview.go_forward(); },
-            Action::Load(url) => { window.load_url(&url); } 
+            Action::Load(url) => { window.load_url(&url); }
         }
     }
 }

@@ -20,9 +20,9 @@
 //! already fine for some apps.
 //!
 //! _Note that this crate relies on the Objective-C runtime. Interfacing with the runtime *requires*
-//! unsafe blocks; this crate handles those unsafe interactions for you and provides a mostly safe wrapper, 
-//! but by using this crate you understand that usage of `unsafe` is a given and will be somewhat 
-//! rampant for wrapped controls. This does _not_ mean you can't assess, review, or question unsafe 
+//! unsafe blocks; this crate handles those unsafe interactions for you and provides a mostly safe wrapper,
+//! but by using this crate you understand that usage of `unsafe` is a given and will be somewhat
+//! rampant for wrapped controls. This does _not_ mean you can't assess, review, or question unsafe
 //! usage - just know it's happening, and in large part it's not going away._
 //!
 //! # Hello World
@@ -30,7 +30,7 @@
 //! ```rust,no_run
 //! use cacao::appkit::app::{App, AppDelegate};
 //! use cacao::appkit::window::Window;
-//! 
+//!
 //! #[derive(Default)]
 //! struct BasicApp {
 //!     window: Window
@@ -98,7 +98,7 @@ pub use url;
 pub use lazy_static;
 
 //#[cfg(all(feature = "appkit", feature = "uikit", not(feature = "doc_cfg")))]
-//compile_error!("The \"appkit\" and \"uikit\" features cannot be enabled together. Pick one. :)");   
+//compile_error!("The \"appkit\" and \"uikit\" features cannot be enabled together. Pick one. :)");
 
 #[cfg(feature = "appkit")]
 #[cfg_attr(docsrs, doc(cfg(feature = "appkit")))]

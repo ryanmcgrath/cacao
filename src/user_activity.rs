@@ -7,8 +7,8 @@ use objc_id::ShareId;
 
 use crate::foundation::id;
 
-/// Represents an `NSUserActivity`, which acts as a lightweight method to capture 
-/// the state of your app. 
+/// Represents an `NSUserActivity`, which acts as a lightweight method to capture
+/// the state of your app.
 #[derive(Debug)]
 pub struct UserActivity(pub ShareId<Object>);
 

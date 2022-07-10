@@ -1,7 +1,7 @@
-//! This module provides a custom NSColor subclass for macOS that mimics the dynamic 
+//! This module provides a custom NSColor subclass for macOS that mimics the dynamic
 //! UIColor provider found on iOS. Notably, this works with older versions of macOS as
 //! well; it runs the block on creation and caches the created color instances to avoid
-//! repeated allocations - this might not be a big thing to worry about as NSColor 
+//! repeated allocations - this might not be a big thing to worry about as NSColor
 //! changed slightly behind the scenes in 10.15+, so this could be changed down the
 //! road.
 //!
@@ -278,7 +278,7 @@ pub(crate) fn register_class() -> *const Class {
         decl.add_method(sel!(getCyan:magenta:yellow:black:alpha:), get_cmyk as extern fn(&Object, _, CGFloat, CGFloat, CGFloat, CGFloat, CGFloat));
 
         decl.add_method(sel!(alphaComponent), alpha_component as extern fn(&Object, _) -> CGFloat);
-        
+
         decl.add_method(sel!(CGColor), cg_color as extern fn(&Object, _) -> id);
         decl.add_method(sel!(setStroke), set_stroke as extern fn(&Object, _));
         decl.add_method(sel!(setFill), set_fill as extern fn(&Object, _));
@@ -295,7 +295,7 @@ pub(crate) fn register_class() -> *const Class {
         decl.add_ivar::<id>(AQUA_LIGHT_COLOR_HIGH_CONTRAST);
         decl.add_ivar::<id>(AQUA_DARK_COLOR_NORMAL_CONTRAST);
         decl.add_ivar::<id>(AQUA_DARK_COLOR_HIGH_CONTRAST);
-    
+
         VIEW_CLASS = decl.register();
     });
 

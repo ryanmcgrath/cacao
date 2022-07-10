@@ -6,7 +6,7 @@
 //! ```rust,no_run
 //! use cacao::app::{App, AppDelegate};
 //! use cacao::window::Window;
-//! 
+//!
 //! #[derive(Default)]
 //! struct BasicApp;
 //!
@@ -20,7 +20,7 @@
 //!     App::new("com.my.app", BasicApp::default()).run();
 //! }
 //! ```
-//! 
+//!
 //! ## Why do I need to do this?
 //! A good question. Cocoa does many things for you (e.g, setting up and managing a runloop,
 //! handling the view/window heirarchy, and so on). This requires certain things happen before your
@@ -29,7 +29,7 @@
 //! - It ensures that the `sharedApplication` is properly initialized with your delegate.
 //! - It ensures that Cocoa is put into multi-threaded mode, so standard POSIX threads work as they
 //! should.
-//! 
+//!
 //! ### Platform specificity
 //! Certain lifecycle events are specific to certain platforms. Where this is the case, the
 //! documentation makes every effort to note.
@@ -114,7 +114,7 @@ impl<T, M> fmt::Debug for App<T, M> {
     }
 }
 
-impl<T> App<T> {  
+impl<T> App<T> {
     /// Kicks off the NSRunLoop for the NSApplication instance. This blocks when called.
     /// If you're wondering where to go from here... you need an `AppDelegate` that implements
     /// `did_finish_launching`. :)
@@ -134,16 +134,16 @@ impl<T> App<T> where T: AppDelegate + 'static {
     /// Objective-C side of things.
     pub fn new(_bundle_id: &str, delegate: T) -> Self {
         //set_bundle_id(bundle_id);
-        
+
         activate_cocoa_multithreading();
-        
+
         let pool = AutoReleasePool::new();
 
         let objc = unsafe {
             let app: id = msg_send![register_app_class(), sharedApplication];
             Id::from_ptr(app)
         };
-        
+
         let app_delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
@@ -163,7 +163,7 @@ impl<T> App<T> where T: AppDelegate + 'static {
             _message: std::marker::PhantomData
         }
     }
-} 
+}
 
 //  This is a very basic "dispatch" mechanism. In macOS, it's critical that UI work happen on the
 //  UI ("main") thread. We can hook into the standard mechanism for this by dispatching on
@@ -171,7 +171,7 @@ impl<T> App<T> where T: AppDelegate + 'static {
 //  for the main queue. They automatically forward through to our registered `AppDelegate`.
 //
 //  One thing I don't like about GCD is that detecting incorrect thread usage has historically been
-//  a bit... annoying. Here, the `Dispatcher` trait explicitly requires implementing two methods - 
+//  a bit... annoying. Here, the `Dispatcher` trait explicitly requires implementing two methods -
 //  one for UI messages, and one for background messages. I think that this helps separate intent
 //  on the implementation side, and makes it a bit easier to detect when a message has come in on
 //  the wrong side.
@@ -185,7 +185,7 @@ impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher
     /// and passing back through there.
     pub fn dispatch_main(message: M) {
         let queue = dispatch::Queue::main();
-        
+
         queue.exec_async(move || unsafe {
             let app: id = msg_send![register_app_class(), sharedApplication];
             let app_delegate: id = msg_send![app, delegate];
@@ -199,7 +199,7 @@ impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher
     /// and passing back through there.
     pub fn dispatch_background(message: M) {
         let queue = dispatch::Queue::main();
-        
+
         queue.exec_async(move || unsafe {
             let app: id = msg_send![register_app_class(), sharedApplication];
             let app_delegate: id = msg_send![app, delegate];
@@ -217,7 +217,7 @@ impl App {
             let _: () = msg_send![app, registerForRemoteNotifications];
         });
     }
-    
+
     /// Unregisters for remote notifications from APNS.
     pub fn unregister_for_remote_notifications() {
         shared_application(|app| unsafe {

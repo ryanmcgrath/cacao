@@ -8,7 +8,7 @@ use core_graphics::geometry::{CGRect, CGPoint, CGSize};
 pub struct Rect {
     /// Distance from the top, in points.
     pub top: f64,
-    
+
     /// Distance from the left, in points.
     pub left: f64,
 

@@ -61,7 +61,7 @@ impl Default for UserDefaults {
 
 impl UserDefaults {
     /// Returns the `standardUserDefaults`, which is... exactly what it sounds like.
-    /// 
+    ///
     /// _Note that if you're planning to share preferences across things (e.g, an app and an
     /// extension) you *probably* want to use `suite()` instead!_
     ///
@@ -69,7 +69,7 @@ impl UserDefaults {
     /// use cacao::defaults::UserDefaults;
     ///
     /// let defaults = UserDefaults::standard();
-    /// 
+    ///
     /// let _ = defaults.get("test");
     /// ```
     pub fn standard() -> Self {
@@ -108,7 +108,7 @@ impl UserDefaults {
     /// use cacao::defaults::{UserDefaults, Value};
     ///
     /// let mut defaults = UserDefaults::standard();
-    /// 
+    ///
     /// defaults.register({
     ///     let mut map = HashMap::new();
     ///     map.insert("test", Value::Bool(true));
@@ -117,7 +117,7 @@ impl UserDefaults {
     /// ```
     pub fn register<K: AsRef<str>>(&mut self, values: HashMap<K, Value>) {
         let dictionary = NSMutableDictionary::from(values);
-        
+
         unsafe {
             let _: () = msg_send![&*self.0, registerDefaults:&*dictionary];
         }
@@ -140,7 +140,7 @@ impl UserDefaults {
             let _: () = msg_send![&*self.0, setObject:value forKey:key];
         }
     }
-    
+
     /// Remove the default associated with the key. If the key doesn't exist, this is a noop.
     ///
     /// ```rust
@@ -206,7 +206,7 @@ impl UserDefaults {
         // For context: https://nshipster.com/type-encodings/
         if NSNumber::is(result) {
             let number = NSNumber::wrap(result);
-            
+
             return match number.objc_type() {
                 "c" => Some(Value::Bool(number.as_bool())),
                 "d" => Some(Value::Float(number.as_f64())),
@@ -227,8 +227,8 @@ impl UserDefaults {
 
     /// Returns a boolean value if the object stored for the specified key is managed by an
     /// administrator. This is rarely used - mostly in managed environments, e.g a classroom.
-    /// 
-    /// For managed keys, the application should disable any user interface that allows the 
+    ///
+    /// For managed keys, the application should disable any user interface that allows the
     /// user to modify the value of key.
     ///
     /// ```rust

@@ -27,7 +27,7 @@ impl Window {
             let _: () = msg_send![&*self.0, setWindowScene:scene.into_inner()];
         }
     }
-    
+
     pub fn set_root_view_controller<VC: Controller + 'static>(&self, controller: &VC) {
         let backing_node = controller.get_backing_node();
 

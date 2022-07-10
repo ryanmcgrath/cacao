@@ -8,7 +8,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, YES, NO, NSString, NSInteger};
 use crate::webview::enums::InjectAt;
 
-/// A wrapper for `WKWebViewConfiguration`. Holds (retains) pointers for the Objective-C runtime 
+/// A wrapper for `WKWebViewConfiguration`. Holds (retains) pointers for the Objective-C runtime
 /// where everything lives.
 #[derive(Debug)]
 pub struct WebViewConfig {
@@ -44,9 +44,9 @@ impl WebViewConfig {
     pub fn add_user_script(&mut self, script: &str, at: InjectAt, main_frame_only: bool) {
         let source = NSString::new(script);
         let at: NSInteger = at.into();
-        
+
         unsafe {
-            let alloc: id = msg_send![class!(WKUserScript), alloc]; 
+            let alloc: id = msg_send![class!(WKUserScript), alloc];
             let user_script: id = msg_send![alloc, initWithSource:source injectionTime:at forMainFrameOnly:match main_frame_only {
                 true => YES,
                 false => NO

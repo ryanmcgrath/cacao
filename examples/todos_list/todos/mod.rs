@@ -26,7 +26,7 @@ impl TodosWindow {
             toolbar: Toolbar::new("TodosToolbar", TodosToolbar::default())
         }
     }
-    
+
     pub fn on_message(&self, message: Message) {
         if let Some(delegate) = &self.content.view.delegate {
             delegate.on_message(message);
@@ -36,8 +36,8 @@ impl TodosWindow {
 
 impl WindowDelegate for TodosWindow {
     const NAME: &'static str = "TodosWindow";
-    
-    fn did_load(&mut self, window: Window) { 
+
+    fn did_load(&mut self, window: Window) {
         window.set_autosave_name("TodosWindow");
         window.set_minimum_content_size(400, 400);
         window.set_movable_by_background(true);

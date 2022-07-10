@@ -36,7 +36,7 @@ extern "C" fn text_should_begin_editing<T: TextFieldDelegate>(
 ) -> BOOL {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
     let s = NSString::retain(unsafe { msg_send![this, stringValue] });
-    
+
     match view.text_should_begin_editing(s.to_str()) {
         true => YES,
         false => NO

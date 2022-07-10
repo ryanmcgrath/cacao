@@ -39,7 +39,7 @@ impl AppDelegate for BasicApp {
         ]);
 
         App::activate();
-        
+
         self.window.show();
     }
 

@@ -80,7 +80,7 @@ unsafe fn swizzle_bundle_id<F>(bundle_id: &str, func: F) where F: MethodImplemen
     // let mut cls = class!(NSBundle) as *mut Class;
     // Class::get("NSBundle").unwrap();
     // let types = format!("{}{}{}", Encoding::String, <*mut Object>::ENCODING, Sel::ENCODING);
-    
+
     let added = class_addMethod(
         cls as *mut Class,
         sel!(__bundleIdentifier),

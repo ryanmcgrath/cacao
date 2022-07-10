@@ -15,7 +15,7 @@ use row::TodoViewRow;
 /// An identifier for the cell(s) we dequeue.
 const TODO_ROW: &'static str = "TodoViewRowCell";
 
-/// The list view for todos. 
+/// The list view for todos.
 #[derive(Debug, Default)]
 pub struct TodosListView {
     view: Option<ListView>,
@@ -33,10 +33,10 @@ impl TodosListView {
                     view.set_row_actions_visible(false);
                 }
             },
-            
+
             Message::MarkTodoIncomplete(row) => {
                 self.todos.with_mut(row, |todo| todo.status = TodoStatus::Incomplete);
-                
+
                 if let Some(view) = &self.view {
                     view.reload_rows(&[row]);
                     view.set_row_actions_visible(false);
@@ -77,7 +77,7 @@ impl ListViewDelegate for TodosListView {
     /// configuration.
     fn item_for(&self, row: usize) -> ListViewRow {
         let mut view = self.view.as_ref().unwrap().dequeue::<TodoViewRow>(TODO_ROW);
-            
+
         if let Some(view) = &mut view.delegate {
             self.todos.with(row, |todo| view.configure_with(todo));
         }

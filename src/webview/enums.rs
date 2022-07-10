@@ -26,7 +26,7 @@ pub enum NavigationType {
 
 // For whatever reason, impl From<> below doesn't generate the reciprocal impl Into<> we need.
 // So I guess we'll do it ourselves.
-// 
+//
 // This panic will be removed and is for testing purposes only right now.
 impl Into<NavigationType> for NSInteger {
     fn into(self) -> NavigationType {
@@ -94,7 +94,7 @@ impl From<NavigationResponsePolicy> for NSInteger {
         match policy {
             NavigationResponsePolicy::Cancel => 0,
             NavigationResponsePolicy::Allow => 1,
-            
+
             #[cfg(feature = "webview-downloading-macos")]
             NavigationResponsePolicy::BecomeDownload => 2
         }

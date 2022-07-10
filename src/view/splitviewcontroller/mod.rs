@@ -33,7 +33,7 @@ where
 
         SplitViewItem {
             objc: unsafe {
-                ShareId::from_ptr(msg_send![class!(NSSplitViewItem), 
+                ShareId::from_ptr(msg_send![class!(NSSplitViewItem),
                     splitViewItemWithViewController:&*view_controller.objc
                 ])
             },
@@ -134,7 +134,7 @@ where
     pub fn new(sidebar: Sidebar, content: Content, details: Option<Details>) -> Self {
         let sidebar = SplitViewItem::sidebar(sidebar);
         let content = SplitViewItem::item(content);
-        
+
         let details = match details {
             Some(vc) => Some(SplitViewItem::item(vc)),
             None => None
@@ -157,7 +157,7 @@ where
 }
 
 impl<Sidebar, Content, Details> SplitViewController<Sidebar, Content, Details> {
-    /// Toggles the sidebar, if it exists, with an animation. If there's no sidebar in this split view 
+    /// Toggles the sidebar, if it exists, with an animation. If there's no sidebar in this split view
     /// (which is highly unlikely, unless you went out of your way to duck this) then it will do
     /// nothing.
     pub fn toggle_sidebar(&self) {

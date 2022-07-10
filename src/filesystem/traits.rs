@@ -11,7 +11,7 @@ pub trait OpenSaveController {
     /// Notifies you that the user changed directories.
     fn did_change_to_directory(&self, _url: &str) {}
 
-    /// Notifies you that the Save panel is about to expand or collapse because the user 
+    /// Notifies you that the Save panel is about to expand or collapse because the user
     /// clicked the disclosure triangle that displays or hides the file browser.
     fn will_expand(&self, _expanding: bool) {}
 

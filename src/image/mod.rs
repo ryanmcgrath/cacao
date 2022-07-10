@@ -30,17 +30,17 @@ mod icons;
 pub use icons::*;
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
+fn allocate_view(registration_fn: fn() -> *const Class) -> id {
     unsafe {
         let view: id = msg_send![registration_fn(), new];
-        
+
         #[cfg(feature = "autolayout")]
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         #[cfg(feature = "appkit")]
         let _: () = msg_send![view, setWantsLayer:YES];
 
-        view 
+        view
     }
 }
 
@@ -51,7 +51,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 pub struct ImageView {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
-    
+
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
@@ -100,41 +100,41 @@ impl Default for ImageView {
 }
 
 impl ImageView {
-    /// Returns a default `View`, suitable for 
+    /// Returns a default `View`, suitable for
     pub fn new() -> Self {
         let view = allocate_view(register_image_view_class);
 
         ImageView {
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
+
             objc: ObjcProperty::retain(view),
         }
     }

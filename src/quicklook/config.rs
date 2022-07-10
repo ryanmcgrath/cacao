@@ -8,7 +8,7 @@ use objc_id::ShareId;
 use crate::foundation::{id, YES, NSString, NSUInteger};
 use crate::utils::CGSize;
 
-/// Describes the quality of the thumbnail you expect back from the 
+/// Describes the quality of the thumbnail you expect back from the
 /// generator service.
 #[derive(Debug)]
 pub enum ThumbnailQuality {
@@ -80,11 +80,11 @@ impl Default for ThumbnailConfig {
     fn default() -> Self {
         ThumbnailConfig {
             size: (44., 44.),
-            
+
             // #TODO: Should query the current screen size maybe? 2x is fairly safe
             // for most moderns Macs right now.
             scale: 1.,
-            
+
             minimum_dimension: 0.,
 
             icon_mode: false,
@@ -95,7 +95,7 @@ impl Default for ThumbnailConfig {
 }
 
 impl ThumbnailConfig {
-    /// Consumes the request and returns a native representation 
+    /// Consumes the request and returns a native representation
     /// (`QLThumbnailGenerationRequest`).
     pub fn to_request(self, path: &Path) -> id {
         let file = NSString::new(path.to_str().unwrap());

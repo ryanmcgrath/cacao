@@ -9,13 +9,13 @@
 //!
 //! ```rust
 //! use cacao::appkit::{App, AppDelegate, Alert};
-//! 
+//!
 //! #[derive(Default)]
 //! struct ExampleApp;
 //!
 //! impl AppDelegate {
 //!     fn did_finish_launching(&self) {
-//!         
+//!
 //!     }
 //! }
 //!

@@ -99,5 +99,5 @@ Check out [their README](https://github.com/rust-lang-nursery/rustfmt) for detai
 
 
 ### Notes
-This project prefers verbose naming, to a certain degree - UI code is read more often than written, so it's 
+This project prefers verbose naming, to a certain degree - UI code is read more often than written, so it's
 worthwhile to ensure that it scans well. It also maps well to existing Cocoa/cacao idioms and is generally preferred.

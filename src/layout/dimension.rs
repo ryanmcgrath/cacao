@@ -58,7 +58,7 @@ impl LayoutAnchorDimension {
                 msg_send![*obj, constraintEqualToConstant:value]
             });
         }
-        
+
         panic!("Attempted to create a constant constraint with an uninitialized anchor.");
     }
 
@@ -70,10 +70,10 @@ impl LayoutAnchorDimension {
                 msg_send![*obj, constraintGreaterThanOrEqualToConstant:value]
             });
         }
-        
+
         panic!("Attempted to create a constraint (>=) with an uninitialized anchor.");
     }
-    
+
     /// Return a constraint greater than or equal to a constant value.
     pub fn constraint_less_than_or_equal_to_constant(&self, constant: f64) -> LayoutConstraint {
         if let Self::Width(obj) | Self::Height(obj) = self {
@@ -82,7 +82,7 @@ impl LayoutAnchorDimension {
                 msg_send![*obj, constraintLessThanOrEqualToConstant:value]
             });
         }
-        
+
         panic!("Attempted to create a constraint (<=) with an uninitialized anchor.");
     }
 
@@ -100,7 +100,7 @@ impl LayoutAnchorDimension {
             (Self::Height(from), Self::Height(to)) => {
                 LayoutConstraint::new(handler(from, to))
             },
-            
+
             (Self::Uninitialized, Self::Uninitialized) => {
                 panic!("Attempted to create constraints with an uninitialized \"from\" and \"to\" dimension anchor.");
             },

@@ -4,8 +4,8 @@
 //! resizing, closing, and so on). Note that interaction patterns are different between macOS and
 //! iOS windows, so your codebase may need to differ quite a bit here.
 //!
-//! Of note: on macOS, in places where things are outright deprecated, this framework will opt to 
-//! not bother providing access to them. If you require functionality like that, you're free to use 
+//! Of note: on macOS, in places where things are outright deprecated, this framework will opt to
+//! not bother providing access to them. If you require functionality like that, you're free to use
 //! the `objc` field on a `Window` to instrument it with the Objective-C runtime on your own.
 
 use block::ConcreteBlock;
@@ -72,13 +72,13 @@ impl Window {
             let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing:NO];
 
             let alloc: id = msg_send![class!(NSWindow), alloc];
-            
+
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
             let buffered: NSUInteger = 2;
             let dimensions: CGRect = config.initial_dimensions.into();
-            let window: id = msg_send![alloc, initWithContentRect:dimensions 
-                styleMask:config.style 
+            let window: id = msg_send![alloc, initWithContentRect:dimensions
+                styleMask:config.style
                 backing:buffered
                 defer:match config.defer {
                     true => YES,
@@ -93,7 +93,7 @@ impl Window {
             // Objective-C runtime gets out of sync by releasing the window out from underneath of
             // us.
             let _: () = msg_send![window, setReleasedWhenClosed:NO];
-            
+
             let _: () = msg_send![window, setRestorable:NO];
 
             // This doesn't exist prior to Big Sur, but is important to support for Big Sur.
@@ -122,20 +122,20 @@ impl<T> Window<T> where T: WindowDelegate + 'static {
     pub fn with(config: WindowConfig, delegate: T) -> Self {
         let class = register_window_class_with_delegate::<T>(&delegate);
         let mut delegate = Box::new(delegate);
-        
+
         let objc = unsafe {
             // This behavior might make sense to keep as default (YES), but I think the majority of
             // apps that would use this toolkit wouldn't be tab-oriented...
             let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing:NO];
 
             let alloc: id = msg_send![class, alloc];
-            
+
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
             let buffered: NSUInteger = 2;
             let dimensions: CGRect = config.initial_dimensions.into();
-            let window: id = msg_send![alloc, initWithContentRect:dimensions 
-                styleMask:config.style 
+            let window: id = msg_send![alloc, initWithContentRect:dimensions
+                styleMask:config.style
                 backing:buffered
                 defer:match config.defer {
                     true => YES,
@@ -226,7 +226,7 @@ impl<T> Window<T> {
     pub fn set_autosave_name(&self, name: &str) {
         unsafe {
             let autosave = NSString::new(name);
-            let _: () = msg_send![&*self.objc, setFrameAutosaveName:autosave]; 
+            let _: () = msg_send![&*self.objc, setFrameAutosaveName:autosave];
         }
     }
 
@@ -253,7 +253,7 @@ impl<T> Window<T> {
             let _: () = msg_send![&*self.objc, setContentMaxSize:size];
         }
     }
-    
+
     /// Sets the minimum size this window can shrink to.
     pub fn set_minimum_size<F: Into<f64>>(&self, width: F, height: F) {
         unsafe {
@@ -262,13 +262,13 @@ impl<T> Window<T> {
         }
     }
 
-    /// Used for setting a toolbar on this window. 
+    /// Used for setting a toolbar on this window.
     pub fn set_toolbar<TC: ToolbarDelegate>(&self, toolbar: &Toolbar<TC>) {
         unsafe {
             let _: () = msg_send![&*self.objc, setToolbar:&*toolbar.objc];
         }
     }
-    
+
     /// Toggles whether the toolbar is shown for this window. Has no effect if no toolbar exists on
     /// this window.
     pub fn toggle_toolbar_shown(&self) {
@@ -377,9 +377,9 @@ impl<T> Window<T> {
     ///
     /// From Apple's documentation:
     ///
-    /// _The value of this property is YES if the window is on the currently active space; otherwise, NO. 
-    /// For visible windows, this property indicates whether the window is currently visible on the active 
-    /// space. For nonvisible windows, it indicates whether ordering the window onscreen would cause it to 
+    /// _The value of this property is YES if the window is on the currently active space; otherwise, NO.
+    /// For visible windows, this property indicates whether the window is currently visible on the active
+    /// space. For nonvisible windows, it indicates whether ordering the window onscreen would cause it to
     /// be on the active space._
     pub fn is_on_active_space(&self) -> bool {
         to_bool(unsafe {
@@ -453,7 +453,7 @@ impl<T> Window<T> {
             let _: () = msg_send![&*self.objc, setTitlebarSeparatorStyle:style];
         }
     }
-    
+
     /// Returns the backing scale (e.g, `1.0` for non retina, `2.0` for retina) used on this
     /// window.
     ///

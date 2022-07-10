@@ -59,8 +59,8 @@ extern fn did_change_screen_profile<T: WindowDelegate>(this: &Object, _: Sel, _:
 extern fn will_resize<T: WindowDelegate>(this: &Object, _: Sel, _: id, size: CGSize) -> CGSize {
     let window = load::<T>(this, WINDOW_DELEGATE_PTR);
     let s = window.will_resize(size.width as f64, size.height as f64);
-        
-    CGSize { 
+
+    CGSize {
         width: s.0 as CGFloat,
         height: s.1 as CGFloat
     }
@@ -134,8 +134,8 @@ extern fn options_for_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: i
     let window = load::<T>(this, WINDOW_DELEGATE_PTR);
 
     let desired_opts = window.presentation_options_for_full_screen();
-        
-    if desired_opts.is_none() { 
+
+    if desired_opts.is_none() {
         options
     } else {
         let mut opts: NSUInteger = 0;
@@ -219,7 +219,7 @@ extern fn did_expose<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
     window.did_expose();
 }
 
-/// Called as part of the responder chain, when, say, the ESC key is hit. If your 
+/// Called as part of the responder chain, when, say, the ESC key is hit. If your
 /// delegate returns `true` in `should_cancel_on_esc`, then this will allow your
 /// window to close when the Esc key is hit. This is mostly useful for Sheet-presented
 /// windows, and so the default response from delegates is `false` and must be opted in to.

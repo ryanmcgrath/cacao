@@ -14,11 +14,11 @@ pub fn menu() -> Vec<Menu> {
         Menu::new("", vec![
             MenuItem::About("Todos".to_string()),
             MenuItem::Separator,
-            
+
             MenuItem::new("Preferences").key(",").action(|| {
                 dispatch_ui(Message::OpenPreferencesWindow);
             }),
-            
+
             MenuItem::Separator,
             MenuItem::Services,
             MenuItem::Separator,
@@ -35,7 +35,7 @@ pub fn menu() -> Vec<Menu> {
             }),
 
             MenuItem::Separator,
-            
+
             MenuItem::new("Add Todo").key("+").action(|| {
                 dispatch_ui(Message::OpenNewTodoSheet);
             }),
@@ -54,7 +54,7 @@ pub fn menu() -> Vec<Menu> {
             MenuItem::Separator,
             MenuItem::SelectAll
         ]),
-        
+
         Menu::new("View", vec![
             MenuItem::EnterFullScreen
         ]),

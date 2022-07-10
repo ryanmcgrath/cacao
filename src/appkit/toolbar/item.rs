@@ -72,7 +72,7 @@ impl ToolbarItem {
         button.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![&*self.objc, setView:obj];
         });
-        
+
         self.button = Some(button);
     }
 

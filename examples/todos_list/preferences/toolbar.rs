@@ -17,7 +17,7 @@ impl Default for PreferencesToolbar {
 
             let icon = Image::toolbar_icon(MacSystemIcon::PreferencesGeneral, "General");
             item.set_image(icon);
-            
+
             item.set_action(|| {
                 dispatch_ui(Message::SwitchPreferencesToGeneralPane);
             });
@@ -26,14 +26,14 @@ impl Default for PreferencesToolbar {
         }, {
             let mut item = ToolbarItem::new("advanced");
             item.set_title("Advanced");
-            
+
             let icon = Image::toolbar_icon(MacSystemIcon::PreferencesAdvanced, "Advanced");
             item.set_image(icon);
-            
+
             item.set_action(|| {
                 dispatch_ui(Message::SwitchPreferencesToAdvancedPane);
             });
-            
+
             item
         }))
     }
@@ -41,7 +41,7 @@ impl Default for PreferencesToolbar {
 
 impl ToolbarDelegate for PreferencesToolbar {
     const NAME: &'static str = "PreferencesToolbar";
-    
+
     fn did_load(&mut self, toolbar: Toolbar) {
         toolbar.set_selected("general");
     }

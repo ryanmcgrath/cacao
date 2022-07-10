@@ -30,13 +30,13 @@ pub struct FileSelectPanel {
     /// Whether the user can choose directories. Defaults to `false`.
     pub can_choose_directories: bool,
 
-    /// When the value of this property is true, dropping an alias on the panel or asking 
-    /// for filenames or URLs returns the resolved aliases. The default value of this property 
-    /// is true. When this value is false, selecting an alias returns the alias instead of the 
+    /// When the value of this property is true, dropping an alias on the panel or asking
+    /// for filenames or URLs returns the resolved aliases. The default value of this property
+    /// is true. When this value is false, selecting an alias returns the alias instead of the
     /// file or directory it represents.
     pub resolves_aliases: bool,
 
-    /// When the value of this property is true, the user may select multiple items from the 
+    /// When the value of this property is true, the user may select multiple items from the
     /// browser. Defaults to `false`.
     pub allows_multiple_selection: bool
 }

@@ -49,7 +49,7 @@ impl NSData {
             NSData(Id::from_ptr(obj))
         }
     }
-    
+
     /// Given a slice of bytes, creates, retains, and returns a wrapped `NSData`.
     ///
     /// This method is borrowed straight out of [objc-foundation](objc-foundation) by the amazing
@@ -96,7 +96,7 @@ impl NSData {
             x as usize
         }
     }
-    
+
     /// Returns a reference to the underlying bytes for the wrapped `NSData`.
     ///
     /// This, like `NSData::new()`, is cribbed from [objc-foundation](objc-foundation).
@@ -104,19 +104,19 @@ impl NSData {
     /// [objc-foundation](https://crates.io/crates/objc-foundation)
     pub fn bytes(&self) -> &[u8] {
         let ptr: *const c_void = unsafe { msg_send![&*self.0, bytes] };
-        
+
         // The bytes pointer may be null for length zero
         let (ptr, len) = if ptr.is_null() {
             (0x1 as *const u8, 0)
         } else {
             (ptr as *const u8, self.len())
         };
-        
+
         unsafe {
             slice::from_raw_parts(ptr, len)
         }
     }
-    
+
     /// Creates a new Vec, copies the NSData (safely, but quickly) bytes into that Vec, and
     /// consumes the NSData enabling it to release (provided nothing in Cocoa is using it).
     ///
@@ -126,11 +126,11 @@ impl NSData {
     // often, but still... open to ideas.
     pub fn into_vec(self) -> Vec<u8> {
         let mut data = Vec::new();
-        
+
         let bytes = self.bytes();
         data.resize(bytes.len(), 0);
         data.copy_from_slice(bytes);
-        
+
         data
     }
 }

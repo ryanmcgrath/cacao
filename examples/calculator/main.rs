@@ -35,7 +35,7 @@ impl AppDelegate for CalculatorApp {
         App::activate();
 
         // Event Monitors need to be started after the App has been activated.
-        // We use an RwLock here, but it's possible this entire method can be 
+        // We use an RwLock here, but it's possible this entire method can be
         // &mut self and you wouldn't need these kinds of shenanigans.
         //self.start_monitoring();
 

@@ -1,6 +1,6 @@
 //! A progress indicator widget.
 //!
-//! This control wraps `NSProgressIndicator` in AppKit, and 
+//! This control wraps `NSProgressIndicator` in AppKit, and
 //! `UIProgressView+UIActivityIndicatorView` in iOS/tvOS. It operates in two modes: determinate
 //! (where you have a fixed start and end) and indeterminate (infinite; it will go and go until you
 //! tell it to stop).
@@ -34,7 +34,7 @@ pub use enums::ProgressIndicatorStyle;
 pub struct ProgressIndicator {
     /// A pointer to the Objective-C Object.
     pub objc: ObjcProperty,
-    
+
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
@@ -89,7 +89,7 @@ impl ProgressIndicator {
         let view = unsafe {
             #[cfg(feature = "appkit")]
             let view: id = msg_send![class!(NSProgressIndicator), new];
-            
+
             #[cfg(feature = "autolayout")]
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
@@ -102,34 +102,34 @@ impl ProgressIndicator {
         ProgressIndicator {
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
+
             objc: ObjcProperty::retain(view),
         }
     }
@@ -161,7 +161,7 @@ impl ProgressIndicator {
     /// Set the style for the progress indicator.
     pub fn set_style(&self, style: ProgressIndicatorStyle) {
         let style = style as NSUInteger;
-        
+
         self.objc.with_mut(move |obj| unsafe {
             let _: () = msg_send![obj, setStyle:style];
         });
@@ -215,7 +215,7 @@ impl ObjcAccess for ProgressIndicator {
 impl Layout for ProgressIndicator {}
 
 impl Drop for ProgressIndicator {
-    /// A bit of extra cleanup for delegate callback pointers. 
+    /// A bit of extra cleanup for delegate callback pointers.
     /// If the originating `ProgressIndicator` is being
     /// dropped, we do some logic to clean it all up (e.g, we go ahead and check to see if
     /// this has a superview (i.e, it's in the heirarchy) on the Objective-C side. If it does, we go

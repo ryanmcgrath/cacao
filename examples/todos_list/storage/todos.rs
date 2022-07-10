@@ -43,7 +43,7 @@ impl Todos {
 
         *stack = todos;
     }
-    
+
     /// Edit a Todo at the row specified.
     pub fn with_mut<F>(&self, row: usize, handler: F)
     where

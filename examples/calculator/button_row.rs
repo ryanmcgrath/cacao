@@ -36,7 +36,7 @@ impl ButtonRow {
                 _ => "W"
 
             }, y.clone());
-            
+
             view.add_subview(&button);
             button
         }).collect();
@@ -69,7 +69,7 @@ impl ButtonRow {
             buttons[3].trailing.constraint_equal_to(&view.trailing),
             buttons[3].bottom.constraint_equal_to(&view.bottom),
             buttons[3].width.constraint_equal_to(&width),
-            
+
             view.height.constraint_equal_to_constant(BUTTON_HEIGHT)
         ]);
 

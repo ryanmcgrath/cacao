@@ -133,7 +133,7 @@ impl ViewDelegate for CalculatorView {
             self.zero.top.constraint_equal_to(&self.row3.view.bottom).offset(1.),
             self.zero.leading.constraint_equal_to(&view.leading),
             self.zero.bottom.constraint_equal_to(&view.bottom),
-            
+
             self.dot.top.constraint_equal_to(&self.row3.view.bottom).offset(1.),
             self.dot.leading.constraint_equal_to(&self.zero.trailing).offset(1.),
             self.dot.bottom.constraint_equal_to(&view.bottom),

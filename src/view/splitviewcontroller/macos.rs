@@ -25,7 +25,7 @@ extern fn did_appear<T: ViewDelegate>(this: &mut Object, _: Sel) {
     unsafe {
         let _: () = msg_send![super(this, class!(NSViewController)), viewDidAppear];
     }
-    
+
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
     controller.did_appear(false);
 }
@@ -35,7 +35,7 @@ extern fn will_disappear<T: ViewDelegate>(this: &mut Object, _: Sel) {
     unsafe {
         let _: () = msg_send![super(this, class!(NSViewController)), viewWillDisappear];
     }
-    
+
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
     controller.will_disappear(false);
 }
@@ -45,7 +45,7 @@ extern fn did_disappear<T: ViewDelegate>(this: &mut Object, _: Sel) {
     unsafe {
         let _: () = msg_send![super(this, class!(NSViewController)), viewDidDisappear];
     }
-    
+
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
     controller.did_disappear(false);
 }

@@ -49,7 +49,7 @@ impl ViewDelegate for RootView {
             self.green.leading.constraint_equal_to(&view.leading).offset(16.),
             self.green.trailing.constraint_equal_to(&view.trailing).offset(-16.),
             self.green.height.constraint_equal_to_constant(120.),
-            
+
             self.blue.top.constraint_equal_to(&self.green.bottom).offset(16.),
             self.blue.leading.constraint_equal_to(&view.leading).offset(16.),
             self.blue.trailing.constraint_equal_to(&view.trailing).offset(-16.),
@@ -74,11 +74,11 @@ impl WindowSceneDelegate for WindowScene {
         let bounds = scene.get_bounds();
         let mut window = Window::new(bounds);
         window.set_window_scene(scene);
-        
+
         let root_view_controller = ViewController::new(RootView::default());
         window.set_root_view_controller(&root_view_controller);
         window.show();
-        
+
         {
             let mut w = self.window.write().unwrap();
             *w = Some(window);

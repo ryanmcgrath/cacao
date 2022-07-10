@@ -57,12 +57,12 @@ fn allocate_webview(
         let handlers = std::mem::take(&mut config.handlers);
         let protocols = std::mem::take(&mut config.protocols);
         let configuration = config.into_inner();
-        
+
         if let Some(delegate) = &objc_delegate {
             // Technically private!
             #[cfg(feature = "webview-downloading-macos")]
-            let process_pool: id = msg_send![configuration, processPool]; 
-            
+            let process_pool: id = msg_send![configuration, processPool];
+
             // Technically private!
             #[cfg(feature = "webview-downloading-macos")]
             let _: () = msg_send![process_pool, _setDownloadDelegate:*delegate];
@@ -182,37 +182,37 @@ impl WebView {
             is_handle: false,
             delegate: None,
             objc_delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
+
             layer: Layer::wrap(unsafe {
                 msg_send![view, layer]
             }),
@@ -220,7 +220,7 @@ impl WebView {
             objc: ObjcProperty::retain(view),
         }
     }
-    
+
 
     /// Returns a default `WebView`, suitable for customizing and displaying.
     pub fn new(config: WebViewConfig) -> Self {
@@ -245,7 +245,7 @@ impl<T> WebView<T> where T: WebViewDelegate + 'static {
         let view = allocate_webview(config, Some(&objc_delegate));
         let mut view = WebView::init(view);
 
-        &delegate.did_load(view.clone_as_handle()); 
+        &delegate.did_load(view.clone_as_handle());
         view.delegate = Some(delegate);
         view
     }
@@ -263,34 +263,34 @@ impl<T> WebView<T> {
             layer: self.layer.clone(),
             objc: self.objc.clone(),
             objc_delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
 
             #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             left: self.left.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             right: self.right.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             width: self.width.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             height: self.height.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone()
         }
@@ -313,7 +313,7 @@ impl<T> WebView<T> {
     pub fn load_html(&self, html_string: &str) {
         let html = NSString::new(html_string);
         let blank =  NSString::no_copy("");
-        
+
         self.objc.with_mut(|obj| unsafe {
             let empty: id = msg_send![class!(NSURL), URLWithString:&*blank];
             let _: () = msg_send![&*obj, loadHTMLString:&*html baseURL:empty];
@@ -365,7 +365,7 @@ impl<T> Drop for WebView<T> {
                 let _: () = msg_send![&*obj, setNavigationDelegate:nil];
                 let _: () = msg_send![&*obj, setUIDelegate:nil];
             });
-            
+
             self.remove_from_superview();
         }
     }

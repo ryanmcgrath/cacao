@@ -17,7 +17,7 @@ impl Default for TodosToolbar {
             let mut item = ToolbarItem::new("AddTodoButton");
             item.set_title("Add Todo");
             item.set_button(Button::new("+ New"));
-            
+
             item.set_action(|| {
                 dispatch_ui(Message::OpenNewTodoSheet);
             });

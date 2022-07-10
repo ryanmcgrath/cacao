@@ -35,7 +35,7 @@ extern fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id)
 /// Called when a drag/drop operation has entered this view.
 extern fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, LISTVIEW_ROW_DELEGATE_PTR);
-    
+
     match view.prepare_for_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     }) {
@@ -47,7 +47,7 @@ extern fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel,
 /// Called when a drag/drop operation has entered this view.
 extern fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, LISTVIEW_ROW_DELEGATE_PTR);
-        
+
     match view.perform_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     }) {
@@ -59,16 +59,16 @@ extern fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, inf
 /// Called when a drag/drop operation has entered this view.
 extern fn conclude_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, LISTVIEW_ROW_DELEGATE_PTR);
-    
+
     view.conclude_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
-    });           
+    });
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, LISTVIEW_ROW_DELEGATE_PTR);
-        
+
     view.dragging_exited(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     });
@@ -90,7 +90,7 @@ extern fn update_layer(this: &Object, _: Sel) {
 /// Normally, you might not want to do a custom dealloc override. However, reusable cells are
 /// tricky - since we "forget" them when we give them to the system, we need to make sure to do
 /// proper cleanup then the backing (cached) version is deallocated on the Objective-C side. Since
-/// we know 
+/// we know
 extern fn dealloc<T: ViewDelegate>(this: &Object, _: Sel) {
     // Load the Box pointer here, and just let it drop normally.
     unsafe {
@@ -114,7 +114,7 @@ pub(crate) fn register_listview_row_class() -> *const Class {
         let mut decl = ClassDecl::new("RSTTableViewRow", superclass).unwrap();
 
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
-    
+
         VIEW_CLASS = decl.register();
     });
 
@@ -135,7 +135,7 @@ pub(crate) fn register_listview_row_class_with_delegate<T: ViewDelegate>() -> *c
         // move.
         decl.add_ivar::<usize>(LISTVIEW_ROW_DELEGATE_PTR);
         decl.add_ivar::<id>(BACKGROUND_COLOR);
-        
+
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
         decl.add_method(sel!(updateLayer), update_layer as extern fn(&Object, _));
 
@@ -145,7 +145,7 @@ pub(crate) fn register_listview_row_class_with_delegate<T: ViewDelegate>() -> *c
         decl.add_method(sel!(performDragOperation:), perform_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
         decl.add_method(sel!(concludeDragOperation:), conclude_drag_operation::<T> as extern fn (&mut Object, _, _));
         decl.add_method(sel!(draggingExited:), dragging_exited::<T> as extern fn (&mut Object, _, _));
-        
+
         // Cleanup
         decl.add_method(sel!(dealloc), dealloc::<T> as extern fn (&Object, _));
 

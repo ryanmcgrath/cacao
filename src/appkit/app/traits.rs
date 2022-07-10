@@ -33,7 +33,7 @@ pub trait AppDelegate {
 
     /// Fired when the application is about to resign active state.
     fn will_resign_active(&self) {}
-    
+
     /// Fired when the user is going to continue an activity.
     fn will_continue_user_activity(&self, _activity_type: &str) -> bool { false }
 
@@ -59,10 +59,10 @@ pub trait AppDelegate {
     fn failed_to_register_for_remote_notifications(&self, _error: Error) {}
 
     /// Fires after the user accepted a CloudKit sharing invitation associated with your
-    /// application. 
+    /// application.
     #[cfg(feature = "cloudkit")]
     fn user_accepted_cloudkit_share(&self, _share_metadata: CKShareMetaData) {}
-    
+
     /// Fired before the application terminates. You can use this to do any required cleanup.
     fn will_terminate(&self) {}
 
@@ -92,7 +92,7 @@ pub trait AppDelegate {
 
     /// This is fired after the `Quit` menu item has been selected, or after you've called `App::terminate()`.
     ///
-    /// In most cases you just want `TerminateResponse::Now` here, which enables business as usual. If you need, 
+    /// In most cases you just want `TerminateResponse::Now` here, which enables business as usual. If you need,
     /// though, you can cancel the termination via `TerminateResponse::Cancel` to continue something essential. If
     /// you do this, you'll need to be sure to call `App::reply_to_termination_request()` to circle
     /// back.
@@ -107,12 +107,12 @@ pub trait AppDelegate {
     /// `has_visible_windows` indicates whether the Application object found any visible windows in your application.
     /// You can use this value as an indication of whether the application would do anything if you return `true`.
     ///
-    /// Return `true` if you want the application to perform its normal tasks, or `false` if you want the 
+    /// Return `true` if you want the application to perform its normal tasks, or `false` if you want the
     /// application to do nothing. The default implementation of this method returns `true`.
     ///
     /// Some finer points of discussion, from Apple documentation:
     ///
-    /// These events are sent whenever the Finder reactivates an already running application because someone 
+    /// These events are sent whenever the Finder reactivates an already running application because someone
     /// double-clicked it again or used the dock to activate it.
     ///
     /// For most document-based applications, an untitled document will be created.
@@ -133,13 +133,13 @@ pub trait AppDelegate {
     /// Fired when the screen parameters for the application have changed (e.g, the user changed
     /// something in their settings).
     fn did_change_screen_parameters(&self) {}
-  
+
     /// Fired when you have a list of `Url`'s to open. This is best explained by quoting the Apple
     /// documentation verbatim:
     ///
-    /// _"AppKit calls this method when your app is asked to open one or more URL-based resources. 
-    /// You must declare the URL types that your app supports in your `Info.plist` file using the `CFBundleURLTypes` key. 
-    /// The list can also include URLs for documents for which your app does not have an associated `NSDocument` class. 
+    /// _"AppKit calls this method when your app is asked to open one or more URL-based resources.
+    /// You must declare the URL types that your app supports in your `Info.plist` file using the `CFBundleURLTypes` key.
+    /// The list can also include URLs for documents for which your app does not have an associated `NSDocument` class.
     /// You configure document types by adding the `CFBundleDocumentTypes` key to your Info.plist
     /// file."
     ///
@@ -150,9 +150,9 @@ pub trait AppDelegate {
     /// Fired when the file is requested to be opened programmatically. This is not a commonly used
     /// or implemented method.
     ///
-    /// According to Apple: 
+    /// According to Apple:
     ///
-    /// _"The method should open the file without bringing up its application’s user interface—that is, 
+    /// _"The method should open the file without bringing up its application’s user interface—that is,
     /// work with the file is under programmatic control of sender, rather than under keyboard control of the user."_
     ///
     /// It's unclear how supported this is in sandbox environments, so use at your own risk.
@@ -195,9 +195,9 @@ pub trait AppDelegate {
 
     /// Fired when the occlusion state for the app has changed.
     ///
-    /// From Apple's docs, as there's no other way to describe this better: _upon receiving this method, you can query the 
-    /// application for its occlusion state. Note that this only notifies about changes in the state of the occlusion, not 
-    /// when the occlusion region changes. You can use this method to increase responsiveness and save power by halting any 
+    /// From Apple's docs, as there's no other way to describe this better: _upon receiving this method, you can query the
+    /// application for its occlusion state. Note that this only notifies about changes in the state of the occlusion, not
+    /// when the occlusion region changes. You can use this method to increase responsiveness and save power by halting any
     /// expensive calculations that the user can not see._
     fn occlusion_state_changed(&self) {}
 

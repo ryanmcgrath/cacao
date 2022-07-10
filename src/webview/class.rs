@@ -92,11 +92,11 @@ extern fn decide_policy_for_action<T: WebViewDelegate>(this: &Object, _: Sel, _:
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     let action = NavigationAction::new(action);
-    
+
     delegate.policy_for_navigation_action(action, |policy| unsafe {
         let handler = handler as *const Block<(NSInteger,), c_void>;
         (*handler).call((policy.into(),));
-    }); 
+    });
 }
 
 /// Fires when deciding a navigation policy - i.e, should something be allowed or not.
@@ -140,7 +140,7 @@ extern fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, param
 extern fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
-    let handler = handler as *const Block<(objc::runtime::BOOL, id), c_void>; 
+    let handler = handler as *const Block<(objc::runtime::BOOL, id), c_void>;
     let filename = NSString::from_retained(suggested_filename);
 
     delegate.run_save_panel(filename.to_str(), move |can_overwrite, path| unsafe {
@@ -149,7 +149,7 @@ extern fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: i
         }
 
         let path = NSString::new(&path.unwrap());
-        
+
         (*handler).call((match can_overwrite {
             true => YES,
             false => NO
@@ -192,7 +192,7 @@ pub fn register_webview_delegate_class<T: WebViewDelegate>() -> *const Class {
 
         // WKScriptMessageHandler
         decl.add_method(sel!(userContentController:didReceiveScriptMessage:), on_message::<T> as extern fn(&Object, _, _, id));
- 
+
         // Custom protocol handler
         decl.add_method(sel!(webView:startURLSchemeTask:), start_url_scheme_task::<T> as extern fn(&Object, Sel, id, id));
         decl.add_method(sel!(webView:stopURLSchemeTask:), stop_url_scheme_task::<T> as extern fn(&Object, Sel, id, id));
@@ -200,7 +200,7 @@ pub fn register_webview_delegate_class<T: WebViewDelegate>() -> *const Class {
         // WKUIDelegate
         decl.add_method(sel!(webView:runJavaScriptAlertPanelWithMessage:initiatedByFrame:completionHandler:), alert::<T> as extern fn(&Object, _, _, id, _, _));
         decl.add_method(sel!(webView:runOpenPanelWithParameters:initiatedByFrame:completionHandler:), run_open_panel::<T> as extern fn(&Object, _, _, id, _, usize));
-        
+
         // WKDownloadDelegate is a private class on macOS that handles downloading (saving) files.
         // It's absurd that this is still private in 2020. This probably couldn't get into the app
         // store, so... screw it, feature-gate it.

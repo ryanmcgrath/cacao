@@ -19,7 +19,7 @@ pub mod os;
 pub mod properties;
 
 /// A generic trait that's used throughout multiple different controls in this framework - acts as
-/// a guard for whether something is a (View|Window|etc)Controller. 
+/// a guard for whether something is a (View|Window|etc)Controller.
 pub trait Controller {
     /// Returns the underlying Objective-C object.
     fn get_backing_node(&self) -> ShareId<Object>;
@@ -38,7 +38,7 @@ pub trait Controller {
 /// - The way this _could_ fail would be if the programmer decides to clone their `Window` or such
 /// object deeper into the stack (or elsewhere in general). This is why we don't allow them to be
 /// cloned, though.
-/// 
+///
 /// This is, like much in this framework, subject to revision pending more thorough testing and
 /// checking.
 pub fn load<'a, T>(this: &'a Object, ptr_name: &str) -> &'a T {
@@ -54,7 +54,7 @@ pub fn async_main_thread<F>(method: F)
 where
     F: Fn() + Send + 'static
 {
-    let queue = dispatch::Queue::main();    
+    let queue = dispatch::Queue::main();
     queue.exec_async(method);
 }
 
@@ -63,8 +63,8 @@ pub fn sync_main_thread<F>(method: F)
 where
     F: Fn() + Send + 'static
 {
-    let queue = dispatch::Queue::main();    
-    queue.exec_sync(method);    
+    let queue = dispatch::Queue::main();
+    queue.exec_sync(method);
 }
 
 /// Upstream core graphics does not implement Encode for certain things, so we wrap them here -
@@ -84,7 +84,7 @@ impl CGSize {
     pub fn new(width: CGFloat, height: CGFloat) -> Self {
         CGSize { width, height }
     }
-    
+
     /// Create and return a `CGSizeZero` equivalent.
     pub fn zero() -> Self {
         CGSize { width: 0., height: 0. }
@@ -98,7 +98,7 @@ unsafe impl Encode for CGSize {
             CGFloat::encode().as_str(),
             CGFloat::encode().as_str()
         );
-        
+
         unsafe { Encoding::from_str(&encoding) }
     }
 }

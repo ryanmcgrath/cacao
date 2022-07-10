@@ -5,7 +5,7 @@
 //! people expect in 2020, and layer-backing all views by default.
 //!
 //! Views implement Autolayout, which enable you to specify how things should appear on the screen.
-//! 
+//!
 //! ```rust,no_run
 //! use cacao::color::rgb;
 //! use cacao::layout::{Layout, LayoutConstraint};
@@ -18,7 +18,7 @@
 //!     red: View,
 //!     window: Window
 //! }
-//! 
+//!
 //! impl WindowDelegate for AppWindow {
 //!     fn did_load(&mut self, window: Window) {
 //!         window.set_minimum_content_size(300., 300.);
@@ -26,7 +26,7 @@
 //!
 //!         self.red.set_background_color(rgb(224, 82, 99));
 //!         self.content.add_subview(&self.red);
-//!         
+//!
 //!         self.window.set_content_view(&self.content);
 //!
 //!         LayoutConstraint::activate(&[
@@ -97,7 +97,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn common_init(class: *const Class) -> id { 
+fn common_init(class: *const Class) -> id {
     unsafe {
         // Note: we do *not* enable AutoLayout here as we're by default placing this in a scroll
         // view, and we want it to just do its thing.
@@ -203,15 +203,15 @@ impl Default for ListView {
 }
 
 impl ListView {
-    /// @TODO: The hell is this for? 
+    /// @TODO: The hell is this for?
     pub fn new() -> Self {
         let class = register_listview_class();
         let view = common_init(class);
-        
+
         #[cfg(feature = "appkit")]
         let scrollview = {
             let sview = ScrollView::new();
-            
+
             sview.objc.with_mut(|obj| unsafe {
                 let _: () = msg_send![obj, setDocumentView:view];
             });
@@ -225,7 +225,7 @@ impl ListView {
         let anchor_view: id = scrollview.objc.get(|obj| unsafe {
             msg_send![obj, self]
         });
-        
+
         //#[cfg(all(feature = "uikit", feature = "autolayout"))]
         //let anchor_view: id = view;
 
@@ -233,37 +233,37 @@ impl ListView {
             cell_factory: CellFactory::new(),
             menu: PropertyNullable::default(),
             delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(anchor_view),
-            
+
             // Note that AppKit needs this to be the ScrollView!
             // @TODO: Figure out if there's a use case for exposing the inner tableview animator
             // property...
@@ -284,7 +284,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
         let view = common_init(class);
         let mut delegate = Box::new(delegate);
         let cell = CellFactory::new();
-        
+
         unsafe {
             let delegate_ptr: *const T = &*delegate;
             (&mut *view).set_ivar(LISTVIEW_DELEGATE_PTR, delegate_ptr as usize);
@@ -295,7 +295,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
         #[cfg(feature = "appkit")]
         let scrollview = {
             let sview = ScrollView::new();
-            
+
             sview.objc.with_mut(|obj| unsafe {
                 let _: () = msg_send![obj, setDocumentView:view];
             });
@@ -308,7 +308,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
         let anchor_view: id = scrollview.objc.get(|obj| unsafe {
             msg_send![obj, self]
         });
-        
+
         //#[cfg(feature = "uikit")]
         //let anchor_view = view;
 
@@ -321,38 +321,38 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
 
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(anchor_view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(anchor_view),
-            
+
             scrollview
         };
 
-        (&mut delegate).did_load(view.clone_as_handle()); 
+        (&mut delegate).did_load(view.clone_as_handle());
         view.delegate = Some(delegate);
         view
     }
@@ -373,31 +373,31 @@ impl<T> ListView<T> {
 
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             left: self.left.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             right: self.right.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             width: self.width.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             height: self.height.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
 
@@ -423,7 +423,7 @@ impl<T> ListView<T> {
             let cell: id = self.objc.get(|obj| unsafe {
                 msg_send![obj, makeViewWithIdentifier:&*key owner:nil]
             });
-            
+
             if cell != nil {
                 ListViewRow::from_cached(cell)
             } else {
@@ -474,7 +474,7 @@ impl<T> ListView<T> {
         });
     }
 
-    /// Set the selection highlight style. 
+    /// Set the selection highlight style.
     pub fn set_selection_highlight_style(&self, style: crate::foundation::NSInteger) {
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setSelectionHighlightStyle:style];
@@ -544,7 +544,7 @@ impl<T> ListView<T> {
             self.objc.get(|obj| unsafe {
                 let _: () = msg_send![obj, beginUpdates];
             });
-           
+
             let handle = self.clone_as_handle();
             update(handle);
 
@@ -565,7 +565,7 @@ impl<T> ListView<T> {
         #[cfg(feature = "appkit")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
-            
+
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
                 let _: () = msg_send![index_set, addIndex:x];
@@ -576,7 +576,7 @@ impl<T> ListView<T> {
             // We need to temporarily retain this; it can drop after the underlying NSTableView
             // has also retained it.
             let x = ShareId::from_ptr(index_set);
-            
+
             // This is done for a very explicit reason; see the comments on the method itself for
             // an explanation.
             self.hack_avoid_dequeue_loop(|obj| {
@@ -590,7 +590,7 @@ impl<T> ListView<T> {
         #[cfg(feature = "appkit")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
-            
+
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
                 let _: () = msg_send![index_set, addIndex:x];
@@ -617,7 +617,7 @@ impl<T> ListView<T> {
         #[cfg(feature = "appkit")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
-            
+
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
                 let _: () = msg_send![index_set, addIndex:x];
@@ -705,7 +705,7 @@ impl<T> ListView<T> {
     pub fn get_selected_row_index(&self) -> NSInteger {
         self.objc.get(|obj| unsafe { msg_send![obj, selectedRow] })
     }
-    
+
     /// Returns the currently clicked row. This is AppKit-specific, and is generally used in context
     /// menu generation to determine what item the context menu should be for. If the clicked area
     /// is not an actual row, this will return `-1`.

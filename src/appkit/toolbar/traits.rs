@@ -27,7 +27,7 @@ pub trait ToolbarDelegate {
 
     /// The default items in this toolbar.
     fn default_item_identifiers(&self) -> Vec<ItemIdentifier>;
-    
+
     /// The default items in this toolbar. This defaults to a blank `Vec`, and is an optional
     /// method - mostly useful for Preferences windows.
     fn selectable_item_identifiers(&self) -> Vec<ItemIdentifier> { vec![] }

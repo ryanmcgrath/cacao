@@ -55,12 +55,12 @@ pub trait Layout: ObjcAccess {
     /// use an appropriate initializer for a given view type).
     fn set_frame<R: Into<CGRect>>(&self, rect: R) {
         let frame: CGRect = rect.into();
-        
+
         self.with_backing_obj_mut(move |backing_node| unsafe {
             let _: () = msg_send![backing_node, setFrame:frame];
         });
     }
-    
+
     /// Sets whether the view for this trait should translate autoresizing masks into layout
     /// constraints.
     ///
@@ -78,7 +78,7 @@ pub trait Layout: ObjcAccess {
 
     /// Sets whether the view for this is hidden or not.
     ///
-    /// When hidden, widgets don't receive events and is not visible. 
+    /// When hidden, widgets don't receive events and is not visible.
     fn set_hidden(&self, hide: bool) {
         self.with_backing_obj_mut(|obj| unsafe {
             let _: () = msg_send![obj, setHidden:match hide {
@@ -89,8 +89,8 @@ pub trait Layout: ObjcAccess {
     }
 
     /// Returns whether this is hidden or not.
-    /// 
-    /// Note that this can report `false` if an ancestor widget is hidden, thus hiding this - to check in 
+    ///
+    /// Note that this can report `false` if an ancestor widget is hidden, thus hiding this - to check in
     /// that case, you may want `is_hidden_or_ancestor_is_hidden()`.
     fn is_hidden(&self) -> bool {
         self.get_from_backing_obj(|obj| {
@@ -99,7 +99,7 @@ pub trait Layout: ObjcAccess {
             })
         })
     }
-    
+
     /// Returns whether this is hidden, *or* whether an ancestor view is hidden.
     #[cfg(feature = "appkit")]
     fn is_hidden_or_ancestor_is_hidden(&self) -> bool {
@@ -131,7 +131,7 @@ pub trait Layout: ObjcAccess {
     /// This should be supported under UIKit as well, but is featured gated under AppKit
     /// currently to avoid compile issues.
     #[cfg(feature = "appkit")]
-    fn unregister_dragged_types(&self) { 
+    fn unregister_dragged_types(&self) {
         self.with_backing_obj_mut(|obj| unsafe {
             let _: () = msg_send![obj, unregisterDraggedTypes];
         });

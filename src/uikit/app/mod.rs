@@ -6,7 +6,7 @@
 //! ```rust,no_run
 //! use cacao::ios::app::{App, AppDelegate};
 //! use cacao::window::Window;
-//! 
+//!
 //! #[derive(Default)]
 //! struct BasicApp;
 //!
@@ -20,7 +20,7 @@
 //!     App::new(BasicApp::default()).run();
 //! }
 //! ```
-//! 
+//!
 //! ## Why do I need to do this?
 //! A good question. Cocoa does many things for you (e.g, setting up and managing a runloop,
 //! handling the view/window heirarchy, and so on). This requires certain things happen before your
@@ -29,7 +29,7 @@
 //! - It ensures that the `sharedApplication` is properly initialized with your delegate.
 //! - It ensures that Cocoa is put into multi-threaded mode, so standard POSIX threads work as they
 //! should.
-//! 
+//!
 //! ### Platform specificity
 //! Certain lifecycle events are specific to certain platforms. Where this is the case, the
 //! documentation makes every effort to note.
@@ -104,7 +104,7 @@ impl<W, T, F> std::fmt::Debug for App<W, T, F> {
 }
 
 impl<T, W, F> App<T, W, F>
-where 
+where
     T: AppDelegate + 'static,
     W: WindowSceneDelegate,
     F: Fn() -> Box<W>
@@ -123,7 +123,7 @@ where
     /// `UIApplicationMain` is called.
     pub fn new(delegate: T, scene_delegate_vendor: F) -> Self {
         activate_cocoa_multithreading();
-        
+
         let pool = AutoReleasePool::new();
         let cls = register_app_class();
         let dl = register_app_delegate_class::<T>();
@@ -133,13 +133,13 @@ where
         let vendor = Box::new(scene_delegate_vendor);
 
         unsafe {
-            let delegate_ptr: *const T = &*app_delegate; 
+            let delegate_ptr: *const T = &*app_delegate;
             APP_DELEGATE = delegate_ptr as usize;
 
             let scene_delegate_vendor_ptr: *const F = &*vendor;
             SCENE_DELEGATE_VENDOR = scene_delegate_vendor_ptr as usize;
         }
-        
+
         App {
             delegate: app_delegate,
             vendor,
@@ -147,9 +147,9 @@ where
             _w: std::marker::PhantomData
         }
     }
-} 
+}
 
-impl<T, W, F> App<T, W, F> {  
+impl<T, W, F> App<T, W, F> {
     /// Handles calling through to `UIApplicationMain()`, ensuring that it's using our custom
     /// `UIApplication` and `UIApplicationDelegate` classes.
     pub fn run(&self) {
@@ -160,7 +160,7 @@ impl<T, W, F> App<T, W, F> {
         let c_args = args.iter().map(|arg| {
             arg.as_ptr()
         }).collect::<Vec<*const c_char>>();
-        
+
         let mut s = NSString::new("RSTApplication");
         let mut s2 = NSString::new("RSTAppDelegate");
 

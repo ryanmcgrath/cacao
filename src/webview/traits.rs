@@ -7,7 +7,7 @@ use crate::webview::actions::{NavigationAction, NavigationResponse, OpenPanelPar
 use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
 
 /// You can implement this on structs to handle callbacks from the underlying `WKWebView`.
-pub trait WebViewDelegate {   
+pub trait WebViewDelegate {
     /// Called when the View is ready to work with. You're passed a `ViewHandle` - this is safe to
     /// store and use repeatedly, but it's not thread safe - any UI calls must be made from the
     /// main thread!

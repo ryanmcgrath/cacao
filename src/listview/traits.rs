@@ -44,7 +44,7 @@ pub trait ListViewDelegate {
     /// depending on, say, what the user has context-clicked on. You should avoid any expensive
     /// work in here and return the menu as fast as possible.
     fn context_menu(&self) -> Vec<MenuItem> { vec![] }
-    
+
     /// An optional delegate method; implement this if you'd like swipe-to-reveal to be
     /// supported for a given row by returning a vector of actions to show.
     fn actions_for(&self, row: usize, edge: RowEdge) -> Vec<RowAction> { Vec::new() }
@@ -63,7 +63,7 @@ pub trait ListViewDelegate {
 
     /// Invoked when the dragged image enters destination bounds or frame; returns dragging operation to perform.
     fn dragging_entered(&self, info: DragInfo) -> DragOperation { DragOperation::None }
-    
+
     /// Invoked when the image is released, allowing the receiver to agree to or refuse drag operation.
     fn prepare_for_drag_operation(&self, info: DragInfo) -> bool { false }
 
@@ -73,7 +73,7 @@ pub trait ListViewDelegate {
     /// Invoked when the dragging operation is complete, signaling the receiver to perform any necessary clean-up.
     fn conclude_drag_operation(&self, info: DragInfo) {}
 
-    /// Invoked when the dragged image exits the destination’s bounds rectangle (in the case of a view) or its frame 
+    /// Invoked when the dragged image exits the destination’s bounds rectangle (in the case of a view) or its frame
     /// rectangle (in the case of a window object).
     fn dragging_exited(&self, info: DragInfo) {}
 }

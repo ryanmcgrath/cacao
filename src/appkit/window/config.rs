@@ -14,11 +14,11 @@ pub struct WindowConfig {
     /// The initial dimensions for the window.
     pub initial_dimensions: Rect,
 
-    /// From the Apple docs: 
+    /// From the Apple docs:
     ///
-    /// _"When true, the window server defers creating the window device 
-    /// until the window is moved onscreen. All display messages sent to 
-    /// the window or its views are postponed until the window is created, 
+    /// _"When true, the window server defers creating the window device
+    /// until the window is moved onscreen. All display messages sent to
+    /// the window or its views are postponed until the window is created,
     /// just before it’s moved onscreen."_
     ///
     /// You generally just want this to be true, and it's the default for this struct.

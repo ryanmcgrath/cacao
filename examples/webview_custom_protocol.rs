@@ -38,8 +38,8 @@ impl WebViewDelegate for WebViewInstance {
             <h1>Welcome 🍫</h1>
             <a href="/hello.html">Link</a>
             </body>
-        </html>"#; 
-        
+        </html>"#;
+
         let link_html = r#"
         <!DOCTYPE html>
         <html lang="en">
@@ -52,7 +52,7 @@ impl WebViewDelegate for WebViewInstance {
             <h1>Hello!</h1>
             <a href="/index.html">Back home</a>
             </body>
-        </html>"#; 
+        </html>"#;
 
         return match requested_asset_path.as_str() {
             "/hello.html" => Some(link_html.as_bytes().into()),

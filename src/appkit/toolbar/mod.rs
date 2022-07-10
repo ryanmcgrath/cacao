@@ -25,7 +25,7 @@ pub use enums::{ToolbarDisplayMode, ToolbarSizeMode, ItemIdentifier};
 
 pub(crate) static TOOLBAR_PTR: &str = "cacaoToolbarPtr";
 
-/// A wrapper for `NSToolbar`. Holds (retains) pointers for the Objective-C runtime 
+/// A wrapper for `NSToolbar`. Holds (retains) pointers for the Objective-C runtime
 /// where our `NSToolbar` and associated delegate live.
 pub struct Toolbar<T = ()> {
     /// An internal identifier used by the toolbar. We cache it here in case users want it.
@@ -48,7 +48,7 @@ impl<T> Toolbar<T> where T: ToolbarDelegate + 'static {
         let identifier = identifier.into();
         let cls = register_toolbar_class::<T>(&delegate);
         let mut delegate = Box::new(delegate);
-        
+
         let (objc, objc_delegate) = unsafe {
             let alloc: id = msg_send![class!(NSToolbar), alloc];
             let identifier = NSString::new(&identifier);

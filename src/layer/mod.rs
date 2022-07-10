@@ -18,7 +18,7 @@ use crate::foundation::id;
 use crate::utils::properties::ObjcProperty;
 
 /// Represents a `CALayer`.
-/// 
+///
 /// Each widget has an underlying `layer` field that you can access, which offers additional
 /// rendering tools.
 ///

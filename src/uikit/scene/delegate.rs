@@ -23,7 +23,7 @@ use crate::cloudkit::share::CKShareMetaData;
 
 pub(crate) static WINDOW_SCENE_PTR: &str = "rstWindowSceneDelegatePtr";
 
-/// 
+///
 extern fn init<
     T: WindowSceneDelegate,
     F: Fn() -> Box<T>
@@ -71,8 +71,8 @@ pub(crate) fn register_window_scene_delegate_class<
         let mut decl = ClassDecl::new("RSTWindowSceneDelegate", superclass).unwrap();
 
         let p = Protocol::get("UIWindowSceneDelegate").unwrap();
-        
-        // A spot to hold a pointer to 
+
+        // A spot to hold a pointer to
         decl.add_ivar::<usize>(WINDOW_SCENE_PTR);
         decl.add_protocol(p);
 
@@ -85,7 +85,7 @@ pub(crate) fn register_window_scene_delegate_class<
             scene_will_connect_to_session_with_options::<T> as extern fn(&Object, _, _, _, _)
         );
 
-        // Launching Applications       
+        // Launching Applications
         DELEGATE_CLASS = decl.register();
     });
 

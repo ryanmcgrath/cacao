@@ -7,7 +7,7 @@ use crate::foundation::{NSUInteger};
 pub enum FocusRingType {
     /// Whatever the default is.
     Default,
-    
+
     /// None.
     None,
 

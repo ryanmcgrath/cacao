@@ -53,7 +53,7 @@ pub fn to_bool(result: BOOL) -> bool {
     match result {
         YES => true,
         NO => false,
-        
+
         //#[cfg(target_arch = "aarch64")]
         #[cfg(not(target_arch = "aarch64"))]
         _ => { std::unreachable!(); }

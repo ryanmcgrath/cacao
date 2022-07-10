@@ -1,5 +1,5 @@
-//! Implements a wrapper type for `NSColor` and `UIColor`. It attempts to map 
-//! to a common shared API, but it's important to note that the platforms 
+//! Implements a wrapper type for `NSColor` and `UIColor`. It attempts to map
+//! to a common shared API, but it's important to note that the platforms
 //! themselves have differing levels of support for color work. Where possible,
 //! we expose some platform-specific methods for creating and working with these.
 //!
@@ -27,7 +27,7 @@ use crate::foundation::id;
 use crate::utils::os;
 
 #[cfg(feature = "appkit")]
-mod appkit_dynamic_color; 
+mod appkit_dynamic_color;
 
 #[cfg(feature = "appkit")]
 use appkit_dynamic_color::{
@@ -49,7 +49,7 @@ pub enum Theme {
     Dark
 }
 
-/// Represents the contrast level for a rendering context. 
+/// Represents the contrast level for a rendering context.
 #[derive(Copy, Clone, Debug)]
 pub enum Contrast {
     /// The default contrast level for the system.
@@ -71,7 +71,7 @@ pub struct Style {
     pub contrast: Contrast
 }
 
-/// Represents a Color. You can create custom colors using the various 
+/// Represents a Color. You can create custom colors using the various
 /// initializers, or opt to use a system-provided color. The system provided
 /// colors will automatically switch to the "correct" colors/shades depending on whether
 /// the user is in light or dark mode; to support this with custom colors, you can create a
@@ -84,7 +84,7 @@ pub enum Color {
     /// Represents an `NSColor` on macOS, and a `UIColor` everywhere else. You typically
     /// don't create this variant yourself; use the initializers found on this enum.
     ///
-    /// If you need to do custom work not covered by this enum, you can drop to 
+    /// If you need to do custom work not covered by this enum, you can drop to
     /// the Objective-C level yourself and wrap your color in this.
     Custom(Arc<RwLock<Id<Object>>>),
 
@@ -136,7 +136,7 @@ pub enum Color {
     /// The system-provided base gray color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemGray,
-    
+
     /// The system-provided secondary-level gray color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemGray2,
@@ -148,11 +148,11 @@ pub enum Color {
     /// The system-provided fourth-level gray color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemGray4,
-    
+
     /// The system-provided fifth-level gray color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemGray5,
-    
+
     /// The system-provided sixth-level gray color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemGray6,
@@ -184,11 +184,11 @@ pub enum Color {
     /// The default system second-level fill color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemFillSecondary,
-    
+
     /// The default system third-level fill color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemFillTertiary,
-    
+
     /// The default system fourth-level fill color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemFillQuaternary,
@@ -204,7 +204,7 @@ pub enum Color {
     /// The default system second-level background color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemBackgroundSecondary,
-    
+
     /// The default system third-level background color.
     /// This value automatically switches to the correct variant depending on light or dark mode.
     SystemBackgroundTertiary,
@@ -256,7 +256,7 @@ impl Color {
             { Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a]) }
         })))
     }
-    
+
     /// Creates and returns a color in the RGB space, with the alpha level
     /// set to `255` by default. Shorthand for `rgba`.
     pub fn rgb(red: u8, green: u8, blue: u8) -> Self {
@@ -279,7 +279,7 @@ impl Color {
             { Id::from_ptr(msg_send![class!(UIColor), colorWithHue:h saturation:s brightness:b alpha:a]) }
         })))
     }
-    
+
     /// Creates and returns a color in the RGB space, with the alpha level
     /// set to `255` by default. Shorthand for `hsba`.
     pub fn hsb(hue: u8, saturation: u8, brightness: u8) -> Self {
@@ -292,7 +292,7 @@ impl Color {
         Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "appkit")]
             { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedWhite:level alpha:alpha]) }
-            
+
             #[cfg(feature = "uikit")]
             { Id::from_ptr(msg_send![class!(UIColor), colorWithWhite:level alpha:alpha]) }
         })))
@@ -303,7 +303,7 @@ impl Color {
     pub fn white(level: CGFloat) -> Self {
         Color::white_alpha(level, 1.0)
     }
-    
+
     /// Given a hex code and alpha level, returns a `Color` in the RGB space.
     ///
     /// This method is not an ideal one to use, but is offered as a convenience method for those
@@ -377,15 +377,15 @@ impl Color {
 
                 color
             });
-            
+
             Id::from_ptr(color)
         })))
     }
-    
+
     /// Returns a CGColor, which can be used in Core Graphics calls as well as other areas.
     ///
     /// Note that CGColor is _not_ a context-aware color, unlike our `NSColor` and `UIColor`
-    /// objects. If you're painting in a context that requires dark mode support, make sure 
+    /// objects. If you're painting in a context that requires dark mode support, make sure
     /// you're not using a cached version of this unless you explicitly want the _same_ color
     /// in every context it's used in.
     pub fn cg_color(&self) -> CGColor {
@@ -471,7 +471,7 @@ unsafe fn to_objc(obj: &Color) -> id {
         Color::SystemGreen => system_color_with_fallback!(color, systemGreenColor, greenColor),
         Color::SystemIndigo => system_color_with_fallback!(color, systemIndigoColor, magentaColor),
         Color::SystemOrange => system_color_with_fallback!(color, systemOrangeColor, orangeColor),
-        Color::SystemPink => system_color_with_fallback!(color, systemPinkColor, pinkColor), 
+        Color::SystemPink => system_color_with_fallback!(color, systemPinkColor, pinkColor),
         Color::SystemPurple => system_color_with_fallback!(color, systemPurpleColor, purpleColor),
         Color::SystemRed => system_color_with_fallback!(color, systemRedColor, redColor),
         Color::SystemTeal => system_color_with_fallback!(color, systemTealColor, blueColor),
@@ -496,17 +496,17 @@ unsafe fn to_objc(obj: &Color) -> id {
         Color::SystemBackgroundSecondary => system_color_with_fallback!(color, secondarySystemBackgroundColor, clearColor),
         Color::SystemBackgroundTertiary => system_color_with_fallback!(color, tertiarySystemBackgroundColor, clearColor),
         Color::Separator => system_color_with_fallback!(color, separatorColor, lightGrayColor),
-        
+
         #[cfg(feature = "uikit")]
         Color::OpaqueSeparator => system_color_with_fallback!(color, opaqueSeparatorColor, darkGrayColor),
 
         Color::Link => system_color_with_fallback!(color, linkColor, blueColor),
         Color::DarkText => system_color_with_fallback!(color, darkTextColor, blackColor),
         Color::LightText => system_color_with_fallback!(color, lightTextColor, whiteColor),
-        
+
         #[cfg(feature = "appkit")]
         Color::MacOSWindowBackgroundColor => system_color_with_fallback!(color, windowBackgroundColor, clearColor),
-        
+
         #[cfg(feature = "appkit")]
         Color::MacOSUnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor),
     }

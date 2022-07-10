@@ -49,7 +49,7 @@ impl CellFactory {
         let lock = self.0.borrow();
         let vendor = match lock.get(identifier) {
             Some(v) => v,
-            None => { 
+            None => {
                 panic!("Unable to dequeue cell for {}: did you forget to register it?", identifier);
             }
         };

@@ -156,7 +156,7 @@ pub enum SearchPathDirectory {
     /// (_/Library/PreferencePanes_)
     PreferencePanes,
 
-    /// The user scripts folder for the calling application 
+    /// The user scripts folder for the calling application
     /// (_~/Library/Application Scripts/<code-signing-id>_).
     ApplicationScripts,
 

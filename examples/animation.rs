@@ -1,4 +1,4 @@
-//! This example builds on the AutoLayout example, but adds in animation 
+//! This example builds on the AutoLayout example, but adds in animation
 //! via `AnimationContext`. Views and layout anchors have special proxy objects that can be cloned
 //! into handlers, enabling basic animation support within `AnimationContext`.
 //!
@@ -132,7 +132,7 @@ impl WindowDelegate for AppWindow {
             ]
         }).collect::<Vec<Vec<LayoutConstraintAnimatorProxy>>>();
 
-        // Monitor key change events for w/a/s/d, and then animate each view to their correct 
+        // Monitor key change events for w/a/s/d, and then animate each view to their correct
         // frame and alpha value.
         self.key_monitor = Some(Event::local_monitor(EventMask::KeyDown, move |evt| {
             let characters = evt.characters();

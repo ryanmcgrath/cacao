@@ -13,11 +13,11 @@ mod bookmark_options;
 pub use bookmark_options::{NSURLBookmarkCreationOption, NSURLBookmarkResolutionOption};
 
 mod resource_keys;
-pub use resource_keys::{NSURLResourceKey, NSURLFileResource, NSUbiquitousItemDownloadingStatus}; 
+pub use resource_keys::{NSURLResourceKey, NSURLFileResource, NSUbiquitousItemDownloadingStatus};
 
 /// Wraps `NSURL` for use throughout the framework.
 ///
-/// This type may also be returned to users in some callbacks (e.g, file manager/selectors) as it's 
+/// This type may also be returned to users in some callbacks (e.g, file manager/selectors) as it's
 /// a core part of the macOS/iOS experience and bridging around it is arguably blocking people from
 /// being able to actually build useful things.
 ///
@@ -52,11 +52,11 @@ impl<'a> NSURL<'a> {
             phantom: PhantomData
         }
     }
-        
+
     /// Creates and returns a URL object by calling through to `[NSURL URLWithString]`.
     pub fn with_str(url: &str) -> Self {
         let url = NSString::new(url);
-        
+
         Self {
             objc: unsafe {
                 ShareId::from_ptr(msg_send![class!(NSURL), URLWithString:&*url])
@@ -65,7 +65,7 @@ impl<'a> NSURL<'a> {
             phantom: PhantomData
         }
     }
-    
+
     /// Returns the absolute string path that this URL points to.
     ///
     /// Note that if the underlying file moved, this won't be accurate - you likely want to
@@ -145,7 +145,7 @@ impl<'a> NSURL<'a> {
 
     /// In an app that has adopted App Sandbox, makes the resource pointed to by a security-scoped URL available to the app.
     ///
-    /// More information can be found at: 
+    /// More information can be found at:
     /// [https://developer.apple.com/documentation/foundation/nsurl/1417051-startaccessingsecurityscopedreso?language=objc]
     pub fn start_accessing_security_scoped_resource(&self) {
         unsafe {

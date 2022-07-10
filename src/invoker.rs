@@ -23,12 +23,12 @@ use crate::utils::load;
 pub static ACTION_CALLBACK_PTR: &str = "rstTargetActionPtr";
 
 /// An Action is just an indirection layer to get around Rust and optimizing
-/// zero-sum types; without this, pointers to callbacks will end up being 
-/// 0x1, and all point to whatever is there first (unsure if this is due to 
+/// zero-sum types; without this, pointers to callbacks will end up being
+/// 0x1, and all point to whatever is there first (unsure if this is due to
 /// Rust or Cocoa or what).
 ///
 /// Point is, Button aren't created that much in the grand scheme of things,
-/// and the heap isn't our enemy in a GUI framework anyway. If someone knows 
+/// and the heap isn't our enemy in a GUI framework anyway. If someone knows
 /// a better way to do this that doesn't require double-boxing, I'm all ears.
 pub struct Action(Box<dyn Fn() + Send + Sync + 'static>);
 
@@ -40,7 +40,7 @@ impl fmt::Debug for Action {
 }
 
 /// A handler that contains the class for callback storage and invocation on
-/// the Objective-C side. 
+/// the Objective-C side.
 ///
 /// This effectively wraps the target:action selector usage on NSControl and
 /// associated widgets.
@@ -84,12 +84,12 @@ extern fn perform<F: Fn() + 'static>(this: &mut Object, _: Sel, _sender: id) {
 }
 
 /// Due to the way that Rust and Objective-C live... very different lifestyles,
-/// we need to find a way to make events work without _needing_ the whole 
+/// we need to find a way to make events work without _needing_ the whole
 /// target/action setup you'd use in a standard Cocoa/AppKit/UIKit app.
 ///
-/// Here, we inject a subclass that can store a pointer for a callback. We use 
-/// this as our target/action combo, which allows passing a 
-/// generic block over. It's still Rust, so you can't do crazy callbacks, but 
+/// Here, we inject a subclass that can store a pointer for a callback. We use
+/// this as our target/action combo, which allows passing a
+/// generic block over. It's still Rust, so you can't do crazy callbacks, but
 /// you can at least fire an event off and do something.
 ///
 /// The `NSButton` owns this object on instantiation, and will release it
@@ -105,7 +105,7 @@ pub(crate) fn register_invoker_class<F: Fn() + 'static>() -> *const Class {
 
         decl.add_ivar::<usize>(ACTION_CALLBACK_PTR);
         decl.add_method(sel!(perform:), perform::<F> as extern fn (&mut Object, _, id));
-        
+
         VIEW_CLASS = decl.register();
     });
 

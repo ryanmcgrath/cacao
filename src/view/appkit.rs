@@ -35,7 +35,7 @@ extern fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id)
 /// Called when a drag/drop operation has entered this view.
 extern fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-    
+
     match view.prepare_for_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     }) {
@@ -47,7 +47,7 @@ extern fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel,
 /// Called when a drag/drop operation has entered this view.
 extern fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-        
+
     match view.perform_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     }) {
@@ -59,16 +59,16 @@ extern fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, inf
 /// Called when a drag/drop operation has entered this view.
 extern fn conclude_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-    
+
     view.conclude_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
-    });           
+    });
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-        
+
     view.dragging_exited(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     });
@@ -103,7 +103,7 @@ pub(crate) fn register_view_class() -> *const Class {
         decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern fn(&Object, _) -> BOOL);
 
         decl.add_ivar::<id>(BACKGROUND_COLOR);
-    
+
         VIEW_CLASS = decl.register();
     });
 
@@ -118,7 +118,7 @@ pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -
         // It's expected that this doesn't move.
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
         decl.add_ivar::<id>(BACKGROUND_COLOR);
-        
+
         decl.add_method(
             sel!(updateLayer),
             update_layer as extern fn(&Object, _)

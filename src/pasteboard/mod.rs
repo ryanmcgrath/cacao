@@ -55,7 +55,7 @@ impl Pasteboard {
         })
     }
 
-    /// Creates and returns a new pasteboard with a name that is guaranteed to be unique with 
+    /// Creates and returns a new pasteboard with a name that is guaranteed to be unique with
     /// respect to other pasteboards in the system.
     pub fn unique() -> Self {
         Pasteboard(unsafe {
@@ -98,7 +98,7 @@ impl Pasteboard {
             let class: id = msg_send![class!(NSURL), class];
             let classes = NSArray::new(&[class]);
             let contents: id = msg_send![&*self.0, readObjectsForClasses:classes options:nil];
-            
+
             // This can happen if the Pasteboard server has an error in returning items.
             // In our case, we'll bubble up an error by checking the pasteboard.
             if contents == nil {

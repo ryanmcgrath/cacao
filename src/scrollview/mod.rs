@@ -5,7 +5,7 @@
 //! people expect in 2020, and layer-backing all views by default.
 //!
 //! Views implement Autolayout, which enable you to specify how things should appear on the screen.
-//! 
+//!
 //! ```rust,no_run
 //! use cacao::color::rgb;
 //! use cacao::layout::{Layout, LayoutConstraint};
@@ -18,7 +18,7 @@
 //!     red: View,
 //!     window: Window
 //! }
-//! 
+//!
 //! impl WindowDelegate for AppWindow {
 //!     fn did_load(&mut self, window: Window) {
 //!         window.set_minimum_content_size(300., 300.);
@@ -26,7 +26,7 @@
 //!
 //!         self.red.set_background_color(rgb(224, 82, 99));
 //!         self.content.add_subview(&self.red);
-//!         
+//!
 //!         self.window.set_content_view(&self.content);
 //!
 //!         LayoutConstraint::activate(&[
@@ -73,10 +73,10 @@ pub use traits::ScrollViewDelegate;
 pub(crate) static SCROLLVIEW_DELEGATE_PTR: &str = "rstScrollViewDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
+fn allocate_view(registration_fn: fn() -> *const Class) -> id {
     unsafe {
         let view: id = msg_send![registration_fn(), new];
-        
+
         #[cfg(feature = "autolayout")]
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
@@ -89,7 +89,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
             let _: () = msg_send![view, setHasVerticalScroller:YES];
         }
 
-        view 
+        view
     }
 }
 
@@ -101,7 +101,7 @@ pub struct ScrollView<T = ()> {
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
-    
+
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
@@ -150,43 +150,43 @@ impl Default for ScrollView {
 }
 
 impl ScrollView {
-    /// Returns a default `View`, suitable for 
+    /// Returns a default `View`, suitable for
     pub fn new() -> Self {
         let view = allocate_view(register_scrollview_class);
 
         ScrollView {
             delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
+
             objc: ObjcProperty::retain(view),
         }
     }
@@ -197,7 +197,7 @@ impl<T> ScrollView<T> where T: ScrollViewDelegate + 'static {
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> ScrollView<T> {
         let mut delegate = Box::new(delegate);
-        
+
         let view = allocate_view(register_scrollview_class_with_delegate::<T>);
         unsafe {
             let ptr: *const T = &*delegate;
@@ -206,41 +206,41 @@ impl<T> ScrollView<T> where T: ScrollViewDelegate + 'static {
 
         let mut view = ScrollView {
             delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
+
             objc: ObjcProperty::retain(view),
         };
 
-        (&mut delegate).did_load(view.clone_as_handle()); 
+        (&mut delegate).did_load(view.clone_as_handle());
         view.delegate = Some(delegate);
         view
     }
@@ -254,37 +254,37 @@ impl<T> ScrollView<T> {
     pub(crate) fn clone_as_handle(&self) -> ScrollView {
         ScrollView {
             delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             left: self.left.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             right: self.right.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             width: self.width.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             height: self.height.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
-            
+
             objc: self.objc.clone()
         }
     }

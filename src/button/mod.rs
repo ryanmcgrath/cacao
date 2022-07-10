@@ -52,7 +52,7 @@ pub use enums::*;
 ///
 /// You'd use this type to create a button that a user can interact with. Buttons can be configured
 /// a number of ways, and support setting a callback to fire when they're clicked or tapped.
-/// 
+///
 /// Some properties are platform-specific; see the documentation for further information.
 ///
 /// ```rust,no_run
@@ -75,7 +75,7 @@ pub struct Button {
     pub image: Option<Image>,
 
     handler: Option<TargetActionHandler>,
-    
+
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
@@ -130,47 +130,47 @@ impl Button {
             ];
 
             let _: () = msg_send![button, setWantsLayer:YES];
-            
+
             #[cfg(feature = "autolayout")]
             let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints:NO];
-            
+
             button
         };
-        
+
         Button {
             handler: None,
             image: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
+
             objc: ObjcProperty::retain(view),
         }
     }
@@ -188,7 +188,7 @@ impl Button {
     #[cfg(feature = "appkit")]
     pub fn set_bezel_style(&self, bezel_style: BezelStyle) {
         let style: NSUInteger = bezel_style.into();
-        
+
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setBezelStyle:style];
         });
@@ -206,7 +206,7 @@ impl Button {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         let color: id = color.as_ref().into();
-        
+
         #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
@@ -227,7 +227,7 @@ impl Button {
                 Key::Char(s) => NSString::new(s),
                 Key::Delete => NSString::new("\u{08}")
             };
-            
+
             unsafe {
                 let _: () = msg_send![obj, setKeyEquivalent:&*keychar];
             }
@@ -236,16 +236,16 @@ impl Button {
 
     /// Sets the text color for this button.
     ///
-    /// On appkit, this is done by way of an `AttributedString` under the hood. 
+    /// On appkit, this is done by way of an `AttributedString` under the hood.
     pub fn set_text_color<C: AsRef<Color>>(&self, color: C) {
         #[cfg(feature = "appkit")]
         self.objc.with_mut(move |obj| unsafe {
             let text: id = msg_send![obj, attributedTitle];
             let len: isize = msg_send![text, length];
-            
+
             let mut attr_str = AttributedString::wrap(text);
             attr_str.set_text_color(color.as_ref(), 0..len);
-            
+
             let _: () = msg_send![obj, setAttributedTitle:&*attr_str];
         });
     }
@@ -332,7 +332,7 @@ impl Drop for Button {
     }
 }
 
-/// Registers an `NSButton` subclass, and configures it to hold some ivars 
+/// Registers an `NSButton` subclass, and configures it to hold some ivars
 /// for various things we need to store.
 fn register_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
@@ -340,7 +340,7 @@ fn register_class() -> *const Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSButton);
-        let decl = ClassDecl::new("RSTButton", superclass).unwrap(); 
+        let decl = ClassDecl::new("RSTButton", superclass).unwrap();
         VIEW_CLASS = decl.register();
     });
 

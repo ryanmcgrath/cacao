@@ -10,7 +10,7 @@ pub struct AdvancedPreferencesContentView {
 
 impl ViewDelegate for AdvancedPreferencesContentView {
     const NAME: &'static str = "AdvancedPreferencesContentView";
-    
+
     fn did_load(&mut self, view: View) {
         self.label.set_text("And this is where advanced preferences would be... if we had any.");
         self.label.set_text_alignment(TextAlign::Center);

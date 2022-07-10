@@ -41,17 +41,17 @@ impl AddNewTodoContentView {
 
 impl ViewDelegate for AddNewTodoContentView {
     const NAME: &'static str = "AddNewTodoContentView";
-    
+
     fn did_load(&mut self, view: View) {
         let instructions = Label::new();
         instructions.set_text("Let's be real: we both know this task isn't getting done.");
 
         let input = TextField::new();
-        
+
         let mut button = Button::new("Add");
         button.set_key_equivalent("\r");
         button.set_action(|| dispatch_ui(Message::ProcessNewTodo));
-        
+
         view.add_subview(&instructions);
         view.add_subview(&input);
         view.add_subview(&button);

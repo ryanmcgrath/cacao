@@ -12,10 +12,10 @@ pub enum TerminateResponse {
     /// App should not be terminated.
     Cancel,
 
-    /// It might be fine to proceed with termination later. Returning this value causes 
+    /// It might be fine to proceed with termination later. Returning this value causes
     /// Cocoa to run the run loop until `should_terminate()` returns `true` or `false`.
     ///
-    /// This return value is for primarily for cases where you need to provide alerts 
+    /// This return value is for primarily for cases where you need to provide alerts
     /// in order to decide whether to quit.
     Later
 }
@@ -67,7 +67,7 @@ impl From<AppDelegateResponse> for NSUInteger {
 /// - _`AutoHideMenuBar` and `HideMenuBar` are mutually exclusive: You may specify one or the other, but not both._
 /// - _If you specify `HideMenuBar`, it must be accompanied by `HideDock`._
 /// - _If you specify `AutoHideMenuBar`, it must be accompanied by either `HideDock` or `AutoHideDock`._
-/// - _If you specify any of `DisableProcessSwitching`, `DisableForceQuit`, `DisableSessionTermination`, or `DisableMenuBarTransparency`, 
+/// - _If you specify any of `DisableProcessSwitching`, `DisableForceQuit`, `DisableSessionTermination`, or `DisableMenuBarTransparency`,
 /// it must be accompanied by either `HideDock` or `AutoHideDock`._
 /// - _`AutoHideToolbar` may be used only when both `FullScreen` and `AutoHideMenuBar` are also set.
 #[derive(Copy, Clone, Debug)]
@@ -86,10 +86,10 @@ pub enum PresentationOption {
 
     /// Menubar is entirely disabled.
     HideMenuBar,
-    
+
     /// All Apple Menu items are disabled.
     DisableAppleMenu,
-    
+
     /// The process switching user interface (Command + Tab to cycle through apps) is disabled.
     DisableProcessSwitching,
 

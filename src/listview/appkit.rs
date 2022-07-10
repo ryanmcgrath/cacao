@@ -70,7 +70,7 @@ extern fn will_display_cell<T: ListViewDelegate>(
     _table_view: id,
     _cell: id,
     _column: id,
-    item: NSInteger   
+    item: NSInteger
 ) {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
     view.will_display_item(item as usize);
@@ -96,7 +96,7 @@ extern fn select_row<T: ListViewDelegate>(
     this: &Object,
     _: Sel,
     _table_view: id,
-    item: NSInteger   
+    item: NSInteger
 ) -> BOOL {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
     view.item_selected(item as usize);
@@ -130,7 +130,7 @@ extern fn row_actions_for_row<T: ListViewDelegate>(
 ) -> id {
     let edge: RowEdge = edge.into();
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
-    
+
     let mut ids: NSArray = view.actions_for(row as usize, edge)
         .iter_mut()
         .map(|action| &*action.0)
@@ -156,7 +156,7 @@ extern fn dragging_entered<T: ListViewDelegate>(this: &mut Object, _: Sel, info:
 /// Called when a drag/drop operation has entered this view.
 extern fn prepare_for_drag_operation<T: ListViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
-    
+
     match view.prepare_for_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     }) {
@@ -168,7 +168,7 @@ extern fn prepare_for_drag_operation<T: ListViewDelegate>(this: &mut Object, _: 
 /// Called when a drag/drop operation has entered this view.
 extern fn perform_drag_operation<T: ListViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
-        
+
     match view.perform_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     }) {
@@ -180,16 +180,16 @@ extern fn perform_drag_operation<T: ListViewDelegate>(this: &mut Object, _: Sel,
 /// Called when a drag/drop operation has entered this view.
 extern fn conclude_drag_operation<T: ListViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
-    
+
     view.conclude_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
-    });           
+    });
 }
 
 /// Called when a drag/drop operation has entered this view.
 extern fn dragging_exited<T: ListViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
-        
+
     view.dragging_exited(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     });
@@ -221,7 +221,7 @@ pub(crate) fn register_listview_class() -> *const Class {
 pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instance: &T) -> *const Class {
     load_or_register_class("NSTableView", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(LISTVIEW_DELEGATE_PTR);
-        
+
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
 
         // Tableview-specific

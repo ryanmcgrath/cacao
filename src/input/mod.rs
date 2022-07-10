@@ -25,7 +25,7 @@
 //!         self.label.set_background_color(rgb(224, 82, 99));
 //!         self.label.set_text("LOL");
 //!         self.content.add_subview(&self.red);
-//!         
+//!
 //!         self.window.set_content_view(&self.content);
 //!
 //!         LayoutConstraint::activate(&[
@@ -96,7 +96,7 @@ pub struct TextField<T = ()> {
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
-    
+
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
@@ -153,36 +153,36 @@ impl TextField {
         TextField {
             delegate: None,
             objc: ObjcProperty::retain(view),
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view)    
+            center_y: LayoutAnchorY::center(view)
         }
     }
 }
@@ -206,34 +206,34 @@ where
         let mut label = TextField {
             delegate: None,
             objc: ObjcProperty::retain(label),
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(label),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(label),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(label),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(label),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(label),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(label),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(label),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(label),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(label),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(label),
         };
@@ -253,34 +253,34 @@ impl<T> TextField<T> {
         TextField {
             delegate: None,
             objc: self.objc.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             left: self.left.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             right: self.right.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             width: self.width.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             height: self.height.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
         }
