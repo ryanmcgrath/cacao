@@ -92,12 +92,7 @@ impl CGSize {
 }
 
 unsafe impl Encode for CGSize {
-    /// Adds support for CGSize Objective-C encoding.
-    fn encode() -> Encoding {
-        let encoding = format!("{{CGSize={}{}}}", CGFloat::encode().as_str(), CGFloat::encode().as_str());
-
-        unsafe { Encoding::from_str(&encoding) }
-    }
+    const ENCODING: Encoding<'static> = Encoding::Struct("CGSize", &[CGFloat::ENCODING, CGFloat::ENCODING]);
 }
 
 /// A helper method for ensuring that Cocoa is running in multi-threaded mode.
