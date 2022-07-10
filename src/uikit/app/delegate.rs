@@ -69,7 +69,7 @@ pub(crate) fn register_app_delegate_class<T: AppDelegate>() -> *const Class {
         );
         /*decl.add_method(
             sel!(application:didDiscardSceneSessions:),
-            did_discard_scene_sessions::<T> as extern fn(&Object, _, _, id)
+            did_discard_scene_sessions::<T> as extern "C" fn(&Object, _, _, id)
         );*/
 
         DELEGATE_CLASS = decl.register();

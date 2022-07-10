@@ -360,7 +360,7 @@ pub(crate) fn register_view_class() -> *const Class {
         let superclass = class!(NSView);
         let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
 
         decl.add_ivar::<id>(BACKGROUND_COLOR);
 
@@ -384,12 +384,12 @@ pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -
 
         decl.add_method(
             sel!(isFlipped),
-            enforce_normalcy as extern fn(&Object, _) -> BOOL
+            enforce_normalcy as extern "C" fn(&Object, _) -> BOOL
         );
 
         decl.add_method(
             sel!(draggingEntered:),
-            dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger
+            dragging_entered::<T> as extern "C" fn (&mut Object, _, _) -> NSUInteger
         );
     })
 }
@@ -401,7 +401,7 @@ to the Rust `ViewDelegate` implementation.
 The methods we're setting up can range from simple to complex - take `isFlipped`:
 
 ``` rust
-extern fn is_flipped(_: &Object, _: Sel) -> BOOL {
+extern "C" fn is_flipped(_: &Object, _: Sel) -> BOOL {
     return YES;
 }
 ```
@@ -409,7 +409,7 @@ extern fn is_flipped(_: &Object, _: Sel) -> BOOL {
 Here, we just want to tell `NSView` to use top,left as the origin point, so we need to respond `YES` in this subclass method.
 
 ``` rust
-extern fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
+extern "C" fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     let view = utils::load::<T>(this, VIEW_DELEGATE_PTR);
     view.dragging_entered(DragInfo {
         info: unsafe { Id::from_ptr(info) }

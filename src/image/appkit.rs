@@ -30,7 +30,7 @@ pub(crate) fn register_image_view_class() -> *const Class {
         let superclass = class!(NSImageView);
         let decl = ClassDecl::new("RSTImageView", superclass).unwrap();
 
-        //decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+        //decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
 
         VIEW_CLASS = decl.register();
     });

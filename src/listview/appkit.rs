@@ -79,7 +79,7 @@ extern "C" fn menu_needs_update<T: ListViewDelegate>(this: &Object, _: Sel, menu
 /// The other less obvious way is to subclass and override the `shouldSelectRow:` method; here, we
 /// simply assume things are selectable and call our delegate as if things were selected. This may
 /// need to change in the future, but it works well enough for now.
-extern fn select_row<T: ListViewDelegate>(
+extern "C" fn select_row<T: ListViewDelegate>(
     this: &Object,
     _: Sel,
     _table_view: id,
