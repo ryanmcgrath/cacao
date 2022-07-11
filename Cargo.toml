@@ -22,9 +22,6 @@ rustdoc-args = ["--cfg", "docsrs"]
 bitmask-enum = "2.2.1"
 objc = { version = "=0.3.0-beta.2", package = "objc2" }
 block = { version = "=0.2.0-alpha.6", package = "block2" }
-# Temporary: Patched versions that implement `Encode` for common types
-# Branch: `objc2`
-core-foundation = { git = "https://github.com/madsmtm/core-foundation-rs.git", rev = "7d593d016175755e492a92ef89edca68ac3bd5cd" }
 dispatch = "0.2.0"
 infer = { version = "0.15", optional = true }
 lazy_static = "1.4.0"
@@ -39,7 +36,7 @@ core-graphics = "0.23"
 foreign-types = "0.5"
 
 [features]
-appkit = ["core-foundation/mac_os_10_8_features"]
+appkit = []
 uikit = []
 autolayout = []
 default = ["appkit", "autolayout"]

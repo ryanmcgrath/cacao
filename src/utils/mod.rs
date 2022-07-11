@@ -2,8 +2,6 @@
 //! belong to. These are typically internal, and if you rely on them... well, don't be surprised if
 //! they go away one day.
 
-use core_foundation::base::CFIndex;
-
 use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};
@@ -64,26 +62,6 @@ where
 {
     let queue = dispatch::Queue::main();
     queue.exec_sync(method);
-}
-
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct CFRange {
-    pub location: CFIndex,
-    pub length: CFIndex
-}
-
-impl CFRange {
-    pub fn init(location: CFIndex, length: CFIndex) -> CFRange {
-        CFRange {
-            location: location,
-            length: length
-        }
-    }
-}
-
-unsafe impl Encode for CFRange {
-    const ENCODING: Encoding = Encoding::Struct("CFRange", &[CFIndex::ENCODING, CFIndex::ENCODING]);
 }
 
 /// A helper method for ensuring that Cocoa is running in multi-threaded mode.

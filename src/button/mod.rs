@@ -257,7 +257,7 @@ impl Button {
         #[cfg(feature = "appkit")]
         self.objc.with_mut(move |obj| unsafe {
             let text: id = msg_send![obj, attributedTitle];
-            let len: isize = msg_send![text, length];
+            let len: usize = msg_send![text, length];
 
             let mut attr_str = AttributedString::wrap(text);
             attr_str.set_text_color(color.as_ref(), 0..len);
