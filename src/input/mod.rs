@@ -45,22 +45,27 @@ use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::color::Color;
+use crate::control::Control;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
-use crate::layout::{Layout, LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
+use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::text::{Font, TextAlign};
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
-#[cfg(target_os = "macos")]
-use macos::{register_view_class, register_view_class_with_delegate};
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(feature = "appkit")]
+use appkit::{register_view_class, register_view_class_with_delegate};
 
-#[cfg(target_os = "ios")]
-use ios::{register_view_class, register_view_class_with_delegate};
+//#[cfg(feature = "uikit")]
+//mod uikit;
+
+//#[cfg(feature = "uikit")]
+//use uikit::{register_view_class, register_view_class_with_delegate};
 
 mod traits;
 pub use traits::TextFieldDelegate;
@@ -72,9 +77,10 @@ fn common_init(class: *const Class) -> id {
     unsafe {
         let view: id = msg_send![class, new];
 
+        #[cfg(feature = "autolayout")]
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![view, setWantsLayer: YES];
 
         view
@@ -92,33 +98,43 @@ pub struct TextField<T = ()> {
     pub delegate: Option<Box<T>>,
     
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY,
 }
 
@@ -136,17 +152,37 @@ impl TextField {
 
         TextField {
             delegate: None,
-            top: LayoutAnchorY::top(view),
-            left: LayoutAnchorX::left(view),
-            leading: LayoutAnchorX::leading(view),
-            right: LayoutAnchorX::right(view),
-            trailing: LayoutAnchorX::trailing(view),
-            bottom: LayoutAnchorY::bottom(view),
-            width: LayoutAnchorDimension::width(view),
-            height: LayoutAnchorDimension::height(view),
-            center_x: LayoutAnchorX::center(view),
-            center_y: LayoutAnchorY::center(view),
             objc: ObjcProperty::retain(view),
+            
+            #[cfg(feature = "autolayout")]
+            top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
+            left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
+            leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
+            right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
+            width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
+            height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: LayoutAnchorY::center(view)    
         }
     }
 }
@@ -169,17 +205,37 @@ where
 
         let mut label = TextField {
             delegate: None,
-            top: LayoutAnchorY::top(label),
-            left: LayoutAnchorX::left(label),
-            leading: LayoutAnchorX::leading(label),
-            right: LayoutAnchorX::right(label),
-            trailing: LayoutAnchorX::trailing(label),
-            bottom: LayoutAnchorY::bottom(label),
-            width: LayoutAnchorDimension::width(label),
-            height: LayoutAnchorDimension::height(label),
-            center_x: LayoutAnchorX::center(label),
-            center_y: LayoutAnchorY::center(label),
             objc: ObjcProperty::retain(label),
+            
+            #[cfg(feature = "autolayout")]
+            top: LayoutAnchorY::top(label),
+            
+            #[cfg(feature = "autolayout")]
+            left: LayoutAnchorX::left(label),
+            
+            #[cfg(feature = "autolayout")]
+            leading: LayoutAnchorX::leading(label),
+            
+            #[cfg(feature = "autolayout")]
+            right: LayoutAnchorX::right(label),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: LayoutAnchorX::trailing(label),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: LayoutAnchorY::bottom(label),
+            
+            #[cfg(feature = "autolayout")]
+            width: LayoutAnchorDimension::width(label),
+            
+            #[cfg(feature = "autolayout")]
+            height: LayoutAnchorDimension::height(label),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: LayoutAnchorX::center(label),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: LayoutAnchorY::center(label),
         };
 
         (&mut delegate).did_load(label.clone_as_handle());
@@ -196,17 +252,37 @@ impl<T> TextField<T> {
     pub(crate) fn clone_as_handle(&self) -> TextField {
         TextField {
             delegate: None,
-            top: self.top.clone(),
-            leading: self.leading.clone(),
-            left: self.left.clone(),
-            trailing: self.trailing.clone(),
-            right: self.right.clone(),
-            bottom: self.bottom.clone(),
-            width: self.width.clone(),
-            height: self.height.clone(),
-            center_x: self.center_x.clone(),
-            center_y: self.center_y.clone(),
             objc: self.objc.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            top: self.top.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            leading: self.leading.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            left: self.left.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: self.trailing.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            right: self.right.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: self.bottom.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            width: self.width.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            height: self.height.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: self.center_x.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: self.center_y.clone(),
         }
     }
 
@@ -235,11 +311,49 @@ impl<T> TextField<T> {
         });
     }
 
+    /// Call this to set the text for the label.
+    pub fn set_placeholder_text(&self, text: &str) {
+        let s = NSString::new(text);
+
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setPlaceholderString:&*s];
+        });
+    }
+
     /// The the text alignment style for this control.
     pub fn set_text_alignment(&self, alignment: TextAlign) {
         self.objc.with_mut(|obj| unsafe {
             let alignment: NSInteger = alignment.into();
             let _: () = msg_send![obj, setAlignment: alignment];
+        });
+    }
+
+    /// Set whether this field operates in single-line mode.
+    pub fn set_uses_single_line(&self, uses_single_line: bool) {
+        self.objc.with_mut(|obj| unsafe {
+            let cell: id = msg_send![obj, cell];
+            let _: () = msg_send![cell, setUsesSingleLineMode:match uses_single_line {
+                true => YES,
+                false => NO
+            }];
+        });
+    }
+
+    /// Set whether this field operates in single-line mode.
+    pub fn set_wraps(&self, uses_single_line: bool) {
+        self.objc.with_mut(|obj| unsafe {
+            let cell: id = msg_send![obj, cell];
+            let _: () = msg_send![cell, setWraps:match uses_single_line {
+                true => YES,
+                false => NO
+            }];
+        });
+    }
+
+    /// Sets the maximum number of lines.
+    pub fn set_max_number_of_lines(&self, num: NSInteger) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setMaximumNumberOfLines:num];
         });
     }
 
@@ -253,15 +367,19 @@ impl<T> TextField<T> {
     }
 }
 
-impl<T> Layout for TextField<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for TextField<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl<T> Layout for TextField<T> {}
+
+impl<T> Control for TextField<T> {}
 
 impl<T> Drop for TextField<T> {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `TextField` is being

@@ -51,32 +51,38 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layer::Layer;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
-use crate::view::ViewDelegate;
+use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
+use crate::view::{ViewAnimatorProxy, ViewDelegate};
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension, SafeAreaLayoutGuide};
 
-#[cfg(target_os = "macos")]
-use macos::{register_listview_row_class, register_listview_row_class_with_delegate};
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(feature = "appkit")]
+use appkit::{register_listview_row_class, register_listview_row_class_with_delegate};
 
-#[cfg(target_os = "ios")]
-use ios::{register_listview_row_view_class, register_listview_row_class_with_delegate};
+//#[cfg(feature = "uikit")]
+//mod ios;
 
-pub(crate) static BACKGROUND_COLOR: &str = "alchemyBackgroundColor";
-pub(crate) static LISTVIEW_ROW_DELEGATE_PTR: &str = "rstListViewRowDelegatePtr";
+//#[cfg(feature = "uikit")]
+//use ios::{register_listview_row_view_class, register_listview_row_class_with_delegate};
+
+pub(crate) static BACKGROUND_COLOR: &str = "cacaoBackgroundColor";
+pub(crate) static LISTVIEW_ROW_DELEGATE_PTR: &str = "cacaoListViewRowDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
     unsafe {
         let view: id = msg_send![registration_fn(), new];
+
+        #[cfg(feature = "autolayout")]
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![view, setWantsLayer:YES];
 
         view 
@@ -88,40 +94,57 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 /// side anyway.
 #[derive(Debug)]
 pub struct ListViewRow<T = ()> {
+    /// An object that supports limited animations. Can be cloned into animation closures.
+    pub animator: ViewAnimatorProxy,
+
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
+
+    /// A safe layout guide property.
+    #[cfg(feature = "autolayout")]
+    pub safe_layout_guide: SafeAreaLayoutGuide,
     
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -138,17 +161,41 @@ impl ListViewRow {
 
         ListViewRow {
             delegate: None,
-            top: LayoutAnchorY::top(view),
-            left: LayoutAnchorX::left(view),
-            leading: LayoutAnchorX::leading(view),
-            right: LayoutAnchorX::right(view),
-            trailing: LayoutAnchorX::trailing(view),
-            bottom: LayoutAnchorY::bottom(view),
-            width: LayoutAnchorDimension::width(view),
-            height: LayoutAnchorDimension::height(view),
-            center_x: LayoutAnchorX::center(view),
-            center_y: LayoutAnchorY::center(view),
             objc: ObjcProperty::retain(view),
+            animator: ViewAnimatorProxy::new(view),
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: SafeAreaLayoutGuide::new(view),
+            
+            #[cfg(feature = "autolayout")]
+            top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
+            left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
+            leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
+            right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
+            width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
+            height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: LayoutAnchorY::center(view),
         }
     }
 }
@@ -175,17 +222,41 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
 
         let view = ListViewRow {
             delegate: Some(delegate),
-            top: LayoutAnchorY::top(view),
-            left: LayoutAnchorX::left(view),
-            leading: LayoutAnchorX::leading(view),
-            right: LayoutAnchorX::right(view),
-            trailing: LayoutAnchorX::trailing(view),
-            bottom: LayoutAnchorY::bottom(view),
-            width: LayoutAnchorDimension::width(view),
-            height: LayoutAnchorDimension::height(view),
-            center_x: LayoutAnchorX::center(view),
-            center_y: LayoutAnchorY::center(view),
             objc: ObjcProperty::retain(view),
+            animator: ViewAnimatorProxy::new(view),
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: SafeAreaLayoutGuide::new(view),
+            
+            #[cfg(feature = "autolayout")]
+            top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
+            left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
+            leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
+            right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
+            width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
+            height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: LayoutAnchorY::center(view),
         };
 
         view
@@ -201,25 +272,47 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
     pub fn with_boxed(mut delegate: Box<T>) -> ListViewRow<T> { 
         let view = allocate_view(register_listview_row_class_with_delegate::<T>);
         unsafe {
-            //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
-            //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let ptr: *const T = &*delegate;
             (&mut *view).set_ivar(LISTVIEW_ROW_DELEGATE_PTR, ptr as usize);
         };
 
         let mut view = ListViewRow {
             delegate: None,
-            top: LayoutAnchorY::top(view),
-            left: LayoutAnchorX::left(view),
-            leading: LayoutAnchorX::leading(view),
-            right: LayoutAnchorX::right(view),
-            trailing: LayoutAnchorX::trailing(view),
-            bottom: LayoutAnchorY::bottom(view),
-            width: LayoutAnchorDimension::width(view),
-            height: LayoutAnchorDimension::height(view),
-            center_x: LayoutAnchorX::center(view),
-            center_y: LayoutAnchorY::center(view),
             objc: ObjcProperty::retain(view),
+            animator: ViewAnimatorProxy::new(view),
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: SafeAreaLayoutGuide::new(view),
+            
+            #[cfg(feature = "autolayout")]
+            top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
+            left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
+            leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
+            right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
+            width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
+            height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: LayoutAnchorY::center(view),
         };
 
         (&mut delegate).did_load(view.clone_as_handle()); 
@@ -237,17 +330,41 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
 
         ListViewRow {
             delegate: None,
+            objc: self.objc.clone(),
+            animator: self.animator.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: self.safe_layout_guide.clone(),
+
+            #[cfg(feature = "autolayout")]
             top: self.top.clone(),
+
+            #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
+            
+            #[cfg(feature = "autolayout")]
             left: self.left.clone(),
+            
+            #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
+            
+            #[cfg(feature = "autolayout")]
             right: self.right.clone(),
+            
+            #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
+            
+            #[cfg(feature = "autolayout")]
             width: self.width.clone(),
+            
+            #[cfg(feature = "autolayout")]
             height: self.height.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
-            objc: self.objc.clone()
         }
     }
 }
@@ -261,18 +378,42 @@ impl<T> ListViewRow<T> {
         crate::view::View {
             delegate: None,
             is_handle: true,
-            layer: Layer::new(),
+            layer: Layer::new(), // @TODO: Fix & return cloned true layer for this row.
+            objc: self.objc.clone(),
+            animator: self.animator.clone(),
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: self.safe_layout_guide.clone(),
+
+            #[cfg(feature = "autolayout")]
             top: self.top.clone(),
+            
+            #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
+            
+            #[cfg(feature = "autolayout")]
             left: self.left.clone(),
+            
+            #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
+            
+            #[cfg(feature = "autolayout")]
             right: self.right.clone(),
+            
+            #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
+            
+            #[cfg(feature = "autolayout")]
             width: self.width.clone(),
+            
+            #[cfg(feature = "autolayout")]
             height: self.height.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
-            objc: self.objc.clone()
         }
     }
 
@@ -295,15 +436,17 @@ impl<T> ListViewRow<T> {
     }
 }
 
-impl<T> Layout for ListViewRow<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for ListViewRow<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl<T> Layout for ListViewRow<T> {}
 
 impl<T> Drop for ListViewRow<T> {
     fn drop(&mut self) {

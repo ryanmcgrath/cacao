@@ -66,9 +66,7 @@ extern fn get_bundle_id(this: &Object, s: Sel, v: id) -> id {
             let url: id = msg_send![main_bundle, bundleURL];
             let x: id = msg_send![url, absoluteString];
             println!("Got here? {:?}", x);
-            unsafe {
-                NSString::alloc(nil).init_str("com.secretkeys.subatomic")
-            }
+            NSString::new("com.test.user_notifications").into()
         } else {
             msg_send![this, __bundleIdentifier]
         }

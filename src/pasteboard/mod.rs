@@ -20,7 +20,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 use url::Url;
 
-use crate::foundation::{id, nil, NSString, NSArray};
+use crate::foundation::{id, nil, NSString, NSArray, NSURL};
 use crate::error::Error;
 
 mod types;
@@ -93,7 +93,7 @@ impl Pasteboard {
     /// _Note that this method returns a list of `Url` entities, in an attempt to be closer to how
     /// Cocoa & co operate. This method may go away in the future if it's determined that people
     /// wind up just using `get_file_paths()`._
-    pub fn get_file_urls(&self) -> Result<Vec<Url>, Box<dyn std::error::Error>> {
+    pub fn get_file_urls(&self) -> Result<Vec<NSURL>, Box<dyn std::error::Error>> {
         unsafe {
             let class: id = msg_send![class!(NSURL), class];
             let classes = NSArray::new(&[class]);
@@ -113,40 +113,7 @@ impl Pasteboard {
             }
 
             let urls = NSArray::retain(contents).map(|url| {
-                let path = NSString::retain(msg_send![url, path]);
-                Url::parse(&format!("file://{}", path.to_str()))
-            }).into_iter().filter_map(|r| r.ok()).collect();
-
-            Ok(urls)
-        }
-    }
-
-    /// Looks inside the pasteboard contents and extracts what FileURLs are there, if any.
-    ///
-    /// Note that this method operates on file paths, as opposed to URLs, and returns a list of
-    /// results in a format more Rust-y.
-    pub fn get_file_paths(&self) -> Result<Vec<PathBuf>, Box<dyn std::error::Error>> {
-        unsafe {
-            let class: id = msg_send![class!(NSURL), class];
-            let classes = NSArray::new(&[class]);
-            let contents: id = msg_send![&*self.0, readObjectsForClasses:classes options:nil];
-            
-            // This can happen if the Pasteboard server has an error in returning items.
-            // In our case, we'll bubble up an error by checking the pasteboard.
-            if contents == nil {
-                // This error is not necessarily "correct", but in the event of an error in
-                // Pasteboard server retrieval I'm not sure where to check... and this stuff is
-                // kinda ancient and has conflicting docs in places. ;P
-                return Err(Box::new(Error {
-                    code: 666,
-                    domain: "com.cacao-rs.pasteboard".to_string(),
-                    description: "Pasteboard server returned no data.".to_string()
-                }));
-            }
-
-            let urls = NSArray::retain(contents).map(|url| {
-                let path = NSString::retain(msg_send![url, path]).to_str().to_string();
-                PathBuf::from(path)
+                NSURL::retain(url)
             }).into_iter().collect();
 
             Ok(urls)

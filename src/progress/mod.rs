@@ -1,7 +1,7 @@
 //! A progress indicator widget.
 //!
-//! This control wraps `NSProgressIndicator` on macOS, and 
-//! `UIProgressView+UIActivityIndicatorView` on iOS and tvOS. It operates in two modes: determinate
+//! This control wraps `NSProgressIndicator` in AppKit, and 
+//! `UIProgressView+UIActivityIndicatorView` in iOS/tvOS. It operates in two modes: determinate
 //! (where you have a fixed start and end) and indeterminate (infinite; it will go and go until you
 //! tell it to stop).
 //!
@@ -19,14 +19,12 @@ use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSUInteger};
 use crate::color::Color;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "ios")]
-mod ios;
-
-#[cfg(target_os = "ios")]
-use ios::register_progress_indicator_class;
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
 mod enums;
 pub use enums::ProgressIndicatorStyle;
@@ -38,33 +36,43 @@ pub struct ProgressIndicator {
     pub objc: ObjcProperty,
     
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -79,27 +87,49 @@ impl ProgressIndicator {
     /// need it to stay around.
     pub fn new() -> Self {
         let view = unsafe {
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             let view: id = msg_send![class!(NSProgressIndicator), new];
+            
+            #[cfg(feature = "autolayout")]
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![view, setWantsLayer:YES];
 
             view
         };
 
         ProgressIndicator {
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
+            
             objc: ObjcProperty::retain(view),
         }
     }
@@ -172,15 +202,17 @@ impl ProgressIndicator {
     }
 }
 
-impl Layout for ProgressIndicator {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl ObjcAccess for ProgressIndicator {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl Layout for ProgressIndicator {}
 
 impl Drop for ProgressIndicator {
     /// A bit of extra cleanup for delegate callback pointers. 

@@ -5,8 +5,9 @@ use cacao::color::{Color, Theme};
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::View;
 
-use cacao::macos::{App, AppDelegate};
-use cacao::macos::window::{Window, WindowConfig, WindowDelegate};
+use cacao::appkit::{App, AppDelegate};
+use cacao::appkit::menu::{Menu, MenuItem};
+use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
 
 struct BasicApp {
     window: Window<AppWindow>
@@ -14,8 +15,40 @@ struct BasicApp {
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
+        App::set_menu(vec![
+            Menu::new("", vec![
+                MenuItem::Services,
+                MenuItem::Separator,
+                MenuItem::Hide,
+                MenuItem::HideOthers,
+                MenuItem::ShowAll,
+                MenuItem::Separator,
+                MenuItem::Quit
+            ]),
+
+            Menu::new("File", vec![
+                MenuItem::CloseWindow
+            ]),
+
+            Menu::new("View", vec![
+                MenuItem::EnterFullScreen
+            ]),
+
+            Menu::new("Window", vec![
+                MenuItem::Minimize,
+                MenuItem::Zoom,
+                MenuItem::Separator,
+                MenuItem::new("Bring All to Front")
+            ])
+        ]);
+
         App::activate();
+
         self.window.show();
+    }
+
+    fn should_terminate_after_last_window_closed(&self) -> bool {
+        true
     }
 }
 

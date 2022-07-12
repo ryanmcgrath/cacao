@@ -1,7 +1,7 @@
 //! The main Todos window.
 
-use cacao::macos::window::{Window, WindowDelegate};
-use cacao::macos::toolbar::Toolbar;
+use cacao::appkit::window::{Window, WindowDelegate};
+use cacao::appkit::toolbar::Toolbar;
 use cacao::view::ViewController;
 
 use crate::storage::Message;

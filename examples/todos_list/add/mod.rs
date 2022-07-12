@@ -1,6 +1,6 @@
 //! Implements a window for adding a new Todo.
 
-use cacao::macos::window::{Window, WindowDelegate};
+use cacao::appkit::window::{Window, WindowDelegate};
 use cacao::view::ViewController;
 
 use crate::storage::{dispatch_ui, Message};

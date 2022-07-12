@@ -18,6 +18,7 @@ pub mod notifications;
 pub use notifications::Notification;
 
 /// Acts as a central interface to the Notification Center on macOS.
+#[derive(Debug)]
 pub struct NotificationCenter;
 
 impl NotificationCenter {
@@ -26,7 +27,7 @@ impl NotificationCenter {
         unsafe {
             // @TODO: Revisit.
             let block = ConcreteBlock::new(|_: id, error: id| {
-                let localized_description = NSString::wrap(msg_send![error, localizedDescription]); 
+                let localized_description = NSString::new(msg_send![error, localizedDescription]); 
                 let e = localized_description.to_str();
                 if e != "" {
                     println!("{:?}", e);

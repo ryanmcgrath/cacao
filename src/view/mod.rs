@@ -47,36 +47,36 @@ use objc::{msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
 use crate::layer::Layer;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension, SafeAreaLayoutGuide};
+
+#[cfg(feature = "appkit")]
 use crate::pasteboard::PasteboardType;
 
-#[cfg(target_os = "macos")]
-mod macos;
+mod animator;
+pub use animator::ViewAnimatorProxy;
 
-#[cfg(target_os = "macos")]
-use macos::{register_view_class, register_view_class_with_delegate};
-
-#[cfg(target_os = "ios")]
-mod ios;
-
-#[cfg(target_os = "ios")]
-use ios::{register_view_class, register_view_class_with_delegate};
+#[cfg_attr(feature = "appkit", path = "appkit.rs")]
+#[cfg_attr(feature = "uikit", path = "uikit.rs")]
+mod native_interface;
 
 mod controller;
 pub use controller::ViewController;
 
-#[cfg(target_os = "macos")]
+#[cfg(feature = "appkit")]
 mod splitviewcontroller;
-#[cfg(target_os = "macos")]
+
+#[cfg(feature = "appkit")]
 pub use splitviewcontroller::SplitViewController;
 
 mod traits;
 pub use traits::ViewDelegate;
 
-pub(crate) static BACKGROUND_COLOR: &str = "alchemyBackgroundColor";
+pub(crate) static BACKGROUND_COLOR: &str = "cacaoBackgroundColor";
 pub(crate) static VIEW_DELEGATE_PTR: &str = "rstViewDelegatePtr";
 
 /// A clone-able handler to a `ViewController` reference in the Objective C runtime. We use this
@@ -92,41 +92,58 @@ pub struct View<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
 
-    /// References the underlying layer. This is consistent across macOS, iOS and tvOS - on macOS
+    /// An object that supports limited animations. Can be cloned into animation closures.
+    pub animator: ViewAnimatorProxy,
+
+    /// References the underlying layer. This is consistent across AppKit & UIKit - in AppKit
     /// we explicitly opt in to layer backed views.
     pub layer: Layer,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
 
+    /// A property containing safe layout guides.
+    #[cfg(feature = "autolayout")]
+    pub safe_layout_guide: SafeAreaLayoutGuide,
+
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -145,30 +162,55 @@ impl View {
     /// so on. It returns a generic `View<T>`, which the caller can then customize as needed.
     pub(crate) fn init<T>(view: id) -> View<T> {
         unsafe {
+            #[cfg(feature = "autolayout")]
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![view, setWantsLayer:YES];
         }
 
         View {
             is_handle: false,
             delegate: None,
+
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: SafeAreaLayoutGuide::new(view),
+            
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
             
             layer: Layer::wrap(unsafe {
                 msg_send![view, layer]
             }),
 
+            animator: ViewAnimatorProxy::new(view),
             objc: ObjcProperty::retain(view),
         }
     }
@@ -176,7 +218,7 @@ impl View {
     /// Returns a default `View`, suitable for customizing and displaying.
     pub fn new() -> Self {
         View::init(unsafe {
-            msg_send![register_view_class(), new]
+            msg_send![native_interface::register_view_class(), new]
         })
     }
 }
@@ -185,7 +227,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> View<T> {
-        let class = register_view_class_with_delegate(&delegate);
+        let class = native_interface::register_view_class_with_delegate(&delegate);
         let mut delegate = Box::new(delegate);
         
         let view = unsafe {
@@ -204,26 +246,50 @@ impl<T> View<T> where T: ViewDelegate + 'static {
 }
 
 impl<T> View<T> {
-    /// An internal method that returns a clone of this object, sans references to the delegate or
+    /// Returns a clone of this object, sans references to the delegate or
     /// callback pointer. We use this in calling `did_load()` - implementing delegates get a way to
     /// reference, customize and use the view but without the trickery of holding pieces of the
     /// delegate - the `View` is the only true holder of those.
-    pub(crate) fn clone_as_handle(&self) -> View {
+    pub fn clone_as_handle(&self) -> View {
         View {
             delegate: None,
             is_handle: true,
             layer: self.layer.clone(),
+            objc: self.objc.clone(),
+            animator: self.animator.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            safe_layout_guide: self.safe_layout_guide.clone(),
+
+            #[cfg(feature = "autolayout")]
             top: self.top.clone(),
+            
+            #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
+            
+            #[cfg(feature = "autolayout")]
             left: self.left.clone(),
+            
+            #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
+            
+            #[cfg(feature = "autolayout")]
             right: self.right.clone(),
+            
+            #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
+            
+            #[cfg(feature = "autolayout")]
             width: self.width.clone(),
+            
+            #[cfg(feature = "autolayout")]
             height: self.height.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
-            objc: self.objc.clone()
         }
     }
 
@@ -231,12 +297,12 @@ impl<T> View<T> {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         let color: id = color.as_ref().into();
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             (&mut *obj).set_ivar(BACKGROUND_COLOR, color);
         });
 
-        #[cfg(target_os = "ios")]
+        #[cfg(feature = "uikit")]
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![&*obj, setBackgroundColor:color];
         });
@@ -244,15 +310,17 @@ impl<T> View<T> {
 
 }
 
-impl<T> Layout for View<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for View<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl<T> Layout for View<T> {}
 
 impl<T> Drop for View<T> {
     /// If the instance being dropped is _not_ a handle, then we want to go ahead and explicitly

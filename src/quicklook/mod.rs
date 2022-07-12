@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use objc::runtime::{Object};
+use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
@@ -17,13 +17,19 @@ pub use config::{ThumbnailConfig, ThumbnailQuality};
 pub struct ThumbnailGenerator(pub ShareId<Object>);
 
 impl ThumbnailGenerator {
+    /// Returns the global shared, wrapped, QLThumbnailGenerator.
     pub fn shared() -> Self {
         ThumbnailGenerator(unsafe {
             ShareId::from_ptr(msg_send![class!(QLThumbnailGenerator), sharedGenerator])
         })
     }
 
-    pub fn generate<F>(&self, path: &Path, config: ThumbnailConfig, callback: F)
+    /// Given a path and config, will generate a preview image, calling back on the provided
+    /// callback closure.
+    ///
+    /// Note that this callback can come back on a separate thread, so react accordingly to get to
+    /// the main thread if you need to.
+    pub fn generate_from_path<F>(&self, path: &Path, config: ThumbnailConfig, callback: F)
     where
         F: Fn(Result<(Image, ThumbnailQuality), Error>) + Send + Sync + 'static
     {

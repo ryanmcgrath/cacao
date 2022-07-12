@@ -12,8 +12,11 @@ use objc_id::Id;
 use crate::color::Color;
 use crate::foundation::{id, to_bool, BOOL, YES, NO, NSString};
 
+use super::Font;
+
 extern "C" {
     static NSForegroundColorAttributeName: id;
+    static NSFontAttributeName: id;
 }
 
 /// A wrapper around `NSMutableAttributedString`, which can be used for more complex text
@@ -50,6 +53,16 @@ impl AttributedString {
         unsafe {
             let _: () = msg_send![&*self.0, addAttribute:NSForegroundColorAttributeName
                 value:color
+                range:range
+            ];
+        }
+    }
+
+    /// Set the font for the specified range.
+    pub fn set_font(&mut self, font: Font, range: Range<isize>) {
+        unsafe {
+            let _: () = msg_send![&*self.0, addAttribute:NSFontAttributeName
+                value:&*font
                 range:range
             ];
         }

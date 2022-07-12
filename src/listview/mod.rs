@@ -50,26 +50,31 @@ use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString, NSInteger, NSUInteger};
 use crate::color::Color;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::Layout;
+
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+
+use crate::objc_access::ObjcAccess;
 use crate::scrollview::ScrollView;
 use crate::utils::{os, CellFactory, CGSize};
 use crate::utils::properties::{ObjcProperty, PropertyNullable};
-use crate::view::ViewDelegate;
+use crate::view::{ViewAnimatorProxy, ViewDelegate};
 
-#[cfg(target_os = "macos")]
-use crate::macos::menu::MenuItem;
+#[cfg(feature = "appkit")]
+use crate::appkit::menu::MenuItem;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "macos")]
-use macos::{register_listview_class, register_listview_class_with_delegate};
+#[cfg(feature = "appkit")]
+use appkit::{register_listview_class, register_listview_class_with_delegate};
 
-#[cfg(target_os = "ios")]
-mod ios;
+//#[cfg(target_os = "ios")]
+//mod ios;
 
-#[cfg(target_os = "ios")]
-use ios::{register_view_class, register_view_class_with_delegate};
+//#[cfg(target_os = "ios")]
+//use ios::{register_view_class, register_view_class_with_delegate};
 
 mod enums;
 pub use enums::{RowAnimation, RowEdge};
@@ -94,11 +99,12 @@ use std::cell::RefCell;
 /// A helper method for instantiating view classes and applying default settings to them.
 fn common_init(class: *const Class) -> id { 
     unsafe {
+        // Note: we do *not* enable AutoLayout here as we're by default placing this in a scroll
+        // view, and we want it to just do its thing.
         let tableview: id = msg_send![class, new];
-        let _: () = msg_send![tableview, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         // Let's... make NSTableView into UITableView-ish.
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         {
             // @TODO: Clean this up in a dealloc method.
             let menu: id = msg_send![class!(NSMenu), new];
@@ -137,42 +143,56 @@ pub struct ListView<T = ()> {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
 
-    /// On macOS, we need to manage the NSScrollView ourselves. It's a bit
+    /// An object that supports limited animations. Can be cloned into animation closures.
+    pub animator: ViewAnimatorProxy,
+
+    /// In AppKit, we need to manage the NSScrollView ourselves. It's a bit
     /// more old school like that...
-    #[cfg(target_os = "macos")]
+    ///
+    /// In iOS, this is a pointer to the UITableView-owned UIScrollView.
     pub scrollview: ScrollView,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
 
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -188,7 +208,7 @@ impl ListView {
         let class = register_listview_class();
         let view = common_init(class);
         
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let scrollview = {
             let sview = ScrollView::new();
             
@@ -199,34 +219,59 @@ impl ListView {
             sview
         };
 
-        // For macOS, we need to use the NSScrollView anchor points, not the NSTableView.
+        // For AppKit, we need to use the NSScrollView anchor points, not the NSTableView.
         // @TODO: Fix this with proper mutable access.
-        #[cfg(target_os = "macos")]
+        #[cfg(all(feature = "appkit", feature = "autolayout"))]
         let anchor_view: id = scrollview.objc.get(|obj| unsafe {
             msg_send![obj, self]
         });
         
-        #[cfg(target_os = "ios")]
-        let anchor_view: id = view;
+        //#[cfg(all(feature = "uikit", feature = "autolayout"))]
+        //let anchor_view: id = view;
 
         ListView {
             cell_factory: CellFactory::new(),
             menu: PropertyNullable::default(),
             delegate: None,
+            
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(anchor_view),
+            
+            // Note that AppKit needs this to be the ScrollView!
+            // @TODO: Figure out if there's a use case for exposing the inner tableview animator
+            // property...
+            animator: ViewAnimatorProxy::new(anchor_view),
+
             objc: ObjcProperty::retain(view),
 
-            #[cfg(target_os = "macos")]
-            scrollview: scrollview
+            scrollview
         }
     }
 }
@@ -241,15 +286,13 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
         let cell = CellFactory::new();
         
         unsafe {
-            //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
-            //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let delegate_ptr: *const T = &*delegate;
             (&mut *view).set_ivar(LISTVIEW_DELEGATE_PTR, delegate_ptr as usize);
             let _: () = msg_send![view, setDelegate:view];
             let _: () = msg_send![view, setDataSource:view];
         };
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let scrollview = {
             let sview = ScrollView::new();
             
@@ -260,33 +303,53 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
             sview
         };
 
-        // For macOS, we need to use the NSScrollView anchor points, not the NSTableView.
-        #[cfg(target_os = "macos")]
+        // For AppKit, we need to use the NSScrollView anchor points, not the NSTableView.
+        #[cfg(all(feature = "appkit", feature = "autolayout"))]
         let anchor_view: id = scrollview.objc.get(|obj| unsafe {
             msg_send![obj, self]
         });
         
-        #[cfg(target_os = "ios")]
-        let anchor_view = view;
+        //#[cfg(feature = "uikit")]
+        //let anchor_view = view;
 
         let mut view = ListView {
             cell_factory: cell,
             menu: PropertyNullable::default(),
             delegate: None,
-            top: LayoutAnchorY::top(anchor_view),
-            left: LayoutAnchorX::left(anchor_view),
-            leading: LayoutAnchorX::leading(anchor_view),
-            right: LayoutAnchorX::right(anchor_view),
-            trailing: LayoutAnchorX::trailing(anchor_view),
-            bottom: LayoutAnchorY::bottom(anchor_view),
-            width: LayoutAnchorDimension::width(anchor_view),
-            height: LayoutAnchorDimension::height(anchor_view),
-            center_x: LayoutAnchorX::center(anchor_view),
-            center_y: LayoutAnchorY::center(anchor_view),
             objc: ObjcProperty::retain(view),
+            animator: ViewAnimatorProxy::new(anchor_view),
+
+            #[cfg(feature = "autolayout")]
+            top: LayoutAnchorY::top(anchor_view),
             
-            #[cfg(target_os = "macos")]
-            scrollview: scrollview
+            #[cfg(feature = "autolayout")]
+            left: LayoutAnchorX::left(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            leading: LayoutAnchorX::leading(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            right: LayoutAnchorX::right(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: LayoutAnchorX::trailing(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: LayoutAnchorY::bottom(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            width: LayoutAnchorDimension::width(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            height: LayoutAnchorDimension::height(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: LayoutAnchorX::center(anchor_view),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: LayoutAnchorY::center(anchor_view),
+            
+            scrollview
         };
 
         (&mut delegate).did_load(view.clone_as_handle()); 
@@ -300,24 +363,44 @@ impl<T> ListView<T> {
     /// callback pointer. We use this in calling `did_load()` - implementing delegates get a way to
     /// reference, customize and use the view but without the trickery of holding pieces of the
     /// delegate - the `View` is the only true holder of those.
-    pub(crate) fn clone_as_handle(&self) -> ListView {
+    pub fn clone_as_handle(&self) -> ListView {
         ListView {
             cell_factory: CellFactory::new(),
             menu: self.menu.clone(),
             delegate: None,
-            top: self.top.clone(),
-            leading: self.leading.clone(),
-            left: self.left.clone(),
-            trailing: self.trailing.clone(),
-            right: self.right.clone(),
-            bottom: self.bottom.clone(),
-            width: self.width.clone(),
-            height: self.height.clone(),
-            center_x: self.center_x.clone(),
-            center_y: self.center_y.clone(),
             objc: self.objc.clone(),
+            animator: self.animator.clone(),
 
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "autolayout")]
+            top: self.top.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            leading: self.leading.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            left: self.left.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: self.trailing.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            right: self.right.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: self.bottom.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            width: self.width.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            height: self.height.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: self.center_x.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: self.center_y.clone(),
+
             scrollview: self.scrollview.clone_as_handle()
         }
     }
@@ -334,7 +417,7 @@ impl<T> ListView<T> {
 
     /// Dequeue a reusable cell. If one is not in the queue, will create and cache one for reuse.
     pub fn dequeue<R: ViewDelegate + 'static>(&self, identifier: &'static str) -> ListViewRow<R> {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         {
             let key = NSString::new(identifier);
             let cell: id = self.objc.get(|obj| unsafe {
@@ -364,8 +447,11 @@ impl<T> ListView<T> {
 
     /// Sets the style for the underlying NSTableView. This property is only supported on macOS
     /// 11.0+, and will always be `FullWidth` on anything older.
-    #[cfg(target_os = "macos")]
+    ///
+    /// On non-macOS platforms, this method is a noop.
+    #[cfg(feature = "appkit")]
     pub fn set_style(&self, style: crate::foundation::NSInteger) {
+        #[cfg(target_os = "macos")]
         if os::is_minimum_version(11) {
             self.objc.with_mut(|obj| unsafe {
                 let _: () = msg_send![obj, setStyle:style];
@@ -375,10 +461,10 @@ impl<T> ListView<T> {
 
     /// Set whether this control can appear with no row selected.
     ///
-    /// This defaults to `true`, but some macOS pieces (e.g, a sidebar) may want this set to
+    /// This defaults to `true`, but some AppKit pieces (e.g, a sidebar) may want this set to
     /// `false`. This can be particularly useful when implementing a Source List style sidebar
     /// view for navigation purposes.
-    #[cfg(target_os = "macos")]
+    #[cfg(feature = "appkit")]
     pub fn set_allows_empty_selection(&self, allows: bool) {
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setAllowsEmptySelection:match allows {
@@ -413,6 +499,34 @@ impl<T> ListView<T> {
         }
     }
 
+    /// This hack exists to avoid a bug with how Rust's model isn't really friendly with more
+    /// old-school GUI models. The tl;dr is that we unfortunately have to cheat a bit to gracefully
+    /// handle two conditions.
+    ///
+    /// The gist of it is that there are two situations (`perform_batch_updates` and `insert_rows`)
+    /// where we call over to the list view to, well, perform updates. This causes the internal
+    /// machinery of AppKit to call to the delegate, and the delegate then - rightfully - calls to
+    /// dequeue a cell.
+    ///
+    /// The problem is then that dequeue'ing a cell requires borrowing the underlying cell handler,
+    /// per Rust's model. We haven't been able to drop our existing lock though! Thus it winds up
+    /// panic'ing and all hell breaks loose.
+    ///
+    /// For now, we just drop to Objective-C and message pass directly to avoid a
+    /// double-locking-attempt on the Rust side of things. This is explicitly not ideal, and if
+    /// you're reading this and rightfully going "WTF?", I encourage you to contribute a solution
+    /// if you can come up with one.
+    ///
+    /// In practice, this hack isn't that bad - at least, no worse than existing Objective-C code.
+    /// The behavior is relatively well understood and documented in the above paragraph, so I'm
+    /// comfortable with the hack for now.
+    ///
+    /// To be ultra-clear: the hack is that we don't `borrow_mut` before sending a message. It just
+    /// feels dirty, hence the novel. ;P
+    fn hack_avoid_dequeue_loop<F: Fn(&Object)>(&self, handler: F) {
+        self.objc.get(handler);
+    }
+
     /// This method should be used when inserting or removing multiple rows at once. Under the
     /// hood, it batches the changes and tries to ensure things are done properly. The provided
     /// `ListView` for the handler is your `ListView`, and you can call `insert_rows`,
@@ -425,7 +539,7 @@ impl<T> ListView<T> {
     /// ```
     pub fn perform_batch_updates<F: Fn(ListView)>(&self, update: F) {
         // Note that we need to thread the `with_mut` calls carefully, to avoid deadlocking.
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         {
             self.objc.get(|obj| unsafe {
                 let _: () = msg_send![obj, beginUpdates];
@@ -434,14 +548,9 @@ impl<T> ListView<T> {
             let handle = self.clone_as_handle();
             update(handle);
 
-            // This is cheating, but there's no good way around it at the moment. If we (mutably) lock in
-            // Rust here, firing this call will loop back around into `dequeue`, which will then
-            // hit a double lock.
-            //
-            // Personally, I can live with this - `endUpdates` is effectively just flushing the
-            // already added updates, so with this small hack here we're able to keep the mutable
-            // borrow structure everywhere else, which feels "correct".
-            self.objc.get(|obj| unsafe {
+            // This is done for a very explicit reason; see the comments on the method itself for
+            // an explanation.
+            self.hack_avoid_dequeue_loop(|obj| unsafe {
                 let _: () = msg_send![obj, endUpdates];
             });
         }
@@ -453,7 +562,7 @@ impl<T> ListView<T> {
     /// rows at once, you should also run this inside a `perform_batch_updates` call, as that will
     /// optimize things accordingly.
     pub fn insert_rows(&self, indexes: &[usize], animation: RowAnimation) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
             
@@ -468,7 +577,9 @@ impl<T> ListView<T> {
             // has also retained it.
             let x = ShareId::from_ptr(index_set);
             
-            self.objc.with_mut(|obj| {
+            // This is done for a very explicit reason; see the comments on the method itself for
+            // an explanation.
+            self.hack_avoid_dequeue_loop(|obj| {
                 let _: () = msg_send![obj, insertRowsAtIndexes:&*x withAnimation:animation_options];
             });
         }
@@ -476,7 +587,7 @@ impl<T> ListView<T> {
 
     /// Reload the rows at the specified indexes.
     pub fn reload_rows(&self, indexes: &[usize]) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
             
@@ -503,7 +614,7 @@ impl<T> ListView<T> {
     /// rows at once, you should also run this inside a `perform_batch_updates` call, as that will
     /// optimize things accordingly.
     pub fn remove_rows(&self, indexes: &[usize], animations: RowAnimation) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         unsafe {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
             
@@ -537,7 +648,7 @@ impl<T> ListView<T> {
     ///
     /// It can make some scrolling situations much smoother.
     pub fn set_uses_automatic_row_heights(&self, uses: bool) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setUsesAutomaticRowHeights:match uses {
                 true => YES,
@@ -546,11 +657,11 @@ impl<T> ListView<T> {
         });
     }
 
-    /// On macOS, this will instruct the underlying NSTableView to alternate
+    /// In AppKit, this will instruct the underlying NSTableView to alternate
     /// background colors automatically. If you set this, you possibly want
     /// to hard-set a row height as well.
     pub fn set_uses_alternating_backgrounds(&self, uses: bool) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setUsesAlternatingRowBackgroundColors:match uses {
                 true => YES,
@@ -561,12 +672,21 @@ impl<T> ListView<T> {
 
     /// End actions for a row. API subject to change.
     pub fn set_row_actions_visible(&self, visible: bool) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setRowActionsVisible:match visible {
                 true => YES,
                 false => NO
             }];
+        });
+    }
+
+    /// Makes this table view the first responder.
+    #[cfg(feature = "appkit")]
+    pub fn make_first_responder(&self) {
+        self.objc.with_mut(|obj| unsafe {
+            let window: id = msg_send![&*obj, window];
+            let _: () = msg_send![window, makeFirstResponder:&*obj];
         });
     }
 
@@ -586,7 +706,7 @@ impl<T> ListView<T> {
         self.objc.get(|obj| unsafe { msg_send![obj, selectedRow] })
     }
     
-    /// Returns the currently clicked row. This is macOS-specific, and is generally used in context
+    /// Returns the currently clicked row. This is AppKit-specific, and is generally used in context
     /// menu generation to determine what item the context menu should be for. If the clicked area
     /// is not an actual row, this will return `-1`.
     ///
@@ -612,24 +732,26 @@ impl<T> ListView<T> {
     }
 }
 
-impl<T> Layout for ListView<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
-        // On macOS, we need to provide the scrollview for layout purposes - iOS and tvOS will know
+impl<T> ObjcAccess for ListView<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+        // In AppKit, we need to provide the scrollview for layout purposes - iOS and tvOS will know
         // what to do normally.
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.scrollview.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        // On macOS, we need to provide the scrollview for layout purposes - iOS and tvOS will know
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+        // In AppKit, we need to provide the scrollview for layout purposes - iOS and tvOS will know
         // what to do normally.
         //
         // @TODO: Review this, as property access isn't really used in the same place as layout
         // stuff... hmm...
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.scrollview.objc.get(handler)
     }
 }
+
+impl<T> Layout for ListView<T> {}
 
 impl<T> Drop for ListView<T> {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being

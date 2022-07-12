@@ -11,7 +11,7 @@ use core_graphics::{
 };
 use core_graphics::context::{CGContext, CGContextRef};
 
-use crate::foundation::{id, YES, NO, NSString};
+use crate::foundation::{id, YES, NO, NSString, NSData};
 use crate::utils::os;
 use super::icons::*;
 
@@ -118,7 +118,7 @@ pub struct DrawConfig {
     pub resize: ResizeBehavior
 }
 
-/// Wraps `NSImage` on macOS, and `UIImage` on iOS and tvOS. Can be used to display images, icons,
+/// Wraps `NSImage` under AppKit, and `UIImage` on under UIKit (iOS and tvOS). Can be used to display images, icons,
 /// and so on.
 #[derive(Clone, Debug)]
 pub struct Image(pub ShareId<Object>);
@@ -131,10 +131,53 @@ impl Image {
         })
     }
 
+    /// Loads an image from the specified path.
+    pub fn with_contents_of_file(path: &str) -> Self {
+        let file_path = NSString::new(path);
+
+        Image(unsafe {
+            let alloc: id = msg_send![class!(NSImage), alloc];
+            ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile:file_path])
+        })
+    }
+
+    /// Given a Vec of data, will transform it into an Image by passing it through NSData.
+    /// This can be useful for when you need to include_bytes!() something into your binary.
+    pub fn with_data(data: &[u8]) -> Self {
+        let data = NSData::with_slice(data);
+
+        Image(unsafe {
+            let alloc: id = msg_send![class!(NSImage), alloc];
+            ShareId::from_ptr(msg_send![alloc, initWithData:data])
+        })
+    }
+
+    // @TODO: for Airyx, unsure if this is supported - and it's somewhat modern macOS-specific, so
+    // let's keep the os flag here for now.
     /// Returns a stock system icon. These are guaranteed to exist across all versions of macOS
     /// supported.
     #[cfg(target_os = "macos")]
-    pub fn system_icon(icon: MacSystemIcon, accessibility_description: &str) -> Self {
+    pub fn system_icon(icon: MacSystemIcon) -> Self {
+        Image(unsafe {
+            ShareId::from_ptr({
+                let icon = icon.to_id();
+                msg_send![class!(NSImage), imageNamed:icon]
+            })
+        })
+    }
+
+    // @TODO: for Airyx, unsure if this is supported - and it's somewhat modern macOS-specific, so
+    // let's keep the os flag here for now.
+    /// The name here can be confusing, I know.
+    ///
+    /// A system symbol will swap an SFSymbol in for macOS 11.0+, but return the correct
+    /// MacSystemIcon image type for versions prior to that. This is mostly helpful in situations
+    /// like Preferences windows toolbars, where you want to have the correct modern styling for newer OS
+    /// versions.
+    ///
+    /// However, if you need the correct "folder" icon for instance, you probably want `system_icon`.
+    #[cfg(target_os = "macos")]
+    pub fn toolbar_icon(icon: MacSystemIcon, accessibility_description: &str) -> Self {
         Image(unsafe {
             ShareId::from_ptr(match os::is_minimum_version(11) {
                 true => {
@@ -145,8 +188,8 @@ impl Image {
                 },
 
                 false => {
-                    let icon = NSString::new(icon.to_str());
-                    msg_send![class!(NSImage), imageNamed:&*icon]
+                    let icon = icon.to_id();
+                    msg_send![class!(NSImage), imageNamed:icon]
                 }
             })
         })

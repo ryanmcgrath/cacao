@@ -4,20 +4,24 @@ use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
-#[cfg(target_os = "macos")]
-use macos::register_image_view_class;
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(feature = "appkit")]
+use appkit::register_image_view_class;
 
-#[cfg(target_os = "ios")]
-use ios::register_image_view_class;
+//#[cfg(feature = "uikit")]
+//mod uikit;
+
+//#[cfg(feature = "uikit")]
+//use uikit::register_image_view_class;
 
 mod image;
 pub use image::{Image, DrawConfig, ResizeBehavior};
@@ -29,9 +33,11 @@ pub use icons::*;
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
     unsafe {
         let view: id = msg_send![registration_fn(), new];
+        
+        #[cfg(feature = "autolayout")]
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![view, setWantsLayer:YES];
 
         view 
@@ -47,33 +53,43 @@ pub struct ImageView {
     pub objc: ObjcProperty,
     
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -89,16 +105,36 @@ impl ImageView {
         let view = allocate_view(register_image_view_class);
 
         ImageView {
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
+            
             objc: ObjcProperty::retain(view),
         }
     }
@@ -112,22 +148,33 @@ impl ImageView {
         });
     }
 
+    /// Given an image reference, sets it on the image view. You're currently responsible for
+    /// retaining this yourself.
     pub fn set_image(&self, image: &Image) {
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setImage:&*image.0];
         });
     }
+
+    /*pub fn set_image_scaling(&self, scaling_type: ImageScale) {
+        self.objc.with_mut(|obj| unsafe {
+
+            let _: () = msg_send![obj, setImageScaling:
+        });
+    }*/
 }
 
-impl Layout for ImageView {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl ObjcAccess for ImageView {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl Layout for ImageView {}
 
 impl Drop for ImageView {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `View` is being

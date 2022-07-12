@@ -26,11 +26,11 @@ use objc_id::Id;
 use crate::foundation::id;
 use crate::utils::os;
 
-#[cfg(target_os = "macos")]
-mod macos_dynamic_color; 
+#[cfg(feature = "appkit")]
+mod appkit_dynamic_color; 
 
-#[cfg(target_os = "macos")]
-use macos_dynamic_color::{
+#[cfg(feature = "appkit")]
+use appkit_dynamic_color::{
     AQUA_LIGHT_COLOR_NORMAL_CONTRAST, AQUA_LIGHT_COLOR_HIGH_CONTRAST,
     AQUA_DARK_COLOR_NORMAL_CONTRAST, AQUA_DARK_COLOR_HIGH_CONTRAST
 };
@@ -41,7 +41,7 @@ use macos_dynamic_color::{
 /// default to the `Light` theme.
 #[derive(Copy, Clone, Debug)]
 pub enum Theme {
-    /// The "default" theme on a platform. On macOS, this is Aqua.
+    /// The "default" theme on a platform. On macOS/Airyx, this is Aqua.
     /// On iOS and tvOS, this is whatever you call the system defined theme.
     Light,
 
@@ -217,6 +217,7 @@ pub enum Color {
     /// The default color to use for thin separators/lines that
     /// do not allow content underneath to be visible.
     /// This value automatically switches to the correct variant depending on light or dark mode.
+    #[cfg(feature = "uikit")]
     OpaqueSeparator,
 
     /// The default color to use for rendering links.
@@ -230,11 +231,11 @@ pub enum Color {
     LightText,
 
     /// The background color for a given window in the system theme.
-    #[cfg(target_os = "macos")]
+    #[cfg(feature = "appkit")]
     MacOSWindowBackgroundColor,
 
     /// The background color that should appear under a page per the system theme.
-    #[cfg(target_os = "macos")]
+    #[cfg(feature = "appkit")]
     MacOSUnderPageBackgroundColor
 }
 
@@ -248,10 +249,10 @@ impl Color {
         let a = alpha as CGFloat / 255.0;
 
         Color::Custom(Arc::new(RwLock::new(unsafe {
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed:r green:g blue:b alpha:a]) }
 
-            #[cfg(target_os = "ios")]
+            #[cfg(feature = "uikit")]
             { Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a]) }
         })))
     }
@@ -271,10 +272,10 @@ impl Color {
         let a = alpha as CGFloat / 255.0;
 
         Color::Custom(Arc::new(RwLock::new(unsafe {
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedHue:h saturation:s brightness:b alpha:a]) }
 
-            #[cfg(target_os = "ios")]
+            #[cfg(feature = "uikit")]
             { Id::from_ptr(msg_send![class!(UIColor), colorWithHue:h saturation:s brightness:b alpha:a]) }
         })))
     }
@@ -289,10 +290,10 @@ impl Color {
     /// specified alpha.
     pub fn white_alpha(level: CGFloat, alpha: CGFloat) -> Self {
         Color::Custom(Arc::new(RwLock::new(unsafe {
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedWhite:level alpha:alpha]) }
             
-            #[cfg(target_os = "ios")]
+            #[cfg(feature = "uikit")]
             { Id::from_ptr(msg_send![class!(UIColor), colorWithWhite:level alpha:alpha]) }
         })))
     }
@@ -319,6 +320,7 @@ impl Color {
         Color::hexa(hex, 255)
     }
 
+    // @TODO: This is currently appkit-only but should be for uikit as well.
     /// Creates and returns a dynamic color, which stores a handler and enables returning specific
     /// colors at appearance time based on device traits (i.e, dark mode vs light mode, contrast
     /// settings, etc).
@@ -327,7 +329,7 @@ impl Color {
     /// "default" or "light" color.
     ///
     /// Returning a dynamic color in your handler is unsupported and may panic.
-    #[cfg(target_os = "macos")]
+    #[cfg(feature = "appkit")]
     pub fn dynamic<F>(handler: F) -> Self
     where
         F: Fn(Style) -> Color + 'static
@@ -337,9 +339,8 @@ impl Color {
         // not entirely clear on how expensive the dynamic allocation would be pre-10.15/11.0 and
         // am happy to do this for now and let someone who needs true dynamic allocation look into
         // it and PR it.
-        #[cfg(target_os = "macos")]
         Color::Custom(Arc::new(RwLock::new(unsafe {
-            let color: id = msg_send![macos_dynamic_color::register_class(), new];
+            let color: id = msg_send![appkit_dynamic_color::register_class(), new];
 
             (&mut *color).set_ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST, {
                 let color: id = handler(Style {
@@ -421,7 +422,7 @@ impl From<&Color> for id {
 /// Handles color fallback for system-provided colors.
 macro_rules! system_color_with_fallback {
     ($class:ident, $color:ident, $fallback:ident) => ({
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         {
             #[cfg(feature = "color-fallbacks")]
             if os::minimum_semversion(10, 10, 0) {
@@ -434,7 +435,7 @@ macro_rules! system_color_with_fallback {
             msg_send![$class, $color]
         }
 
-        #[cfg(target_os = "ios")]
+        #[cfg(feature = "uikit")]
         {
             msg_send![$class, $color]
         }
@@ -450,10 +451,10 @@ macro_rules! system_color_with_fallback {
 /// The goal here is to make sure that this can't reasonably break on OS's, as `Color` is kind of
 /// an important piece. It's not on the framework to make your app look good, though.
 unsafe fn to_objc(obj: &Color) -> id {
-    #[cfg(target_os = "macos")]
+    #[cfg(feature = "appkit")]
     let color = class!(NSColor);
 
-    #[cfg(target_os = "ios")]
+    #[cfg(feature = "uikit")]
     let color = class!(UIColor);
 
     match obj {
@@ -495,15 +496,18 @@ unsafe fn to_objc(obj: &Color) -> id {
         Color::SystemBackgroundSecondary => system_color_with_fallback!(color, secondarySystemBackgroundColor, clearColor),
         Color::SystemBackgroundTertiary => system_color_with_fallback!(color, tertiarySystemBackgroundColor, clearColor),
         Color::Separator => system_color_with_fallback!(color, separatorColor, lightGrayColor),
+        
+        #[cfg(feature = "uikit")]
         Color::OpaqueSeparator => system_color_with_fallback!(color, opaqueSeparatorColor, darkGrayColor),
+
         Color::Link => system_color_with_fallback!(color, linkColor, blueColor),
         Color::DarkText => system_color_with_fallback!(color, darkTextColor, blackColor),
         Color::LightText => system_color_with_fallback!(color, lightTextColor, whiteColor),
         
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         Color::MacOSWindowBackgroundColor => system_color_with_fallback!(color, windowBackgroundColor, clearColor),
         
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         Color::MacOSUnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor),
     }
 }

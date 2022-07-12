@@ -4,7 +4,7 @@ use cacao::objc::{msg_send, sel, sel_impl};
 use cacao::button::Button;
 use cacao::input::{TextField, TextFieldDelegate};
 
-use cacao::macos::toolbar::{Toolbar, ToolbarDisplayMode, ToolbarItem, ItemIdentifier, ToolbarDelegate};
+use cacao::appkit::toolbar::{Toolbar, ToolbarDisplayMode, ToolbarItem, ItemIdentifier, ToolbarDelegate};
 
 use super::Action;
 

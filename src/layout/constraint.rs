@@ -10,6 +10,8 @@ use objc_id::ShareId;
 
 use crate::foundation::{id, YES, NO};
 
+use super::LayoutConstraintAnimatorProxy;
+
 /// A wrapper for `NSLayoutConstraint`. This both acts as a central path through which to activate
 /// constraints, as well as a wrapper for layout constraints that are not axis bound (e.g, width or
 /// height).
@@ -27,16 +29,20 @@ pub struct LayoutConstraint {
 
     /// The priority used in computing this constraint.
     pub priority: f64,
+
+    /// An animator proxy that can be used inside animation contexts.
+    pub animator: LayoutConstraintAnimatorProxy
 }
 
 impl LayoutConstraint {
     /// An internal method for wrapping existing constraints.
     pub(crate) fn new(object: id) -> Self {
         LayoutConstraint {
+            animator: LayoutConstraintAnimatorProxy::new(object),
             constraint: unsafe { ShareId::from_ptr(object) },
             offset: 0.0,
             multiplier: 0.0,
-            priority: 0.0
+            priority: 0.0,
         }
     }
 
@@ -50,6 +56,7 @@ impl LayoutConstraint {
 
 
         LayoutConstraint {
+            animator: self.animator,
             constraint: self.constraint,
             offset: offset,
             multiplier: self.multiplier,
@@ -57,6 +64,7 @@ impl LayoutConstraint {
         }
     }
 
+    /// Sets the offset of a borrowed constraint.
     pub fn set_offset<F: Into<f64>>(&self, offset: F) {
         let offset: f64 = offset.into();
 

@@ -21,9 +21,13 @@ use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSString};
 use crate::geometry::Rect;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::Layout;
 use crate::layer::Layer;
+use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
+
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
 mod actions;
 pub use actions::*;
@@ -79,9 +83,10 @@ fn allocate_webview(
         let webview_alloc: id = msg_send![register_webview_class(), alloc];
         let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration:configuration];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![webview, setWantsLayer:YES];
 
+        #[cfg(feature = "autolayout")]
         let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
         if let Some(delegate) = &objc_delegate {
@@ -113,33 +118,43 @@ pub struct WebView<T = ()> {
     pub delegate: Option<Box<T>>,
 
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -159,7 +174,7 @@ impl WebView {
         unsafe {
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-            #[cfg(target_os = "macos")]
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![view, setWantsLayer:YES];
         }
 
@@ -167,15 +182,35 @@ impl WebView {
             is_handle: false,
             delegate: None,
             objc_delegate: None,
+            
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
             
             layer: Layer::wrap(unsafe {
@@ -224,20 +259,40 @@ impl<T> WebView<T> {
     pub(crate) fn clone_as_handle(&self) -> WebView {
         WebView {
             delegate: None,
-            top: self.top.clone(),
-            leading: self.leading.clone(),
-            left: self.left.clone(),
-            right: self.right.clone(),
             is_handle: true,
-            trailing: self.trailing.clone(),
-            bottom: self.bottom.clone(),
-            width: self.width.clone(),
-            height: self.height.clone(),
-            center_x: self.center_x.clone(),
-            center_y: self.center_y.clone(),
             layer: self.layer.clone(),
             objc: self.objc.clone(),
-            objc_delegate: None
+            objc_delegate: None,
+            
+            #[cfg(feature = "autolayout")]
+            top: self.top.clone(),
+
+            #[cfg(feature = "autolayout")]
+            leading: self.leading.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            left: self.left.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            right: self.right.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: self.trailing.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: self.bottom.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            width: self.width.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            height: self.height.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: self.center_x.clone(),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: self.center_y.clone()
         }
     }
 
@@ -280,15 +335,17 @@ impl<T> WebView<T> {
     }
 }
 
-impl<T> Layout for WebView<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for WebView<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
+}
 
+impl<T> Layout for WebView<T> {
     /// Currently, this is a noop. Theoretically there is reason to support this, but in practice
     /// I've never seen it needed... but am open to discussion.
     fn add_subview<V: Layout>(&self, _: &V) {}

@@ -2,6 +2,7 @@
 
 use crate::foundation::NSUInteger;
 
+#[derive(Debug)]
 pub enum NotificationAuthOption {
     Badge,
     Sound,

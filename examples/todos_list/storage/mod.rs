@@ -1,7 +1,7 @@
 //! Messages that we used to thread control throughout the application.
 //! If you come from React/Redux, you can liken it to that world.
 
-use cacao::macos::App;
+use cacao::appkit::App;
 
 use crate::app::TodosApp;
 

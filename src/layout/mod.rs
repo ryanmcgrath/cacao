@@ -1,26 +1,46 @@
-//! A wrapper for `NSLayoutConstraint`, enabling AutoLayout across views. This does a few things
-//! that might seem weird, but are generally good and rely on the idea that this is all written
-//! once and used often.
-//!
-//! Notably: there are 3 structs for wrapping layout constraints; in practice, you likely don't need to
-//! care. This is because we want to detect at compile time invalid layout items - i.e, you should
-//! not be able to attach a left-axis to a top-axis. In Rust this is a bit tricky, but by using
-//! some `impl Trait`'s in the right places we can mostly hide this detail away.
+//! This module contains traits and helpers for layout. By default, standard frame-based layouts 
+//! are supported via the `Layout` trait, which all widgets implement. If you opt in to the
+//! `AutoLayout` feature, each widget will default to using AutoLayout, which can be beneficial in
+//! more complicated views that need to deal with differing screen sizes.
 
-pub mod attributes;
-pub use attributes::*;
-
-pub mod traits;
+mod traits;
 pub use traits::Layout;
 
-pub mod constraint;
+mod animator;
+pub use animator::LayoutConstraintAnimatorProxy;
+
+#[cfg(feature = "autolayout")]
+mod attributes;
+
+#[cfg(feature = "autolayout")]
+pub use attributes::*;
+
+#[cfg(feature = "autolayout")]
+mod constraint;
+
+#[cfg(feature = "autolayout")]
 pub use constraint::LayoutConstraint;
 
-pub mod dimension;
+#[cfg(feature = "autolayout")]
+mod dimension;
+
+#[cfg(feature = "autolayout")]
 pub use dimension::LayoutAnchorDimension;
 
-pub mod horizontal;
+#[cfg(feature = "autolayout")]
+mod horizontal;
+
+#[cfg(feature = "autolayout")]
 pub use horizontal::LayoutAnchorX;
 
-pub mod vertical;
+#[cfg(feature = "autolayout")]
+mod vertical;
+
+#[cfg(feature = "autolayout")]
 pub use vertical::LayoutAnchorY;
+
+#[cfg(feature = "autolayout")]
+mod safe_guide;
+
+#[cfg(feature = "autolayout")]
+pub use safe_guide::SafeAreaLayoutGuide;

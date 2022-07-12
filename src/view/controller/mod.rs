@@ -4,23 +4,16 @@ use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::id;
 use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::view::{VIEW_DELEGATE_PTR, View, ViewDelegate};
 use crate::utils::Controller;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg_attr(feature = "appkit", path = "appkit.rs")]
+#[cfg_attr(feature = "uikit", path = "uikit.rs")]
+mod native_interface;
 
-#[cfg(target_os = "macos")]
-use macos::register_view_controller_class;
-
-#[cfg(target_os = "ios")]
-mod ios;
-
-#[cfg(target_os = "ios")]
-use ios::register_view_controller_class;
-
-/// A `ViewController` is a wrapper around `NSViewController` on macOS, and `UIViewController` on
-/// iOS and tvOS.
+/// A `ViewController` is a wrapper around `NSViewController` in AppKit, and `UIViewController` in
+/// UIKit
 ///
 /// This type is interchangeable with a standard `View<T>`, in that using this simply forwards
 /// standard view controller lifecycle methods onto your `ViewDelegate`. You would use this if you
@@ -52,7 +45,7 @@ where
 {
     /// Creates and returns a new `ViewController` with the provided `delegate`.
     pub fn new(delegate: T) -> Self {
-        let class = register_view_controller_class::<T>(&delegate);
+        let class = native_interface::register_view_controller_class::<T>(&delegate);
         let view = View::with(delegate);
 
         let objc = unsafe {
@@ -63,7 +56,7 @@ where
                 (&mut *vc).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
             }
 
-            view.with_backing_node(|backing_node| {
+            view.with_backing_obj_mut(|backing_node| {
                 let _: () = msg_send![vc, setView:backing_node];
             });
 

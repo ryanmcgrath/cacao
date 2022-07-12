@@ -1,17 +1,13 @@
 //! Emits linker flags depending on platforms and features.
-//!
-//! (iOS/macOS only right now... maybe tvOS one day?)
 
 fn main() {
-    let target = std::env::var("TARGET").unwrap();
-
     println!("cargo:rustc-link-lib=framework=Foundation");
+   
+    #[cfg(feature = "appkit")]
+    println!("cargo:rustc-link-lib=framework=AppKit");
     
-    if target.contains("-ios") {
-        println!("cargo:rustc-link-lib=framework=UIKit");
-    } else {
-        println!("cargo:rustc-link-lib=framework=AppKit");
-    }
+    #[cfg(feature = "uikit")]
+    println!("cargo:rustc-link-lib=framework=UIKit");
 
     println!("cargo:rustc-link-lib=framework=CoreGraphics");
     println!("cargo:rustc-link-lib=framework=QuartzCore");

@@ -4,7 +4,7 @@ use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, NSString};
 use crate::layout::Layout;
-use crate::macos::toolbar::ToolbarItem;
+use crate::appkit::toolbar::ToolbarItem;
 use crate::view::{View, ViewController, ViewDelegate};
 use crate::utils::{os, Controller};
 
@@ -49,21 +49,29 @@ where
     /// extend to the top of the window provided the other necessary window flags are set. On macOS
     /// versions prior to Big Sur, this returns a standard SplitViewItem.
     pub fn sidebar(view: T) -> Self {
-        if !os::is_minimum_version(11) {
-            return Self::item(view);
+        #[cfg(target_os = "macos")]
+        {
+            if !os::is_minimum_version(11) {
+                return Self::item(view);
+            }
+
+            let view_controller = ViewController::new(view);
+
+            SplitViewItem {
+                objc: unsafe {
+                    ShareId::from_ptr(msg_send![class!(NSSplitViewItem),
+                        sidebarWithViewController:&*view_controller.objc
+                    ])
+                },
+
+                view_controller
+            }
         }
 
-        let view_controller = ViewController::new(view);
-
-        SplitViewItem {
-            objc: unsafe {
-                ShareId::from_ptr(msg_send![class!(NSSplitViewItem),
-                    sidebarWithViewController:&*view_controller.objc
-                ])
-            },
-
-            view_controller
-        }
+        // Non-macOS platforms default to the old-school API, where everything is just a generic
+        // item.
+        #[cfg(not(target_os = "macos"))]
+        Self::item(view)
     }
 
     /// Sets the titlebar separator style for this `SplitView`.
@@ -71,8 +79,9 @@ where
     /// You'd use this if, say, you wanted a border under one part of the `SplitViewController` but
     /// not the other. This API was introduced in macOS 11.0 (Big Sur) and is a noop on anything
     /// prior.
-    #[cfg(target_os = "macos")]
+    #[cfg(feature = "appkit")]
     pub fn set_titlebar_separator_style(&self, style: crate::foundation::NSInteger) {
+        #[cfg(target_os = "macos")]
         if os::is_minimum_version(11) {
             unsafe {
                 let _: () = msg_send![&*self.objc, setTitlebarSeparatorStyle:style];

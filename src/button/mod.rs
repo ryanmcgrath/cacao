@@ -1,4 +1,4 @@
-//! Wraps `NSButton` on macOS, and `UIButton` on iOS and tvOS.
+//! Wraps `NSButton` on appkit, and `UIButton` on iOS and tvOS.
 //!
 //! You'd use this type to create a button that a user can interact with. Buttons can be configured
 //! a number of ways, and support setting a callback to fire when they're clicked or tapped.
@@ -29,20 +29,26 @@ use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::color::Color;
+use crate::control::Control;
 use crate::image::Image;
 use crate::foundation::{id, nil, BOOL, YES, NO, NSString, NSUInteger};
 use crate::invoker::TargetActionHandler;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::keys::Key;
+use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::text::{AttributedString, Font};
 use crate::utils::{load, properties::ObjcProperty};
 
-#[cfg(target_os = "macos")]
-use crate::macos::FocusRingType;
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+
+#[cfg(feature = "appkit")]
+use crate::appkit::FocusRingType;
 
 mod enums;
 pub use enums::*;
 
-/// Wraps `NSButton` on macOS, and `UIButton` on iOS and tvOS.
+/// Wraps `NSButton` on appkit, and `UIButton` on iOS and tvOS.
 ///
 /// You'd use this type to create a button that a user can interact with. Buttons can be configured
 /// a number of ways, and support setting a callback to fire when they're clicked or tapped.
@@ -71,33 +77,43 @@ pub struct Button {
     handler: Option<TargetActionHandler>,
     
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -114,23 +130,47 @@ impl Button {
             ];
 
             let _: () = msg_send![button, setWantsLayer:YES];
+            
+            #[cfg(feature = "autolayout")]
             let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            
             button
         };
         
         Button {
             handler: None,
             image: None,
+            
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
+            
             objc: ObjcProperty::retain(view),
         }
     }
@@ -144,8 +184,8 @@ impl Button {
         self.image = Some(image);
     }
 
-    /// Sets the bezel style for this button. Only supported on macOS.
-    #[cfg(target_os = "macos")]
+    /// Sets the bezel style for this button. Only supported on appkit.
+    #[cfg(feature = "appkit")]
     pub fn set_bezel_style(&self, bezel_style: BezelStyle) {
         let style: NSUInteger = bezel_style.into();
         
@@ -167,7 +207,7 @@ impl Button {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         let color: id = color.as_ref().into();
         
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
             let _: () = msg_send![cell, setBackgroundColor:color];
@@ -176,19 +216,29 @@ impl Button {
 
     /// Set a key to be bound to this button. When the key is pressed, the action coupled to this
     /// button will fire.
-    pub fn set_key_equivalent(&self, key: &str) {
-        let key = NSString::new(key);
+    pub fn set_key_equivalent<'a, K>(&self, key: K)
+    where
+        K: Into<Key<'a>>
+    {
+        let key: Key<'a> = key.into();
 
-        self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setKeyEquivalent:&*key];
+        self.objc.with_mut(|obj| {
+            let keychar = match key {
+                Key::Char(s) => NSString::new(s),
+                Key::Delete => NSString::new("\u{08}")
+            };
+            
+            unsafe {
+                let _: () = msg_send![obj, setKeyEquivalent:&*keychar];
+            }
         });
     }
 
     /// Sets the text color for this button.
     ///
-    /// On macOS, this is done by way of an `AttributedString` under the hood. 
+    /// On appkit, this is done by way of an `AttributedString` under the hood. 
     pub fn set_text_color<C: AsRef<Color>>(&self, color: C) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(move |obj| unsafe {
             let text: id = msg_send![obj, attributedTitle];
             let len: isize = msg_send![text, length];
@@ -201,8 +251,8 @@ impl Button {
     }
 
     // @TODO: Figure out how to handle oddities like this.
-    /// For buttons on macOS, one might need to disable the border. This does that.
-    #[cfg(target_os = "macos")]
+    /// For buttons on appkit, one might need to disable the border. This does that.
+    #[cfg(feature = "appkit")]
     pub fn set_bordered(&self, is_bordered: bool) {
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setBordered:match is_bordered {
@@ -223,8 +273,8 @@ impl Button {
 
     /// Sets how the control should draw a focus ring when a user is focused on it.
     ///
-    /// This is a macOS-only method.
-    #[cfg(target_os = "macos")]
+    /// This is an appkit-only method.
+    #[cfg(feature = "appkit")]
     pub fn set_focus_ring_type(&self, focus_ring_type: FocusRingType) {
         let ring_type: NSUInteger = focus_ring_type.into();
 
@@ -244,25 +294,31 @@ impl Button {
     }
 }
 
-impl Layout for Button {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl ObjcAccess for Button {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
 
-impl Layout for &Button {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl Layout for Button {}
+impl Control for Button {}
+
+impl ObjcAccess for &Button {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl Layout for &Button {}
+impl Control for &Button {}
 
 impl Drop for Button {
     /// Nils out references on the Objective-C side and removes this from the backing view.

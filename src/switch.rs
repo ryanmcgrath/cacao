@@ -11,8 +11,12 @@ use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, BOOL, YES, NO, NSString};
 use crate::invoker::TargetActionHandler;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
 use crate::utils::{load, properties::ObjcProperty};
+
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
 /// A wrapper for `NSSwitch`. Holds (retains) pointers for the Objective-C runtime 
 /// where our `NSSwitch` lives.
@@ -23,33 +27,43 @@ pub struct Switch {
     handler: Option<TargetActionHandler>,
     
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
    
 }
@@ -62,24 +76,49 @@ impl Switch {
 
         let view: id = unsafe {
             let button: id = msg_send![register_class(), buttonWithTitle:title target:nil action:nil];
+            
+            #[cfg(feature = "autolayout")]
             let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![button, setButtonType:3];
+            
             button
         };
         
         Switch {
             handler: None,
-            top: LayoutAnchorY::top(view),
-            left: LayoutAnchorX::left(view),
-            leading: LayoutAnchorX::leading(view),
-            right: LayoutAnchorX::right(view),
-            trailing: LayoutAnchorX::trailing(view),
-            bottom: LayoutAnchorY::bottom(view),
-            width: LayoutAnchorDimension::width(view),
-            height: LayoutAnchorDimension::height(view),
-            center_x: LayoutAnchorX::center(view),
-            center_y: LayoutAnchorY::center(view),
             objc: ObjcProperty::retain(view),
+            
+            #[cfg(feature = "autolayout")]
+            top: LayoutAnchorY::top(view),
+            
+            #[cfg(feature = "autolayout")]
+            left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
+            leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
+            right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
+            trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
+            bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
+            width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
+            height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
+            center_y: LayoutAnchorY::center(view),
         }
     }
 
@@ -105,15 +144,17 @@ impl Switch {
     }
 }
 
-impl Layout for Switch {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl ObjcAccess for Switch {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
-    
+}
+
+impl Layout for Switch {
     fn add_subview<V: Layout>(&self, _view: &V) { 
         panic!(r#"
             Tried to add a subview to a Switch. This is not allowed in Cacao. If you think this should be supported, 

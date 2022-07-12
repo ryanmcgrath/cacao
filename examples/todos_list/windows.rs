@@ -5,7 +5,7 @@
 
 use std::sync::RwLock;
 
-use cacao::macos::window::{Window, WindowConfig, WindowStyle, WindowDelegate, WindowToolbarStyle};
+use cacao::appkit::window::{Window, WindowConfig, WindowStyle, WindowDelegate, WindowToolbarStyle};
 use cacao::notification_center::Dispatcher;
 
 use crate::storage::Message;

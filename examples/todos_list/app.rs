@@ -1,7 +1,7 @@
 //! Implements the start of the App lifecycle. Handles creating the required menu and window
 //! components and message dispatching.
 
-use cacao::macos::{App, AppDelegate};
+use cacao::appkit::{App, AppDelegate};
 use cacao::notification_center::Dispatcher;
 
 use crate::menu::menu;

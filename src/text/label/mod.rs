@@ -46,21 +46,25 @@ use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::{id, nil, YES, NO, NSArray, NSInteger, NSUInteger, NSString};
 use crate::color::Color;
-use crate::layout::{Layout, LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
-use crate::text::{Font, TextAlign, LineBreakMode};
+use crate::layout::Layout;
+use crate::objc_access::ObjcAccess;
+use crate::text::{AttributedString, Font, TextAlign, LineBreakMode};
 use crate::utils::properties::ObjcProperty;
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
-#[cfg(target_os = "macos")]
-use macos::{register_view_class, register_view_class_with_delegate};
+#[cfg(feature = "appkit")]
+mod appkit;
 
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(feature = "appkit")]
+use appkit::{register_view_class, register_view_class_with_delegate};
 
-#[cfg(target_os = "ios")]
-use ios::{register_view_class, register_view_class_with_delegate};
+//#[cfg(feature = "uikit")]
+//mod uikit;
+
+//#[cfg(feature = "uikit")]
+//use uikit::{register_view_class, register_view_class_with_delegate};
 
 mod traits;
 pub use traits::LabelDelegate;
@@ -70,19 +74,25 @@ pub(crate) static LABEL_DELEGATE_PTR: &str = "rstLabelDelegatePtr";
 /// A helper method for instantiating view classes and applying default settings to them.
 fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
     unsafe {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let view: id = {
             // This sucks, but for now, sure.
             let blank = NSString::no_copy("");
-            msg_send![registration_fn(), labelWithString:&*blank]
+            let label: id = msg_send![registration_fn(), wrappingLabelWithString:&*blank];
+            
+            // We sub this in to get the general expected behavior for 202*.
+            let _: () = msg_send![label, setSelectable:NO];
+
+            label
         };
 
-        #[cfg(target_os = "ios")]
+        #[cfg(feature = "uikit")]
         let view: id = msg_send![registration_fn(), new];
 
+        #[cfg(feature = "autolayout")]
         let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         let _: () = msg_send![view, setWantsLayer:YES];
 
         view 
@@ -141,33 +151,43 @@ pub struct Label<T = ()> {
     pub delegate: Option<Box<T>>,
     
     /// A pointer to the Objective-C runtime top layout constraint.
+    #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime leading layout constraint.
+    #[cfg(feature = "autolayout")]
     pub leading: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime left layout constraint.
+    #[cfg(feature = "autolayout")]
     pub left: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime trailing layout constraint.
+    #[cfg(feature = "autolayout")]
     pub trailing: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime right layout constraint.
+    #[cfg(feature = "autolayout")]
     pub right: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime bottom layout constraint.
+    #[cfg(feature = "autolayout")]
     pub bottom: LayoutAnchorY,
 
     /// A pointer to the Objective-C runtime width layout constraint.
+    #[cfg(feature = "autolayout")]
     pub width: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime height layout constraint.
+    #[cfg(feature = "autolayout")]
     pub height: LayoutAnchorDimension,
 
     /// A pointer to the Objective-C runtime center X layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
+    #[cfg(feature = "autolayout")]
     pub center_y: LayoutAnchorY
 }
 
@@ -184,16 +204,37 @@ impl Label {
 
         Label {
             delegate: None,
+            
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
+
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
+            
             objc: ObjcProperty::retain(view),
         }
     }
@@ -207,24 +248,43 @@ impl<T> Label<T> where T: LabelDelegate + 'static {
         
         let label = allocate_view(register_view_class_with_delegate::<T>);
         unsafe {
-            //let view: id = msg_send![register_view_class_with_delegate::<T>(), new];
-            //let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
             let ptr: *const T = &*delegate;
             (&mut *label).set_ivar(LABEL_DELEGATE_PTR, ptr as usize);
         };
 
         let mut label = Label {
             delegate: None,
+            
+            #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(label),
+            
+            #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(label),
+            
+            #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(label),
+            
+            #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(label),
+            
+            #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(label),
+            
+            #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(label),
+            
+            #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(label),
+            
+            #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(label),
+            
+            #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(label),
+            
+            #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(label),
+            
             objc: ObjcProperty::retain(label),
         };
 
@@ -242,16 +302,37 @@ impl<T> Label<T> {
     pub(crate) fn clone_as_handle(&self) -> Label {
         Label {
             delegate: None,
+            
+            #[cfg(feature = "autolayout")]
             top: self.top.clone(),
+            
+            #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
+            
+            #[cfg(feature = "autolayout")]
             left: self.left.clone(),
+            
+            #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
+            
+            #[cfg(feature = "autolayout")]
             right: self.right.clone(),
+            
+            #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
+            
+            #[cfg(feature = "autolayout")]
             width: self.width.clone(),
+            
+            #[cfg(feature = "autolayout")]
             height: self.height.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
+            
+            #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
+            
             objc: self.objc.clone()
         }
     }
@@ -283,6 +364,13 @@ impl<T> Label<T> {
 
         self.objc.with_mut(|obj| unsafe {
             let _: () = msg_send![obj, setStringValue:&*s];
+        });
+    }
+
+    /// Sets the attributed string to be the attributed string value on this label.
+    pub fn set_attributed_text(&self, text: AttributedString) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setAttributedStringValue:&*text];
         });
     }
 
@@ -331,7 +419,7 @@ impl<T> Label<T> {
 
     /// Set the line break mode for this label.
     pub fn set_line_break_mode(&self, mode: LineBreakMode) {
-        #[cfg(target_os = "macos")]
+        #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
             let mode = mode as NSUInteger;
@@ -341,15 +429,17 @@ impl<T> Label<T> {
     }
 }
 
-impl<T> Layout for Label<T> {
-    fn with_backing_node<F: Fn(id)>(&self, handler: F) {
+impl<T> ObjcAccess for Label<T> {
+    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_node<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
         self.objc.get(handler)
     }
 }
+
+impl<T> Layout for Label<T> {}
 
 impl<T> Drop for Label<T> {
     /// A bit of extra cleanup for delegate callback pointers. If the originating `Label` is being

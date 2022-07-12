@@ -4,10 +4,10 @@
 use cacao::notification_center::Dispatcher;
 use cacao::webview::{WebView, WebViewConfig, WebViewDelegate};
 
-use cacao::macos::{App, AppDelegate};
-use cacao::macos::menu::{Menu, MenuItem};
-use cacao::macos::toolbar::Toolbar;
-use cacao::macos::window::{Window, WindowConfig, WindowDelegate, WindowToolbarStyle};
+use cacao::appkit::{App, AppDelegate};
+use cacao::appkit::menu::{Menu, MenuItem};
+use cacao::appkit::toolbar::Toolbar;
+use cacao::appkit::window::{Window, WindowConfig, WindowDelegate, WindowToolbarStyle};
 
 mod toolbar;
 use toolbar::BrowserToolbar;

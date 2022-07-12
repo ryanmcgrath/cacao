@@ -5,10 +5,16 @@ It tries to do so in a way that, if you've done programming for the framework be
 Objective-C), will feel familiar. This is tricky in Rust due to the ownership model, but some
 creative coding and assumptions can get us pretty far.
 
-`0.2.0` exists on crates.io in part to enable the project to see wider usage, which can
+This exists on crates.io in part to enable the project to see wider usage, which can
 inform development. That said, this library is currently early stages and may have bugs - your usage of it is at
 your own risk. However, provided you follow the rules (regarding memory/ownership) it's
 already fine for some apps. The core repository has a wealth of examples to help you get started.
+
+> **Important**  
+> 
+> If you are migrating from 0.2 to 0.3, you should elect either `appkit` or `uikit` as a feature in your `Cargo.toml`. This change was made to 
+> support platforms that aren't just macOS/iOS/tvOS (e.g, gnustep, airyx). One of these features is required to work; `appkit` is defaulted for
+> ease of development.
 
 >_Note that this crate relies on the Objective-C runtime. Interfacing with the runtime **requires**
 unsafe blocks; this crate handles those unsafe interactions for you and provides a safe wrapper, 
@@ -17,11 +23,16 @@ rampant for wrapped controls. This does **not** mean you can't assess, review, o
 usage - just know it's happening, and in large part it's not going away. Issues pertaining to the mere 
 existence of unsafe will be closed without comment._
 
+If you're looking to build the docs for this on your local machine, you'll want the following due to the way feature flags work
+with `cargo doc`:
+
+`RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --all-features --open`
+
 # Hello World
 
 ```rust
-use cacao::macos::{App, AppDelegate};
-use cacao::macos::window::Window;
+use cacao::appkit::{App, AppDelegate};
+use cacao::appkit::window::Window;
 
 #[derive(Default)]
 struct BasicApp {
@@ -56,22 +67,28 @@ ensures the application has had time to initialize and do any housekeeping neces
 scenes.
 
 ## Currently Supported
-In terms of mostly working pieces, the following currently work. This list is not exhaustive and you're encouraged to check out the documentation for more info:
+In terms of mostly working pieces, the table below showcases the level of support for varying features. This list is not exhaustive just by virtue of documentation updating being hell - so you're encouraged to check out the code-built documentation for more info:
 
-- `App` initialization and event delegation
-- `Window` construction, handling, and event delegation
-- `View` construction, basic styling, some event delegation
-- `ViewController` construction, lifecycle delegation
-- `Color`, for handling system-established color types
-- `ListView` support, including cell reuse (still needs testing)
-- `Button` support, as well as enabling them in Toolbars
-- `Label` and `TextField` support for basic text handling.
-- `Image`, `ImageView` and `SystemIcon` for image usage. Images can use a custom draw handler, and draw graphics with the [core_graphics]() crate
-- `Toolbar` construction and basic API
-- `SplitViewController` support, including some Big-Sur-only additions
-- `WebView` with a basic API for handling callbacks
-- `UserDefaults` for persisting small pieces of data per-application
-- `Autolayout` for View layout and such
+Note that while iOS has green checkmarks, some components still aren't as well defined (e.g, Views/ViewControllers are still very alpha there).
+
+Non-Apple platforms that shim or provide a form of AppKit may be able to use a good chunk of the AppKit support in this library.
+
+| Component           | Description                         | AppKit | iOS | tvOS |
+| ------------------- | ----------------------------------- | ------ | --- | ---- |
+| App                 | Initialization & events             |   ✅   | ✅  |  ❌  |
+| Window              | Construction, handling, events      |   ✅   | ✅  |  ❌  |
+| View                | Construction, styling, events       |   ✅   | ✅  |  ❌  |
+| ViewController      | Construction, lifecycle events      |   ✅   | ✅  |  ❌  |
+| Color               | System-backed colors, theming       |   ✅   | ✅  |  ❌  |
+| ListView            | Reusable list w/ cached rows        |   ✅   | ❌  |  ❌  |
+| Button              | Styling, events, toolbar support    |   ✅   | ❌  |  ❌  |
+| Label/TextField     | Text rendering & input              |   ✅   | ❌  |  ❌  |
+| Image/ImageView     | Loading, drawing, etc               |   ✅   | ❌  |  ❌  |
+| Toolbar             | Basic native toolbar                |   ✅   | ❌  |  ❌  |
+| SplitViewController | Split views (Big Sur friendly)      |   ✅   | ❌  |  ❌  |
+| WebView             | Wrapper for WKWebView               |   ✅   | ❌  |  ❌  |
+| UserDefaults        | Persisting small data               |   ✅   | ✅  |  ❌  |
+| Autolayout          | View layout for varying screens     |   ✅   | ✅  |  ❌  |
 
 ## Optional Features
 
@@ -79,11 +96,13 @@ The following are a list of [Cargo features][cargo-features] that can be enabled
 
 The following are a list of [Cargo features][cargo-features] that can be enabled or disabled.
 
+- `appkit`: Links `AppKit.framework`.
+- `uikit`: Links `UIKit.framework` (iOS/tvOS only).
 - `cloudkit`: Links `CloudKit.framework` and provides some wrappers around CloudKit functionality. Currently not feature complete.
 - `color_fallbacks`: Provides fallback colors for older systems where `systemColor` types don't exist. This feature is very uncommon and you probably don't need it.
 - `quicklook`: Links `QuickLook.framework` and offers methods for generating preview images for files.
 - `user-notifications`: Links `UserNotifications.framework` and provides functionality for emitting notifications on macOS and iOS. Note that this _requires_ your application be code-signed, and will not work without it.
-- `webview`: Links `WebKit.framework` and provides a `WebView` control backed by `WKWebView`. This feature is not supported on tvOS, as the platform has no webview control.
+- `webview`: Links `WebKit.framework` and provides a `WebView` control backed by `WKWebView`. This feature is not supported on tvOS, as the platform has no webview control. This feature is also potentially only supported for macOS/iOS due to the WKWebView control and varying support on non-Apple platforms.
 - `webview-downloading-macos`: Enables downloading files from the `WebView` via a private interface. This is not an App-Store-safe feature, so be aware of that before enabling. This feature is not supported on iOS (a user would handle downloads very differently) or tvOS (there's no web browser there at all).
 
 [cargo-features]: https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section

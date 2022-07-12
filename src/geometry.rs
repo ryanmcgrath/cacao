@@ -39,7 +39,7 @@ impl Rect {
 impl From<Rect> for CGRect {
     fn from(rect: Rect) -> CGRect {
         CGRect::new(
-             &CGPoint::new(rect.top, rect.left),
+             &CGPoint::new(rect.left, rect.top),
              &CGSize::new(rect.width, rect.height)
         )
     }
