@@ -45,7 +45,9 @@ impl From<NSInteger> for ModalResponse {
             // @TODO: Definitely don't panic here, wtf was I thinking?
             // Probably make this a ModalResponse::Unknown or something so a user can
             // gracefully handle.
-            e => { panic!("Unknown NSModalResponse sent back! {}", e); }
+            e => {
+                panic!("Unknown NSModalResponse sent back! {}", e);
+            }
         }
     }
 }

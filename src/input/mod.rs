@@ -135,7 +135,7 @@ pub struct TextField<T = ()> {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl Default for TextField {
@@ -189,7 +189,7 @@ impl TextField {
 
 impl<T> TextField<T>
 where
-    T: TextFieldDelegate + 'static,
+    T: TextFieldDelegate + 'static
 {
     /// Initializes a new TextField with a given `TextFieldDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
@@ -235,7 +235,7 @@ where
             center_x: LayoutAnchorX::center(label),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(label),
+            center_y: LayoutAnchorY::center(label)
         };
 
         (&mut delegate).did_load(label.clone_as_handle());
@@ -282,15 +282,14 @@ impl<T> TextField<T> {
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone(),
+            center_y: self.center_y.clone()
         }
     }
 
     /// Grabs the value from the textfield and returns it as an owned String.
     pub fn get_value(&self) -> String {
-        self.objc.get(|obj| unsafe {
-            NSString::retain(msg_send![obj, stringValue]).to_string()
-        })
+        self.objc
+            .get(|obj| unsafe { NSString::retain(msg_send![obj, stringValue]).to_string() })
     }
 
     /// Call this to set the background color for the backing layer.
@@ -353,7 +352,7 @@ impl<T> TextField<T> {
     /// Sets the maximum number of lines.
     pub fn set_max_number_of_lines(&self, num: NSInteger) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setMaximumNumberOfLines:num];
+            let _: () = msg_send![obj, setMaximumNumberOfLines: num];
         });
     }
 

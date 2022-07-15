@@ -1,12 +1,11 @@
 //! A lightweight wrapper over some networking components, like `NSURLRequest` and co.
 //!
+use objc::runtime::Object;
 /// At the moment, this is mostly used for inspection of objects returned from system
 /// calls, as `NSURL` is pervasive in some filesystem references. Over time this may grow to
 /// include a proper networking stack, but the expectation for v0.1 is that most apps will want to
 /// use their standard Rust networking libraries (however... odd... the async story may be).
-
 use objc::{msg_send, sel, sel_impl};
-use objc::runtime::Object;
 use objc_id::ShareId;
 
 use crate::foundation::{id, NSString};
@@ -18,9 +17,7 @@ pub struct URLRequest(ShareId<Object>);
 impl URLRequest {
     /// Wraps and retains an `NSURLRequest`.
     pub fn with(request: id) -> Self {
-        URLRequest(unsafe {
-            ShareId::from_ptr(request)
-        })
+        URLRequest(unsafe { ShareId::from_ptr(request) })
     }
 
     /// Returns the underlying request URL as an owned `String`.
@@ -28,7 +25,8 @@ impl URLRequest {
         NSString::from_retained(unsafe {
             let url: id = msg_send![&*self.0, URL];
             msg_send![url, absoluteString]
-        }).to_string()
+        })
+        .to_string()
     }
 }
 
@@ -46,7 +44,7 @@ mod tests {
         let url = unsafe {
             let url = NSString::new(endpoint);
             let url: id = msg_send![class!(NSURL), URLWithString:&*url];
-            URLRequest::with(msg_send![class!(NSURLRequest), requestWithURL:url])
+            URLRequest::with(msg_send![class!(NSURLRequest), requestWithURL: url])
         };
 
         assert_eq!(&url.absolute_url(), endpoint);

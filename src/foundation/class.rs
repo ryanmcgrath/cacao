@@ -48,11 +48,7 @@ impl ClassMap {
     }
 
     /// Attempts to load a previously registered subclass.
-    pub fn load_subclass(
-        &self,
-        subclass_name: &'static str,
-        superclass_name: &'static str
-    ) -> Option<*const Class> {
+    pub fn load_subclass(&self, subclass_name: &'static str, superclass_name: &'static str) -> Option<*const Class> {
         let reader = self.0.read().unwrap();
 
         if let Some(inner) = (*reader).get(subclass_name) {
@@ -65,12 +61,7 @@ impl ClassMap {
     }
 
     /// Store a newly created subclass type.
-    pub fn store_subclass(
-        &self,
-        subclass_name: &'static str,
-        superclass_name: &'static str,
-        class: *const Class,
-    ) {
+    pub fn store_subclass(&self, subclass_name: &'static str, superclass_name: &'static str, class: *const Class) {
         let mut writer = self.0.write().unwrap();
 
         if let Some(map) = (*writer).get_mut(subclass_name) {
@@ -96,9 +87,7 @@ impl ClassMap {
         }
 
         let objc_superclass_name = CString::new(name).unwrap();
-        let superclass = unsafe {
-            objc_getClass(objc_superclass_name.as_ptr() as *const _)
-        };
+        let superclass = unsafe { objc_getClass(objc_superclass_name.as_ptr() as *const _) };
 
         // This should not happen, for our use-cases, but it's conceivable that this could actually
         // be expected, so just return None and let the caller panic if so desired.
@@ -131,11 +120,7 @@ impl ClassMap {
 ///
 /// There's definitely room to optimize here, but it works for now.
 #[inline(always)]
-pub fn load_or_register_class<F>(
-    superclass_name: &'static str,
-    subclass_name: &'static str,
-    config: F
-) -> *const Class
+pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> *const Class
 where
     F: Fn(&mut ClassDecl) + 'static
 {
@@ -158,8 +143,7 @@ where
             None => {
                 panic!(
                     "Subclass of type {}_{} could not be allocated.",
-                    subclass_name,
-                    superclass_name
+                    subclass_name, superclass_name
                 );
             }
         }
@@ -167,7 +151,6 @@ where
 
     panic!(
         "Attempted to create subclass for {}, but unable to load superclass of type {}.",
-        subclass_name,
-        superclass_name
+        subclass_name, superclass_name
     );
 }

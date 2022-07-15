@@ -1,13 +1,13 @@
-use std::{fmt, slice, str};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::os::raw::c_char;
+use std::{fmt, slice, str};
 
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, to_bool, BOOL, YES, NO};
+use crate::foundation::{id, to_bool, BOOL, NO, YES};
 
 const UTF8_ENCODING: usize = 4;
 
@@ -73,7 +73,7 @@ impl<'a> NSString<'a> {
 
     /// Utility method for checking whether an `NSObject` is an `NSString`.
     pub fn is(obj: id) -> bool {
-        let result: BOOL = unsafe { msg_send![obj, isKindOfClass:class!(NSString)] };
+        let result: BOOL = unsafe { msg_send![obj, isKindOfClass: class!(NSString)] };
         to_bool(result)
     }
 
@@ -87,9 +87,7 @@ impl<'a> NSString<'a> {
 
     /// Helper method for grabbing the proper byte length for this `NSString` (the UTF8 variant).
     fn bytes_len(&self) -> usize {
-        unsafe {
-            msg_send![&*self.objc, lengthOfBytesUsingEncoding:UTF8_ENCODING]
-        }
+        unsafe { msg_send![&*self.objc, lengthOfBytesUsingEncoding: UTF8_ENCODING] }
     }
 
     /// A utility method for taking an `NSString` and bridging it to a Rust `&str`.

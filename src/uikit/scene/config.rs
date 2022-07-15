@@ -1,5 +1,5 @@
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::foundation::{id, NSString};
@@ -22,8 +22,8 @@ impl SceneConfig {
             let cls = class!(UISceneConfiguration);
             let config: id = msg_send![cls, configurationWithName:name sessionRole:role];
 
-            let _: () = msg_send![config, setSceneClass:class!(UIWindowScene)];
-            let _: () = msg_send![config, setDelegateClass:class!(RSTWindowSceneDelegate)];
+            let _: () = msg_send![config, setSceneClass: class!(UIWindowScene)];
+            let _: () = msg_send![config, setDelegateClass: class!(RSTWindowSceneDelegate)];
 
             Id::from_ptr(config)
         })

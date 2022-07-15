@@ -9,16 +9,14 @@ mod view;
 use view::AddNewTodoContentView;
 
 pub struct AddNewTodoWindow {
-    pub content: ViewController<AddNewTodoContentView>,
+    pub content: ViewController<AddNewTodoContentView>
 }
 
 impl AddNewTodoWindow {
     pub fn new() -> Self {
         let content = ViewController::new(AddNewTodoContentView::default());
 
-        AddNewTodoWindow {
-            content: content
-        }
+        AddNewTodoWindow { content: content }
     }
 
     pub fn on_message(&self, message: Message) {

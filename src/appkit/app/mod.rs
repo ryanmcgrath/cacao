@@ -39,13 +39,13 @@ use std::sync::{Arc, Mutex};
 
 use lazy_static::lazy_static;
 
-use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::Id;
 
-use crate::foundation::{id, nil, YES, NO, NSUInteger, AutoReleasePool};
-use crate::invoker::TargetActionHandler;
 use crate::appkit::menu::Menu;
+use crate::foundation::{id, nil, AutoReleasePool, NSUInteger, NO, YES};
+use crate::invoker::TargetActionHandler;
 use crate::notification_center::Dispatcher;
 use crate::utils::activate_cocoa_multithreading;
 
@@ -128,7 +128,10 @@ impl<T> App<T> {
     }
 }
 
-impl<T> App<T> where T: AppDelegate + 'static {
+impl<T> App<T>
+where
+    T: AppDelegate + 'static
+{
     /// Creates an NSAutoReleasePool, configures various NSApplication properties (e.g, activation
     /// policies), injects an `NSObject` delegate wrapper, and retains everything on the
     /// Objective-C side of things.
@@ -151,7 +154,7 @@ impl<T> App<T> where T: AppDelegate + 'static {
             let delegate: id = msg_send![delegate_class, new];
             let delegate_ptr: *const T = &*app_delegate;
             (&mut *delegate).set_ivar(APP_PTR, delegate_ptr as usize);
-            let _: () = msg_send![&*objc, setDelegate:delegate];
+            let _: () = msg_send![&*objc, setDelegate: delegate];
             Id::from_ptr(delegate)
         };
 
@@ -180,7 +183,11 @@ impl<T> App<T> where T: AppDelegate + 'static {
 //  ObjC and such is fast enough that for a large class of applications this is workable.
 //
 //  tl;dr: This is all a bit of a hack, and should go away eventually. :)
-impl<T, M> App<T, M> where M: Send + Sync + 'static, T: AppDelegate + Dispatcher<Message = M> {
+impl<T, M> App<T, M>
+where
+    M: Send + Sync + 'static,
+    T: AppDelegate + Dispatcher<Message = M>
+{
     /// Dispatches a message by grabbing the `sharedApplication`, getting ahold of the delegate,
     /// and passing back through there.
     pub fn dispatch_main(message: M) {
@@ -251,7 +258,7 @@ impl App {
     pub fn reply_to_open_or_print(response: AppDelegateResponse) {
         shared_application(|app| unsafe {
             let r: NSUInteger = response.into();
-            let _: () = msg_send![app, replyToOpenOrPrint:r];
+            let _: () = msg_send![app, replyToOpenOrPrint: r];
         });
     }
 
@@ -267,14 +274,14 @@ impl App {
             for menu in menus.iter_mut() {
                 let item: id = msg_send![item_cls, new];
                 let _: () = msg_send![item, setSubmenu:&*menu.0];
-                let _: () = msg_send![main_menu, addItem:item];
+                let _: () = msg_send![main_menu, addItem: item];
             }
 
             main_menu
         };
 
         shared_application(move |app| unsafe {
-            let _: () = msg_send![app, setMainMenu:main_menu];
+            let _: () = msg_send![app, setMainMenu: main_menu];
         });
     }
 
@@ -296,7 +303,7 @@ impl App {
     /// This is typically called when the user chooses to quit via the App menu.
     pub fn terminate() {
         shared_application(|app| unsafe {
-            let _: () = msg_send![app, terminate:nil];
+            let _: () = msg_send![app, terminate: nil];
         });
     }
 }

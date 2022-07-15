@@ -1,6 +1,6 @@
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, YES, NO};
+use crate::foundation::{id, NO, YES};
 
 /// Represents a type of cursor that you can associate with mouse movement.
 /// @TODO: Loading?

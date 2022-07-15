@@ -23,7 +23,7 @@ impl From<NSURLBookmarkCreationOption> for NSUInteger {
     fn from(flag: NSURLBookmarkCreationOption) -> NSUInteger {
         match flag {
             NSURLBookmarkCreationOption::Minimal => 1u64 << 9,
-            NSURLBookmarkCreationOption::SuitableForBookmarkFile =>  1u64 << 10,
+            NSURLBookmarkCreationOption::SuitableForBookmarkFile => 1u64 << 10,
             NSURLBookmarkCreationOption::SecurityScoped => 1 << 11,
             NSURLBookmarkCreationOption::SecurityScopedReadOnly => 1 << 12
         }
@@ -34,7 +34,7 @@ impl From<&NSURLBookmarkCreationOption> for NSUInteger {
     fn from(flag: &NSURLBookmarkCreationOption) -> NSUInteger {
         match flag {
             NSURLBookmarkCreationOption::Minimal => 1u64 << 9,
-            NSURLBookmarkCreationOption::SuitableForBookmarkFile =>  1u64 << 10,
+            NSURLBookmarkCreationOption::SuitableForBookmarkFile => 1u64 << 10,
             NSURLBookmarkCreationOption::SecurityScoped => 1 << 11,
             NSURLBookmarkCreationOption::SecurityScopedReadOnly => 1 << 12
         }

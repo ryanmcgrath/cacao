@@ -37,7 +37,9 @@ impl Into<NavigationType> for NSInteger {
             2 => NavigationType::BackForward,
             3 => NavigationType::Reload,
             4 => NavigationType::FormResubmitted,
-            _ => { panic!("Unsupported WKWebView NavigationType value found!"); }
+            _ => {
+                panic!("Unsupported WKWebView NavigationType value found!");
+            }
         }
     }
 }

@@ -1,16 +1,16 @@
-use std::{fmt, slice, str};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut, Range};
 use std::os::raw::c_char;
+use std::{fmt, slice, str};
 
 use core_foundation::base::CFRange;
 
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::color::Color;
-use crate::foundation::{id, to_bool, BOOL, YES, NO, NSString};
+use crate::foundation::{id, to_bool, NSString, BOOL, NO, YES};
 
 use super::Font;
 
@@ -40,9 +40,7 @@ impl AttributedString {
     /// internal use, but kept available as part of the public API for the more adventurous types
     /// who might need it.
     pub fn wrap(value: id) -> Self {
-        Self(unsafe {
-            Id::from_ptr(msg_send![value, mutableCopy])
-        })
+        Self(unsafe { Id::from_ptr(msg_send![value, mutableCopy]) })
     }
 
     /// Sets the text (foreground) color for the specified range.
@@ -71,9 +69,7 @@ impl AttributedString {
 
 impl fmt::Display for AttributedString {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let string = NSString::from_retained(unsafe {
-            msg_send![&*self.0, string]
-        });
+        let string = NSString::from_retained(unsafe { msg_send![&*self.0, string] });
 
         write!(f, "{}", string.to_str())
     }
@@ -81,13 +77,9 @@ impl fmt::Display for AttributedString {
 
 impl fmt::Debug for AttributedString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let string = NSString::from_retained(unsafe {
-            msg_send![&*self.0, string]
-        });
+        let string = NSString::from_retained(unsafe { msg_send![&*self.0, string] });
 
-        f.debug_struct("AttributedString")
-            .field("text", &string.to_str())
-            .finish()
+        f.debug_struct("AttributedString").field("text", &string.to_str()).finish()
     }
 }
 

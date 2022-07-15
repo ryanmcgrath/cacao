@@ -14,11 +14,9 @@ pub fn menu() -> Vec<Menu> {
         Menu::new("", vec![
             MenuItem::About("Todos".to_string()),
             MenuItem::Separator,
-
             MenuItem::new("Preferences").key(",").action(|| {
                 dispatch_ui(Message::OpenPreferencesWindow);
             }),
-
             MenuItem::Separator,
             MenuItem::Services,
             MenuItem::Separator,
@@ -26,24 +24,19 @@ pub fn menu() -> Vec<Menu> {
             MenuItem::HideOthers,
             MenuItem::ShowAll,
             MenuItem::Separator,
-            MenuItem::Quit
+            MenuItem::Quit,
         ]),
-
         Menu::new("File", vec![
             MenuItem::new("Open/Show Window").key("n").action(|| {
                 dispatch_ui(Message::OpenMainWindow);
             }),
-
             MenuItem::Separator,
-
             MenuItem::new("Add Todo").key("+").action(|| {
                 dispatch_ui(Message::OpenNewTodoSheet);
             }),
-
             MenuItem::Separator,
-            MenuItem::CloseWindow
+            MenuItem::CloseWindow,
         ]),
-
         Menu::new("Edit", vec![
             MenuItem::Undo,
             MenuItem::Redo,
@@ -52,20 +45,15 @@ pub fn menu() -> Vec<Menu> {
             MenuItem::Copy,
             MenuItem::Paste,
             MenuItem::Separator,
-            MenuItem::SelectAll
+            MenuItem::SelectAll,
         ]),
-
-        Menu::new("View", vec![
-            MenuItem::EnterFullScreen
-        ]),
-
+        Menu::new("View", vec![MenuItem::EnterFullScreen]),
         Menu::new("Window", vec![
             MenuItem::Minimize,
             MenuItem::Zoom,
             MenuItem::Separator,
-            MenuItem::new("Bring All to Front")
+            MenuItem::new("Bring All to Front"),
         ]),
-
-        Menu::new("Help", vec![])
+        Menu::new("Help", vec![]),
     ]
 }

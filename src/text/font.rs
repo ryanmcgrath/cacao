@@ -4,11 +4,11 @@ use std::ops::Deref;
 
 use core_graphics::base::CGFloat;
 
-use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
+use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
 
 /// A `Font` can be constructed and applied to supported controls to control things like text
 /// appearance and size.
@@ -21,7 +21,7 @@ impl Default for Font {
         Font(unsafe {
             let cls = class!(NSFont);
             let default_size: id = msg_send![cls, labelFontSize];
-            ShareId::from_ptr(msg_send![cls, labelFontOfSize:default_size])
+            ShareId::from_ptr(msg_send![cls, labelFontOfSize: default_size])
         })
     }
 }
@@ -31,18 +31,14 @@ impl Font {
     pub fn system(size: f64) -> Self {
         let size = size as CGFloat;
 
-        Font(unsafe {
-            ShareId::from_ptr(msg_send![class!(NSFont), systemFontOfSize:size])
-        })
+        Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), systemFontOfSize: size]) })
     }
 
     /// Creates and returns a default bold system font at the specified size.
     pub fn bold_system(size: f64) -> Self {
         let size = size as CGFloat;
 
-        Font(unsafe {
-            ShareId::from_ptr(msg_send![class!(NSFont), boldSystemFontOfSize:size])
-        })
+        Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), boldSystemFontOfSize: size]) })
     }
 }
 

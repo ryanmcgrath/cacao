@@ -16,12 +16,12 @@ pub trait OpenSaveController {
     fn will_expand(&self, _expanding: bool) {}
 
     /// Determine whether the specified URL should be enabled in the Open panel.
-    fn should_enable_url(&self, _url: &str) -> bool { true }
+    fn should_enable_url(&self, _url: &str) -> bool {
+        true
+    }
 }
 
 /// A trait you can implement for working with the underlying filesystem. This is important,
 /// notably, because sandboxed applications have different working restrictions surrounding what
 /// they can access.
-pub trait FileManagerController {
-
-}
+pub trait FileManagerController {}

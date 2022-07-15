@@ -1,7 +1,7 @@
+use cacao::color::Color;
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::text::{Font, Label, LineBreakMode};
 use cacao::view::{View, ViewDelegate};
-use cacao::color::Color;
 
 use crate::storage::{Todo, TodoStatus};
 
@@ -50,7 +50,6 @@ impl ViewDelegate for TodoViewRow {
             self.title.top.constraint_equal_to(&view.top).offset(16.),
             self.title.leading.constraint_equal_to(&view.leading).offset(16.),
             self.title.trailing.constraint_equal_to(&view.trailing).offset(-16.),
-
             self.status.top.constraint_equal_to(&self.title.bottom).offset(8.),
             self.status.leading.constraint_equal_to(&view.leading).offset(16.),
             self.status.trailing.constraint_equal_to(&view.trailing).offset(-16.),

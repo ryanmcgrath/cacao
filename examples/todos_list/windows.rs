@@ -5,14 +5,14 @@
 
 use std::sync::RwLock;
 
-use cacao::appkit::window::{Window, WindowConfig, WindowStyle, WindowDelegate, WindowToolbarStyle};
+use cacao::appkit::window::{Window, WindowConfig, WindowDelegate, WindowStyle, WindowToolbarStyle};
 use cacao::notification_center::Dispatcher;
 
 use crate::storage::Message;
 
 use crate::add::AddNewTodoWindow;
-use crate::todos::TodosWindow;
 use crate::preferences::PreferencesWindow;
+use crate::todos::TodosWindow;
 
 #[derive(Default)]
 pub struct WindowManager {
@@ -42,9 +42,7 @@ where
 
 impl WindowManager {
     pub fn open_main(&self) {
-        open_or_show(&self.main, || (
-            WindowConfig::default(), TodosWindow::new()
-        ));
+        open_or_show(&self.main, || (WindowConfig::default(), TodosWindow::new()));
     }
 
     /// When we run a sheet, we want to run it on our main window, which is all
@@ -100,8 +98,10 @@ impl WindowManager {
             config.set_initial_dimensions(100., 100., 400., 400.);
 
             config.set_styles(&[
-                WindowStyle::Resizable, WindowStyle::Miniaturizable,
-                WindowStyle::Closable, WindowStyle::Titled
+                WindowStyle::Resizable,
+                WindowStyle::Miniaturizable,
+                WindowStyle::Closable,
+                WindowStyle::Titled
             ]);
 
             config.toolbar_style = WindowToolbarStyle::Preferences;

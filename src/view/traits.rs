@@ -44,17 +44,23 @@ pub trait ViewDelegate {
     /// Invoked when the dragged image enters destination bounds or frame; returns dragging
     /// operation to perform.
     #[cfg(feature = "appkit")]
-    fn dragging_entered(&self, info: DragInfo) -> DragOperation { DragOperation::None }
+    fn dragging_entered(&self, info: DragInfo) -> DragOperation {
+        DragOperation::None
+    }
 
     /// Invoked when the image is released, allowing the receiver to agree to or refuse
     /// drag operation.
     #[cfg(feature = "appkit")]
-    fn prepare_for_drag_operation(&self, info: DragInfo) -> bool { false }
+    fn prepare_for_drag_operation(&self, info: DragInfo) -> bool {
+        false
+    }
 
     /// Invoked after the released image has been removed from the screen, signaling the
     /// receiver to import the pasteboard data.
     #[cfg(feature = "appkit")]
-    fn perform_drag_operation(&self, info: DragInfo) -> bool { false }
+    fn perform_drag_operation(&self, info: DragInfo) -> bool {
+        false
+    }
 
     /// Invoked when the dragging operation is complete, signaling the receiver to perform
     /// any necessary clean-up.

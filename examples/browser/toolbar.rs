@@ -1,10 +1,9 @@
-
 use cacao::objc::{msg_send, sel, sel_impl};
 
 use cacao::button::Button;
 use cacao::input::{TextField, TextFieldDelegate};
 
-use cacao::appkit::toolbar::{Toolbar, ToolbarDisplayMode, ToolbarItem, ItemIdentifier, ToolbarDelegate};
+use cacao::appkit::toolbar::{ItemIdentifier, Toolbar, ToolbarDelegate, ToolbarDisplayMode, ToolbarItem};
 
 use super::Action;
 
@@ -74,7 +73,7 @@ impl BrowserToolbar {
             ItemIdentifier::Custom(FWDS_BUTTON),
             ItemIdentifier::Space,
             ItemIdentifier::Custom(URL_BAR),
-            ItemIdentifier::Space
+            ItemIdentifier::Space,
         ]
     }
 }
@@ -99,7 +98,9 @@ impl ToolbarDelegate for BrowserToolbar {
             BACK_BUTTON => &self.back_item,
             FWDS_BUTTON => &self.forwards_item,
             URL_BAR => &self.url_bar_item,
-            _ => { std::unreachable!(); }
+            _ => {
+                std::unreachable!();
+            }
         }
     }
 }

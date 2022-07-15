@@ -13,14 +13,13 @@
 /// fallbacks, specify the `color_fallbacks` target_os in your `Cargo.toml`.
 ///
 /// @TODO: bundle iOS/tvOS support.
-
 use std::sync::{Arc, RwLock};
 
 use core_graphics::base::CGFloat;
 use core_graphics::color::CGColor;
 
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::foundation::id;
@@ -31,8 +30,8 @@ mod appkit_dynamic_color;
 
 #[cfg(feature = "appkit")]
 use appkit_dynamic_color::{
-    AQUA_LIGHT_COLOR_NORMAL_CONTRAST, AQUA_LIGHT_COLOR_HIGH_CONTRAST,
-    AQUA_DARK_COLOR_NORMAL_CONTRAST, AQUA_DARK_COLOR_HIGH_CONTRAST
+    AQUA_DARK_COLOR_HIGH_CONTRAST, AQUA_DARK_COLOR_NORMAL_CONTRAST, AQUA_LIGHT_COLOR_HIGH_CONTRAST,
+    AQUA_LIGHT_COLOR_NORMAL_CONTRAST
 };
 
 /// Represents a rendering style - dark mode or light mode.
@@ -250,10 +249,14 @@ impl Color {
 
         Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "appkit")]
-            { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed:r green:g blue:b alpha:a]) }
+            {
+                Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed:r green:g blue:b alpha:a])
+            }
 
             #[cfg(feature = "uikit")]
-            { Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a]) }
+            {
+                Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a])
+            }
         })))
     }
 
@@ -273,10 +276,14 @@ impl Color {
 
         Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "appkit")]
-            { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedHue:h saturation:s brightness:b alpha:a]) }
+            {
+                Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedHue:h saturation:s brightness:b alpha:a])
+            }
 
             #[cfg(feature = "uikit")]
-            { Id::from_ptr(msg_send![class!(UIColor), colorWithHue:h saturation:s brightness:b alpha:a]) }
+            {
+                Id::from_ptr(msg_send![class!(UIColor), colorWithHue:h saturation:s brightness:b alpha:a])
+            }
         })))
     }
 
@@ -291,10 +298,14 @@ impl Color {
     pub fn white_alpha(level: CGFloat, alpha: CGFloat) -> Self {
         Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "appkit")]
-            { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedWhite:level alpha:alpha]) }
+            {
+                Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedWhite:level alpha:alpha])
+            }
 
             #[cfg(feature = "uikit")]
-            { Id::from_ptr(msg_send![class!(UIColor), colorWithWhite:level alpha:alpha]) }
+            {
+                Id::from_ptr(msg_send![class!(UIColor), colorWithWhite:level alpha:alpha])
+            }
         })))
     }
 
@@ -346,7 +357,8 @@ impl Color {
                 let color: id = handler(Style {
                     theme: Theme::Light,
                     contrast: Contrast::Normal
-                }).into();
+                })
+                .into();
 
                 color
             });
@@ -355,7 +367,8 @@ impl Color {
                 let color: id = handler(Style {
                     theme: Theme::Light,
                     contrast: Contrast::High
-                }).into();
+                })
+                .into();
 
                 color
             });
@@ -364,7 +377,8 @@ impl Color {
                 let color: id = handler(Style {
                     theme: Theme::Dark,
                     contrast: Contrast::Normal
-                }).into();
+                })
+                .into();
 
                 color
             });
@@ -373,7 +387,8 @@ impl Color {
                 let color: id = handler(Style {
                     theme: Theme::Light,
                     contrast: Contrast::Normal
-                }).into();
+                })
+                .into();
 
                 color
             });
@@ -421,7 +436,7 @@ impl From<&Color> for id {
 
 /// Handles color fallback for system-provided colors.
 macro_rules! system_color_with_fallback {
-    ($class:ident, $color:ident, $fallback:ident) => ({
+    ($class:ident, $color:ident, $fallback:ident) => {{
         #[cfg(feature = "appkit")]
         {
             #[cfg(feature = "color-fallbacks")]
@@ -439,7 +454,7 @@ macro_rules! system_color_with_fallback {
         {
             msg_send![$class, $color]
         }
-    })
+    }};
 }
 
 /// This function maps enum types to system-provided colors, or our stored NS/UIColor objects.
@@ -508,6 +523,6 @@ unsafe fn to_objc(obj: &Color) -> id {
         Color::MacOSWindowBackgroundColor => system_color_with_fallback!(color, windowBackgroundColor, clearColor),
 
         #[cfg(feature = "appkit")]
-        Color::MacOSUnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor),
+        Color::MacOSUnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor)
     }
 }

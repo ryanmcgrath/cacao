@@ -1,7 +1,7 @@
 use std::any::Any;
-use std::fmt;
-use std::collections::HashMap;
 use std::cell::RefCell;
+use std::collections::HashMap;
+use std::fmt;
 use std::rc::Rc;
 
 use crate::view::ViewDelegate;
@@ -34,10 +34,13 @@ impl CellFactory {
         T: ViewDelegate + 'static
     {
         let mut lock = self.0.borrow_mut();
-        lock.insert(identifier, Box::new(move || {
-            let cell = vendor();
-            Box::new(cell) as Box<dyn Any>
-        }));
+        lock.insert(
+            identifier,
+            Box::new(move || {
+                let cell = vendor();
+                Box::new(cell) as Box<dyn Any>
+            })
+        );
     }
 
     /// Attempts to retrieve the closure, downcasted to the specified type. This will panic if it's

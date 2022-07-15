@@ -1,5 +1,4 @@
 #[allow(non_camel_case_types)]
-
 use crate::foundation::NSString;
 
 /// An enum that wraps NSNotificationName.

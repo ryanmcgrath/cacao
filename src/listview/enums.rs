@@ -63,7 +63,9 @@ impl Into<RowEdge> for NSInteger {
             // @TODO: This *should* be unreachable, provided macOS doesn't start
             // letting people swipe from vertical directions to reveal stuff. Have to
             // feel like there's a better way to do this, though...
-            _ => { unreachable!(); }
+            _ => {
+                unreachable!();
+            }
         }
     }
 }

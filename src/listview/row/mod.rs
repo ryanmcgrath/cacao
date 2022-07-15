@@ -41,23 +41,23 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
-use objc_id::{Id, ShareId};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::{Id, ShareId};
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
+use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
 use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
-use crate::view::{ViewAnimatorProxy, ViewDelegate};
 use crate::utils::properties::ObjcProperty;
+use crate::view::{ViewAnimatorProxy, ViewDelegate};
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension, SafeAreaLayoutGuide};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY, SafeAreaLayoutGuide};
 
 #[cfg(feature = "appkit")]
 mod appkit;
@@ -80,10 +80,10 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         let view: id = msg_send![registration_fn(), new];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![view, setWantsLayer:YES];
+        let _: () = msg_send![view, setWantsLayer: YES];
 
         view
     }
@@ -195,12 +195,15 @@ impl ListViewRow {
             center_x: LayoutAnchorX::center(view),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view),
+            center_y: LayoutAnchorY::center(view)
         }
     }
 }
 
-impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
+impl<T> ListViewRow<T>
+where
+    T: ViewDelegate + 'static
+{
     /// When we're able to retrieve a reusable view cell from the backing table view, we can check
     /// for the pointer and attempt to reconstruct the ListViewRow<T> that corresponds to this.
     ///
@@ -256,7 +259,7 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             center_x: LayoutAnchorX::center(view),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view),
+            center_y: LayoutAnchorY::center(view)
         };
 
         view
@@ -312,7 +315,7 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             center_x: LayoutAnchorX::center(view),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view),
+            center_y: LayoutAnchorY::center(view)
         };
 
         (&mut delegate).did_load(view.clone_as_handle());
@@ -364,7 +367,7 @@ impl<T> ListViewRow<T> where T: ViewDelegate + 'static {
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone(),
+            center_y: self.center_y.clone()
         }
     }
 }
@@ -413,7 +416,7 @@ impl<T> ListViewRow<T> {
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone(),
+            center_y: self.center_y.clone()
         }
     }
 
@@ -449,6 +452,5 @@ impl<T> ObjcAccess for ListViewRow<T> {
 impl<T> Layout for ListViewRow<T> {}
 
 impl<T> Drop for ListViewRow<T> {
-    fn drop(&mut self) {
-    }
+    fn drop(&mut self) {}
 }

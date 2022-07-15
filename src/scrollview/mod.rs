@@ -41,19 +41,19 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
+use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::pasteboard::PasteboardType;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
 #[cfg(feature = "appkit")]
 mod appkit;
@@ -78,15 +78,15 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         let view: id = msg_send![registration_fn(), new];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
         #[cfg(feature = "appkit")]
         {
-            let _: () = msg_send![view, setDrawsBackground:NO];
-            let _: () = msg_send![view, setWantsLayer:YES];
+            let _: () = msg_send![view, setDrawsBackground: NO];
+            let _: () = msg_send![view, setWantsLayer: YES];
             let _: () = msg_send![view, setBorderType:0];
             let _: () = msg_send![view, setHorizontalScrollElasticity:1];
-            let _: () = msg_send![view, setHasVerticalScroller:YES];
+            let _: () = msg_send![view, setHasVerticalScroller: YES];
         }
 
         view
@@ -187,12 +187,15 @@ impl ScrollView {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 }
 
-impl<T> ScrollView<T> where T: ScrollViewDelegate + 'static {
+impl<T> ScrollView<T>
+where
+    T: ScrollViewDelegate + 'static
+{
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> ScrollView<T> {
@@ -237,7 +240,7 @@ impl<T> ScrollView<T> where T: ScrollViewDelegate + 'static {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         };
 
         (&mut delegate).did_load(view.clone_as_handle());
@@ -295,7 +298,7 @@ impl<T> ScrollView<T> {
         self.objc.with_mut(|obj| unsafe {
             let color = color.as_ref().cg_color();
             let layer: id = msg_send![obj, layer];
-            let _: () = msg_send![layer, setBackgroundColor:color];
+            let _: () = msg_send![layer, setBackgroundColor: color];
         });
     }
 }

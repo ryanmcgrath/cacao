@@ -1,7 +1,7 @@
 //! The main Todos window.
 
-use cacao::appkit::window::{Window, WindowDelegate};
 use cacao::appkit::toolbar::Toolbar;
+use cacao::appkit::window::{Window, WindowDelegate};
 use cacao::view::ViewController;
 
 use crate::storage::Message;
@@ -16,7 +16,7 @@ mod list;
 
 pub struct TodosWindow {
     pub content: ViewController<TodosContentView>,
-    pub toolbar: Toolbar<TodosToolbar>,
+    pub toolbar: Toolbar<TodosToolbar>
 }
 
 impl TodosWindow {

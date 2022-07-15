@@ -6,13 +6,13 @@ use std::fmt;
 use std::sync::Once;
 
 use block::ConcreteBlock;
-use objc::{class, msg_send, sel, sel_impl};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, nil, NSString, NSUInteger};
 use crate::events::EventModifierFlag;
+use crate::foundation::{id, nil, NSString, NSUInteger};
 
 static BLOCK_PTR: &'static str = "cacaoMenuItemBlockPtr";
 
@@ -30,9 +30,7 @@ impl fmt::Debug for Action {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let ptr = format!("{:p}", self.0);
 
-        f.debug_struct("Action")
-            .field("fn", &ptr)
-            .finish()
+        f.debug_struct("Action").field("fn", &ptr).finish()
     }
 }
 
@@ -72,7 +70,7 @@ fn make_menu_item<S: AsRef<str>>(
                 key_mask = key_mask | y;
             }
 
-            let _: () = msg_send![&*item, setKeyEquivalentModifierMask:key_mask];
+            let _: () = msg_send![&*item, setKeyEquivalentModifierMask: key_mask];
         }
 
         item
@@ -172,7 +170,7 @@ impl MenuItem {
                 let item = make_menu_item("Services", None, None, None);
                 let app: id = msg_send![class!(RSTApplication), sharedApplication];
                 let services: id = msg_send![app, servicesMenu];
-                let _: () = msg_send![&*item, setSubmenu:services];
+                let _: () = msg_send![&*item, setSubmenu: services];
                 item
             },
 
@@ -230,7 +228,7 @@ impl MenuItem {
         if let MenuItem::Custom(objc) = self {
             unsafe {
                 let key = NSString::new(key);
-                let _: () = msg_send![&*objc, setKeyEquivalent:key];
+                let _: () = msg_send![&*objc, setKeyEquivalent: key];
             }
 
             return MenuItem::Custom(objc);
@@ -251,7 +249,7 @@ impl MenuItem {
             }
 
             unsafe {
-                let _: () = msg_send![&*objc, setKeyEquivalentModifierMask:key_mask];
+                let _: () = msg_send![&*objc, setKeyEquivalentModifierMask: key_mask];
             }
 
             return MenuItem::Custom(objc);
@@ -287,7 +285,7 @@ impl MenuItem {
 /// On the Objective-C side, we need to ensure our handler is dropped when this subclass
 /// is deallocated. Note that NSMenuItem is seemingly odd outside of ARC contexts, and we
 /// need to do some extra logic to ensure release calls are properly sent.
-extern fn dealloc_cacao_menuitem(this: &Object, _: Sel) {
+extern "C" fn dealloc_cacao_menuitem(this: &Object, _: Sel) {
     unsafe {
         let ptr: usize = *this.get_ivar(BLOCK_PTR);
         let obj = ptr as *mut Action;
@@ -305,7 +303,7 @@ extern fn dealloc_cacao_menuitem(this: &Object, _: Sel) {
 }
 
 /// Called when our custom item needs to fire.
-extern fn fire_block_action(this: &Object, _: Sel, _item: id) {
+extern "C" fn fire_block_action(this: &Object, _: Sel, _item: id) {
     let action = crate::utils::load::<Action>(this, BLOCK_PTR);
     (action.0)();
 }
@@ -324,13 +322,11 @@ pub(crate) fn register_menu_item_class() -> *const Class {
         let mut decl = ClassDecl::new("CacaoMenuItem", superclass).unwrap();
         decl.add_ivar::<usize>(BLOCK_PTR);
 
-        decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern fn(&Object, _));
-        decl.add_method(sel!(fireBlockAction:), fire_block_action as extern fn(&Object, _, id));
+        decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern "C" fn(&Object, _));
+        decl.add_method(sel!(fireBlockAction:), fire_block_action as extern "C" fn(&Object, _, id));
 
         APP_CLASS = decl.register();
     });
 
-    unsafe {
-        APP_CLASS
-    }
+    unsafe { APP_CLASS }
 }

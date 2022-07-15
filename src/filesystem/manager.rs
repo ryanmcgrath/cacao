@@ -4,14 +4,14 @@
 use std::error::Error;
 use std::sync::{Arc, RwLock};
 
-use objc_id::Id;
-use objc::runtime::{BOOL, Object};
+use objc::runtime::{Object, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::Id;
 use url::Url;
 
-use crate::foundation::{id, nil, NO, NSString, NSUInteger};
 use crate::error::Error as AppKitError;
 use crate::filesystem::enums::{SearchPathDirectory, SearchPathDomainMask};
+use crate::foundation::{id, nil, NSString, NSUInteger, NO};
 
 /// A FileManager can be used for file operations (moving files, etc).
 ///
@@ -45,11 +45,7 @@ impl FileManager {
     /// Given a directory/domain combination, will attempt to get the directory that matches.
     /// Returns a PathBuf that wraps the given location. If there's an error on the Objective-C
     /// side, we attempt to catch it and bubble it up.
-    pub fn get_directory(
-        &self,
-        directory: SearchPathDirectory,
-        in_domain: SearchPathDomainMask
-    ) -> Result<Url, Box<dyn Error>> {
+    pub fn get_directory(&self, directory: SearchPathDirectory, in_domain: SearchPathDomainMask) -> Result<Url, Box<dyn Error>> {
         let dir: NSUInteger = directory.into();
         let mask: NSUInteger = in_domain.into();
 

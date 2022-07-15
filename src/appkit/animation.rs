@@ -16,7 +16,7 @@ impl AnimationContext {
     /// Sets the animation duration.
     pub fn set_duration(&mut self, duration: f64) {
         unsafe {
-            let _: () = msg_send![self.0, setDuration:duration];
+            let _: () = msg_send![self.0, setDuration: duration];
         }
     }
 
@@ -39,7 +39,7 @@ impl AnimationContext {
 
         unsafe {
             //let context: id = msg_send![class!(NSAnimationContext), currentContext];
-            let _: () = msg_send![class!(NSAnimationContext), runAnimationGroup:block];
+            let _: () = msg_send![class!(NSAnimationContext), runAnimationGroup: block];
         }
     }
 

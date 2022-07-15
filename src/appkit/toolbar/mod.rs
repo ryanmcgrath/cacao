@@ -5,11 +5,11 @@
 
 use std::fmt;
 
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSString, NSUInteger};
+use crate::foundation::{id, nil, NSString, NSUInteger, NO, YES};
 
 mod class;
 use class::register_toolbar_class;
@@ -21,7 +21,7 @@ mod traits;
 pub use traits::ToolbarDelegate;
 
 mod enums;
-pub use enums::{ToolbarDisplayMode, ToolbarSizeMode, ItemIdentifier};
+pub use enums::{ItemIdentifier, ToolbarDisplayMode, ToolbarSizeMode};
 
 pub(crate) static TOOLBAR_PTR: &str = "cacaoToolbarPtr";
 
@@ -41,7 +41,10 @@ pub struct Toolbar<T = ()> {
     pub delegate: Option<Box<T>>
 }
 
-impl<T> Toolbar<T> where T: ToolbarDelegate + 'static {
+impl<T> Toolbar<T>
+where
+    T: ToolbarDelegate + 'static
+{
     /// Creates a new `NSToolbar` instance, configures it appropriately, sets up the delegate
     /// chain, and retains it all.
     pub fn new<S: Into<String>>(identifier: S, delegate: T) -> Self {
@@ -52,12 +55,12 @@ impl<T> Toolbar<T> where T: ToolbarDelegate + 'static {
         let (objc, objc_delegate) = unsafe {
             let alloc: id = msg_send![class!(NSToolbar), alloc];
             let identifier = NSString::new(&identifier);
-            let toolbar: id = msg_send![alloc, initWithIdentifier:identifier];
+            let toolbar: id = msg_send![alloc, initWithIdentifier: identifier];
             let objc_delegate: id = msg_send![cls, new]; //WithIdentifier:identifier];
 
             let ptr: *const T = &*delegate;
             (&mut *objc_delegate).set_ivar(TOOLBAR_PTR, ptr as usize);
-            let _: () = msg_send![toolbar, setDelegate:objc_delegate];
+            let _: () = msg_send![toolbar, setDelegate: objc_delegate];
 
             (ShareId::from_ptr(toolbar), ShareId::from_ptr(objc_delegate))
         };
@@ -73,7 +76,7 @@ impl<T> Toolbar<T> where T: ToolbarDelegate + 'static {
             identifier,
             objc,
             objc_delegate,
-            delegate: Some(delegate),
+            delegate: Some(delegate)
         }
     }
 }
@@ -95,7 +98,7 @@ impl<T> Toolbar<T> {
         let mode: NSUInteger = mode.into();
 
         unsafe {
-            let _: () = msg_send![&*self.objc, setDisplayMode:mode];
+            let _: () = msg_send![&*self.objc, setDisplayMode: mode];
         }
     }
 
@@ -104,7 +107,7 @@ impl<T> Toolbar<T> {
         let mode: NSUInteger = mode.into();
 
         unsafe {
-            let _: () = msg_send![&*self.objc, setSizeMode:mode];
+            let _: () = msg_send![&*self.objc, setSizeMode: mode];
         }
     }
 
@@ -150,7 +153,7 @@ impl<T> Drop for Toolbar<T> {
     fn drop(&mut self) {
         if self.delegate.is_some() {
             unsafe {
-                let _: () = msg_send![&*self.objc, setDelegate:nil];
+                let _: () = msg_send![&*self.objc, setDelegate: nil];
             }
         }
     }

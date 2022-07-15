@@ -1,8 +1,7 @@
-
 use core_graphics::geometry::CGRect;
 
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::foundation::id;
@@ -18,7 +17,7 @@ impl Window {
         Window(unsafe {
             let rect: CGRect = frame.into();
             let alloc: id = msg_send![class!(UIWindow), alloc];
-            Id::from_ptr(msg_send![alloc, initWithFrame:rect])
+            Id::from_ptr(msg_send![alloc, initWithFrame: rect])
         })
     }
 

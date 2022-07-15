@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::foundation::{id, NSData, NSMutableDictionary, NSString, NSNumber};
+use crate::foundation::{id, NSData, NSMutableDictionary, NSNumber, NSString};
 
 /// Represents a Value that can be stored or queried with `UserDefaults`.
 ///

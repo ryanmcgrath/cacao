@@ -52,7 +52,10 @@ fn toggle_bool(key: &str) {
         panic!("Attempting to toggle a boolean value for {}, but it's not a boolean.", key);
     }
 
-    panic!("Attempting to toggle a boolean value for {}, but this key does not exist.", key);
+    panic!(
+        "Attempting to toggle a boolean value for {}, but this key does not exist.",
+        key
+    );
 }
 
 /// A helper method for loading a boolean value held at the specified key. If the value cannot

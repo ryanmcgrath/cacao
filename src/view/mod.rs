@@ -44,15 +44,15 @@
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
+use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
 use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension, SafeAreaLayoutGuide};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY, SafeAreaLayoutGuide};
 
 #[cfg(feature = "appkit")]
 use crate::pasteboard::PasteboardType;
@@ -163,10 +163,10 @@ impl View {
     pub(crate) fn init<T>(view: id) -> View<T> {
         unsafe {
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
             #[cfg(feature = "appkit")]
-            let _: () = msg_send![view, setWantsLayer:YES];
+            let _: () = msg_send![view, setWantsLayer: YES];
         }
 
         View {
@@ -206,24 +206,23 @@ impl View {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            layer: Layer::wrap(unsafe {
-                msg_send![view, layer]
-            }),
+            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
 
             animator: ViewAnimatorProxy::new(view),
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 
     /// Returns a default `View`, suitable for customizing and displaying.
     pub fn new() -> Self {
-        View::init(unsafe {
-            msg_send![native_interface::register_view_class(), new]
-        })
+        View::init(unsafe { msg_send![native_interface::register_view_class(), new] })
     }
 }
 
-impl<T> View<T> where T: ViewDelegate + 'static {
+impl<T> View<T>
+where
+    T: ViewDelegate + 'static
+{
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> View<T> {
@@ -289,7 +288,7 @@ impl<T> View<T> {
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone(),
+            center_y: self.center_y.clone()
         }
     }
 
@@ -304,10 +303,9 @@ impl<T> View<T> {
 
         #[cfg(feature = "uikit")]
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![&*obj, setBackgroundColor:color];
+            let _: () = msg_send![&*obj, setBackgroundColor: color];
         });
     }
-
 }
 
 impl<T> ObjcAccess for View<T> {

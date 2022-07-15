@@ -12,7 +12,7 @@ use super::toggle_option_view::ToggleOptionView;
 /// A general preferences view.
 #[derive(Debug, Default)]
 pub struct GeneralPreferencesContentView {
-    pub example_option: ToggleOptionView,
+    pub example_option: ToggleOptionView
 }
 
 impl ViewDelegate for GeneralPreferencesContentView {
@@ -30,10 +30,17 @@ impl ViewDelegate for GeneralPreferencesContentView {
 
         LayoutConstraint::activate(&[
             self.example_option.view.top.constraint_equal_to(&view.top).offset(22.),
-            self.example_option.view.leading.constraint_equal_to(&view.leading).offset(22.),
-            self.example_option.view.trailing.constraint_equal_to(&view.trailing).offset(-22.),
+            self.example_option
+                .view
+                .leading
+                .constraint_equal_to(&view.leading)
+                .offset(22.),
+            self.example_option
+                .view
+                .trailing
+                .constraint_equal_to(&view.trailing)
+                .offset(-22.),
             self.example_option.view.bottom.constraint_equal_to(&view.bottom).offset(-22.)
         ]);
     }
 }
-

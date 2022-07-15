@@ -2,12 +2,9 @@
 //! mostly single-threaded example, so we can get away with cutting a few corners and keeping our
 //! data store in here - but for a larger app, you'd likely do something else.
 
-use cacao::listview::{
-    ListView, ListViewDelegate, ListViewRow,
-    RowAnimation, RowEdge, RowAction, RowActionStyle
-};
+use cacao::listview::{ListView, ListViewDelegate, ListViewRow, RowAction, RowActionStyle, RowAnimation, RowEdge};
 
-use crate::storage::{dispatch_ui, Message, Todos, TodoStatus};
+use crate::storage::{dispatch_ui, Message, TodoStatus, Todos};
 
 mod row;
 use row::TodoViewRow;
@@ -97,15 +94,23 @@ impl ListViewDelegate for TodosListView {
 
         self.todos.with(row, |todo| match todo.status {
             TodoStatus::Complete => {
-                actions.push(RowAction::new("Mark Incomplete", RowActionStyle::Destructive, move |_action, row| {
-                    dispatch_ui(Message::MarkTodoIncomplete(row));
-                }));
+                actions.push(RowAction::new(
+                    "Mark Incomplete",
+                    RowActionStyle::Destructive,
+                    move |_action, row| {
+                        dispatch_ui(Message::MarkTodoIncomplete(row));
+                    }
+                ));
             },
 
             TodoStatus::Incomplete => {
-                actions.push(RowAction::new("Mark Complete", RowActionStyle::Regular, move |_action, row| {
-                    dispatch_ui(Message::MarkTodoComplete(row));
-                }));
+                actions.push(RowAction::new(
+                    "Mark Complete",
+                    RowActionStyle::Regular,
+                    move |_action, row| {
+                        dispatch_ui(Message::MarkTodoComplete(row));
+                    }
+                ));
             }
         });
 

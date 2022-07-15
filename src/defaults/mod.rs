@@ -33,14 +33,11 @@
 
 use std::collections::HashMap;
 
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{
-    id, nil, to_bool, YES, NO, BOOL,
-    NSData, NSString, NSMutableDictionary, NSNumber
-};
+use crate::foundation::{id, nil, to_bool, NSData, NSMutableDictionary, NSNumber, NSString, BOOL, NO, YES};
 
 mod value;
 pub use value::Value;
@@ -73,9 +70,7 @@ impl UserDefaults {
     /// let _ = defaults.get("test");
     /// ```
     pub fn standard() -> Self {
-        UserDefaults(unsafe {
-            Id::from_ptr(msg_send![class!(NSUserDefaults), standardUserDefaults])
-        })
+        UserDefaults(unsafe { Id::from_ptr(msg_send![class!(NSUserDefaults), standardUserDefaults]) })
     }
 
     /// Returns a user defaults instance for the given suite name. You typically use this to share
@@ -177,9 +172,7 @@ impl UserDefaults {
     pub fn get<K: AsRef<str>>(&self, key: K) -> Option<Value> {
         let key = NSString::new(key.as_ref());
 
-        let result: id = unsafe {
-            msg_send![&*self.0, objectForKey:&*key]
-        };
+        let result: id = unsafe { msg_send![&*self.0, objectForKey:&*key] };
 
         if result == nil {
             return None;

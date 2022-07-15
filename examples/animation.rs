@@ -9,10 +9,10 @@ use cacao::color::Color;
 use cacao::layout::{Layout, LayoutConstraint, LayoutConstraintAnimatorProxy};
 use cacao::view::{View, ViewAnimatorProxy};
 
-use cacao::appkit::{App, AppDelegate, AnimationContext};
-use cacao::appkit::{Event, EventMask, EventMonitor};
 use cacao::appkit::menu::Menu;
 use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
+use cacao::appkit::{AnimationContext, App, AppDelegate};
+use cacao::appkit::{Event, EventMask, EventMonitor};
 
 struct BasicApp {
     window: Window<AppWindow>
@@ -54,33 +54,26 @@ const ANIMATIONS: [[[f64; 5]; 4]; 3] = [
         [44., 16., 100., 100., 1.],
         [128., 84., 144., 124., 1.],
         [32., 32., 44., 44., 0.7],
-        [328., 157., 200., 200., 0.7],
+        [328., 157., 200., 200., 0.7]
     ],
-
     // Red
     [
         [44., 132., 100., 100., 1.],
         [40., 47., 80., 64., 0.7],
         [84., 220., 600., 109., 1.0],
-        [48., 600., 340., 44., 0.7],
+        [48., 600., 340., 44., 0.7]
     ],
-
     // Green
     [
         [44., 248., 100., 100., 1.],
         [420., 232., 420., 244., 0.7],
         [310., 440., 150., 238., 0.7],
-        [32., 32., 44., 44., 1.],
+        [32., 32., 44., 44., 1.]
     ]
 ];
 
 /// A helper method for generating frame constraints that we want to be animating.
-fn apply_styles(
-    view: &View,
-    parent: &View,
-    background_color: Color,
-    animation_table_index: usize
-) -> [LayoutConstraint; 4] {
+fn apply_styles(view: &View, parent: &View, background_color: Color, animation_table_index: usize) -> [LayoutConstraint; 4] {
     view.set_background_color(background_color);
     view.layer.set_corner_radius(16.);
     parent.add_subview(view);
@@ -117,20 +110,24 @@ impl WindowDelegate for AppWindow {
         let red_frame = apply_styles(&self.red, &self.content, Color::SystemRed, 1);
         let green_frame = apply_styles(&self.green, &self.content, Color::SystemGreen, 2);
 
-        let alpha_animators = [&self.blue, &self.red, &self.green].iter().map(|view| {
-            view.animator.clone()
-        }).collect::<Vec<ViewAnimatorProxy>>();
+        let alpha_animators = [&self.blue, &self.red, &self.green]
+            .iter()
+            .map(|view| view.animator.clone())
+            .collect::<Vec<ViewAnimatorProxy>>();
 
-        let constraint_animators = [blue_frame, red_frame, green_frame].iter().map(|frame| {
-            LayoutConstraint::activate(frame);
+        let constraint_animators = [blue_frame, red_frame, green_frame]
+            .iter()
+            .map(|frame| {
+                LayoutConstraint::activate(frame);
 
-            vec![
-                frame[0].animator.clone(),
-                frame[1].animator.clone(),
-                frame[2].animator.clone(),
-                frame[3].animator.clone(),
-            ]
-        }).collect::<Vec<Vec<LayoutConstraintAnimatorProxy>>>();
+                vec![
+                    frame[0].animator.clone(),
+                    frame[1].animator.clone(),
+                    frame[2].animator.clone(),
+                    frame[3].animator.clone(),
+                ]
+            })
+            .collect::<Vec<Vec<LayoutConstraintAnimatorProxy>>>();
 
         // Monitor key change events for w/a/s/d, and then animate each view to their correct
         // frame and alpha value.
@@ -175,5 +172,6 @@ impl WindowDelegate for AppWindow {
 fn main() {
     App::new("com.test.window", BasicApp {
         window: Window::with(WindowConfig::default(), AppWindow::default())
-    }).run();
+    })
+    .run();
 }

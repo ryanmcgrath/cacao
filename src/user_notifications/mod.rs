@@ -51,9 +51,10 @@ impl NotificationCenter {
 
         unsafe {
             let identifier = NSString::new(&uuidentifier);
-            let request: id = msg_send![class!(UNNotificationRequest), requestWithIdentifier:identifier content:&*notification.0 trigger:nil];
+            let request: id =
+                msg_send![class!(UNNotificationRequest), requestWithIdentifier:identifier content:&*notification.0 trigger:nil];
             let center: id = msg_send![class!(UNUserNotificationCenter), currentNotificationCenter];
-            let _: () = msg_send![center, addNotificationRequest:request];
+            let _: () = msg_send![center, addNotificationRequest: request];
         }
     }
 

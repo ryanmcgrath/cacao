@@ -6,11 +6,11 @@ use core_graphics::base::CGFloat;
 
 use objc::{class, msg_send, sel, sel_impl};
 
-use objc::{Encode, Encoding};
 use objc::runtime::Object;
+use objc::{Encode, Encoding};
 use objc_id::ShareId;
 
-use crate::foundation::{id, BOOL, YES, NO};
+use crate::foundation::{id, BOOL, NO, YES};
 
 mod cell_factory;
 pub use cell_factory::CellFactory;
@@ -76,7 +76,7 @@ pub struct CGSize {
     pub width: CGFloat,
 
     /// The height of this size.
-    pub height: CGFloat,
+    pub height: CGFloat
 }
 
 impl CGSize {
@@ -94,10 +94,7 @@ impl CGSize {
 unsafe impl Encode for CGSize {
     /// Adds support for CGSize Objective-C encoding.
     fn encode() -> Encoding {
-        let encoding = format!("{{CGSize={}{}}}",
-            CGFloat::encode().as_str(),
-            CGFloat::encode().as_str()
-        );
+        let encoding = format!("{{CGSize={}{}}}", CGFloat::encode().as_str(), CGFloat::encode().as_str());
 
         unsafe { Encoding::from_str(&encoding) }
     }

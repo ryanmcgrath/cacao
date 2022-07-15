@@ -13,18 +13,18 @@
 
 use core_graphics::base::CGFloat;
 
-use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSUInteger};
 use crate::color::Color;
+use crate::foundation::{id, nil, NSUInteger, NO, YES};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
 mod enums;
 pub use enums::ProgressIndicatorStyle;
@@ -91,10 +91,10 @@ impl ProgressIndicator {
             let view: id = msg_send![class!(NSProgressIndicator), new];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
             #[cfg(feature = "appkit")]
-            let _: () = msg_send![view, setWantsLayer:YES];
+            let _: () = msg_send![view, setWantsLayer: YES];
 
             view
         };
@@ -130,7 +130,7 @@ impl ProgressIndicator {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 }
@@ -139,7 +139,7 @@ impl ProgressIndicator {
     /// Starts the animation for an indeterminate indicator.
     pub fn start_animation(&self) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, startAnimation:nil];
+            let _: () = msg_send![obj, startAnimation: nil];
         });
     }
 
@@ -147,14 +147,14 @@ impl ProgressIndicator {
     /// indeterminate looping animation).
     pub fn stop_animation(&self) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, stopAnimation:nil];
+            let _: () = msg_send![obj, stopAnimation: nil];
         });
     }
 
     /// Increment the progress indicator by the amount specified.
     pub fn increment(&self, amount: f64) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, incrementBy:amount];
+            let _: () = msg_send![obj, incrementBy: amount];
         });
     }
 
@@ -163,7 +163,7 @@ impl ProgressIndicator {
         let style = style as NSUInteger;
 
         self.objc.with_mut(move |obj| unsafe {
-            let _: () = msg_send![obj, setStyle:style];
+            let _: () = msg_send![obj, setStyle: style];
         });
     }
 
@@ -187,7 +187,7 @@ impl ProgressIndicator {
         let value = value as CGFloat;
 
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setDoubleValue:value];
+            let _: () = msg_send![obj, setDoubleValue: value];
         });
     }
 

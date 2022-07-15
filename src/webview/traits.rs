@@ -2,9 +2,9 @@
 //! `WKWebView`. It allows you to do things such as handle opening a file (for uploads or
 //! in-browser-processing), handling navigation actions or JS message callbacks, and so on.
 
-use crate::webview::WebView;
 use crate::webview::actions::{NavigationAction, NavigationResponse, OpenPanelParameters};
 use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
+use crate::webview::WebView;
 
 /// You can implement this on structs to handle callbacks from the underlying `WKWebView`.
 pub trait WebViewDelegate {

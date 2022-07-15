@@ -23,15 +23,15 @@ use std::sync::Once;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use objc_id::ShareId;
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
 use crate::color::Color;
 use crate::control::Control;
+use crate::foundation::{id, nil, NSString, NSUInteger, BOOL, NO, YES};
 use crate::image::Image;
-use crate::foundation::{id, nil, BOOL, YES, NO, NSString, NSUInteger};
 use crate::invoker::TargetActionHandler;
 use crate::keys::Key;
 use crate::layout::Layout;
@@ -40,7 +40,7 @@ use crate::text::{AttributedString, Font};
 use crate::utils::{load, properties::ObjcProperty};
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
 #[cfg(feature = "appkit")]
 use crate::appkit::FocusRingType;
@@ -129,10 +129,10 @@ impl Button {
                 action:nil
             ];
 
-            let _: () = msg_send![button, setWantsLayer:YES];
+            let _: () = msg_send![button, setWantsLayer: YES];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
             button
         };
@@ -171,7 +171,7 @@ impl Button {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 
@@ -190,7 +190,7 @@ impl Button {
         let style: NSUInteger = bezel_style.into();
 
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setBezelStyle:style];
+            let _: () = msg_send![obj, setBezelStyle: style];
         });
     }
 
@@ -210,7 +210,7 @@ impl Button {
         #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
-            let _: () = msg_send![cell, setBackgroundColor:color];
+            let _: () = msg_send![cell, setBackgroundColor: color];
         });
     }
 
@@ -279,7 +279,7 @@ impl Button {
         let ring_type: NSUInteger = focus_ring_type.into();
 
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setFocusRingType:ring_type];
+            let _: () = msg_send![obj, setFocusRingType: ring_type];
         });
     }
 
@@ -326,8 +326,8 @@ impl Drop for Button {
     // but I'd rather be paranoid and remove them later.
     fn drop(&mut self) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setTarget:nil];
-            let _: () = msg_send![obj, setAction:nil];
+            let _: () = msg_send![obj, setTarget: nil];
+            let _: () = msg_send![obj, setAction: nil];
         });
     }
 }

@@ -40,19 +40,19 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSInteger, NSUInteger, NSString};
 use crate::color::Color;
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
-use crate::text::{AttributedString, Font, TextAlign, LineBreakMode};
+use crate::text::{AttributedString, Font, LineBreakMode, TextAlign};
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
 #[cfg(feature = "appkit")]
 mod appkit;
@@ -81,7 +81,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
             let label: id = msg_send![registration_fn(), wrappingLabelWithString:&*blank];
 
             // We sub this in to get the general expected behavior for 202*.
-            let _: () = msg_send![label, setSelectable:NO];
+            let _: () = msg_send![label, setSelectable: NO];
 
             label
         };
@@ -90,10 +90,10 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         let view: id = msg_send![registration_fn(), new];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![view, setWantsLayer:YES];
+        let _: () = msg_send![view, setWantsLayer: YES];
 
         view
     }
@@ -235,12 +235,15 @@ impl Label {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 }
 
-impl<T> Label<T> where T: LabelDelegate + 'static {
+impl<T> Label<T>
+where
+    T: LabelDelegate + 'static
+{
     /// Initializes a new Label with a given `LabelDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> Label<T> {
@@ -285,7 +288,7 @@ impl<T> Label<T> where T: LabelDelegate + 'static {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(label),
 
-            objc: ObjcProperty::retain(label),
+            objc: ObjcProperty::retain(label)
         };
 
         //(&mut delegate).did_load(label.clone_as_handle());
@@ -344,7 +347,7 @@ impl<T> Label<T> {
         self.objc.with_mut(|obj| unsafe {
             let color = color.as_ref().cg_color();
             let layer: id = msg_send![obj, layer];
-            let _: () = msg_send![layer, setBackgroundColor:color];
+            let _: () = msg_send![layer, setBackgroundColor: color];
         });
     }
 
@@ -353,7 +356,7 @@ impl<T> Label<T> {
         let color: id = color.as_ref().into();
 
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setTextColor:color];
+            let _: () = msg_send![obj, setTextColor: color];
         });
     }
 
@@ -376,16 +379,15 @@ impl<T> Label<T> {
 
     /// Retrieve the text currently held in the label.
     pub fn get_text(&self) -> String {
-        self.objc.get(|obj| unsafe {
-            NSString::retain(msg_send![obj, stringValue]).to_string()
-        })
+        self.objc
+            .get(|obj| unsafe { NSString::retain(msg_send![obj, stringValue]).to_string() })
     }
 
     /// Sets the text alignment for this label.
     pub fn set_text_alignment(&self, alignment: TextAlign) {
         self.objc.with_mut(|obj| unsafe {
             let alignment: NSInteger = alignment.into();
-            let _: () = msg_send![obj, setAlignment:alignment];
+            let _: () = msg_send![obj, setAlignment: alignment];
         });
     }
 
@@ -413,7 +415,7 @@ impl<T> Label<T> {
     /// Sets the maximum number of lines.
     pub fn set_max_number_of_lines(&self, num: NSInteger) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setMaximumNumberOfLines:num];
+            let _: () = msg_send![obj, setMaximumNumberOfLines: num];
         });
     }
 
@@ -423,8 +425,8 @@ impl<T> Label<T> {
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
             let mode = mode as NSUInteger;
-            let _: () = msg_send![cell, setTruncatesLastVisibleLine:YES];
-            let _: () = msg_send![cell, setLineBreakMode:mode];
+            let _: () = msg_send![cell, setTruncatesLastVisibleLine: YES];
+            let _: () = msg_send![cell, setLineBreakMode: mode];
         });
     }
 }

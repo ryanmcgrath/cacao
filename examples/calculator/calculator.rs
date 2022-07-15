@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
-use cacao::lazy_static::lazy_static;
 use cacao::appkit::App;
+use cacao::lazy_static::lazy_static;
 
 use crate::CalculatorApp;
 
@@ -92,10 +92,14 @@ impl Calculator {
                 println!("Expr: {}", expr);
 
                 match eval::eval(&expr) {
-                    Ok(val) => { App::<CalculatorApp, String>::dispatch_main(val.to_string()); },
-                    Err(e) => { eprintln!("Error parsing expression: {:?}", e); }
+                    Ok(val) => {
+                        App::<CalculatorApp, String>::dispatch_main(val.to_string());
+                    },
+                    Err(e) => {
+                        eprintln!("Error parsing expression: {:?}", e);
+                    }
                 }
-            }
+            },
 
             _ => {}
         }

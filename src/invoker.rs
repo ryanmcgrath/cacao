@@ -11,11 +11,11 @@
 use std::fmt;
 use std::sync::{Arc, Mutex, Once};
 
-use objc_id::ShareId;
+use block::{Block, ConcreteBlock, RcBlock};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
-use block::{Block, ConcreteBlock, RcBlock};
+use objc_id::ShareId;
 
 use crate::foundation::{id, nil, NSString};
 use crate::utils::load;
@@ -34,8 +34,7 @@ pub struct Action(Box<dyn Fn() + Send + Sync + 'static>);
 
 impl fmt::Debug for Action {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Action")
-            .finish()
+        f.debug_struct("Action").finish()
     }
 }
 
@@ -64,8 +63,8 @@ impl TargetActionHandler {
                 let invoker: id = msg_send![register_invoker_class::<F>(), alloc];
                 let invoker: id = msg_send![invoker, init];
                 (&mut *invoker).set_ivar(ACTION_CALLBACK_PTR, ptr as usize);
-                let _: () = msg_send![control, setAction:sel!(perform:)];
-                let _: () = msg_send![control, setTarget:invoker];
+                let _: () = msg_send![control, setAction: sel!(perform:)];
+                let _: () = msg_send![control, setTarget: invoker];
                 invoker
             })
         };
@@ -78,7 +77,7 @@ impl TargetActionHandler {
 }
 
 /// This will fire for an NSButton callback.
-extern fn perform<F: Fn() + 'static>(this: &mut Object, _: Sel, _sender: id) {
+extern "C" fn perform<F: Fn() + 'static>(this: &mut Object, _: Sel, _sender: id) {
     let action = load::<Action>(this, ACTION_CALLBACK_PTR);
     (action.0)();
 }
@@ -104,7 +103,7 @@ pub(crate) fn register_invoker_class<F: Fn() + 'static>() -> *const Class {
         let mut decl = ClassDecl::new("RSTTargetActionHandler", superclass).unwrap();
 
         decl.add_ivar::<usize>(ACTION_CALLBACK_PTR);
-        decl.add_method(sel!(perform:), perform::<F> as extern fn (&mut Object, _, id));
+        decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(&mut Object, _, id));
 
         VIEW_CLASS = decl.register();
     });

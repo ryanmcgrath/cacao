@@ -15,8 +15,6 @@ pub struct UserActivity(pub ShareId<Object>);
 impl UserActivity {
     /// An internal method for wrapping a system-provided activity.
     pub(crate) fn with_inner(object: id) -> Self {
-        UserActivity(unsafe {
-            ShareId::from_ptr(object)
-        })
+        UserActivity(unsafe { ShareId::from_ptr(object) })
     }
 }

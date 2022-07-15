@@ -1,7 +1,7 @@
-use cacao::text::Label;
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::switch::Switch;
-use cacao::view::{View};
+use cacao::text::Label;
+use cacao::view::View;
 
 /// A reusable widget for a toggle; this is effectively a standard checkbox/label combination for
 /// toggling a boolean value.
@@ -31,11 +31,9 @@ impl Default for ToggleOptionView {
             switch.top.constraint_equal_to(&view.top),
             switch.leading.constraint_equal_to(&view.leading),
             switch.width.constraint_equal_to_constant(24.),
-
             title.top.constraint_equal_to(&view.top),
             title.leading.constraint_equal_to(&switch.trailing),
             title.trailing.constraint_equal_to(&view.trailing),
-
             subtitle.top.constraint_equal_to(&title.bottom),
             subtitle.leading.constraint_equal_to(&switch.trailing),
             subtitle.trailing.constraint_equal_to(&view.trailing),

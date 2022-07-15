@@ -15,19 +15,19 @@
 
 use core_graphics::geometry::CGRect;
 
-use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSString};
+use crate::foundation::{id, nil, NSString, NO, YES};
 use crate::geometry::Rect;
-use crate::layout::Layout;
 use crate::layer::Layer;
+use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
 mod actions;
 pub use actions::*;
@@ -48,10 +48,7 @@ pub use traits::WebViewDelegate;
 
 pub(crate) static WEBVIEW_DELEGATE_PTR: &str = "rstWebViewDelegatePtr";
 
-fn allocate_webview(
-    mut config: WebViewConfig,
-    objc_delegate: Option<&Object>
-) -> id {
+fn allocate_webview(mut config: WebViewConfig, objc_delegate: Option<&Object>) -> id {
     unsafe {
         // Not a fan of this, but we own it anyway, so... meh.
         let handlers = std::mem::take(&mut config.handlers);
@@ -84,10 +81,10 @@ fn allocate_webview(
         let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration:configuration];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![webview, setWantsLayer:YES];
+        let _: () = msg_send![webview, setWantsLayer: YES];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
         if let Some(delegate) = &objc_delegate {
             let _: () = msg_send![webview, setNavigationDelegate:*delegate];
@@ -172,10 +169,10 @@ impl WebView {
     /// so on. It returns a generic `WebView<T>`, which the caller can then customize as needed.
     pub(crate) fn init<T>(view: id) -> WebView<T> {
         unsafe {
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
             #[cfg(feature = "appkit")]
-            let _: () = msg_send![view, setWantsLayer:YES];
+            let _: () = msg_send![view, setWantsLayer: YES];
         }
 
         WebView {
@@ -213,14 +210,11 @@ impl WebView {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            layer: Layer::wrap(unsafe {
-                msg_send![view, layer]
-            }),
+            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
-
 
     /// Returns a default `WebView`, suitable for customizing and displaying.
     pub fn new(config: WebViewConfig) -> Self {
@@ -229,7 +223,10 @@ impl WebView {
     }
 }
 
-impl<T> WebView<T> where T: WebViewDelegate + 'static {
+impl<T> WebView<T>
+where
+    T: WebViewDelegate + 'static
+{
     /// Initializes a new WebView with a given `WebViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(config: WebViewConfig, delegate: T) -> WebView<T> {
@@ -303,8 +300,8 @@ impl<T> WebView<T> {
 
         self.objc.with_mut(|obj| unsafe {
             let u: id = msg_send![class!(NSURL), URLWithString:&*url];
-            let request: id = msg_send![class!(NSURLRequest), requestWithURL:u];
-            let _: () = msg_send![&*obj, loadRequest:request];
+            let request: id = msg_send![class!(NSURLRequest), requestWithURL: u];
+            let _: () = msg_send![&*obj, loadRequest: request];
         });
     }
 
@@ -312,7 +309,7 @@ impl<T> WebView<T> {
     /// Useful for small html files, but often better to use custom protocol.
     pub fn load_html(&self, html_string: &str) {
         let html = NSString::new(html_string);
-        let blank =  NSString::no_copy("");
+        let blank = NSString::no_copy("");
 
         self.objc.with_mut(|obj| unsafe {
             let empty: id = msg_send![class!(NSURL), URLWithString:&*blank];
@@ -362,8 +359,8 @@ impl<T> Drop for WebView<T> {
     fn drop(&mut self) {
         if !self.is_handle {
             self.objc.with_mut(|obj| unsafe {
-                let _: () = msg_send![&*obj, setNavigationDelegate:nil];
-                let _: () = msg_send![&*obj, setUIDelegate:nil];
+                let _: () = msg_send![&*obj, setNavigationDelegate: nil];
+                let _: () = msg_send![&*obj, setUIDelegate: nil];
             });
 
             self.remove_from_superview();

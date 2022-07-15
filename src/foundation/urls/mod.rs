@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::foundation::{id, nil, NSData, NSString, NSUInteger};
@@ -13,7 +13,7 @@ mod bookmark_options;
 pub use bookmark_options::{NSURLBookmarkCreationOption, NSURLBookmarkResolutionOption};
 
 mod resource_keys;
-pub use resource_keys::{NSURLResourceKey, NSURLFileResource, NSUbiquitousItemDownloadingStatus};
+pub use resource_keys::{NSURLFileResource, NSURLResourceKey, NSUbiquitousItemDownloadingStatus};
 
 /// Wraps `NSURL` for use throughout the framework.
 ///
@@ -58,9 +58,7 @@ impl<'a> NSURL<'a> {
         let url = NSString::new(url);
 
         Self {
-            objc: unsafe {
-                ShareId::from_ptr(msg_send![class!(NSURL), URLWithString:&*url])
-            },
+            objc: unsafe { ShareId::from_ptr(msg_send![class!(NSURL), URLWithString:&*url]) },
 
             phantom: PhantomData
         }
@@ -71,9 +69,7 @@ impl<'a> NSURL<'a> {
     /// Note that if the underlying file moved, this won't be accurate - you likely want to
     /// research URL bookmarks.
     pub fn absolute_string(&self) -> String {
-        let abs_str = NSString::retain(unsafe {
-            msg_send![&*self.objc, absoluteString]
-        });
+        let abs_str = NSString::retain(unsafe { msg_send![&*self.objc, absoluteString] });
 
         abs_str.to_string()
     }
@@ -81,9 +77,7 @@ impl<'a> NSURL<'a> {
     /// Creates and returns a Rust `PathBuf`, for users who don't need the extra pieces of NSURL
     /// and just want to write Rust code.
     pub fn pathbuf(&self) -> PathBuf {
-        let path = NSString::retain(unsafe {
-            msg_send![&*self.objc, path]
-        });
+        let path = NSString::retain(unsafe { msg_send![&*self.objc, path] });
 
         path.to_str().into()
     }

@@ -2,9 +2,9 @@
 //! mask). This configuration object acts as a way to orchestrate enabling customization before the
 //! window object is created - it's returned in your `WindowDelegate` object.
 
+use crate::appkit::window::enums::{WindowStyle, WindowToolbarStyle};
 use crate::foundation::NSUInteger;
 use crate::geometry::Rect;
-use crate::appkit::window::enums::{WindowStyle, WindowToolbarStyle};
 
 #[derive(Debug)]
 pub struct WindowConfig {
@@ -45,8 +45,12 @@ impl Default for WindowConfig {
         };
 
         config.set_styles(&[
-            WindowStyle::Resizable, WindowStyle::Miniaturizable, WindowStyle::UnifiedTitleAndToolbar,
-            WindowStyle::Closable, WindowStyle::Titled, WindowStyle::FullSizeContentView
+            WindowStyle::Resizable,
+            WindowStyle::Miniaturizable,
+            WindowStyle::UnifiedTitleAndToolbar,
+            WindowStyle::Closable,
+            WindowStyle::Titled,
+            WindowStyle::FullSizeContentView
         ]);
 
         config

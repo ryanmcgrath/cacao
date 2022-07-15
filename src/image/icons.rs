@@ -60,7 +60,7 @@ impl MacSystemIcon {
 
     /// Maps system icons to their SFSymbols-counterparts for use on 11.0+.
     pub fn to_sfsymbol_str(&self) -> &'static str {
-         match self {
+        match self {
             MacSystemIcon::PreferencesGeneral => SFSymbol::GearShape.to_str(),
             MacSystemIcon::PreferencesAdvanced => SFSymbol::SliderVertical3.to_str(),
             MacSystemIcon::PreferencesUserAccounts => SFSymbol::AtSymbol.to_str(),

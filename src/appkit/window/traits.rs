@@ -28,7 +28,9 @@ pub trait WindowDelegate {
 
     /// Called when the user has attempted to close the window. NOT called when a user quits the
     /// application. Return false here if you need to handle the edge case.
-    fn should_close(&self) -> bool { true }
+    fn should_close(&self) -> bool {
+        true
+    }
 
     /// Fires when a window is going to close. You might opt to, say, clean up things here -
     /// perhaps you have a long running task, or something that should be removed.
@@ -46,7 +48,9 @@ pub trait WindowDelegate {
     ///
     /// The default implementation of this method returns `None`, indicating the system should just
     /// do its thing. If you implement it, you probably want that.
-    fn will_resize(&self, width: f64, height: f64) -> (f64, f64) { (width, height) }
+    fn will_resize(&self, width: f64, height: f64) -> (f64, f64) {
+        (width, height)
+    }
 
     /// Fired after the window has resized.
     fn did_resize(&self) {}
@@ -100,7 +104,9 @@ pub trait WindowDelegate {
     /// Specify options for when this window goes full screen.
     /// By default, this returns `None`, which tells the system to proceed as it normally would
     /// without customization.
-    fn presentation_options_for_full_screen(&self) -> Option<&[PresentationOption]> { None }
+    fn presentation_options_for_full_screen(&self) -> Option<&[PresentationOption]> {
+        None
+    }
 
     /// Fires when this window is about to go full screen.
     fn will_enter_full_screen(&self) {}

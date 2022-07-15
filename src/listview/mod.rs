@@ -44,21 +44,21 @@
 use std::collections::HashMap;
 
 use core_graphics::base::CGFloat;
-use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSString, NSInteger, NSUInteger};
 use crate::color::Color;
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
 use crate::layout::Layout;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
 use crate::objc_access::ObjcAccess;
 use crate::scrollview::ScrollView;
-use crate::utils::{os, CellFactory, CGSize};
 use crate::utils::properties::{ObjcProperty, PropertyNullable};
+use crate::utils::{os, CGSize, CellFactory};
 use crate::view::{ViewAnimatorProxy, ViewDelegate};
 
 #[cfg(feature = "appkit")]
@@ -93,8 +93,8 @@ pub(crate) static LISTVIEW_DELEGATE_PTR: &str = "rstListViewDelegatePtr";
 use std::any::Any;
 use std::sync::{Arc, RwLock};
 
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 /// A helper method for instantiating view classes and applying default settings to them.
 fn common_init(class: *const Class) -> id {
@@ -108,24 +108,24 @@ fn common_init(class: *const Class) -> id {
         {
             // @TODO: Clean this up in a dealloc method.
             let menu: id = msg_send![class!(NSMenu), new];
-            let _: () = msg_send![menu, setDelegate:tableview];
-            let _: () = msg_send![tableview, setMenu:menu];
+            let _: () = msg_send![menu, setDelegate: tableview];
+            let _: () = msg_send![tableview, setMenu: menu];
 
-            let _: () = msg_send![tableview, setWantsLayer:YES];
-            let _: () = msg_send![tableview, setUsesAutomaticRowHeights:YES];
-            let _: () = msg_send![tableview, setFloatsGroupRows:YES];
+            let _: () = msg_send![tableview, setWantsLayer: YES];
+            let _: () = msg_send![tableview, setUsesAutomaticRowHeights: YES];
+            let _: () = msg_send![tableview, setFloatsGroupRows: YES];
             //let _: () = msg_send![tableview, setIntercellSpacing:CGSize::new(0., 0.)];
             let _: () = msg_send![tableview, setColumnAutoresizingStyle:1];
             //msg_send![tableview, setSelectionHighlightStyle:-1];
             //let _: () = msg_send![tableview, setAllowsMultipleSelection:NO];
-            let _: () = msg_send![tableview, setHeaderView:nil];
+            let _: () = msg_send![tableview, setHeaderView: nil];
 
             // NSTableView requires at least one column to be manually added if doing so by code.
             let identifier = NSString::no_copy("CacaoListViewColumn");
             let default_column_alloc: id = msg_send![class!(NSTableColumn), new];
             let default_column: id = msg_send![default_column_alloc, initWithIdentifier:&*identifier];
             let _: () = msg_send![default_column, setResizingMask:(1<<0)];
-            let _: () = msg_send![tableview, addTableColumn:default_column];
+            let _: () = msg_send![tableview, addTableColumn: default_column];
         }
 
         tableview
@@ -213,7 +213,7 @@ impl ListView {
             let sview = ScrollView::new();
 
             sview.objc.with_mut(|obj| unsafe {
-                let _: () = msg_send![obj, setDocumentView:view];
+                let _: () = msg_send![obj, setDocumentView: view];
             });
 
             sview
@@ -222,9 +222,7 @@ impl ListView {
         // For AppKit, we need to use the NSScrollView anchor points, not the NSTableView.
         // @TODO: Fix this with proper mutable access.
         #[cfg(all(feature = "appkit", feature = "autolayout"))]
-        let anchor_view: id = scrollview.objc.get(|obj| unsafe {
-            msg_send![obj, self]
-        });
+        let anchor_view: id = scrollview.objc.get(|obj| unsafe { msg_send![obj, self] });
 
         //#[cfg(all(feature = "uikit", feature = "autolayout"))]
         //let anchor_view: id = view;
@@ -276,7 +274,10 @@ impl ListView {
     }
 }
 
-impl<T> ListView<T> where T: ListViewDelegate + 'static {
+impl<T> ListView<T>
+where
+    T: ListViewDelegate + 'static
+{
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> ListView<T> {
@@ -288,8 +289,8 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
         unsafe {
             let delegate_ptr: *const T = &*delegate;
             (&mut *view).set_ivar(LISTVIEW_DELEGATE_PTR, delegate_ptr as usize);
-            let _: () = msg_send![view, setDelegate:view];
-            let _: () = msg_send![view, setDataSource:view];
+            let _: () = msg_send![view, setDelegate: view];
+            let _: () = msg_send![view, setDataSource: view];
         };
 
         #[cfg(feature = "appkit")]
@@ -297,7 +298,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
             let sview = ScrollView::new();
 
             sview.objc.with_mut(|obj| unsafe {
-                let _: () = msg_send![obj, setDocumentView:view];
+                let _: () = msg_send![obj, setDocumentView: view];
             });
 
             sview
@@ -305,9 +306,7 @@ impl<T> ListView<T> where T: ListViewDelegate + 'static {
 
         // For AppKit, we need to use the NSScrollView anchor points, not the NSTableView.
         #[cfg(all(feature = "appkit", feature = "autolayout"))]
-        let anchor_view: id = scrollview.objc.get(|obj| unsafe {
-            msg_send![obj, self]
-        });
+        let anchor_view: id = scrollview.objc.get(|obj| unsafe { msg_send![obj, self] });
 
         //#[cfg(feature = "uikit")]
         //let anchor_view = view;
@@ -420,9 +419,9 @@ impl<T> ListView<T> {
         #[cfg(feature = "appkit")]
         {
             let key = NSString::new(identifier);
-            let cell: id = self.objc.get(|obj| unsafe {
-                msg_send![obj, makeViewWithIdentifier:&*key owner:nil]
-            });
+            let cell: id = self
+                .objc
+                .get(|obj| unsafe { msg_send![obj, makeViewWithIdentifier:&*key owner:nil] });
 
             if cell != nil {
                 ListViewRow::from_cached(cell)
@@ -441,7 +440,7 @@ impl<T> ListView<T> {
         self.objc.with_mut(|obj| unsafe {
             let color = color.as_ref().cg_color();
             let layer: id = msg_send![obj, layer];
-            let _: () = msg_send![layer, setBackgroundColor:color];
+            let _: () = msg_send![layer, setBackgroundColor: color];
         });
     }
 
@@ -454,7 +453,7 @@ impl<T> ListView<T> {
         #[cfg(target_os = "macos")]
         if os::is_minimum_version(11) {
             self.objc.with_mut(|obj| unsafe {
-                let _: () = msg_send![obj, setStyle:style];
+                let _: () = msg_send![obj, setStyle: style];
             });
         }
     }
@@ -477,7 +476,7 @@ impl<T> ListView<T> {
     /// Set the selection highlight style.
     pub fn set_selection_highlight_style(&self, style: crate::foundation::NSInteger) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setSelectionHighlightStyle:style];
+            let _: () = msg_send![obj, setSelectionHighlightStyle: style];
         });
     }
 
@@ -487,7 +486,7 @@ impl<T> ListView<T> {
             let index_set: id = msg_send![class!(NSMutableIndexSet), new];
 
             for index in indexes {
-                let _: () = msg_send![index_set, addIndex:index];
+                let _: () = msg_send![index_set, addIndex: index];
             }
 
             self.objc.with_mut(|obj| {
@@ -568,7 +567,7 @@ impl<T> ListView<T> {
 
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
-                let _: () = msg_send![index_set, addIndex:x];
+                let _: () = msg_send![index_set, addIndex: x];
             }
 
             let animation_options: NSUInteger = animation.into();
@@ -593,7 +592,7 @@ impl<T> ListView<T> {
 
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
-                let _: () = msg_send![index_set, addIndex:x];
+                let _: () = msg_send![index_set, addIndex: x];
             }
 
             let x = ShareId::from_ptr(index_set);
@@ -620,7 +619,7 @@ impl<T> ListView<T> {
 
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
-                let _: () = msg_send![index_set, addIndex:x];
+                let _: () = msg_send![index_set, addIndex: x];
             }
 
             let animation_options: NSUInteger = animations.into();
@@ -638,7 +637,7 @@ impl<T> ListView<T> {
     /// look at ListViewDelegate methods, or use AutoLayout.
     pub fn set_row_height(&self, height: CGFloat) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setRowHeight:height];
+            let _: () = msg_send![obj, setRowHeight: height];
         });
     }
 

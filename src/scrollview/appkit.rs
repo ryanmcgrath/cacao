@@ -14,26 +14,27 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, YES, NO, NSUInteger};
 use crate::dragdrop::DragInfo;
-use crate::scrollview::{SCROLLVIEW_DELEGATE_PTR, ScrollViewDelegate};
+use crate::foundation::{id, NSUInteger, NO, YES};
+use crate::scrollview::{ScrollViewDelegate, SCROLLVIEW_DELEGATE_PTR};
 use crate::utils::load;
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
-extern fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
+extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
     return YES;
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern fn dragging_entered<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
+extern "C" fn dragging_entered<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
     view.dragging_entered(DragInfo {
         info: unsafe { Id::from_ptr(info) }
-    }).into()
+    })
+    .into()
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern fn prepare_for_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern "C" fn prepare_for_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
     match view.prepare_for_drag_operation(DragInfo {
@@ -45,7 +46,7 @@ extern fn prepare_for_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern fn perform_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern "C" fn perform_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
     match view.perform_drag_operation(DragInfo {
@@ -57,7 +58,7 @@ extern fn perform_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Se
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern fn conclude_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) {
+extern "C" fn conclude_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
     view.conclude_drag_operation(DragInfo {
@@ -66,7 +67,7 @@ extern fn conclude_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: S
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern fn dragging_exited<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) {
+extern "C" fn dragging_exited<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
     view.dragging_exited(DragInfo {
@@ -102,19 +103,32 @@ pub(crate) fn register_scrollview_class_with_delegate<T: ScrollViewDelegate>() -
         // move.
         decl.add_ivar::<usize>(SCROLLVIEW_DELEGATE_PTR);
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
 
         // Drag and drop operations (e.g, accepting files)
-        decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger);
-        decl.add_method(sel!(prepareForDragOperation:), prepare_for_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
-        decl.add_method(sel!(performDragOperation:), perform_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL);
-        decl.add_method(sel!(concludeDragOperation:), conclude_drag_operation::<T> as extern fn (&mut Object, _, _));
-        decl.add_method(sel!(draggingExited:), dragging_exited::<T> as extern fn (&mut Object, _, _));
+        decl.add_method(
+            sel!(draggingEntered:),
+            dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger
+        );
+        decl.add_method(
+            sel!(prepareForDragOperation:),
+            prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+        );
+        decl.add_method(
+            sel!(performDragOperation:),
+            perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+        );
+        decl.add_method(
+            sel!(concludeDragOperation:),
+            conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _)
+        );
+        decl.add_method(
+            sel!(draggingExited:),
+            dragging_exited::<T> as extern "C" fn(&mut Object, _, _)
+        );
 
         VIEW_CLASS = decl.register();
     });
 
-    unsafe {
-        VIEW_CLASS
-    }
+    unsafe { VIEW_CLASS }
 }

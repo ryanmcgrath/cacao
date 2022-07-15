@@ -1,13 +1,13 @@
 //! This example showcases setting up a basic application and window, setting up some views to
 //! work with autolayout, and some basic ways to handle colors.
 
-use cacao::layout::{Layout, LayoutConstraint};
 use cacao::input::{TextField, TextFieldDelegate};
+use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::View;
 
-use cacao::appkit::{App, AppDelegate};
 use cacao::appkit::menu::{Menu, MenuItem};
 use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
+use cacao::appkit::{App, AppDelegate};
 
 struct BasicApp {
     window: Window<AppWindow>
@@ -23,13 +23,9 @@ impl AppDelegate for BasicApp {
                 MenuItem::HideOthers,
                 MenuItem::ShowAll,
                 MenuItem::Separator,
-                MenuItem::Quit
+                MenuItem::Quit,
             ]),
-
-            Menu::new("File", vec![
-                MenuItem::CloseWindow
-            ]),
-
+            Menu::new("File", vec![MenuItem::CloseWindow]),
             Menu::new("Edit", vec![
                 MenuItem::Undo,
                 MenuItem::Redo,
@@ -38,21 +34,16 @@ impl AppDelegate for BasicApp {
                 MenuItem::Copy,
                 MenuItem::Paste,
                 MenuItem::Separator,
-                MenuItem::SelectAll
+                MenuItem::SelectAll,
             ]),
-
-            Menu::new("View", vec![
-                MenuItem::EnterFullScreen
-            ]),
-
+            Menu::new("View", vec![MenuItem::EnterFullScreen]),
             Menu::new("Window", vec![
                 MenuItem::Minimize,
                 MenuItem::Zoom,
                 MenuItem::Separator,
-                MenuItem::new("Bring All to Front")
+                MenuItem::new("Bring All to Front"),
             ]),
-
-            Menu::new("Help", vec![])
+            Menu::new("Help", vec![]),
         ]);
 
         App::activate();
@@ -79,7 +70,6 @@ impl TextFieldDelegate for ConsoleLogger {
         println!("Did change to: {}", value);
     }
 
-
     fn text_did_end_editing(&self, value: &str) {
         println!("Ended: {}", value);
     }
@@ -95,7 +85,7 @@ impl AppWindow {
     pub fn new() -> Self {
         AppWindow {
             input: TextField::with(ConsoleLogger),
-            content: View::new(),
+            content: View::new()
         }
     }
 }
@@ -121,5 +111,6 @@ impl WindowDelegate for AppWindow {
 fn main() {
     App::new("com.test.window", BasicApp {
         window: Window::with(WindowConfig::default(), AppWindow::new())
-    }).run();
+    })
+    .run();
 }

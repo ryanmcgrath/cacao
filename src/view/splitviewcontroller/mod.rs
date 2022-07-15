@@ -1,12 +1,12 @@
-use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
+use crate::appkit::toolbar::ToolbarItem;
 use crate::foundation::{id, nil, NSString};
 use crate::layout::Layout;
-use crate::appkit::toolbar::ToolbarItem;
-use crate::view::{View, ViewController, ViewDelegate};
 use crate::utils::{os, Controller};
+use crate::view::{View, ViewController, ViewDelegate};
 
 /// A SplitViewItem wraps a ViewController, and provides system hooks for operating in a
 /// SplitView(Controller).
@@ -84,7 +84,7 @@ where
         #[cfg(target_os = "macos")]
         if os::is_minimum_version(11) {
             unsafe {
-                let _: () = msg_send![&*self.objc, setTitlebarSeparatorStyle:style];
+                let _: () = msg_send![&*self.objc, setTitlebarSeparatorStyle: style];
             }
         }
     }
@@ -152,7 +152,12 @@ where
             ShareId::from_ptr(vc)
         };
 
-        SplitViewController { objc, sidebar, content, details }
+        SplitViewController {
+            objc,
+            sidebar,
+            content,
+            details
+        }
     }
 }
 
@@ -162,7 +167,7 @@ impl<Sidebar, Content, Details> SplitViewController<Sidebar, Content, Details> {
     /// nothing.
     pub fn toggle_sidebar(&self) {
         unsafe {
-            let _: () = msg_send![&*self.objc, toggleSidebar:nil];
+            let _: () = msg_send![&*self.objc, toggleSidebar: nil];
         }
     }
 

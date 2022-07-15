@@ -3,7 +3,6 @@
 #![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 #![cfg_attr(docsrs, deny(rustdoc::broken_intra_doc_links))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-
 // Copyright 2019+, the Cacao developers.
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Dual-licensed under an MIT/MPL-2.0 license, see the LICENSE files in this repository.
@@ -93,9 +92,9 @@
 
 pub use core_foundation;
 pub use core_graphics;
+pub use lazy_static;
 pub use objc;
 pub use url;
-pub use lazy_static;
 
 //#[cfg(all(feature = "appkit", feature = "uikit", not(feature = "doc_cfg")))]
 //compile_error!("The \"appkit\" and \"uikit\" features cannot be enabled together. Pick one. :)");
@@ -153,8 +152,8 @@ pub mod layout;
 #[cfg(feature = "appkit")]
 pub mod listview;
 pub mod networking;
-pub(crate) mod objc_access;
 pub mod notification_center;
+pub(crate) mod objc_access;
 
 #[cfg(feature = "appkit")]
 pub mod pasteboard;

@@ -1,6 +1,6 @@
 //! Wrapper methods for various geometry types (rects, sizes, ec).
 
-use core_graphics::geometry::{CGRect, CGPoint, CGSize};
+use core_graphics::geometry::{CGPoint, CGRect, CGSize};
 
 /// A struct that represents a box - top, left, width and height. You might use this for, say,
 /// setting the initial frame of a view.
@@ -22,7 +22,12 @@ pub struct Rect {
 impl Rect {
     /// Returns a new `Rect` initialized with the values specified.
     pub fn new(top: f64, left: f64, width: f64, height: f64) -> Self {
-        Rect { top: top, left: left, width: width, height: height }
+        Rect {
+            top: top,
+            left: left,
+            width: width,
+            height: height
+        }
     }
 
     /// Returns a zero'd out Rect, with f64 (32-bit is mostly dead on Cocoa, so... this is "okay").
@@ -38,10 +43,7 @@ impl Rect {
 
 impl From<Rect> for CGRect {
     fn from(rect: Rect) -> CGRect {
-        CGRect::new(
-             &CGPoint::new(rect.left, rect.top),
-             &CGSize::new(rect.width, rect.height)
-        )
+        CGRect::new(&CGPoint::new(rect.left, rect.top), &CGSize::new(rect.width, rect.height))
     }
 }
 

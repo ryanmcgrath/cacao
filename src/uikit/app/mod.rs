@@ -40,9 +40,9 @@ use std::ffi::CString;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, YES, NO, NSString, NSUInteger, AutoReleasePool};
-use crate::uikit::scene::{WindowSceneDelegate, register_window_scene_delegate_class};
+use crate::foundation::{id, nil, AutoReleasePool, NSString, NSUInteger, NO, YES};
 use crate::notification_center::Dispatcher;
+use crate::uikit::scene::{register_window_scene_delegate_class, WindowSceneDelegate};
 use crate::utils::activate_cocoa_multithreading;
 
 mod class;
@@ -62,12 +62,7 @@ pub(crate) static mut SCENE_DELEGATE_VENDOR: usize = 0;
 
 extern "C" {
     /// Required for iOS applications to initialize.
-    fn UIApplicationMain(
-        argc: c_int,
-        argv: *const *const c_char,
-        principal_class_name: id,
-        delegate_class_name: id
-    );
+    fn UIApplicationMain(argc: c_int, argv: *const *const c_char, principal_class_name: id, delegate_class_name: id);
 }
 
 /// A handler to make some boilerplate less annoying.
@@ -84,11 +79,7 @@ fn shared_application<F: Fn(id)>(handler: F) {
 /// - It injects an `NSObject` subclass to act as a delegate for lifecycle events.
 /// - It ensures that Cocoa, where appropriate, is operating in multi-threaded mode so POSIX
 /// threads work as intended.
-pub struct App<
-    T = (),
-    W = (),
-    F = (),
-> {
+pub struct App<T = (), W = (), F = ()> {
     pub delegate: Box<T>,
     pub vendor: Box<F>,
     pub pool: AutoReleasePool,
@@ -98,8 +89,7 @@ pub struct App<
 // Temporary. ;P
 impl<W, T, F> std::fmt::Debug for App<W, T, F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("App<W, T, F>")
-            .finish()
+        f.debug_struct("App<W, T, F>").finish()
     }
 }
 
@@ -153,27 +143,19 @@ impl<T, W, F> App<T, W, F> {
     /// Handles calling through to `UIApplicationMain()`, ensuring that it's using our custom
     /// `UIApplication` and `UIApplicationDelegate` classes.
     pub fn run(&self) {
-        let args = std::env::args().map(|arg| {
-            CString::new(arg).unwrap()
-        }).collect::<Vec<CString>>();
+        let args = std::env::args()
+            .map(|arg| CString::new(arg).unwrap())
+            .collect::<Vec<CString>>();
 
-        let c_args = args.iter().map(|arg| {
-            arg.as_ptr()
-        }).collect::<Vec<*const c_char>>();
+        let c_args = args.iter().map(|arg| arg.as_ptr()).collect::<Vec<*const c_char>>();
 
         let mut s = NSString::new("RSTApplication");
         let mut s2 = NSString::new("RSTAppDelegate");
 
         unsafe {
-            UIApplicationMain(
-                c_args.len() as c_int,
-                c_args.as_ptr(),
-                s.into(),
-                s2.into()
-            );
+            UIApplicationMain(c_args.len() as c_int, c_args.as_ptr(), s.into(), s2.into());
         }
 
         self.pool.drain();
     }
 }
-

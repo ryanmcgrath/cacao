@@ -35,12 +35,16 @@ pub trait AppDelegate {
     fn will_resign_active(&self) {}
 
     /// Fired when the user is going to continue an activity.
-    fn will_continue_user_activity(&self, _activity_type: &str) -> bool { false }
+    fn will_continue_user_activity(&self, _activity_type: &str) -> bool {
+        false
+    }
 
     /// Fired when data for continuing an activity is available. Currently, the
     /// `restoration_handler` is not used, but there to communicate intent with what this API will
     /// eventually be doing.
-    fn continue_user_activity<F: Fn()>(&self, _activity: UserActivity, _restoration_handler: F) -> bool { false }
+    fn continue_user_activity<F: Fn()>(&self, _activity: UserActivity, _restoration_handler: F) -> bool {
+        false
+    }
 
     /// Fired when the activity could not be continued.
     fn failed_to_continue_user_activity(&self, _activity_type: &str, _error: Error) {}
@@ -96,11 +100,15 @@ pub trait AppDelegate {
     /// though, you can cancel the termination via `TerminateResponse::Cancel` to continue something essential. If
     /// you do this, you'll need to be sure to call `App::reply_to_termination_request()` to circle
     /// back.
-    fn should_terminate(&self) -> TerminateResponse { TerminateResponse::Now }
+    fn should_terminate(&self) -> TerminateResponse {
+        TerminateResponse::Now
+    }
 
     /// Called after closing the last open window. Return `true` here if you want
     /// the application to terminate.
-    fn should_terminate_after_last_window_closed(&self) -> bool { false }
+    fn should_terminate_after_last_window_closed(&self) -> bool {
+        false
+    }
 
     /// Sent by the application to the delegate prior to default behavior to reopen AppleEvents.
     ///
@@ -119,16 +127,22 @@ pub trait AppDelegate {
     ///
     /// [Read more
     /// here](https://developer.apple.com/documentation/appkit/nsapplicationdelegate/1428638-applicationshouldhandlereopen?language=objc)
-    fn should_handle_reopen(&self, _has_visible_windows: bool) -> bool { true }
+    fn should_handle_reopen(&self, _has_visible_windows: bool) -> bool {
+        true
+    }
 
     /// Supply a dock menu for the application dynamically. The default implementation for this
     /// method returns `None`, for no menu.
-    fn dock_menu(&self) -> Option<Menu> { None }
+    fn dock_menu(&self) -> Option<Menu> {
+        None
+    }
 
     /// Fired before the application presents an error message to the user. If you find the error
     /// to be... not what you want, you can take it, alter it, and return it anew. The default
     /// implementation of this method simply returns the error as-is.
-    fn will_present_error(&self, error: Error) -> Error { error }
+    fn will_present_error(&self, error: Error) -> Error {
+        error
+    }
 
     /// Fired when the screen parameters for the application have changed (e.g, the user changed
     /// something in their settings).
@@ -145,7 +159,7 @@ pub trait AppDelegate {
     ///
     /// Note that since we have this as the de-facto method of handling resource opens, the system
     /// will _not_ call `application:openFile:` or `application:openFiles`.
-    fn open_urls(&self, _urls: Vec<Url>) { }
+    fn open_urls(&self, _urls: Vec<Url>) {}
 
     /// Fired when the file is requested to be opened programmatically. This is not a commonly used
     /// or implemented method.
@@ -156,28 +170,38 @@ pub trait AppDelegate {
     /// work with the file is under programmatic control of sender, rather than under keyboard control of the user."_
     ///
     /// It's unclear how supported this is in sandbox environments, so use at your own risk.
-    fn open_file_without_ui(&self, _filename: &str) -> bool { false }
+    fn open_file_without_ui(&self, _filename: &str) -> bool {
+        false
+    }
 
     /// Fired when the application is ready and able to open a temporary file.
     /// Return `true` or `false` here depending on whether the operation was successful.
     ///
     /// It's your responsibility to remove the temp file.
-    fn open_temp_file(&self, _filename: &str) -> bool { false }
+    fn open_temp_file(&self, _filename: &str) -> bool {
+        false
+    }
 
     /// Fired before attempting to open an untitled file. Return `true` here if you want
     /// `open_untitled_file` to be called by the system.
-    fn should_open_untitled_file(&self) -> bool { false }
+    fn should_open_untitled_file(&self) -> bool {
+        false
+    }
 
     /// Called when the application has asked you to open a new, untitled file.
     /// Returns a `bool` indicating whether the file was successfully opened or not.
-    fn open_untitled_file(&self) -> bool { true }
+    fn open_untitled_file(&self) -> bool {
+        true
+    }
 
     /// Sent when the user starts up the application on the command line with the -NSPrint option.
     /// The application terminates immediately after this method returns. For more information,
     /// cosnult the official Apple documentation.
     ///
     /// (You probably never need to implement this, but we support it anyway)
-    fn print_file(&self, _filename: &str) -> bool { false }
+    fn print_file(&self, _filename: &str) -> bool {
+        false
+    }
 
     /// Called when the user has requested to print some files.
     ///
@@ -203,5 +227,7 @@ pub trait AppDelegate {
 
     /// Fired when the system wants to know whether your application, via scripting, can handle the
     /// key specifying operations.
-    fn delegate_handles_key(&self, _key: &str) -> bool { false }
+    fn delegate_handles_key(&self, _key: &str) -> bool {
+        false
+    }
 }

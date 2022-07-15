@@ -1,11 +1,11 @@
 use std::path::Path;
 
 use core_graphics::base::CGFloat;
-use objc::runtime::{Object};
+use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
-use crate::foundation::{id, YES, NSString, NSUInteger};
+use crate::foundation::{id, NSString, NSUInteger, YES};
 use crate::utils::CGSize;
 
 /// Describes the quality of the thumbnail you expect back from the
@@ -118,7 +118,7 @@ impl ThumbnailConfig {
                 representationTypes:types];
 
             if self.icon_mode {
-                let _: () = msg_send![request, setIconMode:YES];
+                let _: () = msg_send![request, setIconMode: YES];
             }
 
             if self.minimum_dimension != 0. {

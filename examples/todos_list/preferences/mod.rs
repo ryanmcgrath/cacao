@@ -1,7 +1,7 @@
 //! Implements a stock-ish Preferences window.
 
-use cacao::appkit::window::{Window, WindowDelegate};
 use cacao::appkit::toolbar::Toolbar;
+use cacao::appkit::window::{Window, WindowDelegate};
 use cacao::view::ViewController;
 
 use crate::storage::Message;

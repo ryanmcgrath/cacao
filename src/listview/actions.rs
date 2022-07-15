@@ -1,6 +1,6 @@
-use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::Id;
 
 use block::ConcreteBlock;
 
@@ -56,9 +56,7 @@ impl RowAction {
     {
         let title = NSString::new(title);
         let block = ConcreteBlock::new(move |action: id, row: NSUInteger| {
-            let action = RowAction(unsafe {
-                Id::from_ptr(action)
-            });
+            let action = RowAction(unsafe { Id::from_ptr(action) });
 
             handler(action, row as usize);
         });
@@ -88,7 +86,7 @@ impl RowAction {
         let color: id = color.as_ref().into();
 
         unsafe {
-            let _: () = msg_send![&*self.0, setBackgroundColor:color];
+            let _: () = msg_send![&*self.0, setBackgroundColor: color];
         }
     }
 
@@ -97,7 +95,7 @@ impl RowAction {
         let style = style as NSUInteger;
 
         unsafe {
-            let _: () = msg_send![&*self.0, setStyle:style];
+            let _: () = msg_send![&*self.0, setStyle: style];
         }
     }
 

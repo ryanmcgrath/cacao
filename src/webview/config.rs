@@ -1,11 +1,11 @@
 //! A wrapper for `WKWebViewConfiguration`. It aims to (mostly) cover
 //! the important pieces of configuring and updating a WebView configuration.
 
-use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::Id;
 
-use crate::foundation::{id, YES, NO, NSString, NSInteger};
+use crate::foundation::{id, NSInteger, NSString, NO, YES};
 use crate::webview::enums::InjectAt;
 
 /// A wrapper for `WKWebViewConfiguration`. Holds (retains) pointers for the Objective-C runtime
@@ -53,7 +53,7 @@ impl WebViewConfig {
             }];
 
             let content_controller: id = msg_send![&*self.objc, userContentController];
-            let _: () = msg_send![content_controller, addUserScript:user_script];
+            let _: () = msg_send![content_controller, addUserScript: user_script];
         }
     }
 
@@ -68,7 +68,7 @@ impl WebViewConfig {
         let key = NSString::new("developerExtrasEnabled");
 
         unsafe {
-            let yes: id = msg_send![class!(NSNumber), numberWithBool:YES];
+            let yes: id = msg_send![class!(NSNumber), numberWithBool: YES];
             let preferences: id = msg_send![&*self.objc, preferences];
             let _: () = msg_send![preferences, setValue:yes forKey:key];
         }

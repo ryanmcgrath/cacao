@@ -1,8 +1,7 @@
-
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, YES, NO, NSUInteger};
+use crate::foundation::{id, NSUInteger, NO, YES};
 use crate::objc_access::ObjcAccess;
 
 /// Use this enum for specifying NSControl size types.
@@ -50,7 +49,7 @@ pub trait Control: ObjcAccess {
         };
 
         self.with_backing_obj_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setControlSize:control_size];
+            let _: () = msg_send![obj, setControlSize: control_size];
         });
     }
 }
