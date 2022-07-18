@@ -11,8 +11,8 @@
 
 use std::sync::RwLock;
 
+use cacao::appkit::window::{TitleVisibility, Window, WindowConfig};
 use cacao::appkit::{App, AppDelegate};
-use cacao::appkit::window::{Window, WindowConfig, TitleVisibility};
 use cacao::appkit::{Event, EventMask, EventMonitor};
 use cacao::color::Color;
 use cacao::notification_center::Dispatcher;
@@ -35,12 +35,12 @@ impl AppDelegate for CalculatorApp {
         App::activate();
 
         // Event Monitors need to be started after the App has been activated.
-        // We use an RwLock here, but it's possible this entire method can be 
+        // We use an RwLock here, but it's possible this entire method can be
         // &mut self and you wouldn't need these kinds of shenanigans.
         //self.start_monitoring();
 
         self.window.set_title("Calculator");
-        self.window.set_background_color(Color::rgb(49,49,49));
+        self.window.set_background_color(Color::rgb(49, 49, 49));
         self.window.set_title_visibility(TitleVisibility::Hidden);
         self.window.set_titlebar_appears_transparent(true);
         self.window.set_movable_by_background(true);
@@ -109,5 +109,6 @@ fn main() {
         window: Window::new(config),
         content: View::with(CalculatorView::new()),
         key_monitor: RwLock::new(None)
-    }).run();
+    })
+    .run();
 }

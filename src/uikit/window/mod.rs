@@ -1,8 +1,7 @@
-
 use core_graphics::geometry::CGRect;
 
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::foundation::id;
@@ -18,7 +17,7 @@ impl Window {
         Window(unsafe {
             let rect: CGRect = frame.into();
             let alloc: id = msg_send![class!(UIWindow), alloc];
-            Id::from_ptr(msg_send![alloc, initWithFrame:rect])
+            Id::from_ptr(msg_send![alloc, initWithFrame: rect])
         })
     }
 
@@ -27,7 +26,7 @@ impl Window {
             let _: () = msg_send![&*self.0, setWindowScene:scene.into_inner()];
         }
     }
-    
+
     pub fn set_root_view_controller<VC: Controller + 'static>(&self, controller: &VC) {
         let backing_node = controller.get_backing_node();
 

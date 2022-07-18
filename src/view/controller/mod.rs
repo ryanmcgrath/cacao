@@ -1,12 +1,12 @@
-use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
 use crate::foundation::id;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
-use crate::view::{VIEW_DELEGATE_PTR, View, ViewDelegate};
 use crate::utils::Controller;
+use crate::view::{View, ViewDelegate, VIEW_DELEGATE_PTR};
 
 #[cfg_attr(feature = "appkit", path = "appkit.rs")]
 #[cfg_attr(feature = "uikit", path = "uikit.rs")]
@@ -23,7 +23,7 @@ mod native_interface;
 /// ## Example
 /// ```rust,no_run
 /// struct ContentViewDelegate;
-///     
+///
 /// impl ViewDelegate for ContentViewDelegate {
 ///     fn will_appear(&self, animated: bool) {
 ///         println!("This controller is about to appear!");
@@ -50,14 +50,14 @@ where
 
         let objc = unsafe {
             let vc: id = msg_send![class, new];
-            
-            if let Some(delegate)= &view.delegate {
+
+            if let Some(delegate) = &view.delegate {
                 let ptr: *const T = &**delegate;
                 (&mut *vc).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
             }
 
             view.with_backing_obj_mut(|backing_node| {
-                let _: () = msg_send![vc, setView:backing_node];
+                let _: () = msg_send![vc, setView: backing_node];
             });
 
             ShareId::from_ptr(vc)

@@ -3,7 +3,7 @@
 //! the implementation.
 //!
 //! Labels implement Autolayout, which enable you to specify how things should appear on the screen.
-//! 
+//!
 //! ```rust,no_run
 //! use cacao::color::rgb;
 //! use cacao::layout::{Layout, LayoutConstraint};
@@ -16,7 +16,7 @@
 //!     label: Label,
 //!     window: Window
 //! }
-//! 
+//!
 //! impl WindowDelegate for AppWindow {
 //!     fn did_load(&mut self, window: Window) {
 //!         window.set_minimum_content_size(300., 300.);
@@ -25,7 +25,7 @@
 //!         self.label.set_background_color(rgb(224, 82, 99));
 //!         self.label.set_text("LOL");
 //!         self.content.add_subview(&self.red);
-//!         
+//!
 //!         self.window.set_content_view(&self.content);
 //!
 //!         LayoutConstraint::activate(&[
@@ -40,19 +40,19 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSInteger, NSUInteger, NSString};
 use crate::color::Color;
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
-use crate::text::{AttributedString, Font, TextAlign, LineBreakMode};
+use crate::text::{AttributedString, Font, LineBreakMode, TextAlign};
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
 #[cfg(feature = "appkit")]
 mod appkit;
@@ -72,16 +72,16 @@ pub use traits::LabelDelegate;
 pub(crate) static LABEL_DELEGATE_PTR: &str = "rstLabelDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id { 
+fn allocate_view(registration_fn: fn() -> *const Class) -> id {
     unsafe {
         #[cfg(feature = "appkit")]
         let view: id = {
             // This sucks, but for now, sure.
             let blank = NSString::no_copy("");
             let label: id = msg_send![registration_fn(), wrappingLabelWithString:&*blank];
-            
+
             // We sub this in to get the general expected behavior for 202*.
-            let _: () = msg_send![label, setSelectable:NO];
+            let _: () = msg_send![label, setSelectable: NO];
 
             label
         };
@@ -90,23 +90,23 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
         let view: id = msg_send![registration_fn(), new];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![view, setWantsLayer:YES];
+        let _: () = msg_send![view, setWantsLayer: YES];
 
-        view 
+        view
     }
 }
 
-/// A clone-able handler to an `NSTextField/UILabel` reference in the 
+/// A clone-able handler to an `NSTextField/UILabel` reference in the
 /// Objective-C runtime.
 /// Wraps `NSTextField` and `UILabel` across platforms, explicitly as a Label.
 /// In AppKit, `NSTextField` does double duty, and for clarity we just double
 /// the implementation.
 ///
 /// Labels implement Autolayout, which enable you to specify how things should appear on the screen.
-/// 
+///
 /// ```rust,no_run
 /// use cacao::color::rgb;
 /// use cacao::layout::{Layout, LayoutConstraint};
@@ -119,7 +119,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 ///     label: Label,
 ///     window: Window
 /// }
-/// 
+///
 /// impl WindowDelegate for AppWindow {
 ///     fn did_load(&mut self, window: Window) {
 ///         window.set_minimum_content_size(300., 300.);
@@ -128,7 +128,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 ///         self.label.set_background_color(rgb(224, 82, 99));
 ///         self.label.set_text("LOL");
 ///         self.content.add_subview(&self.red);
-///         
+///
 ///         self.window.set_content_view(&self.content);
 ///
 ///         LayoutConstraint::activate(&[
@@ -149,7 +149,7 @@ pub struct Label<T = ()> {
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
-    
+
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
@@ -198,54 +198,57 @@ impl Default for Label {
 }
 
 impl Label {
-    /// Returns a default `Label`, suitable for 
+    /// Returns a default `Label`, suitable for
     pub fn new() -> Self {
         let view = allocate_view(register_view_class);
 
         Label {
             delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
 
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
-            objc: ObjcProperty::retain(view),
+
+            objc: ObjcProperty::retain(view)
         }
     }
 }
 
-impl<T> Label<T> where T: LabelDelegate + 'static {
+impl<T> Label<T>
+where
+    T: LabelDelegate + 'static
+{
     /// Initializes a new Label with a given `LabelDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> Label<T> {
         let delegate = Box::new(delegate);
-        
+
         let label = allocate_view(register_view_class_with_delegate::<T>);
         unsafe {
             let ptr: *const T = &*delegate;
@@ -254,41 +257,41 @@ impl<T> Label<T> where T: LabelDelegate + 'static {
 
         let mut label = Label {
             delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(label),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(label),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(label),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(label),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(label),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(label),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(label),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(label),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(label),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(label),
-            
-            objc: ObjcProperty::retain(label),
+
+            objc: ObjcProperty::retain(label)
         };
 
-        //(&mut delegate).did_load(label.clone_as_handle()); 
+        //(&mut delegate).did_load(label.clone_as_handle());
         label.delegate = Some(delegate);
         label
     }
@@ -302,37 +305,37 @@ impl<T> Label<T> {
     pub(crate) fn clone_as_handle(&self) -> Label {
         Label {
             delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             left: self.left.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             right: self.right.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             width: self.width.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             height: self.height.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
-            
+
             objc: self.objc.clone()
         }
     }
@@ -340,11 +343,11 @@ impl<T> Label<T> {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         // @TODO: This is wrong.
-        // Needs to set ivar and such, akin to View. 
+        // Needs to set ivar and such, akin to View.
         self.objc.with_mut(|obj| unsafe {
             let color = color.as_ref().cg_color();
             let layer: id = msg_send![obj, layer];
-            let _: () = msg_send![layer, setBackgroundColor:color];
+            let _: () = msg_send![layer, setBackgroundColor: color];
         });
     }
 
@@ -353,7 +356,7 @@ impl<T> Label<T> {
         let color: id = color.as_ref().into();
 
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setTextColor:color];
+            let _: () = msg_send![obj, setTextColor: color];
         });
     }
 
@@ -376,16 +379,15 @@ impl<T> Label<T> {
 
     /// Retrieve the text currently held in the label.
     pub fn get_text(&self) -> String {
-        self.objc.get(|obj| unsafe {
-            NSString::retain(msg_send![obj, stringValue]).to_string()
-        })
+        self.objc
+            .get(|obj| unsafe { NSString::retain(msg_send![obj, stringValue]).to_string() })
     }
 
     /// Sets the text alignment for this label.
     pub fn set_text_alignment(&self, alignment: TextAlign) {
         self.objc.with_mut(|obj| unsafe {
             let alignment: NSInteger = alignment.into();
-            let _: () = msg_send![obj, setAlignment:alignment];
+            let _: () = msg_send![obj, setAlignment: alignment];
         });
     }
 
@@ -413,7 +415,7 @@ impl<T> Label<T> {
     /// Sets the maximum number of lines.
     pub fn set_max_number_of_lines(&self, num: NSInteger) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setMaximumNumberOfLines:num];
+            let _: () = msg_send![obj, setMaximumNumberOfLines: num];
         });
     }
 
@@ -423,8 +425,8 @@ impl<T> Label<T> {
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
             let mode = mode as NSUInteger;
-            let _: () = msg_send![cell, setTruncatesLastVisibleLine:YES];
-            let _: () = msg_send![cell, setLineBreakMode:mode];
+            let _: () = msg_send![cell, setTruncatesLastVisibleLine: YES];
+            let _: () = msg_send![cell, setLineBreakMode: mode];
         });
     }
 }

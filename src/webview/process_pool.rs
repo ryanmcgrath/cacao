@@ -18,7 +18,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use crate::foundation::{id, nil, YES, NO};
 use crate::webview::traits::WebViewController;
 
-extern fn download_delegate(this: &Object, _: Sel) -> id {
+extern "C" fn download_delegate(this: &Object, _: Sel) -> id {
     println!("YO!");
     unsafe {
     NSString::alloc(nil).init_str("")
@@ -34,7 +34,7 @@ pub fn register_process_pool() -> *const Object {
         let mut decl = ClassDecl::new("RSTWebViewProcessPool", superclass).unwrap();
 
         //decl.add_ivar::<id>(DOWNLOAD_DELEGATE_PTR);
-        decl.add_method(sel!(_downloadDelegate), download_delegate as extern fn(&Object, _) -> id);
+        decl.add_method(sel!(_downloadDelegate), download_delegate as extern "C" fn(&Object, _) -> id);
 
         //PROCESS_POOL = decl.register();
         PROCESS_POOL = msg_send![decl.register(), new];

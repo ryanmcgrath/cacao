@@ -1,5 +1,5 @@
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 /// A wrapper around `NSAutoReleasePool`. The core `App` structures create and manage one of these,
@@ -14,9 +14,7 @@ impl AutoReleasePool {
     /// Creates and returns a new `AutoReleasePool`. You need to take care to keep this alive for
     /// as long as you need it.
     pub fn new() -> Self {
-        AutoReleasePool(unsafe {
-            Id::from_retained_ptr(msg_send![class!(NSAutoreleasePool), new])
-        })
+        AutoReleasePool(unsafe { Id::from_retained_ptr(msg_send![class!(NSAutoreleasePool), new]) })
     }
 
     /// Drains the underlying AutoreleasePool.

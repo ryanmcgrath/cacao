@@ -2,14 +2,14 @@
 
 use objc::{msg_send, sel, sel_impl};
 
-use crate::foundation::{id, BOOL, YES, NO, NSInteger};
+use crate::foundation::{id, NSInteger, BOOL, NO, YES};
 use crate::networking::URLRequest;
 use crate::webview::enums::NavigationType;
 
 #[derive(Debug)]
 pub struct NavigationAction {
     pub navigation_type: NavigationType,
-    pub request: URLRequest 
+    pub request: URLRequest
 }
 
 impl NavigationAction {
@@ -20,9 +20,7 @@ impl NavigationAction {
                 nav_type.into()
             },
 
-            request: URLRequest::with(unsafe {
-                msg_send![action, request]
-            })
+            request: URLRequest::with(unsafe { msg_send![action, request] })
         }
     }
 }
@@ -37,7 +35,11 @@ impl NavigationResponse {
         NavigationResponse {
             can_show_mime_type: unsafe {
                 let can_show: BOOL = msg_send![response, canShowMIMEType];
-                if can_show == YES { true } else { false }
+                if can_show == YES {
+                    true
+                } else {
+                    false
+                }
             }
         }
     }
@@ -56,9 +58,11 @@ impl From<id> for OpenPanelParameters {
                 match msg_send![params, allowsDirectories] {
                     YES => true,
                     NO => false,
-                    
+
                     #[cfg(not(target_arch = "aarch64"))]
-                    _ => { panic!("Invalid value from WKOpenPanelParameters:allowsDirectories"); }
+                    _ => {
+                        panic!("Invalid value from WKOpenPanelParameters:allowsDirectories");
+                    }
                 }
             },
 
@@ -66,9 +70,11 @@ impl From<id> for OpenPanelParameters {
                 match msg_send![params, allowsMultipleSelection] {
                     YES => true,
                     NO => false,
-                    
+
                     #[cfg(not(target_arch = "aarch64"))]
-                    _ => { panic!("Invalid value from WKOpenPanelParameters:allowsMultipleSelection"); }
+                    _ => {
+                        panic!("Invalid value from WKOpenPanelParameters:allowsMultipleSelection");
+                    }
                 }
             }
         }

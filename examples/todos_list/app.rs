@@ -22,7 +22,7 @@ impl AppDelegate for TodosApp {
 
         App::set_menu(menu());
         App::activate();
-        
+
         self.window_manager.open_main();
     }
 }

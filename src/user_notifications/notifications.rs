@@ -1,9 +1,9 @@
 //! Acts as a (currently dumb) wrapper for `UNMutableNotificationContent`, which is what you mostly
 //! need to pass to the notification center for things to work.
 
-use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::Id;
 
 use crate::foundation::{id, NSString};
 
@@ -21,8 +21,8 @@ impl Notification {
 
         Notification(unsafe {
             let content: id = msg_send![class!(UNMutableNotificationContent), new];
-            let _: () = msg_send![content, setTitle:title];
-            let _: () = msg_send![content, setBody:body];
+            let _: () = msg_send![content, setTitle: title];
+            let _: () = msg_send![content, setBody: body];
             Id::from_ptr(content)
         })
     }

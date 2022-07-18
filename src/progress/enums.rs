@@ -1,4 +1,4 @@
-use crate::foundation::{NSUInteger};
+use crate::foundation::NSUInteger;
 
 /// The type of spinner style you're after.
 #[derive(Debug)]

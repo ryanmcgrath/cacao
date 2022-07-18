@@ -97,7 +97,7 @@ impl From<PasteboardType> for NSString<'_> {
             PasteboardType::Sound => "com.apple.cocoa.pasteboard.sound",
             PasteboardType::String => "public.utf8-plain-text",
             PasteboardType::TabularText => "public.utf8-tab-separated-values-text",
-            PasteboardType::TIFF => "public.tiff",
+            PasteboardType::TIFF => "public.tiff"
         })
     }
 }

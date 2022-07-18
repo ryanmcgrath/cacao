@@ -2,12 +2,12 @@
 
 use std::sync::{Arc, Mutex};
 
-use objc_id::{Id, ShareId};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::{Id, ShareId};
 
-use crate::foundation::{id, NSInteger, NSString};
 use crate::appkit::menu::item::MenuItem;
+use crate::foundation::{id, NSInteger, NSString};
 
 /// A struct that represents an `NSMenu`. It takes ownership of items, and handles instrumenting
 /// them throughout the application lifecycle.
@@ -55,8 +55,8 @@ impl Menu {
 
             while count != 0 {
                 count -= 1;
-                let item: id = msg_send![menu, itemAtIndex:count];
-                let _: () = msg_send![menu, removeItemAtIndex:count];
+                let item: id = msg_send![menu, itemAtIndex: count];
+                let _: () = msg_send![menu, removeItemAtIndex: count];
                 let _: () = msg_send![item, release];
             }
         }
@@ -82,13 +82,9 @@ impl Menu {
                 MenuItem::HideOthers,
                 MenuItem::ShowAll,
                 MenuItem::Separator,
-                MenuItem::Quit
+                MenuItem::Quit,
             ]),
-
-            Menu::new("File", vec![
-                MenuItem::CloseWindow
-            ]),
-
+            Menu::new("File", vec![MenuItem::CloseWindow]),
             Menu::new("Edit", vec![
                 MenuItem::Undo,
                 MenuItem::Redo,
@@ -97,19 +93,15 @@ impl Menu {
                 MenuItem::Copy,
                 MenuItem::Paste,
                 MenuItem::Separator,
-                MenuItem::SelectAll
+                MenuItem::SelectAll,
             ]),
-     
-            Menu::new("View", vec![
-                MenuItem::EnterFullScreen
-            ]),
-
+            Menu::new("View", vec![MenuItem::EnterFullScreen]),
             Menu::new("Window", vec![
                 MenuItem::Minimize,
                 MenuItem::Zoom,
                 MenuItem::Separator,
-                MenuItem::new("Bring All to Front")
-            ])
+                MenuItem::new("Bring All to Front"),
+            ]),
         ]
     }
 }

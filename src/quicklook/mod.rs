@@ -19,9 +19,7 @@ pub struct ThumbnailGenerator(pub ShareId<Object>);
 impl ThumbnailGenerator {
     /// Returns the global shared, wrapped, QLThumbnailGenerator.
     pub fn shared() -> Self {
-        ThumbnailGenerator(unsafe {
-            ShareId::from_ptr(msg_send![class!(QLThumbnailGenerator), sharedGenerator])
-        })
+        ThumbnailGenerator(unsafe { ShareId::from_ptr(msg_send![class!(QLThumbnailGenerator), sharedGenerator]) })
     }
 
     /// Given a path and config, will generate a preview image, calling back on the provided
@@ -50,7 +48,7 @@ impl ThumbnailGenerator {
         let request = config.to_request(path);
 
         unsafe {
-            let _: () = msg_send![&*self.0, generateRepresentationsForRequest:request 
+            let _: () = msg_send![&*self.0, generateRepresentationsForRequest:request
                 updateHandler:block];
         }
     }

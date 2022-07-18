@@ -7,8 +7,8 @@ use cacao::layout::{Layout, LayoutConstraint};
 use cacao::listview::ListView;
 use cacao::view::{View, ViewDelegate};
 
-use crate::storage::Message;
 use super::list::TodosListView;
+use crate::storage::Message;
 
 #[derive(Debug)]
 pub struct TodosContentView {

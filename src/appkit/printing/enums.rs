@@ -15,7 +15,7 @@ pub enum PrintResponse {
     Failure,
 
     /// For when the result of printing cannot be returned immediately (e.g, if printing causes a sheet to appear).
-    /// If your method returns PrintResponse::ReplyLater it must always invoke `App::reply_to_open_or_print()` when the 
+    /// If your method returns PrintResponse::ReplyLater it must always invoke `App::reply_to_open_or_print()` when the
     /// entire print operation has been completed, successfully or not.
     ReplyLater
 }

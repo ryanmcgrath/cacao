@@ -1,5 +1,4 @@
 #[allow(non_camel_case_types)]
-
 use crate::foundation::NSString;
 
 /// An enum that wraps NSNotificationName.
@@ -14,13 +13,13 @@ pub enum NotificationName {
     ///
     /// From Apple's documentation:
     ///
-    /// > _When the audio engine’s I/O unit observes a change to the audio input or output 
-    /// > hardware’s channel count or sample rate, the audio engine stops, uninitializes itself, 
-    /// > and issues this notification. The nodes remain attached and connected with previously 
+    /// > _When the audio engine’s I/O unit observes a change to the audio input or output
+    /// > hardware’s channel count or sample rate, the audio engine stops, uninitializes itself,
+    /// > and issues this notification. The nodes remain attached and connected with previously
     /// > set formats. The app must reestablish connections if the connection formats need to change.
     /// >
-    /// > The engine must not be deallocated from within the client's notification handler. Callback 
-    /// > happens on an internal dispatch queue and can deadlock while trying to teardown the engine 
+    /// > The engine must not be deallocated from within the client's notification handler. Callback
+    /// > happens on an internal dispatch queue and can deadlock while trying to teardown the engine
     /// > synchronously._
     AudioEngineConfigurationChange,
 
@@ -28,7 +27,7 @@ pub enum NotificationName {
     AudioSessionInterruption,
 
     /// Posted when the system terminates the media server.
-    /// 
+    ///
     /// Most apps don't need to utilize this, and should opt to instead use
     /// `AudioSessionMediaServicesWereReset`. According to Apple, you can use this if you need to
     /// take action for requests that come in before the server restarts.
@@ -36,9 +35,9 @@ pub enum NotificationName {
 
     /// Posted when the media server restarts.
     ///
-    /// In very rare cases, the system may terminate and restart its media services daemon. Respond to 
-    /// these events by reinitializing audio objects such as players, recorders, converters, and so on. 
-    /// Reset your audio session category, options, and mode configuration. Only restart playback, recording, or 
+    /// In very rare cases, the system may terminate and restart its media services daemon. Respond to
+    /// these events by reinitializing audio objects such as players, recorders, converters, and so on.
+    /// Reset your audio session category, options, and mode configuration. Only restart playback, recording, or
     /// processing when initiated by the user.
     AudioSessionMediaServicesWereReset,
 
@@ -48,18 +47,18 @@ pub enum NotificationName {
     /// provide more information.
     ///
     /// This notification is posted on a background thread.
-    /// 
+    ///
     /// See [Apple's documentation on responding to Audio Session Route Changes](https://developer.apple.com/documentation/avfoundation/avaudiosession/responding_to_audio_session_route_changes?language=objc) for more information on using this notification.
     AudioSessionRouteChange,
 
     /// Posted when primary audio from other apps starts or stops.
     ///
-    /// Subscribe to this notification to ensure that the system notifies your app when optional secondary 
-    /// audio muting should begin or end. The system sends this notification to registered listeners who 
+    /// Subscribe to this notification to ensure that the system notifies your app when optional secondary
+    /// audio muting should begin or end. The system sends this notification to registered listeners who
     /// are currently in the foreground with an active audio session.
     ///
-    /// The info provided contains a `AVAudioSessionSilenceSecondaryAudioHintType` value for the 
-    /// `AVAudioSessionSilenceSecondaryAudioHintTypeKey`. Use the audio hint type to determine if your secondary 
+    /// The info provided contains a `AVAudioSessionSilenceSecondaryAudioHintType` value for the
+    /// `AVAudioSessionSilenceSecondaryAudioHintTypeKey`. Use the audio hint type to determine if your secondary
     /// audio muting should begin or end.
     ///
     /// This notification is posted on the main thread.
@@ -80,12 +79,12 @@ pub enum NotificationName {
     /// If you get this notification, you should query for the current account status.
     CloudKitAccountChanged,
 
-    /// 
+    ///
     CLKComplicationServerActiveComplicationsDidChange,
-    
+
     ///
     CNContactStoreDidChange,
-    
+
     ///
     EKEventStoreChanged,
 

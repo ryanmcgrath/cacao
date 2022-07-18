@@ -5,7 +5,7 @@
 //! people expect in 2020, and layer-backing all views by default.
 //!
 //! Views implement Autolayout, which enable you to specify how things should appear on the screen.
-//! 
+//!
 //! ```rust,no_run
 //! use cacao::color::Color;
 //! use cacao::layout::{Layout, LayoutConstraint};
@@ -18,7 +18,7 @@
 //!     red: View,
 //!     window: Window
 //! }
-//! 
+//!
 //! impl WindowDelegate for AppWindow {
 //!     fn did_load(&mut self, window: Window) {
 //!         window.set_minimum_content_size(300., 300.);
@@ -26,7 +26,7 @@
 //!
 //!         self.red.set_background_color(Color::SystemRed);
 //!         self.content.add_subview(&self.red);
-//!         
+//!
 //!         self.window.set_content_view(&self.content);
 //!
 //!         LayoutConstraint::activate(&[
@@ -44,15 +44,15 @@
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, YES, NO, NSArray, NSString};
 use crate::color::Color;
+use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
 use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension, SafeAreaLayoutGuide};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY, SafeAreaLayoutGuide};
 
 #[cfg(feature = "appkit")]
 use crate::pasteboard::PasteboardType;
@@ -163,10 +163,10 @@ impl View {
     pub(crate) fn init<T>(view: id) -> View<T> {
         unsafe {
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
             #[cfg(feature = "appkit")]
-            let _: () = msg_send![view, setWantsLayer:YES];
+            let _: () = msg_send![view, setWantsLayer: YES];
         }
 
         View {
@@ -175,61 +175,60 @@ impl View {
 
             #[cfg(feature = "autolayout")]
             safe_layout_guide: SafeAreaLayoutGuide::new(view),
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
-            layer: Layer::wrap(unsafe {
-                msg_send![view, layer]
-            }),
+
+            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
 
             animator: ViewAnimatorProxy::new(view),
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 
     /// Returns a default `View`, suitable for customizing and displaying.
     pub fn new() -> Self {
-        View::init(unsafe {
-            msg_send![native_interface::register_view_class(), new]
-        })
+        View::init(unsafe { msg_send![native_interface::register_view_class(), new] })
     }
 }
 
-impl<T> View<T> where T: ViewDelegate + 'static {
+impl<T> View<T>
+where
+    T: ViewDelegate + 'static
+{
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(delegate: T) -> View<T> {
         let class = native_interface::register_view_class_with_delegate(&delegate);
         let mut delegate = Box::new(delegate);
-        
+
         let view = unsafe {
             let view: id = msg_send![class, new];
             let ptr = Box::into_raw(delegate);
@@ -239,7 +238,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
         };
 
         let mut view = View::init(view);
-        (&mut delegate).did_load(view.clone_as_handle()); 
+        (&mut delegate).did_load(view.clone_as_handle());
         view.delegate = Some(delegate);
         view
     }
@@ -257,39 +256,39 @@ impl<T> View<T> {
             layer: self.layer.clone(),
             objc: self.objc.clone(),
             animator: self.animator.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             safe_layout_guide: self.safe_layout_guide.clone(),
 
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             left: self.left.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             right: self.right.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             width: self.width.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             height: self.height.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
-            
+
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone(),
+            center_y: self.center_y.clone()
         }
     }
 
@@ -304,10 +303,9 @@ impl<T> View<T> {
 
         #[cfg(feature = "uikit")]
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![&*obj, setBackgroundColor:color];
+            let _: () = msg_send![&*obj, setBackgroundColor: color];
         });
     }
-
 }
 
 impl<T> ObjcAccess for View<T> {

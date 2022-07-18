@@ -1,12 +1,12 @@
-use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
+use crate::appkit::toolbar::ToolbarItem;
 use crate::foundation::{id, nil, NSString};
 use crate::layout::Layout;
-use crate::appkit::toolbar::ToolbarItem;
-use crate::view::{View, ViewController, ViewDelegate};
 use crate::utils::{os, Controller};
+use crate::view::{View, ViewController, ViewDelegate};
 
 /// A SplitViewItem wraps a ViewController, and provides system hooks for operating in a
 /// SplitView(Controller).
@@ -33,7 +33,7 @@ where
 
         SplitViewItem {
             objc: unsafe {
-                ShareId::from_ptr(msg_send![class!(NSSplitViewItem), 
+                ShareId::from_ptr(msg_send![class!(NSSplitViewItem),
                     splitViewItemWithViewController:&*view_controller.objc
                 ])
             },
@@ -84,7 +84,7 @@ where
         #[cfg(target_os = "macos")]
         if os::is_minimum_version(11) {
             unsafe {
-                let _: () = msg_send![&*self.objc, setTitlebarSeparatorStyle:style];
+                let _: () = msg_send![&*self.objc, setTitlebarSeparatorStyle: style];
             }
         }
     }
@@ -134,7 +134,7 @@ where
     pub fn new(sidebar: Sidebar, content: Content, details: Option<Details>) -> Self {
         let sidebar = SplitViewItem::sidebar(sidebar);
         let content = SplitViewItem::item(content);
-        
+
         let details = match details {
             Some(vc) => Some(SplitViewItem::item(vc)),
             None => None
@@ -152,17 +152,22 @@ where
             ShareId::from_ptr(vc)
         };
 
-        SplitViewController { objc, sidebar, content, details }
+        SplitViewController {
+            objc,
+            sidebar,
+            content,
+            details
+        }
     }
 }
 
 impl<Sidebar, Content, Details> SplitViewController<Sidebar, Content, Details> {
-    /// Toggles the sidebar, if it exists, with an animation. If there's no sidebar in this split view 
+    /// Toggles the sidebar, if it exists, with an animation. If there's no sidebar in this split view
     /// (which is highly unlikely, unless you went out of your way to duck this) then it will do
     /// nothing.
     pub fn toggle_sidebar(&self) {
         unsafe {
-            let _: () = msg_send![&*self.objc, toggleSidebar:nil];
+            let _: () = msg_send![&*self.objc, toggleSidebar: nil];
         }
     }
 

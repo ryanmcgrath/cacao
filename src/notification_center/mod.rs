@@ -43,7 +43,7 @@ pub use traits::Dispatcher;
 //#[derive(Debug)]
 //pub struct NotificationCenter {
 //    pub objc: ShareId<Object>,
-    //pub subscribers: Mutex<HashMap<String, Vec<Dispatcher>>>
+//pub subscribers: Mutex<HashMap<String, Vec<Dispatcher>>>
 //}
 
 /*impl Default for NotificationCenter {

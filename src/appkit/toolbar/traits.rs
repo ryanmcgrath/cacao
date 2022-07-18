@@ -2,7 +2,7 @@
 //! go. Currently a bit incomplete in that we don't support the customizing workflow, but feel free
 //! to pull request it.
 
-use crate::appkit::toolbar::{Toolbar, ToolbarItem, ItemIdentifier};
+use crate::appkit::toolbar::{ItemIdentifier, Toolbar, ToolbarItem};
 
 /// A trait that you can implement to have your struct/etc act as an `NSToolbarDelegate`.
 pub trait ToolbarDelegate {
@@ -27,10 +27,12 @@ pub trait ToolbarDelegate {
 
     /// The default items in this toolbar.
     fn default_item_identifiers(&self) -> Vec<ItemIdentifier>;
-    
+
     /// The default items in this toolbar. This defaults to a blank `Vec`, and is an optional
     /// method - mostly useful for Preferences windows.
-    fn selectable_item_identifiers(&self) -> Vec<ItemIdentifier> { vec![] }
+    fn selectable_item_identifiers(&self) -> Vec<ItemIdentifier> {
+        vec![]
+    }
 
     /// For a given `identifier`, return the `ToolbarItem` that should be displayed.
     fn item_for(&self, _identifier: &str) -> &ToolbarItem;

@@ -2,8 +2,8 @@
 //! doing this stuff on the main thread; in a more complicated app, you'd probably make different
 //! choices.
 
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 /// The status of a Todo.
 #[derive(Debug)]
@@ -43,7 +43,7 @@ impl Todos {
 
         *stack = todos;
     }
-    
+
     /// Edit a Todo at the row specified.
     pub fn with_mut<F>(&self, row: usize, handler: F)
     where

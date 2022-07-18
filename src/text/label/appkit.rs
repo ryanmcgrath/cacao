@@ -14,9 +14,9 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, YES, NO, NSUInteger};
 use crate::dragdrop::DragInfo;
-use crate::text::label::{LABEL_DELEGATE_PTR, LabelDelegate};
+use crate::foundation::{id, NSUInteger, NO, YES};
+use crate::text::label::{LabelDelegate, LABEL_DELEGATE_PTR};
 use crate::utils::load;
 
 /// Injects an `NSTextField` subclass. This is used for the default views that don't use delegates - we
@@ -47,12 +47,10 @@ pub(crate) fn register_view_class_with_delegate<T: LabelDelegate>() -> *const Cl
 
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.
-        decl.add_ivar::<usize>(LABEL_DELEGATE_PTR);        
-       
+        decl.add_ivar::<usize>(LABEL_DELEGATE_PTR);
+
         VIEW_CLASS = decl.register();
     });
 
-    unsafe {
-        VIEW_CLASS
-    }
+    unsafe { VIEW_CLASS }
 }
