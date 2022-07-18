@@ -1,9 +1,6 @@
 use std::sync::RwLock;
 
-use cacao::uikit::{
-    App, AppDelegate, Scene, SceneConfig, SceneSession,
-    SceneConnectionOptions, WindowSceneDelegate, Window
-};
+use cacao::uikit::{App, AppDelegate, Scene, SceneConfig, SceneConnectionOptions, SceneSession, Window, WindowSceneDelegate};
 
 use cacao::color::Color;
 use cacao::layout::{Layout, LayoutConstraint};
@@ -44,12 +41,10 @@ impl ViewDelegate for RootView {
             self.red.leading.constraint_equal_to(&view.leading).offset(16.),
             self.red.trailing.constraint_equal_to(&view.trailing).offset(-16.),
             self.red.height.constraint_equal_to_constant(100.),
-
             self.green.top.constraint_equal_to(&self.red.bottom).offset(16.),
             self.green.leading.constraint_equal_to(&view.leading).offset(16.),
             self.green.trailing.constraint_equal_to(&view.trailing).offset(-16.),
             self.green.height.constraint_equal_to_constant(120.),
-            
             self.blue.top.constraint_equal_to(&self.green.bottom).offset(16.),
             self.blue.leading.constraint_equal_to(&view.leading).offset(16.),
             self.blue.trailing.constraint_equal_to(&view.trailing).offset(-16.),
@@ -65,20 +60,15 @@ pub struct WindowScene {
 }
 
 impl WindowSceneDelegate for WindowScene {
-    fn will_connect(
-        &self,
-        scene: Scene,
-        session: SceneSession,
-        options: SceneConnectionOptions
-    ) {
+    fn will_connect(&self, scene: Scene, session: SceneSession, options: SceneConnectionOptions) {
         let bounds = scene.get_bounds();
         let mut window = Window::new(bounds);
         window.set_window_scene(scene);
-        
+
         let root_view_controller = ViewController::new(RootView::default());
         window.set_root_view_controller(&root_view_controller);
         window.show();
-        
+
         {
             let mut w = self.window.write().unwrap();
             *w = Some(window);
@@ -90,7 +80,5 @@ impl WindowSceneDelegate for WindowScene {
 }
 
 fn main() {
-    App::new(TestApp::default(), || {
-        Box::new(WindowScene::default())
-    }).run();
+    App::new(TestApp::default(), || Box::new(WindowScene::default())).run();
 }

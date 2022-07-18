@@ -9,9 +9,9 @@ mod defaults;
 pub use defaults::Defaults;
 
 mod todos;
-pub use todos::{Todos, Todo, TodoStatus};
+pub use todos::{Todo, TodoStatus, Todos};
 
-/// Message passing is our primary way of instructing UI changes without needing to do 
+/// Message passing is our primary way of instructing UI changes without needing to do
 /// constant crazy referencing in Rust. Dispatch a method using either `dispatch_ui` for the main
 /// thread, or `dispatch` for a background thread, and the main `TodosApp` will receive the
 /// message. From there, it can filter down to components, or just handle it as necessary.

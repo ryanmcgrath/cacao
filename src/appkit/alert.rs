@@ -9,13 +9,13 @@
 //!
 //! ```rust
 //! use cacao::appkit::{App, AppDelegate, Alert};
-//! 
+//!
 //! #[derive(Default)]
 //! struct ExampleApp;
 //!
 //! impl AppDelegate {
 //!     fn did_finish_launching(&self) {
-//!         
+//!
 //!     }
 //! }
 //!
@@ -24,9 +24,9 @@
 //! }
 //! ```
 
-use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::Id;
 
 use crate::foundation::{id, NSString};
 
@@ -45,9 +45,9 @@ impl Alert {
 
         Alert(unsafe {
             let alert: id = msg_send![class!(NSAlert), new];
-            let _: () = msg_send![alert, setMessageText:title];
-            let _: () = msg_send![alert, setInformativeText:message];
-            let _: () = msg_send![alert, addButtonWithTitle:ok];
+            let _: () = msg_send![alert, setMessageText: title];
+            let _: () = msg_send![alert, setInformativeText: message];
+            let _: () = msg_send![alert, addButtonWithTitle: ok];
             Id::from_ptr(alert)
         })
     }
@@ -55,7 +55,7 @@ impl Alert {
     /// Shows this alert as a modal.
     pub fn show(&self) {
         unsafe {
-           let _: () = msg_send![&*self.0, runModal];
+            let _: () = msg_send![&*self.0, runModal];
         }
     }
 }

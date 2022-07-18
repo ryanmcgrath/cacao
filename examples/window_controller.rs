@@ -4,9 +4,9 @@
 //!
 //! If you're not using that, you can probably get by fine with a standard `NSWindow`.
 
-use cacao::appkit::{App, AppDelegate};
 use cacao::appkit::menu::{Menu, MenuItem};
 use cacao::appkit::window::{Window, WindowConfig, WindowController, WindowDelegate};
+use cacao::appkit::{App, AppDelegate};
 
 struct BasicApp {
     window: WindowController<MyWindow>
@@ -22,23 +22,16 @@ impl AppDelegate for BasicApp {
                 MenuItem::HideOthers,
                 MenuItem::ShowAll,
                 MenuItem::Separator,
-                MenuItem::Quit
+                MenuItem::Quit,
             ]),
-
-            Menu::new("File", vec![
-                MenuItem::CloseWindow
-            ]),
-
-            Menu::new("View", vec![
-                MenuItem::EnterFullScreen
-            ]),
-
+            Menu::new("File", vec![MenuItem::CloseWindow]),
+            Menu::new("View", vec![MenuItem::EnterFullScreen]),
             Menu::new("Window", vec![
                 MenuItem::Minimize,
                 MenuItem::Zoom,
                 MenuItem::Separator,
-                MenuItem::new("Bring All to Front")
-            ])
+                MenuItem::new("Bring All to Front"),
+            ]),
         ]);
 
         App::activate();
@@ -70,5 +63,6 @@ impl WindowDelegate for MyWindow {
 fn main() {
     App::new("com.test.window-delegate", BasicApp {
         window: WindowController::with(WindowConfig::default(), MyWindow::default())
-    }).run();
+    })
+    .run();
 }

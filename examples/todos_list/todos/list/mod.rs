@@ -2,12 +2,9 @@
 //! mostly single-threaded example, so we can get away with cutting a few corners and keeping our
 //! data store in here - but for a larger app, you'd likely do something else.
 
-use cacao::listview::{
-    ListView, ListViewDelegate, ListViewRow,
-    RowAnimation, RowEdge, RowAction, RowActionStyle
-};
+use cacao::listview::{ListView, ListViewDelegate, ListViewRow, RowAction, RowActionStyle, RowAnimation, RowEdge};
 
-use crate::storage::{dispatch_ui, Message, Todos, TodoStatus};
+use crate::storage::{dispatch_ui, Message, TodoStatus, Todos};
 
 mod row;
 use row::TodoViewRow;
@@ -15,7 +12,7 @@ use row::TodoViewRow;
 /// An identifier for the cell(s) we dequeue.
 const TODO_ROW: &'static str = "TodoViewRowCell";
 
-/// The list view for todos. 
+/// The list view for todos.
 #[derive(Debug, Default)]
 pub struct TodosListView {
     view: Option<ListView>,
@@ -33,10 +30,10 @@ impl TodosListView {
                     view.set_row_actions_visible(false);
                 }
             },
-            
+
             Message::MarkTodoIncomplete(row) => {
                 self.todos.with_mut(row, |todo| todo.status = TodoStatus::Incomplete);
-                
+
                 if let Some(view) = &self.view {
                     view.reload_rows(&[row]);
                     view.set_row_actions_visible(false);
@@ -77,7 +74,7 @@ impl ListViewDelegate for TodosListView {
     /// configuration.
     fn item_for(&self, row: usize) -> ListViewRow {
         let mut view = self.view.as_ref().unwrap().dequeue::<TodoViewRow>(TODO_ROW);
-            
+
         if let Some(view) = &mut view.delegate {
             self.todos.with(row, |todo| view.configure_with(todo));
         }
@@ -97,15 +94,23 @@ impl ListViewDelegate for TodosListView {
 
         self.todos.with(row, |todo| match todo.status {
             TodoStatus::Complete => {
-                actions.push(RowAction::new("Mark Incomplete", RowActionStyle::Destructive, move |_action, row| {
-                    dispatch_ui(Message::MarkTodoIncomplete(row));
-                }));
+                actions.push(RowAction::new(
+                    "Mark Incomplete",
+                    RowActionStyle::Destructive,
+                    move |_action, row| {
+                        dispatch_ui(Message::MarkTodoIncomplete(row));
+                    }
+                ));
             },
 
             TodoStatus::Incomplete => {
-                actions.push(RowAction::new("Mark Complete", RowActionStyle::Regular, move |_action, row| {
-                    dispatch_ui(Message::MarkTodoComplete(row));
-                }));
+                actions.push(RowAction::new(
+                    "Mark Complete",
+                    RowActionStyle::Regular,
+                    move |_action, row| {
+                        dispatch_ui(Message::MarkTodoComplete(row));
+                    }
+                ));
             }
         });
 

@@ -6,7 +6,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::dragdrop::DragInfo;
-use crate::foundation::{load_or_register_class, id, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, load_or_register_class, NSString, NSUInteger, NO, YES};
 use crate::input::{TextFieldDelegate, TEXTFIELD_DELEGATE_PTR};
 use crate::utils::load;
 
@@ -29,25 +29,17 @@ extern "C" fn text_did_change<T: TextFieldDelegate>(this: &mut Object, _: Sel, _
     view.text_did_change(s.to_str());
 }
 
-extern "C" fn text_should_begin_editing<T: TextFieldDelegate>(
-    this: &mut Object,
-    _: Sel,
-    _info: id,
-) -> BOOL {
+extern "C" fn text_should_begin_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) -> BOOL {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
     let s = NSString::retain(unsafe { msg_send![this, stringValue] });
-    
+
     match view.text_should_begin_editing(s.to_str()) {
         true => YES,
         false => NO
     }
 }
 
-extern "C" fn text_should_end_editing<T: TextFieldDelegate>(
-    this: &mut Object,
-    _: Sel,
-    _info: id,
-) -> BOOL {
+extern "C" fn text_should_end_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) -> BOOL {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
     let s = NSString::retain(unsafe { msg_send![this, stringValue] });
     match view.text_should_end_editing(s.to_str()) {
@@ -82,23 +74,20 @@ pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>(instance: 
 
         decl.add_method(
             sel!(textDidEndEditing:),
-            text_did_end_editing::<T> as extern "C" fn(&mut Object, _, _),
+            text_did_end_editing::<T> as extern "C" fn(&mut Object, _, _)
         );
         decl.add_method(
             sel!(textDidBeginEditing:),
-            text_did_begin_editing::<T> as extern "C" fn(&mut Object, _, _),
+            text_did_begin_editing::<T> as extern "C" fn(&mut Object, _, _)
         );
-        decl.add_method(
-            sel!(textDidChange:),
-            text_did_change::<T> as extern "C" fn(&mut Object, _, _),
-        );
+        decl.add_method(sel!(textDidChange:), text_did_change::<T> as extern "C" fn(&mut Object, _, _));
         decl.add_method(
             sel!(textShouldBeginEditing:),
-            text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL,
+            text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL
         );
         decl.add_method(
             sel!(textShouldEndEditing:),
-            text_should_end_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL,
+            text_should_end_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL
         );
     })
 }

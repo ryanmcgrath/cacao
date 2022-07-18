@@ -49,15 +49,15 @@ macro_rules! method_decl_impl {
         }
     );
     ($($t:ident),*) => (
-        method_decl_impl!(-T, R, extern fn(&T, Sel $(, $t)*) -> R, $($t),*);
-        method_decl_impl!(-T, R, extern fn(&mut T, Sel $(, $t)*) -> R, $($t),*);
+        method_decl_impl!(-T, R, extern "C" fn(&T, Sel $(, $t)*) -> R, $($t),*);
+        method_decl_impl!(-T, R, extern "C" fn(&mut T, Sel $(, $t)*) -> R, $($t),*);
     );
 }
 
 method_decl_impl!();
 method_decl_impl!(A);
 
-extern fn get_bundle_id(this: &Object, s: Sel, v: id) -> id {
+extern "C" fn get_bundle_id(this: &Object, s: Sel, v: id) -> id {
     unsafe {
         let bundle = class!(NSBundle);
         let main_bundle: id = msg_send![bundle, mainBundle];
@@ -80,7 +80,7 @@ unsafe fn swizzle_bundle_id<F>(bundle_id: &str, func: F) where F: MethodImplemen
     // let mut cls = class!(NSBundle) as *mut Class;
     // Class::get("NSBundle").unwrap();
     // let types = format!("{}{}{}", Encoding::String, <*mut Object>::ENCODING, Sel::ENCODING);
-    
+
     let added = class_addMethod(
         cls as *mut Class,
         sel!(__bundleIdentifier),
@@ -95,6 +95,6 @@ unsafe fn swizzle_bundle_id<F>(bundle_id: &str, func: F) where F: MethodImplemen
 
 pub fn set_bundle_id(bundle_id: &str) {
     unsafe {
-        swizzle_bundle_id(bundle_id, get_bundle_id as extern fn(&Object, _, _) -> id);
+        swizzle_bundle_id(bundle_id, get_bundle_id as extern "C" fn(&Object, _, _) -> id);
     }
 }

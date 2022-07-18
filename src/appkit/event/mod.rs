@@ -1,9 +1,8 @@
-
 use block::ConcreteBlock;
 
 use objc::runtime::Object;
-use objc_id::Id;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::Id;
 
 use crate::foundation::{id, nil, NSString};
 
@@ -23,18 +22,14 @@ pub struct Event(pub Id<Object>);
 
 impl Event {
     pub(crate) fn new(objc: id) -> Self {
-        Event(unsafe {
-            Id::from_ptr(objc)
-        })
+        Event(unsafe { Id::from_ptr(objc) })
     }
 
     pub fn characters(&self) -> String {
         // @TODO: Check here if key event, invalid otherwise.
         // @TODO: Figure out if we can just return &str here, since the Objective-C side
         // should... make it work, I think.
-        let characters = NSString::retain(unsafe {
-            msg_send![&*self.0, characters]
-        });
+        let characters = NSString::retain(unsafe { msg_send![&*self.0, characters] });
 
         characters.to_string()
     }

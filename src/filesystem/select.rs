@@ -6,12 +6,12 @@ use std::path::PathBuf;
 
 use block::ConcreteBlock;
 
-use objc::{class, msg_send, sel, sel_impl};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSInteger, NSString, NSURL};
 use crate::filesystem::enums::ModalResponse;
+use crate::foundation::{id, nil, NSInteger, NSString, NO, NSURL, YES};
 
 #[cfg(feature = "appkit")]
 use crate::appkit::window::{Window, WindowDelegate};
@@ -30,13 +30,13 @@ pub struct FileSelectPanel {
     /// Whether the user can choose directories. Defaults to `false`.
     pub can_choose_directories: bool,
 
-    /// When the value of this property is true, dropping an alias on the panel or asking 
-    /// for filenames or URLs returns the resolved aliases. The default value of this property 
-    /// is true. When this value is false, selecting an alias returns the alias instead of the 
+    /// When the value of this property is true, dropping an alias on the panel or asking
+    /// for filenames or URLs returns the resolved aliases. The default value of this property
+    /// is true. When this value is false, selecting an alias returns the alias instead of the
     /// file or directory it represents.
     pub resolves_aliases: bool,
 
-    /// When the value of this property is true, the user may select multiple items from the 
+    /// When the value of this property is true, the user may select multiple items from the
     /// browser. Defaults to `false`.
     pub allows_multiple_selection: bool
 }
@@ -58,9 +58,7 @@ impl FileSelectPanel {
                 ShareId::from_ptr(x)
             },
 
-            delegate: unsafe {
-                ShareId::from_ptr(msg_send![class!(NSObject), new])
-            },
+            delegate: unsafe { ShareId::from_ptr(msg_send![class!(NSObject), new]) },
 
             can_choose_files: true,
             can_choose_directories: false,
@@ -202,8 +200,8 @@ fn get_urls(panel: &Object) -> Vec<NSURL> {
         let urls: id = msg_send![&*panel, URLs];
         let count: usize = msg_send![urls, count];
 
-        (0..count).map(|index| {
-            NSURL::retain(msg_send![urls, objectAtIndex:index])
-        }).collect()
+        (0..count)
+            .map(|index| NSURL::retain(msg_send![urls, objectAtIndex: index]))
+            .collect()
     }
 }

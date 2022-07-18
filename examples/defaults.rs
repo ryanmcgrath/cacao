@@ -36,7 +36,7 @@ impl AppDelegate for DefaultsTest {
 
         let teststring = defaults.get("teststring").unwrap();
         assert_eq!(teststring.as_str().unwrap(), "Testing");
-        
+
         let bytes = defaults.get("testdata").unwrap();
         let s = match std::str::from_utf8(bytes.as_data().unwrap()) {
             Ok(s) => s,

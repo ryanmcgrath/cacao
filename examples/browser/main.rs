@@ -4,10 +4,10 @@
 use cacao::notification_center::Dispatcher;
 use cacao::webview::{WebView, WebViewConfig, WebViewDelegate};
 
-use cacao::appkit::{App, AppDelegate};
 use cacao::appkit::menu::{Menu, MenuItem};
 use cacao::appkit::toolbar::Toolbar;
 use cacao::appkit::window::{Window, WindowConfig, WindowDelegate, WindowToolbarStyle};
+use cacao::appkit::{App, AppDelegate};
 
 mod toolbar;
 use toolbar::BrowserToolbar;
@@ -39,13 +39,9 @@ impl AppDelegate for BasicApp {
                 MenuItem::HideOthers,
                 MenuItem::ShowAll,
                 MenuItem::Separator,
-                MenuItem::Quit
+                MenuItem::Quit,
             ]),
-
-            Menu::new("File", vec![
-                MenuItem::CloseWindow
-            ]),
-
+            Menu::new("File", vec![MenuItem::CloseWindow]),
             Menu::new("Edit", vec![
                 MenuItem::Undo,
                 MenuItem::Redo,
@@ -54,21 +50,16 @@ impl AppDelegate for BasicApp {
                 MenuItem::Copy,
                 MenuItem::Paste,
                 MenuItem::Separator,
-                MenuItem::SelectAll
+                MenuItem::SelectAll,
             ]),
-
-            Menu::new("View", vec![
-                MenuItem::EnterFullScreen
-            ]),
-
+            Menu::new("View", vec![MenuItem::EnterFullScreen]),
             Menu::new("Window", vec![
                 MenuItem::Minimize,
                 MenuItem::Zoom,
                 MenuItem::Separator,
-                MenuItem::new("Bring All to Front")
+                MenuItem::new("Bring All to Front"),
             ]),
-
-            Menu::new("Help", vec![])
+            Menu::new("Help", vec![]),
         ]);
 
         App::activate();
@@ -84,9 +75,15 @@ impl Dispatcher for BasicApp {
         let webview = &window.content;
 
         match message {
-            Action::Back => { webview.go_back(); },
-            Action::Forwards => { webview.go_forward(); },
-            Action::Load(url) => { window.load_url(&url); } 
+            Action::Back => {
+                webview.go_back();
+            },
+            Action::Forwards => {
+                webview.go_forward();
+            },
+            Action::Load(url) => {
+                window.load_url(&url);
+            }
         }
     }
 }
@@ -132,13 +129,17 @@ impl WindowDelegate for AppWindow {
 
 fn main() {
     App::new("com.test.window", BasicApp {
-        window: Window::with({
-            let mut config = WindowConfig::default();
+        window: Window::with(
+            {
+                let mut config = WindowConfig::default();
 
-            // This flag is necessary for Big Sur to use the correct toolbar style.
-            config.toolbar_style = WindowToolbarStyle::Expanded;
+                // This flag is necessary for Big Sur to use the correct toolbar style.
+                config.toolbar_style = WindowToolbarStyle::Expanded;
 
-            config
-        }, AppWindow::new())
-    }).run();
+                config
+            },
+            AppWindow::new()
+        )
+    })
+    .run();
 }

@@ -1,6 +1,6 @@
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, YES, NO};
+use crate::foundation::{id, NO, YES};
 
 /// Represents a type of cursor that you can associate with mouse movement.
 /// @TODO: Loading?
@@ -20,19 +20,19 @@ pub enum CursorType {
 
     /// A pointing hand, like clicking a link.
     PointingHand,
-    
+
     /// Indicator that something can be resized to the left.
     ResizeLeft,
 
     /// Indicator that something can be resized to the right.
     ResizeRight,
-    
+
     /// Indicator  that something can be resized on the horizontal axis.
     ResizeLeftRight,
 
     /// Indicates that something can be resized up.
     ResizeUp,
-    
+
     /// Indicates that something can be resized down.
     ResizeDown,
 
@@ -58,7 +58,7 @@ pub enum CursorType {
     /// Used for drag-and-drop usually, will displayu the standard "+" icon next to the cursor.
     DragCopy,
 
-    /// Indicates a context menu will open. 
+    /// Indicates a context menu will open.
     ContextMenu
 }
 
@@ -114,7 +114,7 @@ impl Cursor {
                 CursorType::DragCopy => msg_send![class!(NSCursor), dragCopyCursor],
                 CursorType::ContextMenu => msg_send![class!(NSCursor), contextualMenuCursor]
             };
-            
+
             let _: () = msg_send![cursor, push];
         }
     }

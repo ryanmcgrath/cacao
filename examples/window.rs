@@ -1,8 +1,8 @@
 //! This example showcases setting up a basic application and window.
 
-use cacao::appkit::{App, AppDelegate};
 use cacao::appkit::menu::{Menu, MenuItem};
 use cacao::appkit::window::Window;
+use cacao::appkit::{App, AppDelegate};
 
 #[derive(Default)]
 struct BasicApp {
@@ -19,23 +19,16 @@ impl AppDelegate for BasicApp {
                 MenuItem::HideOthers,
                 MenuItem::ShowAll,
                 MenuItem::Separator,
-                MenuItem::Quit
+                MenuItem::Quit,
             ]),
-
-            Menu::new("File", vec![
-                MenuItem::CloseWindow
-            ]),
-
-            Menu::new("View", vec![
-                MenuItem::EnterFullScreen
-            ]),
-
+            Menu::new("File", vec![MenuItem::CloseWindow]),
+            Menu::new("View", vec![MenuItem::EnterFullScreen]),
             Menu::new("Window", vec![
                 MenuItem::Minimize,
                 MenuItem::Zoom,
                 MenuItem::Separator,
-                MenuItem::new("Bring All to Front")
-            ])
+                MenuItem::new("Bring All to Front"),
+            ]),
         ]);
 
         App::activate();

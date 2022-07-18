@@ -10,7 +10,7 @@ use crate::view::{VIEW_DELEGATE_PTR, ViewDelegate};
 use crate::utils::{load, as_bool};
 
 /// Called when the view controller receives a `viewWillAppear:` message.
-extern fn will_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
+extern "C" fn will_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
     unsafe {
         let _: () = msg_send![super(this, class!(UIViewController)), viewWillAppear:animated];
     }
@@ -20,7 +20,7 @@ extern fn will_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL
 }
 
 /// Called when the view controller receives a `viewDidAppear:` message.
-extern fn did_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
+extern "C" fn did_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
     unsafe {
         let _: () = msg_send![super(this, class!(UIViewController)), viewDidAppear:animated];
     }
@@ -30,7 +30,7 @@ extern fn did_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL)
 }
 
 /// Called when the view controller receives a `viewWillDisappear:` message.
-extern fn will_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
+extern "C" fn will_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
     unsafe {
         let _: () = msg_send![super(this, class!(UIViewController)), viewWillDisappear:animated];
     }
@@ -40,7 +40,7 @@ extern fn will_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: B
 }
 
 /// Called when the view controller receives a `viewDidDisappear:` message.
-extern fn did_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
+extern "C" fn did_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
     unsafe {
         let _: () = msg_send![super(this, class!(UIViewController)), viewDidDisappear:animated];
     }
@@ -60,10 +60,10 @@ pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>() -> *co
 
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
 
-        decl.add_method(sel!(viewWillAppear:), will_appear::<T> as extern fn(&mut Object, _, BOOL));
-        decl.add_method(sel!(viewDidAppear:), did_appear::<T> as extern fn(&mut Object, _, BOOL));
-        decl.add_method(sel!(viewWillDisappear:), will_disappear::<T> as extern fn(&mut Object, _, BOOL));
-        decl.add_method(sel!(viewDidDisappear:), did_disappear::<T> as extern fn(&mut Object, _, BOOL));
+        decl.add_method(sel!(viewWillAppear:), will_appear::<T> as extern "C" fn(&mut Object, _, BOOL));
+        decl.add_method(sel!(viewDidAppear:), did_appear::<T> as extern "C" fn(&mut Object, _, BOOL));
+        decl.add_method(sel!(viewWillDisappear:), will_disappear::<T> as extern "C" fn(&mut Object, _, BOOL));
+        decl.add_method(sel!(viewDidDisappear:), did_disappear::<T> as extern "C" fn(&mut Object, _, BOOL));
 
         VIEW_CLASS = decl.register();
     });

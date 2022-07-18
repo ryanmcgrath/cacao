@@ -1,14 +1,14 @@
 //! A wrapper for `WKWebViewConfiguration`. It aims to (mostly) cover
 //! the important pieces of configuring and updating a WebView configuration.
 
-use objc_id::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::Id;
 
-use crate::foundation::{id, YES, NO, NSString, NSInteger};
+use crate::foundation::{id, NSInteger, NSString, NO, YES};
 use crate::webview::enums::InjectAt;
 
-/// A wrapper for `WKWebViewConfiguration`. Holds (retains) pointers for the Objective-C runtime 
+/// A wrapper for `WKWebViewConfiguration`. Holds (retains) pointers for the Objective-C runtime
 /// where everything lives.
 #[derive(Debug)]
 pub struct WebViewConfig {
@@ -44,16 +44,16 @@ impl WebViewConfig {
     pub fn add_user_script(&mut self, script: &str, at: InjectAt, main_frame_only: bool) {
         let source = NSString::new(script);
         let at: NSInteger = at.into();
-        
+
         unsafe {
-            let alloc: id = msg_send![class!(WKUserScript), alloc]; 
+            let alloc: id = msg_send![class!(WKUserScript), alloc];
             let user_script: id = msg_send![alloc, initWithSource:source injectionTime:at forMainFrameOnly:match main_frame_only {
                 true => YES,
                 false => NO
             }];
 
             let content_controller: id = msg_send![&*self.objc, userContentController];
-            let _: () = msg_send![content_controller, addUserScript:user_script];
+            let _: () = msg_send![content_controller, addUserScript: user_script];
         }
     }
 
@@ -68,7 +68,7 @@ impl WebViewConfig {
         let key = NSString::new("developerExtrasEnabled");
 
         unsafe {
-            let yes: id = msg_send![class!(NSNumber), numberWithBool:YES];
+            let yes: id = msg_send![class!(NSNumber), numberWithBool: YES];
             let preferences: id = msg_send![&*self.objc, preferences];
             let _: () = msg_send![preferences, setValue:yes forKey:key];
         }

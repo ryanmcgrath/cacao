@@ -1,7 +1,7 @@
 use objc::{msg_send, sel, sel_impl};
 
 use crate::foundation::id;
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 use crate::utils::os;
 
 /// A SafeAreaLayoutGuide should exist on all view types, and ensures that there are anchor points

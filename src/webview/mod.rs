@@ -15,19 +15,19 @@
 
 use core_graphics::geometry::CGRect;
 
-use objc_id::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc_id::ShareId;
 
-use crate::foundation::{id, nil, YES, NO, NSString};
+use crate::foundation::{id, nil, NSString, NO, YES};
 use crate::geometry::Rect;
-use crate::layout::Layout;
 use crate::layer::Layer;
+use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
 mod actions;
 pub use actions::*;
@@ -48,21 +48,18 @@ pub use traits::WebViewDelegate;
 
 pub(crate) static WEBVIEW_DELEGATE_PTR: &str = "rstWebViewDelegatePtr";
 
-fn allocate_webview(
-    mut config: WebViewConfig,
-    objc_delegate: Option<&Object>
-) -> id {
+fn allocate_webview(mut config: WebViewConfig, objc_delegate: Option<&Object>) -> id {
     unsafe {
         // Not a fan of this, but we own it anyway, so... meh.
         let handlers = std::mem::take(&mut config.handlers);
         let protocols = std::mem::take(&mut config.protocols);
         let configuration = config.into_inner();
-        
+
         if let Some(delegate) = &objc_delegate {
             // Technically private!
             #[cfg(feature = "webview-downloading-macos")]
-            let process_pool: id = msg_send![configuration, processPool]; 
-            
+            let process_pool: id = msg_send![configuration, processPool];
+
             // Technically private!
             #[cfg(feature = "webview-downloading-macos")]
             let _: () = msg_send![process_pool, _setDownloadDelegate:*delegate];
@@ -84,10 +81,10 @@ fn allocate_webview(
         let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration:configuration];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![webview, setWantsLayer:YES];
+        let _: () = msg_send![webview, setWantsLayer: YES];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints:NO];
+        let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
         if let Some(delegate) = &objc_delegate {
             let _: () = msg_send![webview, setNavigationDelegate:*delegate];
@@ -172,55 +169,52 @@ impl WebView {
     /// so on. It returns a generic `WebView<T>`, which the caller can then customize as needed.
     pub(crate) fn init<T>(view: id) -> WebView<T> {
         unsafe {
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
             #[cfg(feature = "appkit")]
-            let _: () = msg_send![view, setWantsLayer:YES];
+            let _: () = msg_send![view, setWantsLayer: YES];
         }
 
         WebView {
             is_handle: false,
             delegate: None,
             objc_delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-            
+
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-            
+
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-            
+
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-            
+
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-            
+
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-            
-            layer: Layer::wrap(unsafe {
-                msg_send![view, layer]
-            }),
 
-            objc: ObjcProperty::retain(view),
+            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
+
+            objc: ObjcProperty::retain(view)
         }
     }
-    
 
     /// Returns a default `WebView`, suitable for customizing and displaying.
     pub fn new(config: WebViewConfig) -> Self {
@@ -229,7 +223,10 @@ impl WebView {
     }
 }
 
-impl<T> WebView<T> where T: WebViewDelegate + 'static {
+impl<T> WebView<T>
+where
+    T: WebViewDelegate + 'static
+{
     /// Initializes a new WebView with a given `WebViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(config: WebViewConfig, delegate: T) -> WebView<T> {
@@ -245,7 +242,7 @@ impl<T> WebView<T> where T: WebViewDelegate + 'static {
         let view = allocate_webview(config, Some(&objc_delegate));
         let mut view = WebView::init(view);
 
-        &delegate.did_load(view.clone_as_handle()); 
+        &delegate.did_load(view.clone_as_handle());
         view.delegate = Some(delegate);
         view
     }
@@ -263,34 +260,34 @@ impl<T> WebView<T> {
             layer: self.layer.clone(),
             objc: self.objc.clone(),
             objc_delegate: None,
-            
+
             #[cfg(feature = "autolayout")]
             top: self.top.clone(),
 
             #[cfg(feature = "autolayout")]
             leading: self.leading.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             left: self.left.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             right: self.right.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             trailing: self.trailing.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             bottom: self.bottom.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             width: self.width.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             height: self.height.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_x: self.center_x.clone(),
-            
+
             #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone()
         }
@@ -303,8 +300,8 @@ impl<T> WebView<T> {
 
         self.objc.with_mut(|obj| unsafe {
             let u: id = msg_send![class!(NSURL), URLWithString:&*url];
-            let request: id = msg_send![class!(NSURLRequest), requestWithURL:u];
-            let _: () = msg_send![&*obj, loadRequest:request];
+            let request: id = msg_send![class!(NSURLRequest), requestWithURL: u];
+            let _: () = msg_send![&*obj, loadRequest: request];
         });
     }
 
@@ -312,8 +309,8 @@ impl<T> WebView<T> {
     /// Useful for small html files, but often better to use custom protocol.
     pub fn load_html(&self, html_string: &str) {
         let html = NSString::new(html_string);
-        let blank =  NSString::no_copy("");
-        
+        let blank = NSString::no_copy("");
+
         self.objc.with_mut(|obj| unsafe {
             let empty: id = msg_send![class!(NSURL), URLWithString:&*blank];
             let _: () = msg_send![&*obj, loadHTMLString:&*html baseURL:empty];
@@ -362,10 +359,10 @@ impl<T> Drop for WebView<T> {
     fn drop(&mut self) {
         if !self.is_handle {
             self.objc.with_mut(|obj| unsafe {
-                let _: () = msg_send![&*obj, setNavigationDelegate:nil];
-                let _: () = msg_send![&*obj, setUIDelegate:nil];
+                let _: () = msg_send![&*obj, setNavigationDelegate: nil];
+                let _: () = msg_send![&*obj, setUIDelegate: nil];
             });
-            
+
             self.remove_from_superview();
         }
     }

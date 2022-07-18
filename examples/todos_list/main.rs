@@ -14,8 +14,5 @@ mod todos;
 mod windows;
 
 fn main() {
-    App::new(
-        "com.cacao.todo",
-        app::TodosApp::default()
-    ).run();
+    App::new("com.cacao.todo", app::TodosApp::default()).run();
 }

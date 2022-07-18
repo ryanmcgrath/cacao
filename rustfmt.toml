@@ -1,0 +1,6 @@
+max_width = 130
+match_block_trailing_comma = true
+
+# Nightly
+overflow_delimited_expr = true
+trailing_comma = "Never"

@@ -4,28 +4,18 @@ use std::sync::Once;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, sel, sel_impl, msg_send};
+use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{load_or_register_class, id, BOOL, NSArray, NSString};
-use crate::appkit::toolbar::{TOOLBAR_PTR, ToolbarDelegate};
+use crate::appkit::toolbar::{ToolbarDelegate, TOOLBAR_PTR};
+use crate::foundation::{id, load_or_register_class, NSArray, NSString, BOOL};
 use crate::utils::load;
 
 /// Retrieves and passes the allowed item identifiers for this toolbar.
-extern fn allowed_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel, _: id) -> id {
+extern "C" fn allowed_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel, _: id) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
 
-    let identifiers: NSArray = toolbar.allowed_item_identifiers().iter().map(|identifier| {
-        identifier.to_nsstring()
-    }).collect::<Vec<id>>().into();
-
-    identifiers.into()
-}
-
-/// Retrieves and passes the default item identifiers for this toolbar.
-extern fn default_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel, _: id) -> id {
-    let toolbar = load::<T>(this, TOOLBAR_PTR);
-
-    let identifiers: NSArray = toolbar.default_item_identifiers()
+    let identifiers: NSArray = toolbar
+        .allowed_item_identifiers()
         .iter()
         .map(|identifier| identifier.to_nsstring())
         .collect::<Vec<id>>()
@@ -35,10 +25,25 @@ extern fn default_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel, _:
 }
 
 /// Retrieves and passes the default item identifiers for this toolbar.
-extern fn selectable_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel, _: id) -> id {
+extern "C" fn default_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel, _: id) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
 
-    let identifiers: NSArray = toolbar.selectable_item_identifiers()
+    let identifiers: NSArray = toolbar
+        .default_item_identifiers()
+        .iter()
+        .map(|identifier| identifier.to_nsstring())
+        .collect::<Vec<id>>()
+        .into();
+
+    identifiers.into()
+}
+
+/// Retrieves and passes the default item identifiers for this toolbar.
+extern "C" fn selectable_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel, _: id) -> id {
+    let toolbar = load::<T>(this, TOOLBAR_PTR);
+
+    let identifiers: NSArray = toolbar
+        .selectable_item_identifiers()
         .iter()
         .map(|identifier| identifier.to_nsstring())
         .collect::<Vec<id>>()
@@ -49,20 +54,12 @@ extern fn selectable_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel,
 
 /// Loads the controller, grabs whatever item is for this identifier, and returns what the
 /// Objective-C runtime needs.
-extern fn item_for_identifier<T: ToolbarDelegate>(
-    this: &Object,
-    _: Sel,
-    _: id,
-    identifier: id,
-    _: BOOL
-) -> id {
+extern "C" fn item_for_identifier<T: ToolbarDelegate>(this: &Object, _: Sel, _: id, identifier: id, _: BOOL) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
     let identifier = NSString::from_retained(identifier);
-    
+
     let item = toolbar.item_for(identifier.to_str());
-    unsafe {
-        msg_send![&*item.objc, self]
-    }
+    unsafe { msg_send![&*item.objc, self] }
     //&mut *item.objc
 }
 
@@ -76,19 +73,19 @@ pub(crate) fn register_toolbar_class<T: ToolbarDelegate>(instance: &T) -> *const
         // Add callback methods
         decl.add_method(
             sel!(toolbarAllowedItemIdentifiers:),
-            allowed_item_identifiers::<T> as extern fn(&Object, _, _) -> id
+            allowed_item_identifiers::<T> as extern "C" fn(&Object, _, _) -> id
         );
         decl.add_method(
             sel!(toolbarDefaultItemIdentifiers:),
-            default_item_identifiers::<T> as extern fn(&Object, _, _) -> id
+            default_item_identifiers::<T> as extern "C" fn(&Object, _, _) -> id
         );
         decl.add_method(
             sel!(toolbarSelectableItemIdentifiers:),
-            selectable_item_identifiers::<T> as extern fn(&Object, _, _) -> id
+            selectable_item_identifiers::<T> as extern "C" fn(&Object, _, _) -> id
         );
         decl.add_method(
             sel!(toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:),
-            item_for_identifier::<T> as extern fn(&Object, _, _, _, _) -> id
+            item_for_identifier::<T> as extern "C" fn(&Object, _, _, _, _) -> id
         );
     })
 }
