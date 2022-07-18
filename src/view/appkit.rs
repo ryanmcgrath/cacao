@@ -14,29 +14,28 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
+use crate::foundation::{load_or_register_class, id, nil, YES, NO, NSUInteger};
 use crate::dragdrop::DragInfo;
-use crate::foundation::{id, load_or_register_class, nil, NSUInteger, NO, YES};
+use crate::view::{VIEW_DELEGATE_PTR, BACKGROUND_COLOR, ViewDelegate};
 use crate::utils::load;
-use crate::view::{ViewDelegate, BACKGROUND_COLOR, VIEW_DELEGATE_PTR};
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
-extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
+extern fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
     return YES;
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
+extern fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
     view.dragging_entered(DragInfo {
         info: unsafe { Id::from_ptr(info) }
-    })
-    .into()
+    }).into()
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-
+    
     match view.prepare_for_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     }) {
@@ -46,9 +45,9 @@ extern "C" fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: 
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-
+        
     match view.perform_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     }) {
@@ -58,32 +57,32 @@ extern "C" fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel,
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn conclude_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
+extern fn conclude_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-
+    
     view.conclude_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
-    });
+    });           
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
+extern fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
-
+        
     view.dragging_exited(DragInfo {
         info: unsafe { Id::from_ptr(info) }
     });
 }
 
 /// Called for layer updates.
-extern "C" fn update_layer(this: &Object, _: Sel) {
+extern fn update_layer(this: &Object, _: Sel) {
     unsafe {
         let background_color: id = *this.get_ivar(BACKGROUND_COLOR);
 
         if background_color != nil {
             let layer: id = msg_send![this, layer];
             let cg: id = msg_send![background_color, CGColor];
-            let _: () = msg_send![layer, setBackgroundColor: cg];
+            let _: () = msg_send![layer, setBackgroundColor:cg];
         }
     }
 }
@@ -99,12 +98,12 @@ pub(crate) fn register_view_class() -> *const Class {
         let superclass = class!(NSView);
         let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
-        decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(&Object, _));
-        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(updateLayer), update_layer as extern fn(&Object, _));
+        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern fn(&Object, _) -> BOOL);
 
         decl.add_ivar::<id>(BACKGROUND_COLOR);
-
+    
         VIEW_CLASS = decl.register();
     });
 
@@ -119,37 +118,46 @@ pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -
         // It's expected that this doesn't move.
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
         decl.add_ivar::<id>(BACKGROUND_COLOR);
+        
+        decl.add_method(
+            sel!(updateLayer),
+            update_layer as extern fn(&Object, _)
+        );
 
-        decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(&Object, _));
+        decl.add_method(
+            sel!(wantsUpdateLayer),
+            enforce_normalcy as extern fn(&Object, _) -> BOOL
+        );
 
-        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
-
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(
+            sel!(isFlipped),
+            enforce_normalcy as extern fn(&Object, _) -> BOOL
+        );
 
         // Drag and drop operations (e.g, accepting files)
         decl.add_method(
             sel!(draggingEntered:),
-            dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger
+            dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger
         );
 
         decl.add_method(
             sel!(prepareForDragOperation:),
-            prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            prepare_for_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL
         );
 
         decl.add_method(
             sel!(performDragOperation:),
-            perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            perform_drag_operation::<T> as extern fn (&mut Object, _, _) -> BOOL
         );
 
         decl.add_method(
             sel!(concludeDragOperation:),
-            conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _)
+            conclude_drag_operation::<T> as extern fn (&mut Object, _, _)
         );
 
         decl.add_method(
             sel!(draggingExited:),
-            dragging_exited::<T> as extern "C" fn(&mut Object, _, _)
+            dragging_exited::<T> as extern fn (&mut Object, _, _)
         );
     })
 }

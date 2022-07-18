@@ -4,21 +4,21 @@ use std::sync::Once;
 
 use core_graphics::geometry::CGRect;
 
+use objc_id::ShareId;
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::control::Control;
-use crate::foundation::{id, nil, NSInteger, NSString, NO, YES};
-use crate::geometry::Rect;
+use crate::foundation::{id, nil, YES, NO, NSString, NSInteger};
 use crate::invoker::TargetActionHandler;
+use crate::geometry::Rect;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
 /// Wraps `NSPopUpSelect` on AppKit. Not currently implemented for iOS.
 ///
@@ -86,51 +86,51 @@ impl Select {
     /// and retains the necessary Objective-C runtime pointer.
     pub fn new() -> Self {
         let zero: CGRect = Rect::zero().into();
-
+        
         let view: id = unsafe {
             let alloc: id = msg_send![register_class(), alloc];
             let select: id = msg_send![alloc, initWithFrame:zero pullsDown:NO];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![select, setTranslatesAutoresizingMaskIntoConstraints: NO];
-
+            let _: () = msg_send![select, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            
             select
         };
-
+        
         Select {
             handler: None,
 
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-
+            
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-
+            
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-
+            
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-
+            
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-
+            
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-
+            
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-
+            
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-
+            
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-
+            
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-
-            objc: ObjcProperty::retain(view)
+            
+            objc: ObjcProperty::retain(view),
         }
     }
 
@@ -161,7 +161,7 @@ impl Select {
     pub fn add_item(&self, title: &str) {
         self.objc.with_mut(|obj| unsafe {
             let s = NSString::new(title);
-            let _: () = msg_send![obj, addItemWithTitle: s];
+            let _: () = msg_send![obj, addItemWithTitle:s];
         });
     }
 
@@ -175,13 +175,13 @@ impl Select {
     /// Remove the item at the specified index.
     pub fn remove_item_at_index(&self, index: usize) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, removeItemAtIndex: index];
+            let _: () = msg_send![obj, removeItemAtIndex:index];
         });
     }
 
     pub fn set_selected_index(&self, index: NSInteger) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, selectItemAtIndex: index];
+            let _: () = msg_send![obj, selectItemAtIndex:index];
         });
     }
 
@@ -198,7 +198,7 @@ impl Select {
         self.objc.get(|obj| unsafe {
             let index: NSInteger = msg_send![obj, numberOfItems];
             index as usize
-        })
+        })       
     }
 }
 
@@ -213,13 +213,11 @@ impl ObjcAccess for Select {
 }
 
 impl Layout for Select {
-    fn add_subview<V: Layout>(&self, _view: &V) {
-        panic!(
-            r#"
-            Tried to add a subview to a Select. This is not allowed in Cacao. If you think this should be supported,
+    fn add_subview<V: Layout>(&self, _view: &V) { 
+        panic!(r#"
+            Tried to add a subview to a Select. This is not allowed in Cacao. If you think this should be supported, 
             open a discussion on the GitHub repo.
-        "#
-        );
+        "#);
     }
 }
 
@@ -236,13 +234,11 @@ impl ObjcAccess for &Select {
 }
 
 impl Layout for &Select {
-    fn add_subview<V: Layout>(&self, _view: &V) {
-        panic!(
-            r#"
-            Tried to add a subview to a Select. This is not allowed in Cacao. If you think this should be supported,
+    fn add_subview<V: Layout>(&self, _view: &V) { 
+        panic!(r#"
+            Tried to add a subview to a Select. This is not allowed in Cacao. If you think this should be supported, 
             open a discussion on the GitHub repo.
-        "#
-        );
+        "#);
     }
 }
 
@@ -254,13 +250,13 @@ impl Drop for Select {
     // but I'd rather be paranoid and remove them later.
     fn drop(&mut self) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setTarget: nil];
-            let _: () = msg_send![obj, setAction: nil];
+            let _: () = msg_send![obj, setTarget:nil];
+            let _: () = msg_send![obj, setAction:nil];
         });
     }
 }
 
-/// Registers an `NSSelect` subclass, and configures it to hold some ivars
+/// Registers an `NSSelect` subclass, and configures it to hold some ivars 
 /// for various things we need to store.
 fn register_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
@@ -268,7 +264,7 @@ fn register_class() -> *const Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSPopUpButton);
-        let decl = ClassDecl::new("CacaoSelect", superclass).unwrap();
+        let decl = ClassDecl::new("CacaoSelect", superclass).unwrap(); 
         VIEW_CLASS = decl.register();
     });
 

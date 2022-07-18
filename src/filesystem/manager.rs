@@ -4,18 +4,18 @@
 use std::error::Error;
 use std::sync::{Arc, RwLock};
 
-use objc::runtime::{Object, BOOL};
-use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
+use objc::runtime::{BOOL, Object};
+use objc::{class, msg_send, sel, sel_impl};
 use url::Url;
 
+use crate::foundation::{id, nil, NO, NSString, NSUInteger};
 use crate::error::Error as AppKitError;
 use crate::filesystem::enums::{SearchPathDirectory, SearchPathDomainMask};
-use crate::foundation::{id, nil, NSString, NSUInteger, NO};
 
 /// A FileManager can be used for file operations (moving files, etc).
 ///
-/// If your app is not sandboxed, you can use your favorite Rust library -
+/// If your app is not sandboxed, you can use your favorite Rust library - 
 /// but if you _are_ operating in the sandbox, there's a good chance you'll want to use this.
 ///
 /// @TODO: Couldn't this just be a ShareId?
@@ -45,13 +45,17 @@ impl FileManager {
     /// Given a directory/domain combination, will attempt to get the directory that matches.
     /// Returns a PathBuf that wraps the given location. If there's an error on the Objective-C
     /// side, we attempt to catch it and bubble it up.
-    pub fn get_directory(&self, directory: SearchPathDirectory, in_domain: SearchPathDomainMask) -> Result<Url, Box<dyn Error>> {
+    pub fn get_directory(
+        &self,
+        directory: SearchPathDirectory,
+        in_domain: SearchPathDomainMask
+    ) -> Result<Url, Box<dyn Error>> {
         let dir: NSUInteger = directory.into();
         let mask: NSUInteger = in_domain.into();
 
         let directory = unsafe {
             let manager = self.0.read().unwrap();
-            let dir: id = msg_send![&**manager, URLForDirectory:dir
+            let dir: id = msg_send![&**manager, URLForDirectory:dir 
                 inDomain:mask
                 appropriateForURL:nil
                 create:NO
@@ -59,7 +63,7 @@ impl FileManager {
 
             NSString::retain(msg_send![dir, absoluteString])
         };
-
+        
         Url::parse(directory.to_str()).map_err(|e| e.into())
     }
 

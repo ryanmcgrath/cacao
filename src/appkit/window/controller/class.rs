@@ -3,9 +3,9 @@
 
 use std::sync::Once;
 
-use objc::class;
 use objc::declare::ClassDecl;
 use objc::runtime::Class;
+use objc::class;
 
 use crate::appkit::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
 
@@ -22,5 +22,7 @@ pub(crate) fn register_window_controller_class<T: WindowDelegate>() -> *const Cl
         DELEGATE_CLASS = decl.register();
     });
 
-    unsafe { DELEGATE_CLASS }
+    unsafe {
+        DELEGATE_CLASS
+    }
 }

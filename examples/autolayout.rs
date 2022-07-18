@@ -5,9 +5,9 @@ use cacao::color::{Color, Theme};
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::View;
 
+use cacao::appkit::{App, AppDelegate};
 use cacao::appkit::menu::{Menu, MenuItem};
 use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
-use cacao::appkit::{App, AppDelegate};
 
 struct BasicApp {
     window: Window<AppWindow>
@@ -23,16 +23,23 @@ impl AppDelegate for BasicApp {
                 MenuItem::HideOthers,
                 MenuItem::ShowAll,
                 MenuItem::Separator,
-                MenuItem::Quit,
+                MenuItem::Quit
             ]),
-            Menu::new("File", vec![MenuItem::CloseWindow]),
-            Menu::new("View", vec![MenuItem::EnterFullScreen]),
+
+            Menu::new("File", vec![
+                MenuItem::CloseWindow
+            ]),
+
+            Menu::new("View", vec![
+                MenuItem::EnterFullScreen
+            ]),
+
             Menu::new("Window", vec![
                 MenuItem::Minimize,
                 MenuItem::Zoom,
                 MenuItem::Separator,
-                MenuItem::new("Bring All to Front"),
-            ]),
+                MenuItem::new("Bring All to Front")
+            ])
         ]);
 
         App::activate();
@@ -82,14 +89,16 @@ impl WindowDelegate for AppWindow {
             self.blue.leading.constraint_equal_to(&self.content.leading).offset(16.),
             self.blue.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),
             self.blue.width.constraint_equal_to_constant(100.),
+
             self.red.top.constraint_equal_to(&self.content.top).offset(46.),
             self.red.leading.constraint_equal_to(&self.blue.trailing).offset(16.),
             self.red.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),
+            
             self.green.top.constraint_equal_to(&self.content.top).offset(46.),
             self.green.leading.constraint_equal_to(&self.red.trailing).offset(16.),
             self.green.trailing.constraint_equal_to(&self.content.trailing).offset(-16.),
             self.green.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),
-            self.green.width.constraint_equal_to_constant(100.)
+            self.green.width.constraint_equal_to_constant(100.),
         ]);
     }
 }
@@ -97,6 +106,5 @@ impl WindowDelegate for AppWindow {
 fn main() {
     App::new("com.test.window", BasicApp {
         window: Window::with(WindowConfig::default(), AppWindow::default())
-    })
-    .run();
+    }).run();
 }

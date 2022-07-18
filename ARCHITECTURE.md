@@ -1,9 +1,9 @@
 # Cacao Architecture
-Cacao is a library to interface with AppKit (macOS) or UIKit (iOS/iPadOS/tvOS). It uses the Objective-C runtime to
+Cacao is a library to interface with AppKit (macOS) or UIKit (iOS/iPadOS/tvOS). It uses the Objective-C runtime to 
 handle calling into these frameworks.
 
-Said frameworks typically use an Object Oriented style of programming (subclasses, etc), which can be tricky to
-handle with the way that Rust works with regards to ownership. Thankfully, AppKit & UIKit often also use a
+Said frameworks typically use an Object Oriented style of programming (subclasses, etc), which can be tricky to 
+handle with the way that Rust works with regards to ownership. Thankfully, AppKit & UIKit often also use a 
 delegate pattern - objects registered to receive callbacks. With some creative assumptions, we can get somewhat close
 to expected conventions.
 
@@ -208,7 +208,7 @@ impl View {
             height: LayoutAnchorDimension::height(view),
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
-
+            
             layer: Layer::wrap(unsafe {
                 msg_send![view, layer]
             }),
@@ -236,7 +236,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
     pub fn with(delegate: T) -> View<T> {
         let class = register_view_class_with_delegate(&delegate);
         let mut delegate = Box::new(delegate);
-
+        
         let view = unsafe {
             let view: id = msg_send![class, new];
             let ptr = Box::into_raw(delegate);
@@ -246,7 +246,7 @@ impl<T> View<T> where T: ViewDelegate + 'static {
         };
 
         let mut view = View::init(view);
-        (&mut delegate).did_load(view.clone_as_handle());
+        (&mut delegate).did_load(view.clone_as_handle()); 
         view.delegate = Some(delegate);
         view
     }
@@ -360,10 +360,10 @@ pub(crate) fn register_view_class() -> *const Class {
         let superclass = class!(NSView);
         let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
 
         decl.add_ivar::<id>(BACKGROUND_COLOR);
-
+    
         VIEW_CLASS = decl.register();
     });
 
@@ -371,7 +371,7 @@ pub(crate) fn register_view_class() -> *const Class {
 }
 ```
 
-This function (called inside `View::new()`) creates one reusable `View` subclass, and returns the type on subsequent calls. We're able to add methods to it (`add_method`) which match
+This function (called inside `View::new()`) creates one reusable `View` subclass, and returns the type on subsequent calls. We're able to add methods to it (`add_method`) which match 
 Objective-C method signatures, as well as provision space for variable storage (`add_ivar`).
 
 For our _delegate_ types, we need a different class creation method - one that creates a subclass per-unique-type:
@@ -384,12 +384,12 @@ pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -
 
         decl.add_method(
             sel!(isFlipped),
-            enforce_normalcy as extern "C" fn(&Object, _) -> BOOL
+            enforce_normalcy as extern fn(&Object, _) -> BOOL
         );
 
         decl.add_method(
             sel!(draggingEntered:),
-            dragging_entered::<T> as extern "C" fn (&mut Object, _, _) -> NSUInteger
+            dragging_entered::<T> as extern fn (&mut Object, _, _) -> NSUInteger
         );
     })
 }
@@ -401,7 +401,7 @@ to the Rust `ViewDelegate` implementation.
 The methods we're setting up can range from simple to complex - take `isFlipped`:
 
 ``` rust
-extern "C" fn is_flipped(_: &Object, _: Sel) -> BOOL {
+extern fn is_flipped(_: &Object, _: Sel) -> BOOL {
     return YES;
 }
 ```
@@ -409,7 +409,7 @@ extern "C" fn is_flipped(_: &Object, _: Sel) -> BOOL {
 Here, we just want to tell `NSView` to use top,left as the origin point, so we need to respond `YES` in this subclass method.
 
 ``` rust
-extern "C" fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
+extern fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     let view = utils::load::<T>(this, VIEW_DELEGATE_PTR);
     view.dragging_entered(DragInfo {
         info: unsafe { Id::from_ptr(info) }

@@ -44,7 +44,7 @@ pub use string::NSString;
 
 // Separate named module to not conflict with the `url` crate. Go figure.
 mod urls;
-pub use urls::{NSURLBookmarkCreationOption, NSURLBookmarkResolutionOption, NSURL};
+pub use urls::{NSURL, NSURLBookmarkCreationOption, NSURLBookmarkResolutionOption};
 
 /// Bool mapping types differ between ARM and x64. There's a number of places that we need to check
 /// against BOOL results throughout the framework, and this just simplifies some mismatches.
@@ -53,12 +53,10 @@ pub fn to_bool(result: BOOL) -> bool {
     match result {
         YES => true,
         NO => false,
-
+        
         //#[cfg(target_arch = "aarch64")]
         #[cfg(not(target_arch = "aarch64"))]
-        _ => {
-            std::unreachable!();
-        }
+        _ => { std::unreachable!(); }
     }
 }
 

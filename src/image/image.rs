@@ -1,19 +1,19 @@
-use objc::runtime::Object;
 use objc_id::ShareId;
+use objc::runtime::Object;
 
 use objc::{class, msg_send, sel, sel_impl};
 
 use block::ConcreteBlock;
 
-use core_graphics::context::{CGContext, CGContextRef};
 use core_graphics::{
-    base::CGFloat,
-    geometry::{CGPoint, CGRect, CGSize}
+    base::{CGFloat},
+    geometry::{CGRect, CGPoint, CGSize}
 };
+use core_graphics::context::{CGContext, CGContextRef};
 
-use super::icons::*;
-use crate::foundation::{id, NSData, NSString, NO, YES};
+use crate::foundation::{id, YES, NO, NSString, NSData};
 use crate::utils::os;
+use super::icons::*;
 
 /// Specifies resizing behavior for image drawing.
 #[derive(Copy, Clone, Debug)]
@@ -32,9 +32,7 @@ pub enum ResizeBehavior {
 }
 
 fn max_cgfloat(x: CGFloat, y: CGFloat) -> CGFloat {
-    if x == y {
-        return x;
-    }
+    if x == y { return x; }
 
     match x > y {
         true => x,
@@ -43,9 +41,7 @@ fn max_cgfloat(x: CGFloat, y: CGFloat) -> CGFloat {
 }
 
 fn min_cgfloat(x: CGFloat, y: CGFloat) -> CGFloat {
-    if x == y {
-        return x;
-    }
+    if x == y { return x; }
 
     match x < y {
         true => x,
@@ -58,15 +54,21 @@ impl ResizeBehavior {
     /// the resizing properties of this enum.
     pub fn apply(&self, source: CGRect, target: CGRect) -> CGRect {
         // if equal, just return source
-        if source.origin.x == target.origin.x
-            && source.origin.y == target.origin.y
-            && source.size.width == target.size.width
-            && source.size.height == target.size.height
+        if
+            source.origin.x == target.origin.x && 
+            source.origin.y == target.origin.y &&
+            source.size.width == target.size.width &&
+            source.size.height == target.size.height
         {
             return source;
         }
 
-        if source.origin.x == 0. && source.origin.y == 0. && source.size.width == 0. && source.size.height == 0. {
+        if
+            source.origin.x == 0. && 
+            source.origin.y == 0. &&
+            source.size.width == 0. &&
+            source.size.height == 0. 
+        {
             return source;
         }
 
@@ -124,7 +126,9 @@ pub struct Image(pub ShareId<Object>);
 impl Image {
     /// Wraps a system-returned image, e.g from QuickLook previews.
     pub fn with(image: id) -> Self {
-        Image(unsafe { ShareId::from_ptr(image) })
+        Image(unsafe {
+            ShareId::from_ptr(image)
+        })
     }
 
     /// Loads an image from the specified path.
@@ -133,7 +137,7 @@ impl Image {
 
         Image(unsafe {
             let alloc: id = msg_send![class!(NSImage), alloc];
-            ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile: file_path])
+            ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile:file_path])
         })
     }
 
@@ -144,7 +148,7 @@ impl Image {
 
         Image(unsafe {
             let alloc: id = msg_send![class!(NSImage), alloc];
-            ShareId::from_ptr(msg_send![alloc, initWithData: data])
+            ShareId::from_ptr(msg_send![alloc, initWithData:data])
         })
     }
 
@@ -157,7 +161,7 @@ impl Image {
         Image(unsafe {
             ShareId::from_ptr({
                 let icon = icon.to_id();
-                msg_send![class!(NSImage), imageNamed: icon]
+                msg_send![class!(NSImage), imageNamed:icon]
             })
         })
     }
@@ -185,13 +189,13 @@ impl Image {
 
                 false => {
                     let icon = icon.to_id();
-                    msg_send![class!(NSImage), imageNamed: icon]
+                    msg_send![class!(NSImage), imageNamed:icon]
                 }
             })
         })
     }
 
-    /// Creates and returns an Image with the specified `SFSymbol`. Note that `SFSymbol` is
+    /// Creates and returns an Image with the specified `SFSymbol`. Note that `SFSymbol` is 
     /// supported on 11.0+; as such, this will panic if called on a lower system. Take care to
     /// provide a fallback image or user experience if you need to support an older OS.
     pub fn symbol(symbol: SFSymbol, accessibility_description: &str) -> Self {
@@ -217,9 +221,15 @@ impl Image {
     where
         F: Fn(CGRect, &CGContextRef) -> bool + 'static
     {
-        let source_frame = CGRect::new(&CGPoint::new(0., 0.), &CGSize::new(config.source.0, config.source.1));
+        let source_frame = CGRect::new(
+             &CGPoint::new(0., 0.),
+             &CGSize::new(config.source.0, config.source.1)
+        );
 
-        let target_frame = CGRect::new(&CGPoint::new(0., 0.), &CGSize::new(config.target.0, config.target.1));
+        let target_frame = CGRect::new(
+             &CGPoint::new(0., 0.),
+             &CGSize::new(config.target.0, config.target.1)
+        );
 
         let resized_frame = config.resize.apply(source_frame, target_frame);
 
@@ -236,7 +246,7 @@ impl Image {
             );
 
             let result = handler(resized_frame, &context);
-
+            
             let _: () = msg_send![class!(NSGraphicsContext), restoreGraphicsState];
 
             match result {
@@ -247,8 +257,8 @@ impl Image {
         let block = block.copy();
 
         Image(unsafe {
-            let img: id = msg_send![class!(NSImage), imageWithSize:target_frame.size
-                flipped:YES
+            let img: id = msg_send![class!(NSImage), imageWithSize:target_frame.size 
+                flipped:YES 
                 drawingHandler:block
             ];
 

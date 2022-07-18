@@ -3,10 +3,10 @@
 
 use cacao::webview::{WebView, WebViewConfig, WebViewDelegate};
 
+use cacao::macos::{App, AppDelegate};
 use cacao::macos::menu::{Menu, MenuItem};
 use cacao::macos::toolbar::Toolbar;
 use cacao::macos::window::{Window, WindowConfig, WindowDelegate, WindowToolbarStyle};
-use cacao::macos::{App, AppDelegate};
 
 struct BasicApp {
     window: Window<AppWindow>
@@ -38,8 +38,8 @@ impl WebViewDelegate for WebViewInstance {
             <h1>Welcome 🍫</h1>
             <a href="/hello.html">Link</a>
             </body>
-        </html>"#;
-
+        </html>"#; 
+        
         let link_html = r#"
         <!DOCTYPE html>
         <html lang="en">
@@ -52,12 +52,12 @@ impl WebViewDelegate for WebViewInstance {
             <h1>Hello!</h1>
             <a href="/index.html">Back home</a>
             </body>
-        </html>"#;
+        </html>"#; 
 
         return match requested_asset_path.as_str() {
             "/hello.html" => Some(link_html.as_bytes().into()),
-            _ => Some(index_html.as_bytes().into())
-        };
+            _ => Some(index_html.as_bytes().into()),
+        }
     }
 }
 
@@ -100,6 +100,5 @@ impl WindowDelegate for AppWindow {
 fn main() {
     App::new("com.test.window", BasicApp {
         window: Window::with(WindowConfig::default(), AppWindow::new())
-    })
-    .run();
+    }).run();
 }

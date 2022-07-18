@@ -1,6 +1,6 @@
 //! A progress indicator widget.
 //!
-//! This control wraps `NSProgressIndicator` in AppKit, and
+//! This control wraps `NSProgressIndicator` in AppKit, and 
 //! `UIProgressView+UIActivityIndicatorView` in iOS/tvOS. It operates in two modes: determinate
 //! (where you have a fixed start and end) and indeterminate (infinite; it will go and go until you
 //! tell it to stop).
@@ -13,18 +13,18 @@
 
 use core_graphics::base::CGFloat;
 
+use objc_id::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
+use crate::foundation::{id, nil, YES, NO, NSUInteger};
 use crate::color::Color;
-use crate::foundation::{id, nil, NSUInteger, NO, YES};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
+use crate::layout::{LayoutAnchorX, LayoutAnchorY, LayoutAnchorDimension};
 
 mod enums;
 pub use enums::ProgressIndicatorStyle;
@@ -34,7 +34,7 @@ pub use enums::ProgressIndicatorStyle;
 pub struct ProgressIndicator {
     /// A pointer to the Objective-C Object.
     pub objc: ObjcProperty,
-
+    
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
@@ -89,12 +89,12 @@ impl ProgressIndicator {
         let view = unsafe {
             #[cfg(feature = "appkit")]
             let view: id = msg_send![class!(NSProgressIndicator), new];
-
+            
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
             #[cfg(feature = "appkit")]
-            let _: () = msg_send![view, setWantsLayer: YES];
+            let _: () = msg_send![view, setWantsLayer:YES];
 
             view
         };
@@ -102,35 +102,35 @@ impl ProgressIndicator {
         ProgressIndicator {
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
-
+            
             #[cfg(feature = "autolayout")]
             left: LayoutAnchorX::left(view),
-
+            
             #[cfg(feature = "autolayout")]
             leading: LayoutAnchorX::leading(view),
-
+            
             #[cfg(feature = "autolayout")]
             right: LayoutAnchorX::right(view),
-
+            
             #[cfg(feature = "autolayout")]
             trailing: LayoutAnchorX::trailing(view),
-
+            
             #[cfg(feature = "autolayout")]
             bottom: LayoutAnchorY::bottom(view),
-
+            
             #[cfg(feature = "autolayout")]
             width: LayoutAnchorDimension::width(view),
-
+            
             #[cfg(feature = "autolayout")]
             height: LayoutAnchorDimension::height(view),
-
+            
             #[cfg(feature = "autolayout")]
             center_x: LayoutAnchorX::center(view),
-
+            
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
-
-            objc: ObjcProperty::retain(view)
+            
+            objc: ObjcProperty::retain(view),
         }
     }
 }
@@ -139,7 +139,7 @@ impl ProgressIndicator {
     /// Starts the animation for an indeterminate indicator.
     pub fn start_animation(&self) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, startAnimation: nil];
+            let _: () = msg_send![obj, startAnimation:nil];
         });
     }
 
@@ -147,23 +147,23 @@ impl ProgressIndicator {
     /// indeterminate looping animation).
     pub fn stop_animation(&self) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, stopAnimation: nil];
+            let _: () = msg_send![obj, stopAnimation:nil];
         });
     }
 
     /// Increment the progress indicator by the amount specified.
     pub fn increment(&self, amount: f64) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, incrementBy: amount];
+            let _: () = msg_send![obj, incrementBy:amount];
         });
     }
 
     /// Set the style for the progress indicator.
     pub fn set_style(&self, style: ProgressIndicatorStyle) {
         let style = style as NSUInteger;
-
+        
         self.objc.with_mut(move |obj| unsafe {
-            let _: () = msg_send![obj, setStyle: style];
+            let _: () = msg_send![obj, setStyle:style];
         });
     }
 
@@ -187,7 +187,7 @@ impl ProgressIndicator {
         let value = value as CGFloat;
 
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setDoubleValue: value];
+            let _: () = msg_send![obj, setDoubleValue:value];
         });
     }
 
@@ -215,7 +215,7 @@ impl ObjcAccess for ProgressIndicator {
 impl Layout for ProgressIndicator {}
 
 impl Drop for ProgressIndicator {
-    /// A bit of extra cleanup for delegate callback pointers.
+    /// A bit of extra cleanup for delegate callback pointers. 
     /// If the originating `ProgressIndicator` is being
     /// dropped, we do some logic to clean it all up (e.g, we go ahead and check to see if
     /// this has a superview (i.e, it's in the heirarchy) on the Objective-C side. If it does, we go

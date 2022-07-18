@@ -1,11 +1,11 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
-use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, to_bool, NSInteger, BOOL, NO, YES};
+use crate::foundation::{id, to_bool, BOOL, YES, NO, NSInteger};
 
 /// Wrapper for a `NSNumber` object.
 ///
@@ -18,13 +18,17 @@ impl NSNumber {
     /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
     /// wrap (and retain) it while we figure out what to do with it. This does that.
     pub fn retain(data: id) -> Self {
-        NSNumber(unsafe { Id::from_ptr(data) })
+        NSNumber(unsafe {
+            Id::from_ptr(data)
+        })
     }
-
+    
     /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
     /// wrap it while we figure out what to do with it. This does that.
     pub fn wrap(data: id) -> Self {
-        NSNumber(unsafe { Id::from_retained_ptr(data) })
+        NSNumber(unsafe {
+            Id::from_retained_ptr(data)
+        })
     }
 
     /// Constructs a `numberWithBool` instance of `NSNumber` and retains it.
@@ -39,12 +43,16 @@ impl NSNumber {
 
     /// Constructs a `numberWithInteger` instance of `NSNumber` and retains it.
     pub fn integer(value: i64) -> Self {
-        NSNumber(unsafe { Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithInteger: value as NSInteger]) })
+        NSNumber(unsafe {
+            Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithInteger:value as NSInteger])
+        })
     }
 
     /// Constructs a `numberWithDouble` instance of `NSNumber` and retains it.
     pub fn float(value: f64) -> Self {
-        NSNumber(unsafe { Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithDouble: value]) })
+        NSNumber(unsafe {
+            Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithDouble:value])
+        })
     }
 
     /// Returns the `objCType` of the underlying `NSNumber` as a Rust `&str`. This flag can be used
@@ -76,7 +84,9 @@ impl NSNumber {
     /// Note that this _does not check_ if the underlying type is actually this. You are
     /// responsible for doing so via the `objc_type()` method.
     pub fn as_f64(&self) -> f64 {
-        unsafe { msg_send![&*self.0, doubleValue] }
+        unsafe {
+            msg_send![&*self.0, doubleValue]
+        }
     }
 
     /// Pulls the underlying `BOOL` value out and passes it back as a `bool`.
@@ -84,14 +94,18 @@ impl NSNumber {
     /// Note that this _does not check_ if the underlying type is actually this. You are
     /// responsible for doing so via the `objc_type()` method.
     pub fn as_bool(&self) -> bool {
-        let result: BOOL = unsafe { msg_send![&*self.0, boolValue] };
+        let result: BOOL = unsafe {
+            msg_send![&*self.0, boolValue]
+        };
 
         to_bool(result)
     }
 
     /// A helper method for determining if a given `NSObject` is an `NSNumber`.
     pub fn is(obj: id) -> bool {
-        let result: BOOL = unsafe { msg_send![obj, isKindOfClass: class!(NSNumber)] };
+        let result: BOOL = unsafe {
+            msg_send![obj, isKindOfClass:class!(NSNumber)]
+        };
 
         to_bool(result)
     }

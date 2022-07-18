@@ -14,10 +14,10 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel, sel_impl};
 use objc_id::Id;
 
+use crate::foundation::{id, YES, NO, NSUInteger};
 use crate::dragdrop::DragInfo;
-use crate::foundation::{id, NSUInteger, NO, YES};
+use crate::view::{VIEW_DELEGATE_PTR, ViewDelegate};
 use crate::utils::load;
-use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};
 
 /// Injects an `NSView` subclass. This is used for the default views that don't use delegates - we
 /// have separate classes here since we don't want to waste cycles on methods that will never be
@@ -30,8 +30,8 @@ pub(crate) fn register_image_view_class() -> *const Class {
         let superclass = class!(NSImageView);
         let decl = ClassDecl::new("RSTImageView", superclass).unwrap();
 
-        //decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
-
+        //decl.add_method(sel!(isFlipped), enforce_normalcy as extern fn(&Object, _) -> BOOL);
+    
         VIEW_CLASS = decl.register();
     });
 

@@ -42,20 +42,17 @@ impl Defaults {
 /// should work, and I'd rather it crash with a meaningful message rather than `unwrap()` issues.
 fn toggle_bool(key: &str) {
     let mut defaults = UserDefaults::standard();
-
+    
     if let Some(value) = defaults.get(key) {
         if let Some(value) = value.as_bool() {
             defaults.insert(key, Value::Bool(!value));
             return;
         }
-
+        
         panic!("Attempting to toggle a boolean value for {}, but it's not a boolean.", key);
     }
 
-    panic!(
-        "Attempting to toggle a boolean value for {}, but this key does not exist.",
-        key
-    );
+    panic!("Attempting to toggle a boolean value for {}, but this key does not exist.", key);
 }
 
 /// A helper method for loading a boolean value held at the specified key. If the value cannot
@@ -65,12 +62,12 @@ fn toggle_bool(key: &str) {
 /// should work, and I'd rather it crash with a meaningful message rather than `unwrap()` issues.
 fn load_bool(key: &str) -> bool {
     let defaults = UserDefaults::standard();
-
+    
     if let Some(value) = defaults.get(key) {
         if let Some(value) = value.as_bool() {
             return value;
         }
-
+        
         panic!("Attempting to load a boolean value for {}, but it's not a boolean.", key);
     }
 

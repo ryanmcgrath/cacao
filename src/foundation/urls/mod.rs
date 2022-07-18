@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 
-use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::Object;
 use objc_id::ShareId;
 
 use crate::foundation::{id, nil, NSData, NSString, NSUInteger};
@@ -13,11 +13,11 @@ mod bookmark_options;
 pub use bookmark_options::{NSURLBookmarkCreationOption, NSURLBookmarkResolutionOption};
 
 mod resource_keys;
-pub use resource_keys::{NSURLFileResource, NSURLResourceKey, NSUbiquitousItemDownloadingStatus};
+pub use resource_keys::{NSURLResourceKey, NSURLFileResource, NSUbiquitousItemDownloadingStatus}; 
 
 /// Wraps `NSURL` for use throughout the framework.
 ///
-/// This type may also be returned to users in some callbacks (e.g, file manager/selectors) as it's
+/// This type may also be returned to users in some callbacks (e.g, file manager/selectors) as it's 
 /// a core part of the macOS/iOS experience and bridging around it is arguably blocking people from
 /// being able to actually build useful things.
 ///
@@ -52,24 +52,28 @@ impl<'a> NSURL<'a> {
             phantom: PhantomData
         }
     }
-
+        
     /// Creates and returns a URL object by calling through to `[NSURL URLWithString]`.
     pub fn with_str(url: &str) -> Self {
         let url = NSString::new(url);
-
+        
         Self {
-            objc: unsafe { ShareId::from_ptr(msg_send![class!(NSURL), URLWithString:&*url]) },
+            objc: unsafe {
+                ShareId::from_ptr(msg_send![class!(NSURL), URLWithString:&*url])
+            },
 
             phantom: PhantomData
         }
     }
-
+    
     /// Returns the absolute string path that this URL points to.
     ///
     /// Note that if the underlying file moved, this won't be accurate - you likely want to
     /// research URL bookmarks.
     pub fn absolute_string(&self) -> String {
-        let abs_str = NSString::retain(unsafe { msg_send![&*self.objc, absoluteString] });
+        let abs_str = NSString::retain(unsafe {
+            msg_send![&*self.objc, absoluteString]
+        });
 
         abs_str.to_string()
     }
@@ -77,7 +81,9 @@ impl<'a> NSURL<'a> {
     /// Creates and returns a Rust `PathBuf`, for users who don't need the extra pieces of NSURL
     /// and just want to write Rust code.
     pub fn pathbuf(&self) -> PathBuf {
-        let path = NSString::retain(unsafe { msg_send![&*self.objc, path] });
+        let path = NSString::retain(unsafe {
+            msg_send![&*self.objc, path]
+        });
 
         path.to_str().into()
     }
@@ -139,7 +145,7 @@ impl<'a> NSURL<'a> {
 
     /// In an app that has adopted App Sandbox, makes the resource pointed to by a security-scoped URL available to the app.
     ///
-    /// More information can be found at:
+    /// More information can be found at: 
     /// [https://developer.apple.com/documentation/foundation/nsurl/1417051-startaccessingsecurityscopedreso?language=objc]
     pub fn start_accessing_security_scoped_resource(&self) {
         unsafe {

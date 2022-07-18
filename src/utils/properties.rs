@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use objc::runtime::Object;
 use objc_id::Id;
+use objc::runtime::Object;
 
 use crate::foundation::id;
 
@@ -20,17 +20,21 @@ pub struct ObjcProperty(Rc<RefCell<Id<Object>>>);
 impl ObjcProperty {
     /// Given an Objective-C object, retains it and wraps it as a `Property`.
     pub fn retain(obj: id) -> Self {
-        ObjcProperty(Rc::new(RefCell::new(unsafe { Id::from_ptr(obj) })))
+        ObjcProperty(Rc::new(RefCell::new(unsafe {
+            Id::from_ptr(obj)
+        })))
     }
-
+    
     /// Given an Objective-C object, retains it and wraps it as a `Property`.
     pub fn from_retained(obj: id) -> Self {
-        ObjcProperty(Rc::new(RefCell::new(unsafe { Id::from_retained_ptr(obj) })))
+        ObjcProperty(Rc::new(RefCell::new(unsafe {
+            Id::from_retained_ptr(obj)
+        })))
     }
 
     /// Runs a handler with mutable access for the underlying Objective-C object.
     ///
-    /// Note that this is mutable access from the Rust side; we make every effort to ensure things are valid
+    /// Note that this is mutable access from the Rust side; we make every effort to ensure things are valid 
     /// on the Objective-C side as well, but there be dragons.
     pub fn with_mut<F: Fn(id)>(&self, handler: F) {
         let mut obj = self.0.borrow_mut();
@@ -39,7 +43,7 @@ impl ObjcProperty {
 
     /// Runs a handler with the underlying Objective-C type.
     ///
-    /// The handler can return whatever; this is primarily intended for dynamically calling getters
+    /// The handler can return whatever; this is primarily intended for dynamically calling getters 
     /// on the underlying type.
     pub fn get<R, F: Fn(&Object) -> R>(&self, handler: F) -> R {
         let obj = self.0.borrow();

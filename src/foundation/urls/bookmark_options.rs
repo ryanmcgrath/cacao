@@ -9,12 +9,12 @@ pub enum NSURLBookmarkCreationOption {
     /// Specifies that the bookmark data should include properties required to create Finder alias files.
     SuitableForBookmarkFile,
 
-    /// Specifies that you want to create a security-scoped bookmark that, when resolved, provides a
+    /// Specifies that you want to create a security-scoped bookmark that, when resolved, provides a 
     /// security-scoped URL allowing read/write access to a file-system resource.
     SecurityScoped,
 
-    /// When combined with the NSURLBookmarkCreationOptions::SecurityScoped option, specifies that you
-    /// want to create a security-scoped bookmark that, when resolved, provides a security-scoped URL allowing
+    /// When combined with the NSURLBookmarkCreationOptions::SecurityScoped option, specifies that you 
+    /// want to create a security-scoped bookmark that, when resolved, provides a security-scoped URL allowing 
     /// read-only access to a file-system resource.
     SecurityScopedReadOnly
 }
@@ -23,7 +23,7 @@ impl From<NSURLBookmarkCreationOption> for NSUInteger {
     fn from(flag: NSURLBookmarkCreationOption) -> NSUInteger {
         match flag {
             NSURLBookmarkCreationOption::Minimal => 1u64 << 9,
-            NSURLBookmarkCreationOption::SuitableForBookmarkFile => 1u64 << 10,
+            NSURLBookmarkCreationOption::SuitableForBookmarkFile =>  1u64 << 10,
             NSURLBookmarkCreationOption::SecurityScoped => 1 << 11,
             NSURLBookmarkCreationOption::SecurityScopedReadOnly => 1 << 12
         }
@@ -34,7 +34,7 @@ impl From<&NSURLBookmarkCreationOption> for NSUInteger {
     fn from(flag: &NSURLBookmarkCreationOption) -> NSUInteger {
         match flag {
             NSURLBookmarkCreationOption::Minimal => 1u64 << 9,
-            NSURLBookmarkCreationOption::SuitableForBookmarkFile => 1u64 << 10,
+            NSURLBookmarkCreationOption::SuitableForBookmarkFile =>  1u64 << 10,
             NSURLBookmarkCreationOption::SecurityScoped => 1 << 11,
             NSURLBookmarkCreationOption::SecurityScopedReadOnly => 1 << 12
         }
@@ -50,7 +50,7 @@ pub enum NSURLBookmarkResolutionOption {
     /// Specifies that no volume should be mounted during resolution of the bookmark data.
     WithoutMounting,
 
-    /// Specifies that the security scope, applied to the bookmark when it was created, should
+    /// Specifies that the security scope, applied to the bookmark when it was created, should 
     /// be used during resolution of the bookmark data.
     SecurityScoped
 }

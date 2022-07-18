@@ -1,9 +1,9 @@
 //! This example showcases setting up a basic application and window delegate.
 //! Window Delegate's give you lifecycle methods that you can respond to.
 
+use cacao::appkit::{App, AppDelegate};
 use cacao::appkit::menu::{Menu, MenuItem};
 use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
-use cacao::appkit::{App, AppDelegate};
 
 struct BasicApp {
     window: Window<MyWindow>
@@ -19,20 +19,27 @@ impl AppDelegate for BasicApp {
                 MenuItem::HideOthers,
                 MenuItem::ShowAll,
                 MenuItem::Separator,
-                MenuItem::Quit,
+                MenuItem::Quit
             ]),
-            Menu::new("File", vec![MenuItem::CloseWindow]),
-            Menu::new("View", vec![MenuItem::EnterFullScreen]),
+
+            Menu::new("File", vec![
+                MenuItem::CloseWindow
+            ]),
+
+            Menu::new("View", vec![
+                MenuItem::EnterFullScreen
+            ]),
+
             Menu::new("Window", vec![
                 MenuItem::Minimize,
                 MenuItem::Zoom,
                 MenuItem::Separator,
-                MenuItem::new("Bring All to Front"),
-            ]),
+                MenuItem::new("Bring All to Front")
+            ])
         ]);
 
         App::activate();
-
+        
         self.window.show();
     }
 
@@ -73,6 +80,5 @@ impl WindowDelegate for MyWindow {
 fn main() {
     App::new("com.test.window-delegate", BasicApp {
         window: Window::with(WindowConfig::default(), MyWindow::default())
-    })
-    .run();
+    }).run();
 }

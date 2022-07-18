@@ -9,10 +9,10 @@ An example that showcases layout out a view with AutoLayout. This requires the f
 ## Frame Layout
 An example that showcases laying out with a more old school Frame-based approach. Platforms where AutoLayout are not supported will want to try this instead of the AutoLayout example.
 
-**macOS:**
+**macOS:**  
 `cargo run --example frame_layout`
 
-**Platforms lacking AutoLayout:**
+**Platforms lacking AutoLayout:**  
 `cargo run --example frame_layout --no-default-features --features appkit`
 
 ## Defaults

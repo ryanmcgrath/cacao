@@ -4,11 +4,11 @@
 
 use block::ConcreteBlock;
 
-use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::foundation::{id, nil, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, nil, YES, NO, NSInteger, NSString};
 
 #[derive(Debug)]
 pub struct FileSavePanel {
@@ -39,7 +39,9 @@ impl FileSavePanel {
                 ShareId::from_ptr(x)
             },
 
-            delegate: unsafe { ShareId::from_ptr(msg_send![class!(NSObject), new]) },
+            delegate: unsafe {
+                ShareId::from_ptr(msg_send![class!(NSObject), new])
+            },
 
             can_create_directories: true
         }

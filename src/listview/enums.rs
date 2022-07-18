@@ -17,7 +17,7 @@ pub enum RowAnimation {
 
     /// Animates in or out by sliding upwards.
     SlideUp,
-
+    
     /// Animates in or out by sliding down.
     SlideDown,
 
@@ -61,11 +61,9 @@ impl Into<RowEdge> for NSInteger {
             1 => RowEdge::Trailing,
 
             // @TODO: This *should* be unreachable, provided macOS doesn't start
-            // letting people swipe from vertical directions to reveal stuff. Have to
+            // letting people swipe from vertical directions to reveal stuff. Have to 
             // feel like there's a better way to do this, though...
-            _ => {
-                unreachable!();
-            }
+            _ => { unreachable!(); }
         }
     }
 }

@@ -6,7 +6,7 @@ use std::sync::Once;
 
 use objc::class;
 use objc::declare::ClassDecl;
-use objc::runtime::Class;
+use objc::runtime::{Class};
 
 /// Used for injecting a custom UIApplication. Currently does nothing.
 pub(crate) fn register_app_class() -> *const Class {
@@ -19,5 +19,7 @@ pub(crate) fn register_app_class() -> *const Class {
         APP_CLASS = decl.register();
     });
 
-    unsafe { APP_CLASS }
+    unsafe {
+        APP_CLASS
+    }
 }

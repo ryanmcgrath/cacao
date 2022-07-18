@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::foundation::{id, NSData, NSMutableDictionary, NSNumber, NSString};
+use crate::foundation::{id, NSData, NSMutableDictionary, NSString, NSNumber};
 
 /// Represents a Value that can be stored or queried with `UserDefaults`.
 ///
@@ -31,7 +31,7 @@ impl Value {
     pub fn string<S: Into<String>>(value: S) -> Self {
         Value::String(value.into())
     }
-
+    
     /// Returns `true` if the value is a boolean value. Returns `false` otherwise.
     pub fn is_boolean(&self) -> bool {
         match self {
@@ -47,7 +47,7 @@ impl Value {
             _ => None
         }
     }
-
+    
     /// Returns `true` if the value is a string. Returns `false` otherwise.
     pub fn is_string(&self) -> bool {
         match self {
@@ -63,7 +63,7 @@ impl Value {
             _ => None
         }
     }
-
+    
     /// Returns `true` if the value is a float. Returns `false` otherwise.
     pub fn is_integer(&self) -> bool {
         match self {
@@ -154,7 +154,7 @@ where
         let mut dictionary = NSMutableDictionary::new();
 
         for (key, value) in map.into_iter() {
-            let k = NSString::new(key.as_ref());
+            let k = NSString::new(key.as_ref()); 
             dictionary.insert(k, value.into());
         }
 

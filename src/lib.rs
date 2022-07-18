@@ -3,6 +3,7 @@
 #![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 #![cfg_attr(docsrs, deny(rustdoc::broken_intra_doc_links))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+
 // Copyright 2019+, the Cacao developers.
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Dual-licensed under an MIT/MPL-2.0 license, see the LICENSE files in this repository.
@@ -19,9 +20,9 @@
 //! already fine for some apps.
 //!
 //! _Note that this crate relies on the Objective-C runtime. Interfacing with the runtime *requires*
-//! unsafe blocks; this crate handles those unsafe interactions for you and provides a mostly safe wrapper,
-//! but by using this crate you understand that usage of `unsafe` is a given and will be somewhat
-//! rampant for wrapped controls. This does _not_ mean you can't assess, review, or question unsafe
+//! unsafe blocks; this crate handles those unsafe interactions for you and provides a mostly safe wrapper, 
+//! but by using this crate you understand that usage of `unsafe` is a given and will be somewhat 
+//! rampant for wrapped controls. This does _not_ mean you can't assess, review, or question unsafe 
 //! usage - just know it's happening, and in large part it's not going away._
 //!
 //! # Hello World
@@ -29,7 +30,7 @@
 //! ```rust,no_run
 //! use cacao::appkit::app::{App, AppDelegate};
 //! use cacao::appkit::window::Window;
-//!
+//! 
 //! #[derive(Default)]
 //! struct BasicApp {
 //!     window: Window
@@ -92,12 +93,12 @@
 
 pub use core_foundation;
 pub use core_graphics;
-pub use lazy_static;
 pub use objc;
 pub use url;
+pub use lazy_static;
 
 //#[cfg(all(feature = "appkit", feature = "uikit", not(feature = "doc_cfg")))]
-//compile_error!("The \"appkit\" and \"uikit\" features cannot be enabled together. Pick one. :)");
+//compile_error!("The \"appkit\" and \"uikit\" features cannot be enabled together. Pick one. :)");   
 
 #[cfg(feature = "appkit")]
 #[cfg_attr(docsrs, doc(cfg(feature = "appkit")))]
@@ -152,8 +153,8 @@ pub mod layout;
 #[cfg(feature = "appkit")]
 pub mod listview;
 pub mod networking;
-pub mod notification_center;
 pub(crate) mod objc_access;
+pub mod notification_center;
 
 #[cfg(feature = "appkit")]
 pub mod pasteboard;

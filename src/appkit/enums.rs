@@ -1,13 +1,13 @@
 //! Generic enums that don't fit anywhere else yet.
 
-use crate::foundation::NSUInteger;
+use crate::foundation::{NSUInteger};
 
 /// Used to set whether and/or how a view or cell draws a focus ring.
 #[derive(Debug)]
 pub enum FocusRingType {
     /// Whatever the default is.
     Default,
-
+    
     /// None.
     None,
 

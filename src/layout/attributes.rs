@@ -91,18 +91,18 @@ pub enum LayoutAttribute {
     /// The center along the y-axis of the object’s alignment rectangle.
     CenterY,
 
-    /// The object’s baseline. For objects with more than one line of text,
+    /// The object’s baseline. For objects with more than one line of text, 
     /// this is the baseline for the bottommost line of text.
     LastBaseline,
 
-    /// The object’s baseline. For objects with more than one line of text,
+    /// The object’s baseline. For objects with more than one line of text, 
     /// this is the baseline for the topmost line of text.
     FirstBaseline,
 
-    /// A placeholder value that is used to indicate that the constraint’s
-    /// second item and second attribute are not used in any calculations.
+    /// A placeholder value that is used to indicate that the constraint’s 
+    /// second item and second attribute are not used in any calculations. 
     ///
-    /// This can be useful constraint that assigns a constant to an attribute.
+    /// This can be useful constraint that assigns a constant to an attribute. 
     NotAnAttribute,
 
     /// Represents an unknown value. This should never be constructed, but acts as a guard against
@@ -166,10 +166,10 @@ pub enum LayoutFormat {
     /// Align all specified interface elements using the last baseline of each one.
     AlignAllLastBaseline,
 
-    /// Arrange objects in order based on the normal text flow for the current user
-    /// interface language. In left-to-right languages (like English), this arrangement
-    /// results in the first object being placed farthest to the left, the next one to
-    /// its right, and so on. In right-to-left languages (like Arabic or Hebrew), the
+    /// Arrange objects in order based on the normal text flow for the current user 
+    /// interface language. In left-to-right languages (like English), this arrangement 
+    /// results in the first object being placed farthest to the left, the next one to 
+    /// its right, and so on. In right-to-left languages (like Arabic or Hebrew), the 
     /// ordering is reversed.
     DirectionLeadingToTrailing,
 

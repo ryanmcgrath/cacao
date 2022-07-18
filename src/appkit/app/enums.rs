@@ -12,10 +12,10 @@ pub enum TerminateResponse {
     /// App should not be terminated.
     Cancel,
 
-    /// It might be fine to proceed with termination later. Returning this value causes
+    /// It might be fine to proceed with termination later. Returning this value causes 
     /// Cocoa to run the run loop until `should_terminate()` returns `true` or `false`.
     ///
-    /// This return value is for primarily for cases where you need to provide alerts
+    /// This return value is for primarily for cases where you need to provide alerts 
     /// in order to decide whether to quit.
     Later
 }
@@ -67,7 +67,7 @@ impl From<AppDelegateResponse> for NSUInteger {
 /// - _`AutoHideMenuBar` and `HideMenuBar` are mutually exclusive: You may specify one or the other, but not both._
 /// - _If you specify `HideMenuBar`, it must be accompanied by `HideDock`._
 /// - _If you specify `AutoHideMenuBar`, it must be accompanied by either `HideDock` or `AutoHideDock`._
-/// - _If you specify any of `DisableProcessSwitching`, `DisableForceQuit`, `DisableSessionTermination`, or `DisableMenuBarTransparency`,
+/// - _If you specify any of `DisableProcessSwitching`, `DisableForceQuit`, `DisableSessionTermination`, or `DisableMenuBarTransparency`, 
 /// it must be accompanied by either `HideDock` or `AutoHideDock`._
 /// - _`AutoHideToolbar` may be used only when both `FullScreen` and `AutoHideMenuBar` are also set.
 #[derive(Copy, Clone, Debug)]
@@ -86,10 +86,10 @@ pub enum PresentationOption {
 
     /// Menubar is entirely disabled.
     HideMenuBar,
-
+    
     /// All Apple Menu items are disabled.
     DisableAppleMenu,
-
+    
     /// The process switching user interface (Command + Tab to cycle through apps) is disabled.
     DisableProcessSwitching,
 
@@ -121,14 +121,14 @@ impl From<PresentationOption> for NSUInteger {
             PresentationOption::Default => 0,
             PresentationOption::AutoHideDock => (1 << 0),
             PresentationOption::HideDock => (1 << 1),
-            PresentationOption::AutoHideMenuBar => (1 << 2),
+            PresentationOption::AutoHideMenuBar => (1 <<  2),
             PresentationOption::HideMenuBar => (1 << 3),
             PresentationOption::DisableAppleMenu => (1 << 4),
             PresentationOption::DisableProcessSwitching => (1 << 5),
-            PresentationOption::DisableForceQuit => (1 << 6),
-            PresentationOption::DisableSessionTermination => (1 << 7),
-            PresentationOption::DisableHideApplication => (1 << 8),
-            PresentationOption::DisableMenuBarTransparency => (1 << 9),
+            PresentationOption::DisableForceQuit => (1 <<  6),
+            PresentationOption::DisableSessionTermination => (1 <<  7),
+            PresentationOption::DisableHideApplication => (1 <<  8),
+            PresentationOption::DisableMenuBarTransparency => (1 <<  9),
             PresentationOption::FullScreen => (1 << 10),
             PresentationOption::AutoHideToolbar => (1 << 11),
             PresentationOption::DisableCursorLocationAssistance => (1 << 12)
@@ -142,14 +142,14 @@ impl From<&PresentationOption> for NSUInteger {
             PresentationOption::Default => 0,
             PresentationOption::AutoHideDock => (1 << 0),
             PresentationOption::HideDock => (1 << 1),
-            PresentationOption::AutoHideMenuBar => (1 << 2),
+            PresentationOption::AutoHideMenuBar => (1 <<  2),
             PresentationOption::HideMenuBar => (1 << 3),
             PresentationOption::DisableAppleMenu => (1 << 4),
             PresentationOption::DisableProcessSwitching => (1 << 5),
-            PresentationOption::DisableForceQuit => (1 << 6),
-            PresentationOption::DisableSessionTermination => (1 << 7),
-            PresentationOption::DisableHideApplication => (1 << 8),
-            PresentationOption::DisableMenuBarTransparency => (1 << 9),
+            PresentationOption::DisableForceQuit => (1 <<  6),
+            PresentationOption::DisableSessionTermination => (1 <<  7),
+            PresentationOption::DisableHideApplication => (1 <<  8),
+            PresentationOption::DisableMenuBarTransparency => (1 <<  9),
             PresentationOption::FullScreen => (1 << 10),
             PresentationOption::AutoHideToolbar => (1 << 11),
             PresentationOption::DisableCursorLocationAssistance => (1 << 12)

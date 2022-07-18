@@ -33,14 +33,14 @@ use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::appkit::window::{Window, WindowConfig, WindowDelegate, WINDOW_DELEGATE_PTR};
 use crate::foundation::{id, nil};
 use crate::utils::Controller;
+use crate::appkit::window::{Window, WindowConfig, WindowDelegate, WINDOW_DELEGATE_PTR};
 
 mod class;
 use class::register_window_controller_class;
 
-/// A `WindowController` wraps your `WindowDelegate` into an underlying `Window`, and
+/// A `WindowController` wraps your `WindowDelegate` into an underlying `Window`, and 
 /// provides some extra lifecycle methods.
 pub struct WindowController<T> {
     /// A handler to the underlying `NSWindowController`.
@@ -50,10 +50,7 @@ pub struct WindowController<T> {
     pub window: Window<T>
 }
 
-impl<T> WindowController<T>
-where
-    T: WindowDelegate + 'static
-{
+impl<T> WindowController<T> where T: WindowDelegate + 'static {
     /// Allocates and configures an `NSWindowController` in the Objective-C/Cocoa runtime that maps over
     /// to your supplied delegate.
     pub fn with(config: WindowConfig, delegate: T) -> Self {
@@ -87,7 +84,7 @@ where
     /// Shows the window, running a configuration pass if necessary.
     pub fn show(&self) {
         unsafe {
-            let _: () = msg_send![&*self.objc, showWindow: nil];
+            let _: () = msg_send![&*self.objc, showWindow:nil];
         }
     }
 
@@ -101,6 +98,8 @@ where
 
 impl<T> fmt::Debug for WindowController<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("WindowController").field("objc", &self.objc).finish()
+        f.debug_struct("WindowController")
+            .field("objc", &self.objc)
+            .finish()
     }
 }

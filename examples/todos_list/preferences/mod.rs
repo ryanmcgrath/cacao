@@ -1,7 +1,7 @@
 //! Implements a stock-ish Preferences window.
 
-use cacao::appkit::toolbar::Toolbar;
 use cacao::appkit::window::{Window, WindowDelegate};
+use cacao::appkit::toolbar::Toolbar;
 use cacao::view::ViewController;
 
 use crate::storage::Message;
@@ -33,7 +33,7 @@ impl PreferencesWindow {
             window: None
         }
     }
-
+    
     pub fn on_message(&self, message: Message) {
         let window = self.window.as_ref().unwrap();
 
@@ -56,11 +56,11 @@ impl PreferencesWindow {
 impl WindowDelegate for PreferencesWindow {
     const NAME: &'static str = "PreferencesWindow";
 
-    fn did_load(&mut self, window: Window) {
+    fn did_load(&mut self, window: Window) { 
         window.set_autosave_name("TodosPreferencesWindow");
         window.set_movable_by_background(true);
         window.set_toolbar(&self.toolbar);
-
+ 
         self.window = Some(window);
 
         self.on_message(Message::SwitchPreferencesToGeneralPane);

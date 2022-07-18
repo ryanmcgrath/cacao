@@ -6,9 +6,9 @@ use cacao::geometry::Rect;
 use cacao::layout::Layout;
 use cacao::view::View;
 
+use cacao::appkit::{App, AppDelegate};
 use cacao::appkit::menu::{Menu, MenuItem};
 use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
-use cacao::appkit::{App, AppDelegate};
 
 const CORNER_RADIUS: f64 = 16.;
 const SPACING: f64 = 10.;
@@ -30,16 +30,23 @@ impl AppDelegate for BasicApp {
                 MenuItem::HideOthers,
                 MenuItem::ShowAll,
                 MenuItem::Separator,
-                MenuItem::Quit,
+                MenuItem::Quit
             ]),
-            Menu::new("File", vec![MenuItem::CloseWindow]),
-            Menu::new("View", vec![MenuItem::EnterFullScreen]),
+
+            Menu::new("File", vec![
+                MenuItem::CloseWindow
+            ]),
+
+            Menu::new("View", vec![
+                MenuItem::EnterFullScreen
+            ]),
+
             Menu::new("Window", vec![
                 MenuItem::Minimize,
                 MenuItem::Zoom,
                 MenuItem::Separator,
-                MenuItem::new("Bring All to Front"),
-            ]),
+                MenuItem::new("Bring All to Front")
+            ])
         ]);
 
         App::activate();
@@ -108,6 +115,5 @@ impl WindowDelegate for AppWindow {
 fn main() {
     App::new("com.test.window", BasicApp {
         window: Window::with(WindowConfig::default(), AppWindow::default())
-    })
-    .run();
+    }).run();
 }

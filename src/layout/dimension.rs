@@ -1,7 +1,7 @@
 use core_graphics::base::CGFloat;
 
-use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::Object;
 use objc_id::ShareId;
 
 use crate::foundation::{id, nil, NSInteger};
@@ -38,12 +38,16 @@ impl Default for LayoutAnchorDimension {
 impl LayoutAnchorDimension {
     /// Given a view, returns an anchor for the width anchor.
     pub(crate) fn width(view: id) -> Self {
-        Self::Width(unsafe { ShareId::from_ptr(msg_send![view, widthAnchor]) })
+        Self::Width(unsafe {
+            ShareId::from_ptr(msg_send![view, widthAnchor])
+        })
     }
 
     /// Given a view, returns an anchor for the height anchor.
     pub(crate) fn height(view: id) -> Self {
-        Self::Height(unsafe { ShareId::from_ptr(msg_send![view, heightAnchor]) })
+        Self::Height(unsafe {
+            ShareId::from_ptr(msg_send![view, heightAnchor])
+        })
     }
 
     /// Return a constraint equal to a constant value.
@@ -51,10 +55,10 @@ impl LayoutAnchorDimension {
         if let Self::Width(obj) | Self::Height(obj) = self {
             return LayoutConstraint::new(unsafe {
                 let value = constant as CGFloat;
-                msg_send![*obj, constraintEqualToConstant: value]
+                msg_send![*obj, constraintEqualToConstant:value]
             });
         }
-
+        
         panic!("Attempted to create a constant constraint with an uninitialized anchor.");
     }
 
@@ -63,22 +67,22 @@ impl LayoutAnchorDimension {
         if let Self::Width(obj) | Self::Height(obj) = self {
             return LayoutConstraint::new(unsafe {
                 let value = constant as CGFloat;
-                msg_send![*obj, constraintGreaterThanOrEqualToConstant: value]
+                msg_send![*obj, constraintGreaterThanOrEqualToConstant:value]
             });
         }
-
+        
         panic!("Attempted to create a constraint (>=) with an uninitialized anchor.");
     }
-
+    
     /// Return a constraint greater than or equal to a constant value.
     pub fn constraint_less_than_or_equal_to_constant(&self, constant: f64) -> LayoutConstraint {
         if let Self::Width(obj) | Self::Height(obj) = self {
             return LayoutConstraint::new(unsafe {
                 let value = constant as CGFloat;
-                msg_send![*obj, constraintLessThanOrEqualToConstant: value]
+                msg_send![*obj, constraintLessThanOrEqualToConstant:value]
             });
         }
-
+        
         panic!("Attempted to create a constraint (<=) with an uninitialized anchor.");
     }
 
@@ -90,11 +94,13 @@ impl LayoutAnchorDimension {
         F: Fn(&ShareId<Object>, &ShareId<Object>) -> id
     {
         match (self, anchor_to) {
-            (Self::Width(from), Self::Width(to))
-            | (Self::Width(from), Self::Height(to))
-            | (Self::Height(from), Self::Width(to))
-            | (Self::Height(from), Self::Height(to)) => LayoutConstraint::new(handler(from, to)),
-
+            (Self::Width(from), Self::Width(to)) |
+            (Self::Width(from), Self::Height(to)) |
+            (Self::Height(from), Self::Width(to)) |
+            (Self::Height(from), Self::Height(to)) => {
+                LayoutConstraint::new(handler(from, to))
+            },
+            
             (Self::Uninitialized, Self::Uninitialized) => {
                 panic!("Attempted to create constraints with an uninitialized \"from\" and \"to\" dimension anchor.");
             },
@@ -102,6 +108,7 @@ impl LayoutAnchorDimension {
             (Self::Uninitialized, _) => {
                 panic!("Attempted to create constraints with an uninitialized \"from\" dimension anchor.");
             },
+
 
             (_, Self::Uninitialized) => {
                 panic!("Attempted to create constraints with an uninitialized \"to\" dimension anchor.");

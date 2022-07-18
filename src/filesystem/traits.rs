@@ -11,17 +11,17 @@ pub trait OpenSaveController {
     /// Notifies you that the user changed directories.
     fn did_change_to_directory(&self, _url: &str) {}
 
-    /// Notifies you that the Save panel is about to expand or collapse because the user
+    /// Notifies you that the Save panel is about to expand or collapse because the user 
     /// clicked the disclosure triangle that displays or hides the file browser.
     fn will_expand(&self, _expanding: bool) {}
 
     /// Determine whether the specified URL should be enabled in the Open panel.
-    fn should_enable_url(&self, _url: &str) -> bool {
-        true
-    }
+    fn should_enable_url(&self, _url: &str) -> bool { true }
 }
 
 /// A trait you can implement for working with the underlying filesystem. This is important,
 /// notably, because sandboxed applications have different working restrictions surrounding what
 /// they can access.
-pub trait FileManagerController {}
+pub trait FileManagerController {
+
+}

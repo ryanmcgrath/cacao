@@ -2,13 +2,13 @@
 //! heirarchies.
 
 use core_graphics::base::CGFloat;
-use core_graphics::geometry::{CGPoint, CGRect, CGSize};
+use core_graphics::geometry::{CGRect, CGPoint, CGSize};
 
-use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
+use objc::runtime::Object;
 use objc_id::ShareId;
 
-use crate::foundation::{id, nil, to_bool, NSArray, NSString, NO, YES};
+use crate::foundation::{id, nil, to_bool, YES, NO, NSArray, NSString};
 use crate::geometry::Rect;
 use crate::objc_access::ObjcAccess;
 
@@ -36,7 +36,7 @@ pub trait Layout: ObjcAccess {
     fn add_subview<V: Layout>(&self, view: &V) {
         self.with_backing_obj_mut(|backing_node| {
             view.with_backing_obj_mut(|subview_node| unsafe {
-                let _: () = msg_send![backing_node, addSubview: subview_node];
+                let _: () = msg_send![backing_node, addSubview:subview_node];
             });
         });
     }
@@ -55,12 +55,12 @@ pub trait Layout: ObjcAccess {
     /// use an appropriate initializer for a given view type).
     fn set_frame<R: Into<CGRect>>(&self, rect: R) {
         let frame: CGRect = rect.into();
-
+        
         self.with_backing_obj_mut(move |backing_node| unsafe {
-            let _: () = msg_send![backing_node, setFrame: frame];
+            let _: () = msg_send![backing_node, setFrame:frame];
         });
     }
-
+    
     /// Sets whether the view for this trait should translate autoresizing masks into layout
     /// constraints.
     ///
@@ -78,7 +78,7 @@ pub trait Layout: ObjcAccess {
 
     /// Sets whether the view for this is hidden or not.
     ///
-    /// When hidden, widgets don't receive events and is not visible.
+    /// When hidden, widgets don't receive events and is not visible. 
     fn set_hidden(&self, hide: bool) {
         self.with_backing_obj_mut(|obj| unsafe {
             let _: () = msg_send![obj, setHidden:match hide {
@@ -89,17 +89,25 @@ pub trait Layout: ObjcAccess {
     }
 
     /// Returns whether this is hidden or not.
-    ///
-    /// Note that this can report `false` if an ancestor widget is hidden, thus hiding this - to check in
+    /// 
+    /// Note that this can report `false` if an ancestor widget is hidden, thus hiding this - to check in 
     /// that case, you may want `is_hidden_or_ancestor_is_hidden()`.
     fn is_hidden(&self) -> bool {
-        self.get_from_backing_obj(|obj| to_bool(unsafe { msg_send![obj, isHidden] }))
+        self.get_from_backing_obj(|obj| {
+            to_bool(unsafe {
+                msg_send![obj, isHidden]
+            })
+        })
     }
-
+    
     /// Returns whether this is hidden, *or* whether an ancestor view is hidden.
     #[cfg(feature = "appkit")]
     fn is_hidden_or_ancestor_is_hidden(&self) -> bool {
-        self.get_from_backing_obj(|obj| to_bool(unsafe { msg_send![obj, isHiddenOrHasHiddenAncestor] }))
+        self.get_from_backing_obj(|obj| {
+            to_bool(unsafe {
+                msg_send![obj, isHiddenOrHasHiddenAncestor]
+            })
+        })
     }
 
     /// Register this view for drag and drop operations.
@@ -108,14 +116,10 @@ pub trait Layout: ObjcAccess {
     /// currently to avoid compile issues.
     #[cfg(feature = "appkit")]
     fn register_for_dragged_types(&self, types: &[PasteboardType]) {
-        let types: NSArray = types
-            .into_iter()
-            .map(|t| {
-                let x: NSString = (*t).into();
-                x.into()
-            })
-            .collect::<Vec<id>>()
-            .into();
+        let types: NSArray = types.into_iter().map(|t| {
+            let x: NSString = (*t).into();
+            x.into()
+        }).collect::<Vec<id>>().into();
 
         self.with_backing_obj_mut(|obj| unsafe {
             let _: () = msg_send![obj, registerForDraggedTypes:&*types];
@@ -127,7 +131,7 @@ pub trait Layout: ObjcAccess {
     /// This should be supported under UIKit as well, but is featured gated under AppKit
     /// currently to avoid compile issues.
     #[cfg(feature = "appkit")]
-    fn unregister_dragged_types(&self) {
+    fn unregister_dragged_types(&self) { 
         self.with_backing_obj_mut(|obj| unsafe {
             let _: () = msg_send![obj, unregisterDraggedTypes];
         });
@@ -168,7 +172,7 @@ pub trait Layout: ObjcAccess {
         let value: CGFloat = value.into();
 
         self.with_backing_obj_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setAlphaValue: value];
+            let _: () = msg_send![obj, setAlphaValue:value];
         });
     }
 }

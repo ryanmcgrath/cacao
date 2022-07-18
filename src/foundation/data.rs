@@ -5,11 +5,11 @@ use std::slice;
 
 use block::{Block, ConcreteBlock};
 
-use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::Object;
 use objc_id::Id;
 
-use crate::foundation::{id, to_bool, NSUInteger, BOOL, NO, YES};
+use crate::foundation::{id, to_bool, BOOL, YES, NO, NSUInteger};
 
 /// Wrapper for a retained `NSData` object.
 ///
@@ -49,7 +49,7 @@ impl NSData {
             NSData(Id::from_ptr(obj))
         }
     }
-
+    
     /// Given a slice of bytes, creates, retains, and returns a wrapped `NSData`.
     ///
     /// This method is borrowed straight out of [objc-foundation](objc-foundation) by the amazing
@@ -67,18 +67,24 @@ impl NSData {
 
     /// Given a (presumably) `NSData`, wraps and retains it.
     pub fn retain(data: id) -> Self {
-        NSData(unsafe { Id::from_ptr(data) })
+        NSData(unsafe {
+            Id::from_ptr(data)
+        })
     }
 
     /// If we're vended an NSData from a method (e.g, a push notification token) we might want to
     /// wrap it while we figure out what to do with it. This does that.
     pub fn from_retained(data: id) -> Self {
-        NSData(unsafe { Id::from_retained_ptr(data) })
+        NSData(unsafe {
+            Id::from_retained_ptr(data)
+        })
     }
 
     /// A helper method for determining if a given `NSObject` is an `NSData`.
     pub fn is(obj: id) -> bool {
-        let result: BOOL = unsafe { msg_send![obj, isKindOfClass: class!(NSData)] };
+        let result: BOOL = unsafe {
+            msg_send![obj, isKindOfClass:class!(NSData)]
+        };
 
         to_bool(result)
     }
@@ -90,7 +96,7 @@ impl NSData {
             x as usize
         }
     }
-
+    
     /// Returns a reference to the underlying bytes for the wrapped `NSData`.
     ///
     /// This, like `NSData::new()`, is cribbed from [objc-foundation](objc-foundation).
@@ -98,17 +104,19 @@ impl NSData {
     /// [objc-foundation](https://crates.io/crates/objc-foundation)
     pub fn bytes(&self) -> &[u8] {
         let ptr: *const c_void = unsafe { msg_send![&*self.0, bytes] };
-
+        
         // The bytes pointer may be null for length zero
         let (ptr, len) = if ptr.is_null() {
             (0x1 as *const u8, 0)
         } else {
             (ptr as *const u8, self.len())
         };
-
-        unsafe { slice::from_raw_parts(ptr, len) }
+        
+        unsafe {
+            slice::from_raw_parts(ptr, len)
+        }
     }
-
+    
     /// Creates a new Vec, copies the NSData (safely, but quickly) bytes into that Vec, and
     /// consumes the NSData enabling it to release (provided nothing in Cocoa is using it).
     ///
@@ -118,11 +126,11 @@ impl NSData {
     // often, but still... open to ideas.
     pub fn into_vec(self) -> Vec<u8> {
         let mut data = Vec::new();
-
+        
         let bytes = self.bytes();
         data.resize(bytes.len(), 0);
         data.copy_from_slice(bytes);
-
+        
         data
     }
 }

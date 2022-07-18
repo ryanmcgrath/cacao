@@ -1,9 +1,10 @@
+
 use cacao::objc::{msg_send, sel, sel_impl};
 
 use cacao::button::Button;
 use cacao::input::{TextField, TextFieldDelegate};
 
-use cacao::appkit::toolbar::{ItemIdentifier, Toolbar, ToolbarDelegate, ToolbarDisplayMode, ToolbarItem};
+use cacao::appkit::toolbar::{Toolbar, ToolbarDisplayMode, ToolbarItem, ItemIdentifier, ToolbarDelegate};
 
 use super::Action;
 
@@ -44,8 +45,8 @@ impl BrowserToolbar {
 
         let url_bar = TextField::with(URLBar);
         let url_bar_item = ToolbarItem::new(URL_BAR);
-
-        // We cheat for now to link these, as there's no API for Toolbar yet
+        
+        // We cheat for now to link these, as there's no API for Toolbar yet 
         // to support arbitrary view types. The framework is designed to support this kind of
         // cheating, though: it's not outlandish to need to just manage things yourself when it
         // comes to Objective-C/AppKit sometimes.
@@ -73,7 +74,7 @@ impl BrowserToolbar {
             ItemIdentifier::Custom(FWDS_BUTTON),
             ItemIdentifier::Space,
             ItemIdentifier::Custom(URL_BAR),
-            ItemIdentifier::Space,
+            ItemIdentifier::Space
         ]
     }
 }
@@ -98,9 +99,7 @@ impl ToolbarDelegate for BrowserToolbar {
             BACK_BUTTON => &self.back_item,
             FWDS_BUTTON => &self.forwards_item,
             URL_BAR => &self.url_bar_item,
-            _ => {
-                std::unreachable!();
-            }
+            _ => { std::unreachable!(); }
         }
     }
 }

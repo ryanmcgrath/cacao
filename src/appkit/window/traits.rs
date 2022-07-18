@@ -8,7 +8,7 @@ use crate::appkit::window::Window;
 /// Lifecycle events for anything that `impl Window`'s. These map to the standard Cocoa
 /// lifecycle methods, but mix in a few extra things to handle offering configuration tools
 /// in lieu of subclasses.
-pub trait WindowDelegate {
+pub trait WindowDelegate {    
     /// Used to cache subclass creations on the Objective-C side.
     /// You can just set this to be the name of your view type. This
     /// value *must* be unique per-type.
@@ -28,15 +28,13 @@ pub trait WindowDelegate {
 
     /// Called when the user has attempted to close the window. NOT called when a user quits the
     /// application. Return false here if you need to handle the edge case.
-    fn should_close(&self) -> bool {
-        true
-    }
+    fn should_close(&self) -> bool { true }
 
     /// Fires when a window is going to close. You might opt to, say, clean up things here -
     /// perhaps you have a long running task, or something that should be removed.
     fn will_close(&self) {}
 
-    /// Fired when the window is about to move.
+    /// Fired when the window is about to move. 
     fn will_move(&self) {}
 
     /// Fired after the window has moved.
@@ -48,10 +46,8 @@ pub trait WindowDelegate {
     ///
     /// The default implementation of this method returns `None`, indicating the system should just
     /// do its thing. If you implement it, you probably want that.
-    fn will_resize(&self, width: f64, height: f64) -> (f64, f64) {
-        (width, height)
-    }
-
+    fn will_resize(&self, width: f64, height: f64) -> (f64, f64) { (width, height) }
+    
     /// Fired after the window has resized.
     fn did_resize(&self) {}
 
@@ -97,16 +93,14 @@ pub trait WindowDelegate {
     /// Fires when the system is moving a window to full screen and wants to know what content size
     /// to use. By default, this just returns the system-provided content size, but you can
     /// override it if need be.
-    fn content_size_for_full_screen(&self, proposed_width: f64, proposed_height: f64) -> (f64, f64) {
+    fn content_size_for_full_screen(&self, proposed_width: f64, proposed_height: f64) -> (f64, f64) { 
         (proposed_width, proposed_height)
     }
 
     /// Specify options for when this window goes full screen.
     /// By default, this returns `None`, which tells the system to proceed as it normally would
     /// without customization.
-    fn presentation_options_for_full_screen(&self) -> Option<&[PresentationOption]> {
-        None
-    }
+    fn presentation_options_for_full_screen(&self) -> Option<&[PresentationOption]> { None }
 
     /// Fires when this window is about to go full screen.
     fn will_enter_full_screen(&self) {}
@@ -125,7 +119,7 @@ pub trait WindowDelegate {
 
     /// Fires when this window failed to exit full screen.
     fn did_fail_to_exit_full_screen(&self) {}
-
+    
     /// Fired when the occlusion state for this window has changed. Similar in nature to the
     /// app-level event, just for a Window.
     fn did_change_occlusion_state(&self) {}

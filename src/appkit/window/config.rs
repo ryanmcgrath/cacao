@@ -2,9 +2,9 @@
 //! mask). This configuration object acts as a way to orchestrate enabling customization before the
 //! window object is created - it's returned in your `WindowDelegate` object.
 
-use crate::appkit::window::enums::{WindowStyle, WindowToolbarStyle};
 use crate::foundation::NSUInteger;
 use crate::geometry::Rect;
+use crate::appkit::window::enums::{WindowStyle, WindowToolbarStyle};
 
 #[derive(Debug)]
 pub struct WindowConfig {
@@ -14,11 +14,11 @@ pub struct WindowConfig {
     /// The initial dimensions for the window.
     pub initial_dimensions: Rect,
 
-    /// From the Apple docs:
+    /// From the Apple docs: 
     ///
-    /// _"When true, the window server defers creating the window device
-    /// until the window is moved onscreen. All display messages sent to
-    /// the window or its views are postponed until the window is created,
+    /// _"When true, the window server defers creating the window device 
+    /// until the window is moved onscreen. All display messages sent to 
+    /// the window or its views are postponed until the window is created, 
     /// just before it’s moved onscreen."_
     ///
     /// You generally just want this to be true, and it's the default for this struct.
@@ -45,12 +45,8 @@ impl Default for WindowConfig {
         };
 
         config.set_styles(&[
-            WindowStyle::Resizable,
-            WindowStyle::Miniaturizable,
-            WindowStyle::UnifiedTitleAndToolbar,
-            WindowStyle::Closable,
-            WindowStyle::Titled,
-            WindowStyle::FullSizeContentView
+            WindowStyle::Resizable, WindowStyle::Miniaturizable, WindowStyle::UnifiedTitleAndToolbar,
+            WindowStyle::Closable, WindowStyle::Titled, WindowStyle::FullSizeContentView
         ]);
 
         config

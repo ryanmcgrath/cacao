@@ -1,4 +1,4 @@
-//! This module contains traits and helpers for layout. By default, standard frame-based layouts
+//! This module contains traits and helpers for layout. By default, standard frame-based layouts 
 //! are supported via the `Layout` trait, which all widgets implement. If you opt in to the
 //! `AutoLayout` feature, each widget will default to using AutoLayout, which can be beneficial in
 //! more complicated views that need to deal with differing screen sizes.

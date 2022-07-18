@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 
-use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::Object;
 use objc_id::Id;
 
 use crate::foundation::{id, NSString};
@@ -26,7 +26,9 @@ impl NSMutableDictionary {
     /// object model. You can, of course, bypass it and `msg_send![]` yourself, but it'd require an
     /// `unsafe {}` block... so you'll know you're in special territory then.
     pub fn new() -> Self {
-        NSMutableDictionary(unsafe { Id::from_ptr(msg_send![class!(NSMutableDictionary), new]) })
+        NSMutableDictionary(unsafe {
+            Id::from_ptr(msg_send![class!(NSMutableDictionary), new])
+        })
     }
 
     /// Inserts an object into the backing NSMutablyDictionary.

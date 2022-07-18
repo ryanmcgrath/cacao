@@ -7,15 +7,18 @@ pub enum SessionRole {
     Application,
 
     /// Noninteractive windows on an external display.
-    ExternalDisplay // Interactive content on a CarPlay screen.
-                    //CarPlayApplication
+    ExternalDisplay,
+
+    // Interactive content on a CarPlay screen.
+    //CarPlayApplication
 }
 
 impl From<SessionRole> for NSString<'_> {
     fn from(role: SessionRole) -> Self {
         match role {
             SessionRole::Application => NSString::no_copy("UIWindowSceneSessionRoleApplication"),
-            SessionRole::ExternalDisplay => NSString::no_copy("UIWindowSceneSessionRoleExternalDisplay") //SessionRole::CarPlayApplication => ""
+            SessionRole::ExternalDisplay => NSString::no_copy("UIWindowSceneSessionRoleExternalDisplay"),
+            //SessionRole::CarPlayApplication => ""
         }
     }
 }

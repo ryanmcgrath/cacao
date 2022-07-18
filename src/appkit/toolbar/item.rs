@@ -3,17 +3,17 @@
 //!
 //! UNFORTUNATELY, this is a very old and janky API. So... yeah.
 
-use core_graphics::geometry::CGSize;
 use std::fmt;
+use core_graphics::geometry::CGSize;
 
+use objc_id::{Id, ShareId};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::{Id, ShareId};
 
-use crate::button::{BezelStyle, Button};
-use crate::foundation::{id, NSString, NO, YES};
-use crate::image::Image;
+use crate::foundation::{id, YES, NO, NSString};
 use crate::invoker::TargetActionHandler;
+use crate::button::{Button, BezelStyle};
+use crate::image::Image;
 
 /// Wraps `NSToolbarItem`. Enables configuring things like size, view, and so on.
 #[derive(Debug)]
@@ -34,7 +34,7 @@ impl ToolbarItem {
         let objc = unsafe {
             let identifr = NSString::new(&identifier);
             let alloc: id = msg_send![class!(NSToolbarItem), alloc];
-            let item: id = msg_send![alloc, initWithItemIdentifier: identifr];
+            let item: id = msg_send![alloc, initWithItemIdentifier:identifr];
             Id::from_ptr(item)
         };
 
@@ -70,9 +70,9 @@ impl ToolbarItem {
         button.set_bezel_style(BezelStyle::TexturedRounded);
 
         button.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![&*self.objc, setView: obj];
+            let _: () = msg_send![&*self.objc, setView:obj];
         });
-
+        
         self.button = Some(button);
     }
 
@@ -89,7 +89,7 @@ impl ToolbarItem {
     pub fn set_min_size(&mut self, width: f64, height: f64) {
         unsafe {
             let size = CGSize::new(width.into(), height.into());
-            let _: () = msg_send![&*self.objc, setMinSize: size];
+            let _: () = msg_send![&*self.objc, setMinSize:size];
         }
     }
 
@@ -97,7 +97,7 @@ impl ToolbarItem {
     pub fn set_max_size(&mut self, width: f64, height: f64) {
         unsafe {
             let size = CGSize::new(width.into(), height.into());
-            let _: () = msg_send![&*self.objc, setMaxSize: size];
+            let _: () = msg_send![&*self.objc, setMaxSize:size];
         }
     }
 

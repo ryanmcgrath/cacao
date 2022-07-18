@@ -6,23 +6,23 @@ use std::fmt;
 use std::sync::Once;
 
 use block::ConcreteBlock;
+use objc::{class, msg_send, sel, sel_impl};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::events::EventModifierFlag;
 use crate::foundation::{id, nil, NSString, NSUInteger};
+use crate::events::EventModifierFlag;
 
 static BLOCK_PTR: &'static str = "cacaoMenuItemBlockPtr";
 
 /// An Action is just an indirection layer to get around Rust and optimizing
-/// zero-sum types; without this, pointers to callbacks will end up being
-/// 0x1, and all point to whatever is there first (unsure if this is due to
+/// zero-sum types; without this, pointers to callbacks will end up being 
+/// 0x1, and all point to whatever is there first (unsure if this is due to 
 /// Rust or Cocoa or what).
 ///
 /// Point is, Button aren't created that much in the grand scheme of things,
-/// and the heap isn't our enemy in a GUI framework anyway. If someone knows
+/// and the heap isn't our enemy in a GUI framework anyway. If someone knows 
 /// a better way to do this that doesn't require double-boxing, I'm all ears.
 pub struct Action(Box<dyn Fn() + 'static>);
 
@@ -30,7 +30,9 @@ impl fmt::Debug for Action {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let ptr = format!("{:p}", self.0);
 
-        f.debug_struct("Action").field("fn", &ptr).finish()
+        f.debug_struct("Action")
+            .field("fn", &ptr)
+            .finish()
     }
 }
 
@@ -56,9 +58,9 @@ fn make_menu_item<S: AsRef<str>>(
         let alloc: id = msg_send![register_menu_item_class(), alloc];
         let item = Id::from_retained_ptr(match action {
             Some(a) => msg_send![alloc, initWithTitle:&*title action:a keyEquivalent:&*key],
-
-            None => msg_send![alloc, initWithTitle:&*title
-                action:sel!(fireBlockAction:)
+            
+            None => msg_send![alloc, initWithTitle:&*title 
+                action:sel!(fireBlockAction:) 
                 keyEquivalent:&*key]
         });
 
@@ -70,7 +72,7 @@ fn make_menu_item<S: AsRef<str>>(
                 key_mask = key_mask | y;
             }
 
-            let _: () = msg_send![&*item, setKeyEquivalentModifierMask: key_mask];
+            let _: () = msg_send![&*item, setKeyEquivalentModifierMask:key_mask];
         }
 
         item
@@ -113,7 +115,7 @@ pub enum MenuItem {
 
     /// A menu item for enabling copying (often text) from responders.
     Copy,
-
+    
     /// A menu item for enabling cutting (often text) from responders.
     Cut,
 
@@ -124,10 +126,10 @@ pub enum MenuItem {
     /// An "redo" menu item; particularly useful for supporting the cut/copy/paste/undo lifecycle
     /// of events.
     Redo,
-
+    
     /// A menu item for selecting all (often text) from responders.
     SelectAll,
-
+    
     /// A menu item for pasting (often text) into responders.
     Paste,
 
@@ -156,7 +158,7 @@ impl MenuItem {
     pub(crate) unsafe fn to_objc(self) -> Id<Object> {
         match self {
             Self::Custom(objc) => objc,
-
+            
             Self::About(app_name) => {
                 let title = format!("About {}", app_name);
                 make_menu_item(&title, None, Some(sel!(orderFrontStandardAboutPanel:)), None)
@@ -170,7 +172,7 @@ impl MenuItem {
                 let item = make_menu_item("Services", None, None, None);
                 let app: id = msg_send![class!(RSTApplication), sharedApplication];
                 let services: id = msg_send![app, servicesMenu];
-                let _: () = msg_send![&*item, setSubmenu: services];
+                let _: () = msg_send![&*item, setSubmenu:services];
                 item
             },
 
@@ -190,7 +192,7 @@ impl MenuItem {
             Self::Redo => make_menu_item("Redo", Some("Z"), Some(sel!(redo:)), None),
             Self::SelectAll => make_menu_item("Select All", Some("a"), Some(sel!(selectAll:)), None),
             Self::Paste => make_menu_item("Paste", Some("v"), Some(sel!(paste:)), None),
-
+            
             Self::EnterFullScreen => make_menu_item(
                 "Enter Full Screen",
                 Some("f"),
@@ -223,12 +225,12 @@ impl MenuItem {
     }
 
     /// Configures the a custom item to have specified key equivalent. This does nothing if called
-    /// on a `MenuItem` type that is not `Custom`,
+    /// on a `MenuItem` type that is not `Custom`, 
     pub fn key(self, key: &str) -> Self {
         if let MenuItem::Custom(objc) = self {
             unsafe {
                 let key = NSString::new(key);
-                let _: () = msg_send![&*objc, setKeyEquivalent: key];
+                let _: () = msg_send![&*objc, setKeyEquivalent:key];
             }
 
             return MenuItem::Custom(objc);
@@ -249,7 +251,7 @@ impl MenuItem {
             }
 
             unsafe {
-                let _: () = msg_send![&*objc, setKeyEquivalentModifierMask: key_mask];
+                let _: () = msg_send![&*objc, setKeyEquivalentModifierMask:key_mask];
             }
 
             return MenuItem::Custom(objc);
@@ -269,7 +271,7 @@ impl MenuItem {
         if let MenuItem::Custom(mut objc) = self {
             let handler = Box::new(Action(Box::new(action)));
             let ptr = Box::into_raw(handler);
-
+            
             unsafe {
                 (&mut *objc).set_ivar(BLOCK_PTR, ptr as usize);
                 let _: () = msg_send![&*objc, setTarget:&*objc];
@@ -285,11 +287,11 @@ impl MenuItem {
 /// On the Objective-C side, we need to ensure our handler is dropped when this subclass
 /// is deallocated. Note that NSMenuItem is seemingly odd outside of ARC contexts, and we
 /// need to do some extra logic to ensure release calls are properly sent.
-extern "C" fn dealloc_cacao_menuitem(this: &Object, _: Sel) {
+extern fn dealloc_cacao_menuitem(this: &Object, _: Sel) {
     unsafe {
         let ptr: usize = *this.get_ivar(BLOCK_PTR);
         let obj = ptr as *mut Action;
-
+        
         if !obj.is_null() {
             let _handler = Box::from_raw(obj);
         }
@@ -303,7 +305,7 @@ extern "C" fn dealloc_cacao_menuitem(this: &Object, _: Sel) {
 }
 
 /// Called when our custom item needs to fire.
-extern "C" fn fire_block_action(this: &Object, _: Sel, _item: id) {
+extern fn fire_block_action(this: &Object, _: Sel, _item: id) {
     let action = crate::utils::load::<Action>(this, BLOCK_PTR);
     (action.0)();
 }
@@ -322,11 +324,13 @@ pub(crate) fn register_menu_item_class() -> *const Class {
         let mut decl = ClassDecl::new("CacaoMenuItem", superclass).unwrap();
         decl.add_ivar::<usize>(BLOCK_PTR);
 
-        decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern "C" fn(&Object, _));
-        decl.add_method(sel!(fireBlockAction:), fire_block_action as extern "C" fn(&Object, _, id));
+        decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern fn(&Object, _));
+        decl.add_method(sel!(fireBlockAction:), fire_block_action as extern fn(&Object, _, id));
 
         APP_CLASS = decl.register();
     });
 
-    unsafe { APP_CLASS }
+    unsafe {
+        APP_CLASS
+    }
 }

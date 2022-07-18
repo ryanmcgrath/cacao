@@ -1,11 +1,11 @@
-use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
+use objc::runtime::Object;
 use objc_id::ShareId;
 
 use crate::foundation::id;
 use crate::layout::constraint::LayoutConstraint;
 
-/// A wrapper for `NSLayoutAnchorX`, used to handle values for how a given view should
+/// A wrapper for `NSLayoutAnchorX`, used to handle values for how a given view should 
 /// layout along the x-axis.
 ///
 /// Of note: mismatches of incorrect left/leading and right/trailing anchors are detected at
@@ -41,27 +41,37 @@ impl Default for LayoutAnchorX {
 impl LayoutAnchorX {
     /// Given a view, returns an anchor for the leading anchor.
     pub(crate) fn leading(view: id) -> Self {
-        Self::Leading(unsafe { ShareId::from_ptr(msg_send![view, leadingAnchor]) })
+        Self::Leading(unsafe {
+            ShareId::from_ptr(msg_send![view, leadingAnchor])
+        })
     }
 
     /// Given a view, returns an anchor for the left anchor.
     pub(crate) fn left(view: id) -> Self {
-        Self::Left(unsafe { ShareId::from_ptr(msg_send![view, leftAnchor]) })
+        Self::Left(unsafe {
+            ShareId::from_ptr(msg_send![view, leftAnchor])
+        })
     }
 
     /// Given a view, returns an anchor for the trailing anchor.
     pub(crate) fn trailing(view: id) -> Self {
-        Self::Trailing(unsafe { ShareId::from_ptr(msg_send![view, trailingAnchor]) })
+        Self::Trailing(unsafe {
+            ShareId::from_ptr(msg_send![view, trailingAnchor])
+        })
     }
 
     /// Given a view, returns an anchor for the right anchor.
     pub(crate) fn right(view: id) -> Self {
-        Self::Right(unsafe { ShareId::from_ptr(msg_send![view, rightAnchor]) })
+        Self::Right(unsafe {
+            ShareId::from_ptr(msg_send![view, rightAnchor])
+        })
     }
 
     /// Given a view, returns an anchor for the right anchor.
     pub(crate) fn center(view: id) -> Self {
-        Self::Center(unsafe { ShareId::from_ptr(msg_send![view, centerXAnchor]) })
+        Self::Center(unsafe {
+            ShareId::from_ptr(msg_send![view, centerXAnchor])
+        })
     }
 
     /// Boilerplate for handling constraint construction and panic'ing with some more helpful
@@ -74,72 +84,68 @@ impl LayoutAnchorX {
         match (self, anchor_to) {
             // The anchors that can connect to each other. These blocks could be condensed, but are
             // kept separate for readability reasons.
-            (Self::Leading(from), Self::Leading(to))
-            | (Self::Leading(from), Self::Trailing(to))
-            | (Self::Leading(from), Self::Center(to)) => LayoutConstraint::new(handler(from, to)),
-
-            (Self::Trailing(from), Self::Trailing(to))
-            | (Self::Trailing(from), Self::Leading(to))
-            | (Self::Trailing(from), Self::Center(to)) => LayoutConstraint::new(handler(from, to)),
-
-            (Self::Left(from), Self::Left(to)) | (Self::Left(from), Self::Right(to)) | (Self::Left(from), Self::Center(to)) => {
+            (Self::Leading(from), Self::Leading(to)) | (Self::Leading(from), Self::Trailing(to)) |
+            (Self::Leading(from), Self::Center(to)) => {
                 LayoutConstraint::new(handler(from, to))
             },
 
-            (Self::Right(from), Self::Right(to))
-            | (Self::Right(from), Self::Left(to))
-            | (Self::Right(from), Self::Center(to)) => LayoutConstraint::new(handler(from, to)),
+            (Self::Trailing(from), Self::Trailing(to)) | (Self::Trailing(from), Self::Leading(to)) |
+            (Self::Trailing(from), Self::Center(to)) => {
+                LayoutConstraint::new(handler(from, to))
+            },
 
-            (Self::Center(from), Self::Center(to))
-            | (Self::Center(from), Self::Leading(to))
-            | (Self::Center(from), Self::Trailing(to))
-            | (Self::Center(from), Self::Left(to))
-            | (Self::Center(from), Self::Right(to)) => LayoutConstraint::new(handler(from, to)),
+            (Self::Left(from), Self::Left(to)) | (Self::Left(from), Self::Right(to)) |
+            (Self::Left(from), Self::Center(to)) => {
+                LayoutConstraint::new(handler(from, to))
+            },
+
+            (Self::Right(from), Self::Right(to)) | (Self::Right(from), Self::Left(to)) |
+            (Self::Right(from), Self::Center(to)) => {
+                LayoutConstraint::new(handler(from, to))
+            },
+
+            (Self::Center(from), Self::Center(to)) | (Self::Center(from), Self::Leading(to)) |
+            (Self::Center(from), Self::Trailing(to)) | (Self::Center(from), Self::Left(to)) |
+            (Self::Center(from), Self::Right(to)) => {
+                LayoutConstraint::new(handler(from, to))
+            },
 
             // These anchors explicitly cannot be attached to each other, as it results in
             // undefined/unexpected layout behavior when a system has differing ltr/rtl setups.
             (Self::Leading(_), Self::Left(_)) | (Self::Left(_), Self::Leading(_)) => {
-                panic!(
-                    r#"
-                    Attempted to attach a "leading" constraint to a "left" constraint. This will
+                panic!(r#"
+                    Attempted to attach a "leading" constraint to a "left" constraint. This will 
                     result in undefined behavior for LTR and RTL system settings, and Cacao blocks this.
-
+                    
                     Use either left/right or leading/trailing.
-                "#
-                );
+                "#);
             },
-
+            
             (Self::Leading(_), Self::Right(_)) | (Self::Right(_), Self::Leading(_)) => {
-                panic!(
-                    r#"
-                    Attempted to attach a "leading" constraint to a "right" constraint. This will
+                panic!(r#"
+                    Attempted to attach a "leading" constraint to a "right" constraint. This will 
                     result in undefined behavior for LTR and RTL system settings, and Cacao blocks this.
-
+                    
                     Use either left/right or leading/trailing.
-                "#
-                );
+                "#);
             },
 
             (Self::Trailing(_), Self::Left(_)) | (Self::Left(_), Self::Trailing(_)) => {
-                panic!(
-                    r#"
-                    Attempted to attach a "trailing" constraint to a "left" constraint. This will
+                panic!(r#"
+                    Attempted to attach a "trailing" constraint to a "left" constraint. This will 
                     result in undefined behavior for LTR and RTL system settings, and Cacao blocks this.
 
                     Use either left/right or leading/trailing.
-                "#
-                );
+                "#);
             },
 
             (Self::Trailing(_), Self::Right(_)) | (Self::Right(_), Self::Trailing(_)) => {
-                panic!(
-                    r#"
-                    Attempted to attach a "trailing" constraint to a "right" constraint. This will
+                panic!(r#"
+                    Attempted to attach a "trailing" constraint to a "right" constraint. This will 
                     result in undefined behavior for LTR and RTL system settings, and Cacao blocks this.
 
                     Use either left/right or leading/trailing.
-                "#
-                );
+                "#);
             },
 
             // If anything is attempted with an uninitialized anchor, then block it.

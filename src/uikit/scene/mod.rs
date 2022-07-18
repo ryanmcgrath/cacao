@@ -5,8 +5,8 @@
 
 use core_graphics::geometry::CGRect;
 
-use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::Object;
 use objc_id::Id;
 
 use crate::foundation::id;
@@ -35,7 +35,9 @@ pub struct Scene(pub Id<Object>);
 
 impl Scene {
     pub fn with(scene: id) -> Self {
-        Scene(unsafe { Id::from_ptr(scene) })
+        Scene(unsafe {
+            Id::from_ptr(scene)
+        })
     }
 
     // This is temporary - I'm not wrapping `coordinateSpace` until I'm happy with the ergonomics
@@ -45,8 +47,7 @@ impl Scene {
             let coordinate_space: id = msg_send![&*self.0, coordinateSpace];
             let rect: CGRect = msg_send![coordinate_space, bounds];
             rect
-        }
-        .into()
+        }.into()
     }
 
     pub fn into_inner(mut self) -> id {

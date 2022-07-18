@@ -2,7 +2,7 @@
 use objc_id::ShareId;
 use objc::runtime::Object;
 
-/// Views get passed these, and can
+/// Views get passed these, and can 
 #[derive(Debug)]
 pub struct ViewHandle<T> {
     /// A pointer to the Objective-C runtime view controller.
@@ -37,7 +37,7 @@ pub struct ViewHandle<T> {
 
 impl<T> TextControl for ViewHandle<T>
 where
-    T:
+    T: 
 
 impl<T> Layout for ViewHandle<T> {
     fn get_backing_node(&self) -> ShareId<Object> {

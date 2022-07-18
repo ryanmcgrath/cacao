@@ -1,7 +1,8 @@
-use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, NSUInteger, NO, YES};
+use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::Object;
+
+use crate::foundation::{id, YES, NO, NSUInteger};
 use crate::objc_access::ObjcAccess;
 
 /// Use this enum for specifying NSControl size types.
@@ -12,7 +13,7 @@ pub enum ControlSize {
 
     /// A smaller control size.
     Small,
-
+    
     /// The default, regular, size.
     Regular,
 
@@ -35,7 +36,7 @@ pub trait Control: ObjcAccess {
         });
     }
 
-    /// Sets the underlying control size.
+    /// Sets the underlying control size. 
     fn set_control_size(&self, size: ControlSize) {
         let control_size: NSUInteger = match size {
             ControlSize::Mini => 2,
@@ -49,7 +50,7 @@ pub trait Control: ObjcAccess {
         };
 
         self.with_backing_obj_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setControlSize: control_size];
+            let _: () = msg_send![obj, setControlSize:control_size];
         });
     }
 }

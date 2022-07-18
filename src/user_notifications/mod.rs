@@ -27,13 +27,13 @@ impl NotificationCenter {
         unsafe {
             // @TODO: Revisit.
             let block = ConcreteBlock::new(|_: id, error: id| {
-                let localized_description = NSString::new(msg_send![error, localizedDescription]);
+                let localized_description = NSString::new(msg_send![error, localizedDescription]); 
                 let e = localized_description.to_str();
                 if e != "" {
                     println!("{:?}", e);
                 }
             });
-
+            
             let mut opts: NSUInteger = 0;
             for opt in options {
                 let o: NSUInteger = opt.into();
@@ -51,10 +51,9 @@ impl NotificationCenter {
 
         unsafe {
             let identifier = NSString::new(&uuidentifier);
-            let request: id =
-                msg_send![class!(UNNotificationRequest), requestWithIdentifier:identifier content:&*notification.0 trigger:nil];
+            let request: id = msg_send![class!(UNNotificationRequest), requestWithIdentifier:identifier content:&*notification.0 trigger:nil];
             let center: id = msg_send![class!(UNUserNotificationCenter), currentNotificationCenter];
-            let _: () = msg_send![center, addNotificationRequest: request];
+            let _: () = msg_send![center, addNotificationRequest:request];
         }
     }
 

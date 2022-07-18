@@ -31,9 +31,11 @@ pub enum DragOperation {
     Move,
 
     /// The data can be deleted.
-    Delete // All of the above.
-           // @TODO: NSUIntegerMax, a tricky beast
-           // Every
+    Delete,
+
+    // All of the above.
+    // @TODO: NSUIntegerMax, a tricky beast
+    // Every
 }
 
 impl From<DragOperation> for NSUInteger {
@@ -63,6 +65,8 @@ impl DragInfo {
     ///
     /// Note: in general, you should not store pasteboards.
     pub fn get_pasteboard(&self) -> Pasteboard {
-        unsafe { Pasteboard::with(msg_send![&*self.info, draggingPasteboard]) }
+        unsafe {
+            Pasteboard::with(msg_send![&*self.info, draggingPasteboard])
+        }
     }
 }

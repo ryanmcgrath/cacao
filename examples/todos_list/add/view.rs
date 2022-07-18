@@ -6,8 +6,8 @@
 //! changes before version 0.1. This approach is unlikely to break as an example while those
 //! changes are poked and prodded at, even if it is a bit verbose and confusing.
 
-use cacao::layout::{Layout, LayoutConstraint};
 use cacao::text::Label;
+use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::{View, ViewDelegate};
 
 use cacao::button::Button;
@@ -41,17 +41,17 @@ impl AddNewTodoContentView {
 
 impl ViewDelegate for AddNewTodoContentView {
     const NAME: &'static str = "AddNewTodoContentView";
-
+    
     fn did_load(&mut self, view: View) {
         let instructions = Label::new();
         instructions.set_text("Let's be real: we both know this task isn't getting done.");
 
         let input = TextField::new();
-
+        
         let mut button = Button::new("Add");
         button.set_key_equivalent("\r");
         button.set_action(|| dispatch_ui(Message::ProcessNewTodo));
-
+        
         view.add_subview(&instructions);
         view.add_subview(&input);
         view.add_subview(&button);
@@ -60,9 +60,11 @@ impl ViewDelegate for AddNewTodoContentView {
             instructions.top.constraint_equal_to(&view.top).offset(16.),
             instructions.leading.constraint_equal_to(&view.leading).offset(16.),
             instructions.trailing.constraint_equal_to(&view.trailing).offset(-16.),
+
             input.top.constraint_equal_to(&instructions.bottom).offset(8.),
             input.leading.constraint_equal_to(&view.leading).offset(16.),
             input.trailing.constraint_equal_to(&view.trailing).offset(-16.),
+
             button.top.constraint_equal_to(&input.bottom).offset(8.),
             button.trailing.constraint_equal_to(&view.trailing).offset(-16.),
             button.bottom.constraint_equal_to(&view.bottom).offset(-16.)
