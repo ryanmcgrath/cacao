@@ -6,5 +6,5 @@ use crate::foundation::load_or_register_class;
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
 pub(crate) fn register_image_view_class() -> &'static Class {
-    load_or_register_class("UIImageView", "RSTImageView", |decl| unsafe {})
+    load_or_register_class("UIImageView", "RSTImageView", |decl| {})
 }

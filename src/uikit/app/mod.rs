@@ -115,9 +115,9 @@ where
         activate_cocoa_multithreading();
 
         let pool = AutoReleasePool::new();
-        let cls = register_app_class();
-        let dl = register_app_delegate_class::<T>();
-        let w = register_window_scene_delegate_class::<W, F>();
+        let _cls = register_app_class();
+        let _dl = register_app_delegate_class::<T>();
+        let _w = register_window_scene_delegate_class::<W, F>();
 
         let app_delegate = Box::new(delegate);
         let vendor = Box::new(scene_delegate_vendor);

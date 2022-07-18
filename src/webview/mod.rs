@@ -241,7 +241,7 @@ where
         let view = allocate_webview(config, Some(&objc_delegate));
         let mut view = WebView::init(view);
 
-        &delegate.did_load(view.clone_as_handle());
+        delegate.did_load(view.clone_as_handle());
         view.delegate = Some(delegate);
         view
     }

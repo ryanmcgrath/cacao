@@ -172,6 +172,7 @@ impl View {
     /// This handles grabbing autolayout anchor pointers, as well as things related to layering and
     /// so on. It returns a generic `View<T>`, which the caller can then customize as needed.
     pub(crate) fn init<T>(view: id) -> View<T> {
+        #[allow(unused_unsafe)]
         unsafe {
             #[cfg(feature = "autolayout")]
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: false];

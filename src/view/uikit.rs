@@ -11,13 +11,13 @@ use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
 pub(crate) fn register_view_class() -> &'static Class {
-    load_or_register_class("UIView", "RSTView", |decl| unsafe {})
+    load_or_register_class("UIView", "RSTView", |decl| {})
 }
 
 /// Injects a `UIView` subclass, with some callback and pointer ivars for what we
 /// need to do.
 pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> &'static Class {
-    load_or_register_class("UIView", instance.subclass_name(), |decl| unsafe {
+    load_or_register_class("UIView", instance.subclass_name(), |decl| {
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
     })
 }
