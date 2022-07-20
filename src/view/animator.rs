@@ -22,3 +22,7 @@ impl ViewAnimatorProxy {
         }
     }
 }
+
+// TODO: Safety
+unsafe impl Send for ViewAnimatorProxy {}
+unsafe impl Sync for ViewAnimatorProxy {}

@@ -23,3 +23,7 @@ impl LayoutConstraintAnimatorProxy {
         }
     }
 }
+
+// TODO: Safety
+unsafe impl Send for LayoutConstraintAnimatorProxy {}
+unsafe impl Sync for LayoutConstraintAnimatorProxy {}
