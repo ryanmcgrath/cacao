@@ -9,6 +9,12 @@ pub enum CursorType {
     /// A standard arrow.
     Arrow,
 
+    /// Current Cusrosr
+    Current,
+
+    /// Current System cursor
+    CurrentSystem,
+
     /// A crosshair.
     Crosshair,
 
@@ -96,6 +102,8 @@ impl Cursor {
         unsafe {
             let cursor: id = match cursor_type {
                 CursorType::Arrow => msg_send![class!(NSCursor), arrowCursor],
+                CursorType::Current => msg_send![class!(NSCursor), currentCursor],
+                CursorType::CurrentSystem => msg_send![class!(NSCursor), currentSystemCursor],
                 CursorType::Crosshair => msg_send![class!(NSCursor), crosshairCursor],
                 CursorType::ClosedHand => msg_send![class!(NSCursor), closedHandCursor],
                 CursorType::OpenHand => msg_send![class!(NSCursor), openHandCursor],
