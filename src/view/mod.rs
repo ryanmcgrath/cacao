@@ -308,6 +308,18 @@ impl<T> View<T> {
         });
     }
 
+    /// Mark all child layers as being able to be drawn into a single CALayer. This can be useful
+    /// for moments when you need to lower your total layer count, which can impair composition
+    /// time.
+    pub fn set_can_draw_subviews_into_layer(&self, can: bool) {
+        #[cfg(feature = "appkit")]
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![&*obj, setCanDrawSubviewsIntoLayer:match can {
+                true => YES,
+                false => NO
+            }];
+        });
+    }
 }
 
 impl<T> ObjcAccess for View<T> {

@@ -82,7 +82,7 @@ fn apply_styles(
     animation_table_index: usize
 ) -> [LayoutConstraint; 4] {
     view.set_background_color(background_color);
-    view.layer.set_corner_radius(16.);
+    //view.layer.set_corner_radius(16.);
     parent.add_subview(view);
 
     let animation = ANIMATIONS[animation_table_index][0];
@@ -112,6 +112,8 @@ impl WindowDelegate for AppWindow {
         window.set_minimum_content_size(300., 300.);
 
         window.set_content_view(&self.content);
+
+        self.content.set_can_draw_subviews_into_layer(true);
 
         let blue_frame = apply_styles(&self.blue, &self.content, Color::SystemBlue, 0);
         let red_frame = apply_styles(&self.red, &self.content, Color::SystemRed, 1);
