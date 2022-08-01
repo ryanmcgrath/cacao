@@ -111,9 +111,12 @@ impl WindowDelegate for AppWindow {
         window.set_title("Animation Example (Use W/A/S/D to change state!)");
         window.set_minimum_content_size(300., 300.);
 
-        window.set_content_view(&self.content);
-
+        self.blue.set_contents_redraw_policy(1);
+        self.red.set_contents_redraw_policy(1);
+        self.green.set_contents_redraw_policy(1);
         self.content.set_can_draw_subviews_into_layer(true);
+        
+        window.set_content_view(&self.content);
 
         let blue_frame = apply_styles(&self.blue, &self.content, Color::SystemBlue, 0);
         let red_frame = apply_styles(&self.red, &self.content, Color::SystemRed, 1);

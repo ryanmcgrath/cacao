@@ -155,18 +155,29 @@ impl Default for View {
 }
 
 impl View {
+    pub fn set_contents_redraw_policy(&self, policy: i32) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setLayerContentsRedrawPolicy:policy];
+        });
+    }
     /// An internal initializer method for very common things that we need to do, regardless of
     /// what type the end user is creating.
     ///
     /// This handles grabbing autolayout anchor pointers, as well as things related to layering and
     /// so on. It returns a generic `View<T>`, which the caller can then customize as needed.
     pub(crate) fn init<T>(view: id) -> View<T> {
+        let layer = Layer::new();
+        
         unsafe {
             #[cfg(feature = "autolayout")]
             let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
 
             #[cfg(feature = "appkit")]
             let _: () = msg_send![view, setWantsLayer:YES];
+
+            //layer.objc.with_mut(|obj| {
+            //    let _: () = msg_send![view, setLayer:obj];
+            //});
         }
 
         View {
