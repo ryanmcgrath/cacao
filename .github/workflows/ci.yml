@@ -42,18 +42,15 @@ jobs:
       with:
           toolchain: stable
           override: true
-    # It would be better to use
-    # args: --examples
-    # but not all the examples build for me
     - uses: actions-rs/cargo@v1
       with:
         command: build
         args: --example animation
-    # Fails to link:
-    #- uses: actions-rs/cargo@v1
-    #  with:
-    #    command: build
-    #    args: --example autolayout
+    # Will exhibit linker warnings for 10.13 and below, expected:
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example autolayout
     - uses: actions-rs/cargo@v1
       with:
         command: build
