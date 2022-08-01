@@ -1,14 +1,15 @@
 //! This example showcases how to do custom drawing on an ImageView
 //! with CoreGraphics. Feel free to modify it and play around!
 
+use cacao::appkit::menu::{Menu, MenuItem};
+use cacao::appkit::window::Window;
+use cacao::appkit::{App, AppDelegate};
+
 use cacao::color::Color;
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::View;
 
 use cacao::image::{DrawConfig, Image, ImageView};
-use cacao::appkit::menu::{Menu, MenuItem};
-use cacao::appkit::window::Window;
-use cacao::appkit::{App, AppDelegate};
 
 struct BasicApp {
     window: Window,
