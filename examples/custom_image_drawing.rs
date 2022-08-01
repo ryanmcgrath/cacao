@@ -6,9 +6,9 @@ use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::View;
 
 use cacao::image::{DrawConfig, Image, ImageView};
-use cacao::macos::menu::{Menu, MenuItem};
-use cacao::macos::window::Window;
-use cacao::macos::{App, AppDelegate};
+use cacao::appkit::menu::{Menu, MenuItem};
+use cacao::appkit::window::Window;
+use cacao::appkit::{App, AppDelegate};
 
 struct BasicApp {
     window: Window,
