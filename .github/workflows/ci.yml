@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, trunk]
   pull_request:
 
 jobs:
@@ -21,3 +21,82 @@ jobs:
       with:
         command: fmt
         args: -- --check
+  build:
+    name: Check that the code builds
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          override: true
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+  examples:
+    name: Check that examples build
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          override: true
+    # It would be better to use
+    # args: --examples
+    # but not all the examples build for me
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example animation
+    # Fails to link:
+    #- uses: actions-rs/cargo@v1
+    #  with:
+    #    command: build
+    #    args: --example autolayout
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example calculator
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example custom_image_drawing
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example defaults
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example frame_layout
+    # fails because it needs uikit, which is not
+    # building for me
+    #- uses: actions-rs/cargo@v1
+    #  with:
+    #    command: build
+    #    args: --example ios-beta
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example text_input
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example todos_list
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example window
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example window_controller
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --example window_delegate
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --features webview --example webview_custom_protocol
