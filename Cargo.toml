@@ -20,7 +20,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 block = "0.1.6"
-core-foundation = { version = "0.9", features = ["with-chrono"] }
+core-foundation = "0.9"
 core-graphics = "0.22"
 dispatch = "0.2.0"
 infer = { version = "0.4", optional = true }
