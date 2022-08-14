@@ -5,9 +5,13 @@
 //! (where you have a fixed start and end) and indeterminate (infinite; it will go and go until you
 //! tell it to stop).
 //!
-//! ```rust,compile_fail
+//! ```rust,no_run
+//! use cacao::progress::ProgressIndicator;
+//! use cacao::view::View;
+//! use crate::cacao::layout::Layout;
 //! let indicator = ProgressIndicator::new();
 //! indicator.set_indeterminate(true);
+//! let my_view : View<()> = todo!();
 //! my_view.add_subview(&indicator);
 //! ```
 

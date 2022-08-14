@@ -7,7 +7,7 @@
 //! Views implement Autolayout, which enable you to specify how things should appear on the screen.
 //!
 //! ```rust,compile_fail
-//! use cacao::color::rgb;
+//! use cacao::color::Color;
 //! use cacao::layout::{Layout, LayoutConstraint};
 //! use cacao::view::View;
 //! use cacao::window::{Window, WindowDelegate};
@@ -25,7 +25,7 @@
 //!         window.set_minimum_content_size(300., 300.);
 //!         self.window = window;
 //!
-//!         self.red.set_background_color(rgb(224, 82, 99));
+//!         self.red.set_background_color(Color::rgb(224, 82, 99));
 //!         self.content.add_subview(&self.red);
 //!
 //!         self.window.set_content_view(&self.content);
