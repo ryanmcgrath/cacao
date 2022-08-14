@@ -22,7 +22,6 @@ impl AppDelegate for BasicApp {
 #[derive(Default)]
 pub struct WebViewInstance;
 
-#[cfg(feature = "webview")]
 impl WebViewDelegate for WebViewInstance {
     fn on_custom_protocol_request(&self, path: &str) -> Option<Vec<u8>> {
         let requested_asset_path = path.replace("cacao://", "");
@@ -63,11 +62,9 @@ impl WebViewDelegate for WebViewInstance {
 }
 
 struct AppWindow {
-    #[cfg(feature = "webview")]
     content: WebView<WebViewInstance>
 }
 
-#[cfg(feature = "webview")]
 impl AppWindow {
     pub fn new() -> Self {
         let mut webview_config = WebViewConfig::default();
