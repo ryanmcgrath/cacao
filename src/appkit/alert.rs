@@ -7,13 +7,13 @@
 //! If you want to show a complex view in an alert-esque fashion, you may consider looking at
 //! `Sheet`.
 //!
-//! ```rust
+//! ```rust,no_run
 //! use cacao::appkit::{App, AppDelegate, Alert};
 //!
 //! #[derive(Default)]
 //! struct ExampleApp;
 //!
-//! impl AppDelegate {
+//! impl AppDelegate for ExampleApp {
 //!     fn did_finish_launching(&self) {
 //!
 //!     }

@@ -5,7 +5,7 @@
 //! (where you have a fixed start and end) and indeterminate (infinite; it will go and go until you
 //! tell it to stop).
 //!
-//! ```rust,no_run
+//! ```rust,compile_fail
 //! let indicator = ProgressIndicator::new();
 //! indicator.set_indeterminate(true);
 //! my_view.add_subview(&indicator);

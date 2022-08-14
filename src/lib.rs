@@ -27,7 +27,7 @@
 //! # Hello World
 //!
 //! ```rust,no_run
-//! use cacao::appkit::app::{App, AppDelegate};
+//! use cacao::appkit::{App, AppDelegate};
 //! use cacao::appkit::window::Window;
 //!
 //! #[derive(Default)]

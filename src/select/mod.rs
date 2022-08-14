@@ -28,8 +28,13 @@ use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 /// Some properties are platform-specific; see the documentation for further information.
 ///
 /// ```rust,no_run
+/// use cacao::select::Select;
+/// use cacao::view::View;
+/// use crate::cacao::layout::Layout;
+///
 /// let mut dropdown = Select::new();
 ///
+/// let my_view : View<()> = todo!();
 /// // Make sure you don't let your Select drop for as long as you need it.
 /// my_view.add_subview(&dropdown);
 /// ```

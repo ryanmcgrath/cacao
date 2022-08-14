@@ -22,12 +22,13 @@
 //! let mut defaults = UserDefaults::standard();
 //!
 //! defaults.register({
-//!     let map = HashMap::new();
+//!     let mut map = HashMap::new();
 //!     map.insert("test", Value::string("value"));
 //!     map
 //! });
 //!
-//! let value = defaults.get("test").unwrap().as_str().unwrap();
+//! let value = defaults.get("test").unwrap();
+//! let value = value.as_str().unwrap();
 //! assert_eq!(value, "value");
 //! ```
 
@@ -160,13 +161,14 @@ impl UserDefaults {
     /// Note that this also returns owned values, not references. `NSUserDefaults` explicitly
     /// returns new immutable copies each time, so we're free to vend them as such.
     ///
-    /// ```rust
+    /// ```rust,no_run
     /// use cacao::defaults::{UserDefaults, Value};
     ///
     /// let mut defaults = UserDefaults::standard();
     /// defaults.insert("test", Value::string("value"));
     ///
-    /// let value = defaults.get("test").unwrap().as_str().unwrap();
+    /// let value = defaults.get("test").unwrap();
+    /// let value = value.as_str().unwrap();
     /// assert_eq!(value, "value");
     /// ```
     pub fn get<K: AsRef<str>>(&self, key: K) -> Option<Value> {
