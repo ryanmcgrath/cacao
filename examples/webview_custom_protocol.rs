@@ -64,7 +64,7 @@ impl WebViewDelegate for WebViewInstance {
 }
 
 struct AppWindow {
-#[cfg(feature = "webview")]
+    #[cfg(feature = "webview")]
     content: WebView<WebViewInstance>
 }
 

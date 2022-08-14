@@ -57,7 +57,7 @@ impl ViewDelegate for RootView {
 
 #[derive(Default)]
 pub struct WindowScene {
-#[cfg(target_os= "ios")]
+    #[cfg(target_os= "ios")]
     pub window: RwLock<Option<Window>>,
     pub root_view_controller: RwLock<Option<ViewController<RootView>>>
 }
@@ -84,6 +84,6 @@ impl WindowSceneDelegate for WindowScene {
 }
 
 fn main() {
-#[cfg(target_os= "ios")]
+    #[cfg(target_os= "ios")]
     App::new(TestApp::default(), || Box::new(WindowScene::default())).run();
 }

@@ -73,7 +73,7 @@ impl Dispatcher for BasicApp {
 
     fn on_ui_message(&self, message: Self::Message) {
         let window = self.window.delegate.as_ref().unwrap();
-#[cfg(feature = "webview")]
+        #[cfg(feature = "webview")]
         {
             let webview = &window.content;
 
@@ -100,7 +100,7 @@ impl WebViewDelegate for WebViewInstance {}
 
 struct AppWindow {
     toolbar: Toolbar<BrowserToolbar>,
-#[cfg(feature = "webview")]
+    #[cfg(feature = "webview")]
     content: WebView<WebViewInstance>
 }
 
@@ -108,14 +108,14 @@ impl AppWindow {
     pub fn new() -> Self {
         AppWindow {
             toolbar: Toolbar::new("com.example.BrowserToolbar", BrowserToolbar::new()),
-#[cfg(feature = "webview")]
+            #[cfg(feature = "webview")]
             content: WebView::with(WebViewConfig::default(), WebViewInstance::default())
         }
     }
 
     pub fn load_url(&self, url: &str) {
         self.toolbar.delegate.as_ref().unwrap().set_url(url);
-#[cfg(feature = "webview")]
+        #[cfg(feature = "webview")]
         self.content.load_url(url);
     }
 }
@@ -129,7 +129,7 @@ impl WindowDelegate for AppWindow {
         window.set_minimum_content_size(400., 400.);
 
         window.set_toolbar(&self.toolbar);
-#[cfg(feature = "webview")]
+        #[cfg(feature = "webview")]
         window.set_content_view(&self.content);
 
         self.load_url("https://www.duckduckgo.com/");
