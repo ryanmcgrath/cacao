@@ -6,7 +6,6 @@ use cacao::appkit::toolbar::Toolbar;
 use cacao::appkit::window::{Window, WindowConfig, WindowDelegate, WindowToolbarStyle};
 use cacao::appkit::{App, AppDelegate};
 
-#[cfg(feature = "webview")]
 use cacao::webview::{WebView, WebViewConfig, WebViewDelegate};
 
 struct BasicApp {
@@ -86,7 +85,6 @@ impl AppWindow {
     }
 }
 
-#[cfg(feature = "webview")]
 impl WindowDelegate for AppWindow {
     const NAME: &'static str = "WindowDelegate";
 
@@ -102,12 +100,9 @@ impl WindowDelegate for AppWindow {
     }
 }
 
-#[cfg(feature = "webview")]
 fn main() {
     App::new("com.test.window", BasicApp {
         window: Window::with(WindowConfig::default(), AppWindow::new())
     })
     .run();
 }
-#[cfg(not(feature = "webview"))]
-fn main() {}

@@ -1,6 +1,5 @@
 use std::sync::RwLock;
 
-#[cfg(targe_os = "ios")]
 use cacao::uikit::{App, AppDelegate, Scene, SceneConfig, SceneConnectionOptions, SceneSession, Window, WindowSceneDelegate};
 
 use cacao::color::Color;
@@ -10,7 +9,6 @@ use cacao::view::{View, ViewController, ViewDelegate};
 #[derive(Default)]
 struct TestApp;
 
-#[cfg(target_os= "ios")]
 impl AppDelegate for TestApp {
     fn config_for_scene_session(&self, session: SceneSession, _options: SceneConnectionOptions) -> SceneConfig {
         SceneConfig::new("Default Configuration", session.role())
@@ -57,12 +55,10 @@ impl ViewDelegate for RootView {
 
 #[derive(Default)]
 pub struct WindowScene {
-    #[cfg(target_os= "ios")]
     pub window: RwLock<Option<Window>>,
     pub root_view_controller: RwLock<Option<ViewController<RootView>>>
 }
 
-#[cfg(target_os= "ios")]
 impl WindowSceneDelegate for WindowScene {
     fn will_connect(&self, scene: Scene, session: SceneSession, options: SceneConnectionOptions) {
         let bounds = scene.get_bounds();
@@ -84,6 +80,5 @@ impl WindowSceneDelegate for WindowScene {
 }
 
 fn main() {
-    #[cfg(target_os= "ios")]
     App::new(TestApp::default(), || Box::new(WindowScene::default())).run();
 }

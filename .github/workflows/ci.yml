@@ -21,6 +21,18 @@ jobs:
       with:
         command: fmt
         args: -- --check
+  test:
+    name: Check that examples build
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          override: true
+    - uses: actions-rs/cargo@v1
+      with:
+        command: test
   build:
     name: Check that the code builds
     runs-on: macos-latest
@@ -42,9 +54,6 @@ jobs:
       with:
           toolchain: stable
           override: true
-    - uses: actions-rs/cargo@v1
-      with:
-        command: test
     - uses: actions-rs/cargo@v1
       with:
         command: build

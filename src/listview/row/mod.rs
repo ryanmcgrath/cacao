@@ -6,11 +6,11 @@
 //!
 //! Views implement Autolayout, which enable you to specify how things should appear on the screen.
 //!
-//! ```rust,compile_fail
+//! ```rust
 //! use cacao::color::Color;
 //! use cacao::layout::{Layout, LayoutConstraint};
 //! use cacao::view::View;
-//! use cacao::window::{Window, WindowDelegate};
+//! use cacao::appkit::window::{Window, WindowDelegate};
 //!
 //! #[derive(Default)]
 //! struct AppWindow {
