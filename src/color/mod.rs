@@ -247,13 +247,9 @@ impl Color {
         let b = blue as CGFloat / 255.0;
         let a = alpha as CGFloat / 255.0;
         #[cfg(feature = "appkit")]
-        let ptr = unsafe {
-            Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed:r green:g blue:b alpha:a])
-        };
+        let ptr = unsafe { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed:r green:g blue:b alpha:a]) };
         #[cfg(all(feature = "uikit", not(feature = "appkit")))]
-        let ptr = unsafe {
-            Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a])
-        };
+        let ptr = unsafe { Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a]) };
 
         Color::Custom(Arc::new(RwLock::new(ptr)))
     }
