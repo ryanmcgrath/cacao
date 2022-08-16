@@ -66,8 +66,9 @@ pub enum ItemIdentifier {
     ///
     /// For example:
     ///
-    /// ``` rust
-    /// vec![ItemIdentifier::ToggleSidebar, ItemIdentifier::SidebarTracker, ItemIdentifier::Print]
+    /// ``` rust,no_run
+    /// use cacao::appkit::toolbar::ItemIdentifier;
+    /// vec![ItemIdentifier::ToggleSidebar, ItemIdentifier::SidebarTracker, ItemIdentifier::Print];
     /// ```
     ///
     /// Would result in the toggle sidebar item showing up in the sidebar on the left, and the

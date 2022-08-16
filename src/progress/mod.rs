@@ -6,8 +6,12 @@
 //! tell it to stop).
 //!
 //! ```rust,no_run
+//! use cacao::progress::ProgressIndicator;
+//! use cacao::view::View;
+//! use crate::cacao::layout::Layout;
 //! let indicator = ProgressIndicator::new();
 //! indicator.set_indeterminate(true);
+//! let my_view : View<()> = todo!();
 //! my_view.add_subview(&indicator);
 //! ```
 

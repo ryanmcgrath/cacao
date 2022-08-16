@@ -246,18 +246,12 @@ impl Color {
         let g = green as CGFloat / 255.0;
         let b = blue as CGFloat / 255.0;
         let a = alpha as CGFloat / 255.0;
+        #[cfg(feature = "appkit")]
+        let ptr = unsafe { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed:r green:g blue:b alpha:a]) };
+        #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+        let ptr = unsafe { Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a]) };
 
-        Color::Custom(Arc::new(RwLock::new(unsafe {
-            #[cfg(feature = "appkit")]
-            {
-                Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed:r green:g blue:b alpha:a])
-            }
-
-            #[cfg(feature = "uikit")]
-            {
-                Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a])
-            }
-        })))
+        Color::Custom(Arc::new(RwLock::new(ptr)))
     }
 
     /// Creates and returns a color in the RGB space, with the alpha level
@@ -280,7 +274,7 @@ impl Color {
                 Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedHue:h saturation:s brightness:b alpha:a])
             }
 
-            #[cfg(feature = "uikit")]
+            #[cfg(all(feature = "uikit", not(feature = "appkit")))]
             {
                 Id::from_ptr(msg_send![class!(UIColor), colorWithHue:h saturation:s brightness:b alpha:a])
             }
@@ -302,7 +296,7 @@ impl Color {
                 Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedWhite:level alpha:alpha])
             }
 
-            #[cfg(feature = "uikit")]
+            #[cfg(all(feature = "uikit", not(feature = "appkit")))]
             {
                 Id::from_ptr(msg_send![class!(UIColor), colorWithWhite:level alpha:alpha])
             }

@@ -7,10 +7,10 @@
 //! Views implement Autolayout, which enable you to specify how things should appear on the screen.
 //!
 //! ```rust,no_run
-//! use cacao::color::rgb;
+//! use cacao::color::Color;
 //! use cacao::layout::{Layout, LayoutConstraint};
 //! use cacao::view::View;
-//! use cacao::window::{Window, WindowDelegate};
+//! use cacao::appkit::window::{Window, WindowDelegate};
 //!
 //! #[derive(Default)]
 //! struct AppWindow {
@@ -20,11 +20,12 @@
 //! }
 //!
 //! impl WindowDelegate for AppWindow {
+//!     const NAME: &'static str = "RootView";
 //!     fn did_load(&mut self, window: Window) {
 //!         window.set_minimum_content_size(300., 300.);
 //!         self.window = window;
 //!
-//!         self.red.set_background_color(rgb(224, 82, 99));
+//!         self.red.set_background_color(Color::rgb(224, 82, 99));
 //!         self.content.add_subview(&self.red);
 //!
 //!         self.window.set_content_view(&self.content);
@@ -532,6 +533,9 @@ impl<T> ListView<T> {
     /// `reload_rows`, or `remove_rows` from there.
     ///
     /// ```rust,no_run
+    /// use cacao::listview::ListView;
+    /// use cacao::listview::RowAnimation;
+    /// let list_view: ListView<()> = todo!();
     /// list_view.perform_batch_updates(|listview| {
     ///     listview.insert_rows(&[0, 2], RowAnimation::SlideDown);
     /// });
@@ -712,7 +716,13 @@ impl<T> ListView<T> {
     /// For example (minus the other necessary ListViewDelegate pieces):
     ///
     /// ```rust,no_run
+    /// use cacao::appkit::menu::MenuItem;
+    /// use cacao::listview::{ListViewDelegate, ListView, ListViewRow};
+    /// struct MyListView {
+    ///     list_view: ListView<()>,
+    /// };
     /// impl ListViewDelegate for MyListView {
+    ///     const NAME: &'static str = "RootListView";
     ///     fn context_menu(&self) -> Vec<MenuItem> {
     ///         let clicked_row = self.list_view.get_clicked_row_index();
     ///
@@ -724,6 +734,9 @@ impl<T> ListView<T> {
     ///         // User right-clicked on a row, so let's show an edit menu.
     ///         vec![MenuItem::new("Edit")]
     ///     }
+    ///     fn did_load(&mut self, _: ListView) { todo!() }
+    ///     fn number_of_items(&self) -> usize { todo!() }
+    ///     fn item_for(&self, _: usize) -> ListViewRow { todo!() }
     /// }
     /// ```
     pub fn get_clicked_row_index(&self) -> NSInteger {

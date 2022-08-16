@@ -5,6 +5,8 @@
 //!
 //! ```rust,no_run
 //! // Create a rounded red box
+//! use cacao::view::View;
+//! use cacao::color::Color;
 //! let view = View::default();
 //! view.set_background_color(Color::SystemRed);
 //! view.layer.set_corner_radius(4.0);
@@ -24,6 +26,8 @@ use crate::utils::properties::ObjcProperty;
 ///
 /// ```rust,no_run
 /// // Create a rounded red box
+/// use cacao::view::View;
+/// use cacao::color::Color;
 /// let view = View::default();
 /// view.set_background_color(Color::SystemRed);
 /// view.layer.set_corner_radius(4.0);

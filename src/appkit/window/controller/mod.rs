@@ -12,13 +12,14 @@
 //! # How to use
 //!
 //! ```rust,no_run
-//! use cacao::appkit::app::AppDelegate;
+//! use cacao::appkit::AppDelegate;
 //! use cacao::appkit::window::{WindowController, WindowDelegate};
 //!
 //! #[derive(Default)]
 //! struct MyWindow;
 //!
 //! impl WindowDelegate for MyWindow {
+//!     const NAME: &'static str = "RootView";
 //!     // Your implementation here...
 //! }
 //!

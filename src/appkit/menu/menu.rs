@@ -19,10 +19,10 @@ impl Menu {
     ///
     /// This method effectively does three things:
     ///
-    ///     - Consumes the MenuItem Vec, and pulls out handlers we need to cache
-    ///     - Configures the menu items appropriately, and wires them up
-    ///     - Drops the values we no longer need, and returns only what's necessary
-    ///         to get the menu functioning.
+    /// - Consumes the MenuItem Vec, and pulls out handlers we need to cache
+    /// - Configures the menu items appropriately, and wires them up
+    /// - Drops the values we no longer need, and returns only what's necessary
+    ///     to get the menu functioning.
     ///
     pub fn new(title: &str, items: Vec<MenuItem>) -> Self {
         Menu(unsafe {

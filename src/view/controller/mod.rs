@@ -22,9 +22,13 @@ mod native_interface;
 ///
 /// ## Example
 /// ```rust,no_run
+/// use cacao::view::ViewDelegate;
+///
 /// struct ContentViewDelegate;
 ///
 /// impl ViewDelegate for ContentViewDelegate {
+///     const NAME: &'static str = "ContentViewDelegate";
+///
 ///     fn will_appear(&self, animated: bool) {
 ///         println!("This controller is about to appear!");
 ///     }

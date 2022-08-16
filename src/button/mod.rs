@@ -6,12 +6,16 @@
 //! Some properties are platform-specific; see the documentation for further information.
 //!
 //! ```rust,no_run
+//! use cacao::button::Button;
+//! use cacao::view::View;
+//! use crate::cacao::layout::Layout;
 //! let mut button = Button::new("My button title");
-//! button.set_text_equivalent("c");
+//! button.set_key_equivalent("c");
 //!
 //! button.set_action(|| {
 //!     println!("My button was clicked.");
 //! });
+//! let my_view : View<()> = todo!();
 //!
 //! // Make sure you don't let your Button drop for as long as you need it.
 //! my_view.add_subview(&button);
@@ -56,12 +60,16 @@ pub use enums::*;
 /// Some properties are platform-specific; see the documentation for further information.
 ///
 /// ```rust,no_run
+/// use cacao::button::Button;
+/// use cacao::view::View;
+/// use crate::cacao::layout::Layout;
 /// let mut button = Button::new("My button title");
-/// button.set_text_equivalent("c");
+/// button.set_key_equivalent("c");
 ///
 /// button.set_action(|| {
 ///     println!("My button was clicked.");
 /// });
+/// let my_view : View<()> = todo!();
 ///
 /// // Make sure you don't let your Button drop for as long as you need it.
 /// my_view.add_subview(&button);

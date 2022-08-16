@@ -4,7 +4,7 @@
 /// performance, but is good enough for many applications. Implement this trait on your struct
 /// that implements `AppDelegate`, and then dispatch messages like the following:
 ///
-/// ```rust,no_run
+/// ```rust,compile_fail
 /// App::<YourAppDelegate, YourMessageType>::dispatch_main(your_message);
 /// ```
 ///

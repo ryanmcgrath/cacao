@@ -77,7 +77,14 @@ pub enum CursorType {
 /// For a very abbreviated example:
 ///
 /// ```rust,no_run
+/// use cacao::appkit::Cursor;
+/// use cacao::appkit::CursorType;
+/// use cacao::dragdrop::DragInfo;
+/// use cacao::dragdrop::DragOperation;
+/// use cacao::view::ViewDelegate;
+/// struct MyView;
 /// impl ViewDelegate for MyView {
+///     const NAME: &'static str = "RootView";
 ///     fn dragging_entered(&self, _info: DragInfo) -> DragOperation {
 ///         Cursor::push(CursorType::DragCopy);
 ///         DragOperation::Copy

@@ -4,8 +4,8 @@
 //! heavily by lifecycle events - in this case, your boilerplate would look something like this:
 //!
 //! ```rust,no_run
-//! use cacao::app::{App, AppDelegate};
-//! use cacao::window::Window;
+//! use cacao::appkit::{App, AppDelegate};
+//! use cacao::appkit::window::Window;
 //!
 //! #[derive(Default)]
 //! struct BasicApp;

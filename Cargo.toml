@@ -53,3 +53,15 @@ identifier = "com.cacao.ios-test"
 category = "Developer Tool"
 short_description = "An example Cacao iOS app."
 long_description = "An example Cacao iOS app."
+
+[[example]]
+name = "webview_custom_protocol"
+required-features = ["webview"]
+
+[[example]]
+name = "browser"
+required-features = ["webview"]
+
+[[example]]
+name = "ios-beta"
+required-features = ["uikit", "autolayout"]

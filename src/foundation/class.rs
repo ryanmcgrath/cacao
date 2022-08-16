@@ -15,7 +15,7 @@ lazy_static! {
 /// constantly calling into the runtime, we store pointers to Class types here after first lookup
 /// and/or creation. The general store format is (roughly speaking) as follows:
 ///
-/// ```no_run
+/// ```ignore
 /// {
 ///     "subclass_type": {
 ///         "superclass_type": *const Class as usize
