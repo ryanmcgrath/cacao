@@ -108,17 +108,17 @@ The following are a list of [Cargo features][cargo-features] that can be enabled
 [cargo-features]: https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section
 
 ## General Notes
-**Why not extend the existing cocoa-rs crate?**
+**Why not extend the existing cocoa-rs crate?**  
 A good question. At the end of the day, that crate (I believe, and someone can correct me if I'm wrong) is somewhat tied to Servo, and I wanted to experiment with what the best approach for representing the Cocoa UI model in Rust was. This crate doesn't ignore their work entirely, either - `core_foundation` and `core_graphics` are used internally and re-exported for general use.
 
-**Why should I write in Rust, rather than X language?**
+**Why should I write in Rust, rather than X language?**  
 In _my_ case, I want to be able to write native applications for my devices (and the platform I like to build products for) without being locked in to writing in Apple-specific languages... and without writing in C/C++ or JavaScript (note: the _toolchain_, not the language - ES6/Typescript are fine). I want to do this because I'm tired of hitting a mountain of work when I want to port my applications to other ecosystems. I think that Rust offers a (growing, but significant) viable model for sharing code across platforms and ecosystems without sacrificing performance.
 
 _(This is the part where the internet lights up and rants about some combination of Electron, Qt, and so on - we're not bothering here as it's beaten to death elsewhere)_
 
 This crate is useful for people who don't need to go all-in on the Apple ecosystem, but want to port their work there with some relative ease. It's not expected that everyone will suddenly want to rewrite their macOS/iOS/tvOS apps in Rust.
 
-**Isn't Objective-C dead?**
+**Isn't Objective-C dead?**  
 Yes, and no.
 
 It's true that Apple definitely favors Swift, and for good reason (and I say this as an unabashed lover of Objective-C). With that said, I would be surprised if we didn't have another ~5+ years of support; Apple is quick to deprecate, but removing the Objective-C runtime would require a ton of time and effort. Maybe SwiftUI kills it, who knows. A wrapper around this stuff should conceivably make it easier to swap out the underlying UI backend whenever it comes time.
@@ -133,21 +133,21 @@ Some might also decry Objective-C as slow. To that, I'd note the following:
 
 **tl;dr** it's probably fine, and you have Rust for your performance needs.
 
-**Why not just wrap UIKit, and then rely on Catalyst?**
+**Why not just wrap UIKit, and then rely on Catalyst?**  
 I have yet to see a single application where Catalyst felt good. The goal is good, though, and if it got to a point where that just seemed like the way forward (e.g, Apple just kills AppKit) then it's certainly an option.
 
-**You can't possibly wrap all platform-specific behavior here...**
+**You can't possibly wrap all platform-specific behavior here...**  
 Correct! Each UI control contains a `objc` field, which you can use as an escape hatch - if the control doesn't support something, you're free to drop to the Objective-C runtime yourself and handle it.
 
-**Why don't you use bindings to automatically generate this stuff?**
+**Why don't you use bindings to automatically generate this stuff?**  
 For initial exploration purposes I've done most of this by hand, as I wanted to find an approach that fit well in the Rust model before committing to binding generation. This is something I'll likely focus on next now that I've got things "working" well enough.
 
-**Is this related to Cacao, the Swift project?**
+**Is this related to Cacao, the Swift project?**  
 No. The project referred to in this question aimed to map portions of Cocoa and UIKit over to run on Linux, but hasn't seen activity in some time (it was really cool, too!).
 
 Open source project naming in 2020 is like trying to buy a `.com` domain: everything good is taken. Luckily, multiple projects can share a name... so that's what's going to happen here.
 
-**Isn't this kind of cheating the Rust object model?**
+**Isn't this kind of cheating the Rust object model?**  
 Depends on how you look at it. I personally don't care too much - the GUI layer for these platforms is a hard requirement to support for certain classes of products, and giving them up also means giving up battle-tested tools for things like Accessibility and deeper OS integration. With that said, internally there are efforts to try and make things respect Rust's model of how things should work.
 
 You can think of this as similar to gtk-rs. If you want to support or try a more _pure_ model, go check out Druid or something. :)
