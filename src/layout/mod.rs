@@ -6,7 +6,10 @@
 mod traits;
 pub use traits::Layout;
 
+#[cfg(all(feature = "appkit", target_os = "macos"))]
 mod animator;
+
+#[cfg(all(feature = "appkit", target_os = "macos"))]
 pub use animator::LayoutConstraintAnimatorProxy;
 
 #[cfg(feature = "autolayout")]
