@@ -29,7 +29,7 @@ impl ThumbnailGenerator {
     /// the main thread if you need to.
     pub fn generate_from_path<F>(&self, path: &Path, config: ThumbnailConfig, callback: F)
     where
-        F: Fn(Result<(Image, ThumbnailQuality), Error>) + Send + Sync + 'static
+        F: Fn(Result<(Image, ThumbnailQuality), Error>) + Send + Sync + 'static,
     {
         let block = ConcreteBlock::new(move |thumbnail: id, thumbnail_type: NSUInteger, error: id| {
             if error == nil {

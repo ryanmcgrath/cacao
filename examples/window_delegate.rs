@@ -6,29 +6,35 @@ use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
 use cacao::appkit::{App, AppDelegate};
 
 struct BasicApp {
-    window: Window<MyWindow>
+    window: Window<MyWindow>,
 }
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
         App::set_menu(vec![
-            Menu::new("", vec![
-                MenuItem::Services,
-                MenuItem::Separator,
-                MenuItem::Hide,
-                MenuItem::HideOthers,
-                MenuItem::ShowAll,
-                MenuItem::Separator,
-                MenuItem::Quit,
-            ]),
+            Menu::new(
+                "",
+                vec![
+                    MenuItem::Services,
+                    MenuItem::Separator,
+                    MenuItem::Hide,
+                    MenuItem::HideOthers,
+                    MenuItem::ShowAll,
+                    MenuItem::Separator,
+                    MenuItem::Quit,
+                ],
+            ),
             Menu::new("File", vec![MenuItem::CloseWindow]),
             Menu::new("View", vec![MenuItem::EnterFullScreen]),
-            Menu::new("Window", vec![
-                MenuItem::Minimize,
-                MenuItem::Zoom,
-                MenuItem::Separator,
-                MenuItem::new("Bring All to Front"),
-            ]),
+            Menu::new(
+                "Window",
+                vec![
+                    MenuItem::Minimize,
+                    MenuItem::Zoom,
+                    MenuItem::Separator,
+                    MenuItem::new("Bring All to Front"),
+                ],
+            ),
         ]);
 
         App::activate();
@@ -71,8 +77,11 @@ impl WindowDelegate for MyWindow {
 }
 
 fn main() {
-    App::new("com.test.window-delegate", BasicApp {
-        window: Window::with(WindowConfig::default(), MyWindow::default())
-    })
+    App::new(
+        "com.test.window-delegate",
+        BasicApp {
+            window: Window::with(WindowConfig::default(), MyWindow::default()),
+        },
+    )
     .run();
 }

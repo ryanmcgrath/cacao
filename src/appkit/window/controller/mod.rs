@@ -48,12 +48,12 @@ pub struct WindowController<T> {
     pub objc: Id<Object>,
 
     /// The underlying `Window` that this controller wraps.
-    pub window: Window<T>
+    pub window: Window<T>,
 }
 
 impl<T> WindowController<T>
 where
-    T: WindowDelegate + 'static
+    T: WindowDelegate + 'static,
 {
     /// Allocates and configures an `NSWindowController` in the Objective-C/Cocoa runtime that maps over
     /// to your supplied delegate.

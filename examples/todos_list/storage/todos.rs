@@ -12,7 +12,7 @@ pub enum TodoStatus {
     Incomplete,
 
     /// Completed. ;P
-    Complete
+    Complete,
 }
 
 /// A Todo. Represents... something to do.
@@ -22,7 +22,7 @@ pub struct Todo {
     pub title: String,
 
     /// The status of this todo.
-    pub status: TodoStatus
+    pub status: TodoStatus,
 }
 
 /// A single-threaded Todos "database".
@@ -36,7 +36,7 @@ impl Todos {
 
         let mut todos = vec![Todo {
             title: title,
-            status: TodoStatus::Incomplete
+            status: TodoStatus::Incomplete,
         }];
 
         todos.append(&mut stack);
@@ -47,7 +47,7 @@ impl Todos {
     /// Edit a Todo at the row specified.
     pub fn with_mut<F>(&self, row: usize, handler: F)
     where
-        F: Fn(&mut Todo)
+        F: Fn(&mut Todo),
     {
         let mut stack = self.0.borrow_mut();
 
@@ -59,7 +59,7 @@ impl Todos {
     /// Run a block with the given Todo.
     pub fn with<F>(&self, row: usize, mut handler: F)
     where
-        F: FnMut(&Todo)
+        F: FnMut(&Todo),
     {
         let stack = self.0.borrow();
 

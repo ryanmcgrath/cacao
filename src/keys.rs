@@ -8,7 +8,7 @@ pub enum Key<'a> {
     Delete,
 
     /// Whatever character you want.
-    Char(&'a str)
+    Char(&'a str),
 }
 
 impl<'a> From<&'a str> for Key<'a> {

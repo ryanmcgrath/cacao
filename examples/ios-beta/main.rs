@@ -19,7 +19,7 @@ impl AppDelegate for TestApp {
 pub struct RootView {
     pub red: View,
     pub green: View,
-    pub blue: View
+    pub blue: View,
 }
 
 impl ViewDelegate for RootView {
@@ -48,7 +48,7 @@ impl ViewDelegate for RootView {
             self.blue.top.constraint_equal_to(&self.green.bottom).offset(16.),
             self.blue.leading.constraint_equal_to(&view.leading).offset(16.),
             self.blue.trailing.constraint_equal_to(&view.trailing).offset(-16.),
-            self.blue.bottom.constraint_equal_to(&view.bottom).offset(-16.)
+            self.blue.bottom.constraint_equal_to(&view.bottom).offset(-16.),
         ]);
     }
 }
@@ -56,7 +56,7 @@ impl ViewDelegate for RootView {
 #[derive(Default)]
 pub struct WindowScene {
     pub window: RwLock<Option<Window>>,
-    pub root_view_controller: RwLock<Option<ViewController<RootView>>>
+    pub root_view_controller: RwLock<Option<ViewController<RootView>>>,
 }
 
 impl WindowSceneDelegate for WindowScene {

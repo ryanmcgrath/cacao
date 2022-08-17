@@ -16,14 +16,14 @@ mod list;
 
 pub struct TodosWindow {
     pub content: ViewController<TodosContentView>,
-    pub toolbar: Toolbar<TodosToolbar>
+    pub toolbar: Toolbar<TodosToolbar>,
 }
 
 impl TodosWindow {
     pub fn new() -> Self {
         TodosWindow {
             content: ViewController::new(TodosContentView::default()),
-            toolbar: Toolbar::new("TodosToolbar", TodosToolbar::default())
+            toolbar: Toolbar::new("TodosToolbar", TodosToolbar::default()),
         }
     }
 

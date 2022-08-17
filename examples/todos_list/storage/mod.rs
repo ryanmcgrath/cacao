@@ -45,7 +45,7 @@ pub enum Message {
     MarkTodoComplete(usize),
 
     /// Mark a todo as incomplete.
-    MarkTodoIncomplete(usize)
+    MarkTodoIncomplete(usize),
 }
 
 /// Dispatch a message on a background thread.

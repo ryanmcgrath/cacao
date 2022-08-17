@@ -17,29 +17,35 @@ const WIDTH: f64 = 100.;
 const HEIGHT: f64 = 100.;
 
 struct BasicApp {
-    window: Window<AppWindow>
+    window: Window<AppWindow>,
 }
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
         App::set_menu(vec![
-            Menu::new("", vec![
-                MenuItem::Services,
-                MenuItem::Separator,
-                MenuItem::Hide,
-                MenuItem::HideOthers,
-                MenuItem::ShowAll,
-                MenuItem::Separator,
-                MenuItem::Quit,
-            ]),
+            Menu::new(
+                "",
+                vec![
+                    MenuItem::Services,
+                    MenuItem::Separator,
+                    MenuItem::Hide,
+                    MenuItem::HideOthers,
+                    MenuItem::ShowAll,
+                    MenuItem::Separator,
+                    MenuItem::Quit,
+                ],
+            ),
             Menu::new("File", vec![MenuItem::CloseWindow]),
             Menu::new("View", vec![MenuItem::EnterFullScreen]),
-            Menu::new("Window", vec![
-                MenuItem::Minimize,
-                MenuItem::Zoom,
-                MenuItem::Separator,
-                MenuItem::new("Bring All to Front"),
-            ]),
+            Menu::new(
+                "Window",
+                vec![
+                    MenuItem::Minimize,
+                    MenuItem::Zoom,
+                    MenuItem::Separator,
+                    MenuItem::new("Bring All to Front"),
+                ],
+            ),
         ]);
 
         App::activate();
@@ -58,7 +64,7 @@ struct AppWindow {
     content: View,
     blue: View,
     red: View,
-    green: View
+    green: View,
 }
 
 impl AppWindow {
@@ -68,7 +74,7 @@ impl AppWindow {
             top: TOP,
             left: SPACING,
             width: WIDTH,
-            height: HEIGHT
+            height: HEIGHT,
         });
         self.blue.layer.set_corner_radius(CORNER_RADIUS);
         self.content.add_subview(&self.blue);
@@ -78,7 +84,7 @@ impl AppWindow {
             top: TOP,
             left: WIDTH + (SPACING * 2.),
             width: WIDTH,
-            height: HEIGHT
+            height: HEIGHT,
         });
         self.red.layer.set_corner_radius(CORNER_RADIUS);
         self.content.add_subview(&self.red);
@@ -88,7 +94,7 @@ impl AppWindow {
             top: TOP,
             left: (WIDTH * 2.) + (SPACING * 3.),
             width: WIDTH,
-            height: HEIGHT
+            height: HEIGHT,
         });
         self.green.layer.set_corner_radius(CORNER_RADIUS);
         self.content.add_subview(&self.green);
@@ -106,8 +112,11 @@ impl WindowDelegate for AppWindow {
 }
 
 fn main() {
-    App::new("com.test.window", BasicApp {
-        window: Window::with(WindowConfig::default(), AppWindow::default())
-    })
+    App::new(
+        "com.test.window",
+        BasicApp {
+            window: Window::with(WindowConfig::default(), AppWindow::default()),
+        },
+    )
     .run();
 }

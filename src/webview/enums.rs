@@ -21,7 +21,7 @@ pub enum NavigationType {
     FormResubmitted,
 
     /// Other.
-    Other
+    Other,
 }
 
 // For whatever reason, impl From<> below doesn't generate the reciprocal impl Into<> we need.
@@ -39,7 +39,7 @@ impl Into<NavigationType> for NSInteger {
             4 => NavigationType::FormResubmitted,
             _ => {
                 panic!("Unsupported WKWebView NavigationType value found!");
-            }
+            },
         }
     }
 }
@@ -52,7 +52,7 @@ impl From<NavigationType> for NSInteger {
             NavigationType::FormSubmitted => 1,
             NavigationType::BackForward => 2,
             NavigationType::Reload => 3,
-            NavigationType::FormResubmitted => 4
+            NavigationType::FormResubmitted => 4,
         }
     }
 }
@@ -64,14 +64,14 @@ pub enum NavigationPolicy {
     Cancel,
 
     /// Allowed.
-    Allow
+    Allow,
 }
 
 impl From<NavigationPolicy> for NSInteger {
     fn from(policy: NavigationPolicy) -> Self {
         match policy {
             NavigationPolicy::Cancel => 0,
-            NavigationPolicy::Allow => 1
+            NavigationPolicy::Allow => 1,
         }
     }
 }
@@ -88,7 +88,7 @@ pub enum NavigationResponsePolicy {
     /// This is a private API, and likely won't make it into the App Store. Will only be available
     /// if you opt in via the `webview-downloading` feature.
     #[cfg(feature = "webview-downloading-macos")]
-    BecomeDownload
+    BecomeDownload,
 }
 
 impl From<NavigationResponsePolicy> for NSInteger {
@@ -98,7 +98,7 @@ impl From<NavigationResponsePolicy> for NSInteger {
             NavigationResponsePolicy::Allow => 1,
 
             #[cfg(feature = "webview-downloading-macos")]
-            NavigationResponsePolicy::BecomeDownload => 2
+            NavigationResponsePolicy::BecomeDownload => 2,
         }
     }
 }
@@ -110,14 +110,14 @@ pub enum InjectAt {
     Start = 0,
 
     /// Inject at the end of the document.
-    End = 1
+    End = 1,
 }
 
 impl From<InjectAt> for NSInteger {
     fn from(at: InjectAt) -> Self {
         match at {
             InjectAt::Start => 0,
-            InjectAt::End => 1
+            InjectAt::End => 1,
         }
     }
 }

@@ -31,9 +31,9 @@ pub enum DragOperation {
     Move,
 
     /// The data can be deleted.
-    Delete // All of the above.
-           // @TODO: NSUIntegerMax, a tricky beast
-           // Every
+    Delete, // All of the above.
+            // @TODO: NSUIntegerMax, a tricky beast
+            // Every
 }
 
 impl From<DragOperation> for NSUInteger {
@@ -45,7 +45,7 @@ impl From<DragOperation> for NSUInteger {
             DragOperation::Generic => 4,
             DragOperation::Private => 8,
             DragOperation::Move => 16,
-            DragOperation::Delete => 32
+            DragOperation::Delete => 32,
         }
     }
 }
@@ -54,7 +54,7 @@ impl From<DragOperation> for NSUInteger {
 /// this only provides getters - merely a Rust-y way to grab what you need.
 #[derive(Clone, Debug)]
 pub struct DragInfo {
-    pub info: ShareId<Object>
+    pub info: ShareId<Object>,
 }
 
 impl DragInfo {

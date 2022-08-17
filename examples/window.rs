@@ -6,29 +6,35 @@ use cacao::appkit::{App, AppDelegate};
 
 #[derive(Default)]
 struct BasicApp {
-    window: Window
+    window: Window,
 }
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
         App::set_menu(vec![
-            Menu::new("", vec![
-                MenuItem::Services,
-                MenuItem::Separator,
-                MenuItem::Hide,
-                MenuItem::HideOthers,
-                MenuItem::ShowAll,
-                MenuItem::Separator,
-                MenuItem::Quit,
-            ]),
+            Menu::new(
+                "",
+                vec![
+                    MenuItem::Services,
+                    MenuItem::Separator,
+                    MenuItem::Hide,
+                    MenuItem::HideOthers,
+                    MenuItem::ShowAll,
+                    MenuItem::Separator,
+                    MenuItem::Quit,
+                ],
+            ),
             Menu::new("File", vec![MenuItem::CloseWindow]),
             Menu::new("View", vec![MenuItem::EnterFullScreen]),
-            Menu::new("Window", vec![
-                MenuItem::Minimize,
-                MenuItem::Zoom,
-                MenuItem::Separator,
-                MenuItem::new("Bring All to Front"),
-            ]),
+            Menu::new(
+                "Window",
+                vec![
+                    MenuItem::Minimize,
+                    MenuItem::Zoom,
+                    MenuItem::Separator,
+                    MenuItem::new("Bring All to Front"),
+                ],
+            ),
         ]);
 
         App::activate();

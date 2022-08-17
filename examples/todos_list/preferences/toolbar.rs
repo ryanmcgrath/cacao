@@ -37,7 +37,7 @@ impl Default for PreferencesToolbar {
                 });
 
                 item
-            }
+            },
         ))
     }
 }
@@ -67,7 +67,7 @@ impl ToolbarDelegate for PreferencesToolbar {
             "advanced" => &self.0 .1,
             _ => {
                 unreachable!();
-            }
+            },
         }
     }
 }
