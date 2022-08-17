@@ -15,7 +15,7 @@ use cacao::appkit::{AnimationContext, App, AppDelegate};
 use cacao::appkit::{Event, EventMask, EventMonitor};
 
 struct BasicApp {
-    window: Window<AppWindow>
+    window: Window<AppWindow>,
 }
 
 impl AppDelegate for BasicApp {
@@ -54,22 +54,22 @@ const ANIMATIONS: [[[f64; 5]; 4]; 3] = [
         [44., 16., 100., 100., 1.],
         [128., 84., 144., 124., 1.],
         [32., 32., 44., 44., 0.7],
-        [328., 157., 200., 200., 0.7]
+        [328., 157., 200., 200., 0.7],
     ],
     // Red
     [
         [44., 132., 100., 100., 1.],
         [40., 47., 80., 64., 0.7],
         [84., 220., 600., 109., 1.0],
-        [48., 600., 340., 44., 0.7]
+        [48., 600., 340., 44., 0.7],
     ],
     // Green
     [
         [44., 248., 100., 100., 1.],
         [420., 232., 420., 244., 0.7],
         [310., 440., 150., 238., 0.7],
-        [32., 32., 44., 44., 1.]
-    ]
+        [32., 32., 44., 44., 1.],
+    ],
 ];
 
 /// A helper method for generating frame constraints that we want to be animating.
@@ -84,7 +84,7 @@ fn apply_styles(view: &View, parent: &View, background_color: Color, animation_t
         view.top.constraint_equal_to(&parent.top).offset(animation[0]),
         view.left.constraint_equal_to(&parent.left).offset(animation[1]),
         view.width.constraint_equal_to_constant(animation[2]),
-        view.height.constraint_equal_to_constant(animation[3])
+        view.height.constraint_equal_to_constant(animation[3]),
     ]
 }
 
@@ -94,7 +94,7 @@ struct AppWindow {
     blue: View,
     red: View,
     green: View,
-    key_monitor: Option<EventMonitor>
+    key_monitor: Option<EventMonitor>,
 }
 
 impl WindowDelegate for AppWindow {
@@ -139,7 +139,7 @@ impl WindowDelegate for AppWindow {
                 "a" => 1,
                 "s" => 2,
                 "d" => 3,
-                _ => 4
+                _ => 4,
             };
 
             if animation_index == 4 {
@@ -170,8 +170,11 @@ impl WindowDelegate for AppWindow {
 }
 
 fn main() {
-    App::new("com.test.window", BasicApp {
-        window: Window::with(WindowConfig::default(), AppWindow::default())
-    })
+    App::new(
+        "com.test.window",
+        BasicApp {
+            window: Window::with(WindowConfig::default(), AppWindow::default()),
+        },
+    )
     .run();
 }

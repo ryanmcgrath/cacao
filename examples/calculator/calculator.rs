@@ -16,7 +16,7 @@ pub enum Msg {
     Clear,
     Mod,
     Invert,
-    Equals
+    Equals,
 }
 
 /// Asynchronously calls back through to the top of the application
@@ -97,11 +97,11 @@ impl Calculator {
                     },
                     Err(e) => {
                         eprintln!("Error parsing expression: {:?}", e);
-                    }
+                    },
                 }
             },
 
-            _ => {}
+            _ => {},
         }
     }
 }

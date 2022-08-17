@@ -38,12 +38,12 @@ pub struct Toolbar<T = ()> {
     pub objc_delegate: ShareId<Object>,
 
     /// The user supplied delegate.
-    pub delegate: Option<Box<T>>
+    pub delegate: Option<Box<T>>,
 }
 
 impl<T> Toolbar<T>
 where
-    T: ToolbarDelegate + 'static
+    T: ToolbarDelegate + 'static,
 {
     /// Creates a new `NSToolbar` instance, configures it appropriately, sets up the delegate
     /// chain, and retains it all.
@@ -69,14 +69,14 @@ where
             objc: objc.clone(),
             objc_delegate: objc_delegate.clone(),
             identifier: identifier.clone(),
-            delegate: None
+            delegate: None,
         });
 
         Toolbar {
             identifier,
             objc,
             objc_delegate,
-            delegate: Some(delegate)
+            delegate: Some(delegate),
         }
     }
 }
@@ -135,7 +135,7 @@ impl<T> fmt::Debug for Toolbar<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let delegate = match &self.delegate {
             Some(d) => format!("Some({:p})", d),
-            None => "None".to_string()
+            None => "None".to_string(),
         };
 
         f.debug_struct("Toolbar")

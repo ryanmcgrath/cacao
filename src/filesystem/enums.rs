@@ -27,7 +27,7 @@ pub enum ModalResponse {
     SecondButtonReturned,
 
     /// The third button in the dialog was clicked.
-    ThirdButtonReturned
+    ThirdButtonReturned,
 }
 
 impl From<NSInteger> for ModalResponse {
@@ -47,7 +47,7 @@ impl From<NSInteger> for ModalResponse {
             // gracefully handle.
             e => {
                 panic!("Unknown NSModalResponse sent back! {}", e);
-            }
+            },
         }
     }
 }
@@ -68,7 +68,7 @@ pub enum SearchPathDomainMask {
     Domain,
 
     /// Search all domains. Not typically used these days.
-    AllDomains
+    AllDomains,
 }
 
 impl From<SearchPathDomainMask> for NSUInteger {
@@ -78,7 +78,7 @@ impl From<SearchPathDomainMask> for NSUInteger {
             SearchPathDomainMask::Local => 2,
             SearchPathDomainMask::Network => 4,
             SearchPathDomainMask::Domain => 8,
-            SearchPathDomainMask::AllDomains => 0x0ffff
+            SearchPathDomainMask::AllDomains => 0x0ffff,
         }
     }
 }
@@ -172,7 +172,7 @@ pub enum SearchPathDirectory {
     AllLibraries,
 
     /// The Trash directory.
-    Trash
+    Trash,
 }
 
 impl From<SearchPathDirectory> for NSUInteger {
@@ -204,7 +204,7 @@ impl From<SearchPathDirectory> for NSUInteger {
             SearchPathDirectory::ItemReplacement => 99,
             SearchPathDirectory::AllApplications => 100,
             SearchPathDirectory::AllLibraries => 101,
-            SearchPathDirectory::Trash => 102
+            SearchPathDirectory::Trash => 102,
         }
     }
 }

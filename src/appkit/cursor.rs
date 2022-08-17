@@ -65,7 +65,7 @@ pub enum CursorType {
     DragCopy,
 
     /// Indicates a context menu will open.
-    ContextMenu
+    ContextMenu,
 }
 
 /// A wrapper around NSCursor.
@@ -127,7 +127,7 @@ impl Cursor {
                 CursorType::OperationNotAllowed => msg_send![class!(NSCursor), operationNotAllowedCursor],
                 CursorType::DragLink => msg_send![class!(NSCursor), dragLinkCursor],
                 CursorType::DragCopy => msg_send![class!(NSCursor), dragCopyCursor],
-                CursorType::ContextMenu => msg_send![class!(NSCursor), contextualMenuCursor]
+                CursorType::ContextMenu => msg_send![class!(NSCursor), contextualMenuCursor],
             };
 
             let _: () = msg_send![cursor, push];

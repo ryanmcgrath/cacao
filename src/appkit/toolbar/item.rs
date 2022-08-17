@@ -22,7 +22,7 @@ pub struct ToolbarItem {
     pub objc: Id<Object>,
     pub button: Option<Button>,
     pub image: Option<Image>,
-    handler: Option<TargetActionHandler>
+    handler: Option<TargetActionHandler>,
 }
 
 impl ToolbarItem {
@@ -43,7 +43,7 @@ impl ToolbarItem {
             objc,
             button: None,
             image: None,
-            handler: None
+            handler: None,
         }
     }
 
@@ -53,7 +53,7 @@ impl ToolbarItem {
             objc: unsafe { Id::from_retained_ptr(item) },
             button: None,
             image: None,
-            handler: None
+            handler: None,
         }
     }
 

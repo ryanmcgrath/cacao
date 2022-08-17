@@ -52,7 +52,7 @@ pub fn load<'a, T>(this: &'a Object, ptr_name: &str) -> &'a T {
 /// Asynchronously execute a callback on the main thread via Grand Central Dispatch.
 pub fn async_main_thread<F>(method: F)
 where
-    F: Fn() + Send + 'static
+    F: Fn() + Send + 'static,
 {
     let queue = dispatch::Queue::main();
     queue.exec_async(method);
@@ -61,7 +61,7 @@ where
 /// Synchronously execute a callback on the main thread via Grand Central Dispatch.
 pub fn sync_main_thread<F>(method: F)
 where
-    F: Fn() + Send + 'static
+    F: Fn() + Send + 'static,
 {
     let queue = dispatch::Queue::main();
     queue.exec_sync(method);
@@ -76,7 +76,7 @@ pub struct CGSize {
     pub width: CGFloat,
 
     /// The height of this size.
-    pub height: CGFloat
+    pub height: CGFloat,
 }
 
 impl CGSize {

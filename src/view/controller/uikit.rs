@@ -59,11 +59,11 @@ pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>(instance
         decl.add_method(sel!(viewDidAppear:), did_appear::<T> as extern "C" fn(&mut Object, _, BOOL));
         decl.add_method(
             sel!(viewWillDisappear:),
-            will_disappear::<T> as extern "C" fn(&mut Object, _, BOOL)
+            will_disappear::<T> as extern "C" fn(&mut Object, _, BOOL),
         );
         decl.add_method(
             sel!(viewDidDisappear:),
-            did_disappear::<T> as extern "C" fn(&mut Object, _, BOOL)
+            did_disappear::<T> as extern "C" fn(&mut Object, _, BOOL),
         );
     })
 }

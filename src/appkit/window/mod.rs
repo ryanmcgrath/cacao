@@ -49,7 +49,7 @@ pub struct Window<T = ()> {
     pub objc: ShareId<Object>,
 
     /// A delegate for this window.
-    pub delegate: Option<Box<T>>
+    pub delegate: Option<Box<T>>,
 }
 
 impl Default for Window {
@@ -109,14 +109,14 @@ impl Window {
 
         Window {
             objc: objc,
-            delegate: None
+            delegate: None,
         }
     }
 }
 
 impl<T> Window<T>
 where
-    T: WindowDelegate + 'static
+    T: WindowDelegate + 'static,
 {
     /// Constructs a new Window with a `config` and `delegate`. Using a `WindowDelegate` enables
     /// you to respond to window lifecycle events - visibility, movement, and so on. It also
@@ -176,13 +176,13 @@ where
         {
             (&mut delegate).did_load(Window {
                 delegate: None,
-                objc: objc.clone()
+                objc: objc.clone(),
             });
         }
 
         Window {
             objc: objc,
-            delegate: Some(delegate)
+            delegate: Some(delegate),
         }
     }
 }
@@ -462,7 +462,7 @@ impl<T> Window<T> {
     pub fn begin_sheet<F, W>(&self, window: &Window<W>, completion: F)
     where
         F: Fn() + Send + Sync + 'static,
-        W: WindowDelegate + 'static
+        W: WindowDelegate + 'static,
     {
         let block = ConcreteBlock::new(move |_response: NSInteger| {
             completion();
@@ -477,7 +477,7 @@ impl<T> Window<T> {
     /// Closes a sheet.
     pub fn end_sheet<W>(&self, window: &Window<W>)
     where
-        W: WindowDelegate + 'static
+        W: WindowDelegate + 'static,
     {
         unsafe {
             let _: () = msg_send![&*self.objc, endSheet:&*window.objc];

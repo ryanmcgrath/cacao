@@ -10,29 +10,35 @@ use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
 use cacao::appkit::{App, AppDelegate};
 
 struct BasicApp {
-    window: Window<AppWindow>
+    window: Window<AppWindow>,
 }
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
         App::set_menu(vec![
-            Menu::new("", vec![
-                MenuItem::Services,
-                MenuItem::Separator,
-                MenuItem::Hide,
-                MenuItem::HideOthers,
-                MenuItem::ShowAll,
-                MenuItem::Separator,
-                MenuItem::Quit,
-            ]),
+            Menu::new(
+                "",
+                vec![
+                    MenuItem::Services,
+                    MenuItem::Separator,
+                    MenuItem::Hide,
+                    MenuItem::HideOthers,
+                    MenuItem::ShowAll,
+                    MenuItem::Separator,
+                    MenuItem::Quit,
+                ],
+            ),
             Menu::new("File", vec![MenuItem::CloseWindow]),
             Menu::new("View", vec![MenuItem::EnterFullScreen]),
-            Menu::new("Window", vec![
-                MenuItem::Minimize,
-                MenuItem::Zoom,
-                MenuItem::Separator,
-                MenuItem::new("Bring All to Front"),
-            ]),
+            Menu::new(
+                "Window",
+                vec![
+                    MenuItem::Minimize,
+                    MenuItem::Zoom,
+                    MenuItem::Separator,
+                    MenuItem::new("Bring All to Front"),
+                ],
+            ),
         ]);
 
         App::activate();
@@ -50,7 +56,7 @@ struct AppWindow {
     content: View,
     blue: View,
     red: View,
-    green: View
+    green: View,
 }
 
 impl WindowDelegate for AppWindow {
@@ -62,7 +68,7 @@ impl WindowDelegate for AppWindow {
 
         let dynamic = Color::dynamic(|style| match (style.theme, style.contrast) {
             (Theme::Dark, _) => Color::SystemGreen,
-            _ => Color::SystemRed
+            _ => Color::SystemRed,
         });
 
         self.blue.set_background_color(Color::SystemBlue);
@@ -89,14 +95,17 @@ impl WindowDelegate for AppWindow {
             self.green.leading.constraint_equal_to(&self.red.trailing).offset(16.),
             self.green.trailing.constraint_equal_to(&self.content.trailing).offset(-16.),
             self.green.bottom.constraint_equal_to(&self.content.bottom).offset(-16.),
-            self.green.width.constraint_equal_to_constant(100.)
+            self.green.width.constraint_equal_to_constant(100.),
         ]);
     }
 }
 
 fn main() {
-    App::new("com.test.window", BasicApp {
-        window: Window::with(WindowConfig::default(), AppWindow::default())
-    })
+    App::new(
+        "com.test.window",
+        BasicApp {
+            window: Window::with(WindowConfig::default(), AppWindow::default()),
+        },
+    )
     .run();
 }

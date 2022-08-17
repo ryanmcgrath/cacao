@@ -102,7 +102,7 @@ impl Pasteboard {
                 return Err(Box::new(Error {
                     code: 666,
                     domain: "com.cacao-rs.pasteboard".to_string(),
-                    description: "Pasteboard server returned no data.".to_string()
+                    description: "Pasteboard server returned no data.".to_string(),
                 }));
             }
 
