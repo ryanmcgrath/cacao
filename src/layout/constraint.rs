@@ -10,6 +10,7 @@ use objc_id::ShareId;
 
 use crate::foundation::{id, NO, YES};
 
+#[cfg(all(feature = "appkit", target_os = "macos"))]
 use super::LayoutConstraintAnimatorProxy;
 
 /// A wrapper for `NSLayoutConstraint`. This both acts as a central path through which to activate
@@ -31,18 +32,22 @@ pub struct LayoutConstraint {
     pub priority: f64,
 
     /// An animator proxy that can be used inside animation contexts.
-    pub animator: LayoutConstraintAnimatorProxy
+    /// This is currently only supported on macOS with the `appkit` feature.
+    #[cfg(all(feature = "appkit", target_os = "macos"))]
+    pub animator: LayoutConstraintAnimatorProxy,
 }
 
 impl LayoutConstraint {
     /// An internal method for wrapping existing constraints.
     pub(crate) fn new(object: id) -> Self {
         LayoutConstraint {
+            #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: LayoutConstraintAnimatorProxy::new(object),
+
             constraint: unsafe { ShareId::from_ptr(object) },
             offset: 0.0,
             multiplier: 0.0,
-            priority: 0.0
+            priority: 0.0,
         }
     }
 
@@ -55,11 +60,13 @@ impl LayoutConstraint {
         }
 
         LayoutConstraint {
+            #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: self.animator,
+
             constraint: self.constraint,
             offset: offset,
             multiplier: self.multiplier,
-            priority: self.priority
+            priority: self.priority,
         }
     }
 
