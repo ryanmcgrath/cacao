@@ -107,7 +107,7 @@ extern "C" fn did_update<T: AppDelegate>(this: &Object, _: Sel, _: id) {
 extern "C" fn should_handle_reopen<T: AppDelegate>(this: &Object, _: Sel, _: id, has_visible_windows: BOOL) -> BOOL {
     match app::<T>(this).should_handle_reopen(to_bool(has_visible_windows)) {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -116,7 +116,7 @@ extern "C" fn should_handle_reopen<T: AppDelegate>(this: &Object, _: Sel, _: id,
 extern "C" fn dock_menu<T: AppDelegate>(this: &Object, _: Sel, _: id) -> id {
     match app::<T>(this).dock_menu() {
         Some(mut menu) => &mut *menu.0,
-        None => nil,
+        None => nil
     }
 }
 
@@ -138,7 +138,7 @@ extern "C" fn will_continue_user_activity_with_type<T: AppDelegate>(this: &Objec
 
     match app::<T>(this).will_continue_user_activity(activity.to_str()) {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -154,7 +154,7 @@ extern "C" fn continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: i
         (*handler).call((nil,));
     }) {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -210,7 +210,7 @@ extern "C" fn open_file_without_ui<T: AppDelegate>(this: &Object, _: Sel, _: id,
 
     match app::<T>(this).open_file_without_ui(filename.to_str()) {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -218,7 +218,7 @@ extern "C" fn open_file_without_ui<T: AppDelegate>(this: &Object, _: Sel, _: id,
 extern "C" fn should_open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
     match app::<T>(this).should_open_untitled_file() {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -226,7 +226,7 @@ extern "C" fn should_open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _
 extern "C" fn should_terminate_after_last_window_closed<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
     match app::<T>(this).should_terminate_after_last_window_closed() {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -234,7 +234,7 @@ extern "C" fn should_terminate_after_last_window_closed<T: AppDelegate>(this: &O
 extern "C" fn open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
     match app::<T>(this).open_untitled_file() {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -244,7 +244,7 @@ extern "C" fn open_temp_file<T: AppDelegate>(this: &Object, _: Sel, _: id, filen
 
     match app::<T>(this).open_temp_file(filename.to_str()) {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -254,7 +254,7 @@ extern "C" fn print_file<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id)
 
     match app::<T>(this).print_file(filename.to_str()) {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -266,7 +266,7 @@ extern "C" fn print_files<T: AppDelegate>(
     _: id,
     files: id,
     settings: id,
-    show_print_panels: BOOL,
+    show_print_panels: BOOL
 ) -> NSUInteger {
     let files = NSArray::retain(files).map(|file| NSString::retain(file).to_str().to_string());
 
@@ -288,7 +288,7 @@ extern "C" fn delegate_handles_key<T: AppDelegate>(this: &Object, _: Sel, _: id,
 
     match app::<T>(this).delegate_handles_key(key.to_str()) {
         true => YES,
-        false => NO,
+        false => NO
     }
 }
 
@@ -307,43 +307,43 @@ pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> *co
         // Launching Applications
         decl.add_method(
             sel!(applicationWillFinishLaunching:),
-            will_finish_launching::<T> as extern "C" fn(&Object, _, _),
+            will_finish_launching::<T> as extern "C" fn(&Object, _, _)
         );
         decl.add_method(
             sel!(applicationDidFinishLaunching:),
-            did_finish_launching::<T> as extern "C" fn(&Object, _, _),
+            did_finish_launching::<T> as extern "C" fn(&Object, _, _)
         );
 
         // Managing Active Status
         decl.add_method(
             sel!(applicationWillBecomeActive:),
-            will_become_active::<T> as extern "C" fn(&Object, _, _),
+            will_become_active::<T> as extern "C" fn(&Object, _, _)
         );
         decl.add_method(
             sel!(applicationDidBecomeActive:),
-            did_become_active::<T> as extern "C" fn(&Object, _, _),
+            did_become_active::<T> as extern "C" fn(&Object, _, _)
         );
         decl.add_method(
             sel!(applicationWillResignActive:),
-            will_resign_active::<T> as extern "C" fn(&Object, _, _),
+            will_resign_active::<T> as extern "C" fn(&Object, _, _)
         );
         decl.add_method(
             sel!(applicationDidResignActive:),
-            did_resign_active::<T> as extern "C" fn(&Object, _, _),
+            did_resign_active::<T> as extern "C" fn(&Object, _, _)
         );
 
         // Terminating Applications
         decl.add_method(
             sel!(applicationShouldTerminate:),
-            should_terminate::<T> as extern "C" fn(&Object, _, _) -> NSUInteger,
+            should_terminate::<T> as extern "C" fn(&Object, _, _) -> NSUInteger
         );
         decl.add_method(
             sel!(applicationWillTerminate:),
-            will_terminate::<T> as extern "C" fn(&Object, _, _),
+            will_terminate::<T> as extern "C" fn(&Object, _, _)
         );
         decl.add_method(
             sel!(applicationShouldTerminateAfterLastWindowClosed:),
-            should_terminate_after_last_window_closed::<T> as extern "C" fn(&Object, _, _) -> BOOL,
+            should_terminate_after_last_window_closed::<T> as extern "C" fn(&Object, _, _) -> BOOL
         );
 
         // Hiding Applications
@@ -357,100 +357,100 @@ pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> *co
         decl.add_method(sel!(applicationDidUpdate:), did_update::<T> as extern "C" fn(&Object, _, _));
         decl.add_method(
             sel!(applicationShouldHandleReopen:hasVisibleWindows:),
-            should_handle_reopen::<T> as extern "C" fn(&Object, _, _, BOOL) -> BOOL,
+            should_handle_reopen::<T> as extern "C" fn(&Object, _, _, BOOL) -> BOOL
         );
 
         // Dock Menu
         decl.add_method(
             sel!(applicationDockMenu:),
-            dock_menu::<T> as extern "C" fn(&Object, _, _) -> id,
+            dock_menu::<T> as extern "C" fn(&Object, _, _) -> id
         );
 
         // Displaying Errors
         decl.add_method(
             sel!(application:willPresentError:),
-            will_present_error::<T> as extern "C" fn(&Object, _, _, id) -> id,
+            will_present_error::<T> as extern "C" fn(&Object, _, _, id) -> id
         );
 
         // Managing the Screen
         decl.add_method(
             sel!(applicationDidChangeScreenParameters:),
-            did_change_screen_parameters::<T> as extern "C" fn(&Object, _, _),
+            did_change_screen_parameters::<T> as extern "C" fn(&Object, _, _)
         );
         decl.add_method(
             sel!(applicationDidChangeOcclusionState:),
-            did_change_occlusion_state::<T> as extern "C" fn(&Object, _, _),
+            did_change_occlusion_state::<T> as extern "C" fn(&Object, _, _)
         );
 
         // User Activities
         decl.add_method(
             sel!(application:willContinueUserActivityWithType:),
-            will_continue_user_activity_with_type::<T> as extern "C" fn(&Object, _, _, id) -> BOOL,
+            will_continue_user_activity_with_type::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
         );
         decl.add_method(
             sel!(application:continueUserActivity:restorationHandler:),
-            continue_user_activity::<T> as extern "C" fn(&Object, _, _, id, id) -> BOOL,
+            continue_user_activity::<T> as extern "C" fn(&Object, _, _, id, id) -> BOOL
         );
         decl.add_method(
             sel!(application:didFailToContinueUserActivityWithType:error:),
-            failed_to_continue_user_activity::<T> as extern "C" fn(&Object, _, _, id, id),
+            failed_to_continue_user_activity::<T> as extern "C" fn(&Object, _, _, id, id)
         );
         decl.add_method(
             sel!(application:didUpdateUserActivity:),
-            did_update_user_activity::<T> as extern "C" fn(&Object, _, _, id),
+            did_update_user_activity::<T> as extern "C" fn(&Object, _, _, id)
         );
 
         // Handling push notifications
         decl.add_method(
             sel!(application:didRegisterForRemoteNotificationsWithDeviceToken:),
-            registered_for_remote_notifications::<T> as extern "C" fn(&Object, _, _, id),
+            registered_for_remote_notifications::<T> as extern "C" fn(&Object, _, _, id)
         );
         decl.add_method(
             sel!(application:didFailToRegisterForRemoteNotificationsWithError:),
-            failed_to_register_for_remote_notifications::<T> as extern "C" fn(&Object, _, _, id),
+            failed_to_register_for_remote_notifications::<T> as extern "C" fn(&Object, _, _, id)
         );
         decl.add_method(
             sel!(application:didReceiveRemoteNotification:),
-            did_receive_remote_notification::<T> as extern "C" fn(&Object, _, _, id),
+            did_receive_remote_notification::<T> as extern "C" fn(&Object, _, _, id)
         );
 
         // CloudKit
         #[cfg(feature = "cloudkit")]
         decl.add_method(
             sel!(application:userDidAcceptCloudKitShareWithMetadata:),
-            accepted_cloudkit_share::<T> as extern "C" fn(&Object, _, _, id),
+            accepted_cloudkit_share::<T> as extern "C" fn(&Object, _, _, id)
         );
 
         // Opening Files
         decl.add_method(
             sel!(application:openURLs:),
-            open_urls::<T> as extern "C" fn(&Object, _, _, id),
+            open_urls::<T> as extern "C" fn(&Object, _, _, id)
         );
         decl.add_method(
             sel!(application:openFileWithoutUI:),
-            open_file_without_ui::<T> as extern "C" fn(&Object, _, _, id) -> BOOL,
+            open_file_without_ui::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
         );
         decl.add_method(
             sel!(applicationShouldOpenUntitledFile:),
-            should_open_untitled_file::<T> as extern "C" fn(&Object, _, _) -> BOOL,
+            should_open_untitled_file::<T> as extern "C" fn(&Object, _, _) -> BOOL
         );
         decl.add_method(
             sel!(applicationOpenUntitledFile:),
-            open_untitled_file::<T> as extern "C" fn(&Object, _, _) -> BOOL,
+            open_untitled_file::<T> as extern "C" fn(&Object, _, _) -> BOOL
         );
         decl.add_method(
             sel!(application:openTempFile:),
-            open_temp_file::<T> as extern "C" fn(&Object, _, _, id) -> BOOL,
+            open_temp_file::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
         );
 
         // Printing
         decl.add_method(
             sel!(application:printFile:),
-            print_file::<T> as extern "C" fn(&Object, _, _, id) -> BOOL,
+            print_file::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
         );
         decl.add_method(
             sel!(application:printFiles:withSettings:showPrintPanels:),
-            print_files::<T> as extern "C" fn(&Object, _, id, id, id, BOOL) -> NSUInteger,
+            print_files::<T> as extern "C" fn(&Object, _, id, id, id, BOOL) -> NSUInteger
         );
 
         // @TODO: Restoring Application State
@@ -459,7 +459,7 @@ pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> *co
         // Scripting
         decl.add_method(
             sel!(application:delegateHandlesKey:),
-            delegate_handles_key::<T> as extern "C" fn(&Object, _, _, id) -> BOOL,
+            delegate_handles_key::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
         );
 
         DELEGATE_CLASS = decl.register();

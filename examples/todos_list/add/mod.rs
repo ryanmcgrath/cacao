@@ -9,7 +9,7 @@ mod view;
 use view::AddNewTodoContentView;
 
 pub struct AddNewTodoWindow {
-    pub content: ViewController<AddNewTodoContentView>,
+    pub content: ViewController<AddNewTodoContentView>
 }
 
 impl AddNewTodoWindow {

@@ -138,7 +138,7 @@ pub struct TextField<T = ()> {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl Default for TextField {
@@ -185,14 +185,14 @@ impl TextField {
             center_x: LayoutAnchorX::center(view),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view),
+            center_y: LayoutAnchorY::center(view)
         }
     }
 }
 
 impl<T> TextField<T>
 where
-    T: TextFieldDelegate + 'static,
+    T: TextFieldDelegate + 'static
 {
     /// Initializes a new TextField with a given `TextFieldDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
@@ -238,7 +238,7 @@ where
             center_x: LayoutAnchorX::center(label),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(label),
+            center_y: LayoutAnchorY::center(label)
         };
 
         (&mut delegate).did_load(label.clone_as_handle());
@@ -285,7 +285,7 @@ impl<T> TextField<T> {
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone(),
+            center_y: self.center_y.clone()
         }
     }
 

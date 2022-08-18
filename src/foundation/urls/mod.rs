@@ -32,7 +32,7 @@ pub use resource_keys::{NSURLFileResource, NSURLResourceKey, NSUbiquitousItemDow
 pub struct NSURL<'a> {
     /// A reference to the backing `NSURL`.
     pub objc: ShareId<Object>,
-    phantom: PhantomData<&'a ()>,
+    phantom: PhantomData<&'a ()>
 }
 
 impl<'a> NSURL<'a> {
@@ -41,7 +41,7 @@ impl<'a> NSURL<'a> {
     pub fn retain(object: id) -> Self {
         NSURL {
             objc: unsafe { ShareId::from_ptr(object) },
-            phantom: PhantomData,
+            phantom: PhantomData
         }
     }
 
@@ -49,7 +49,7 @@ impl<'a> NSURL<'a> {
     pub fn from_retained(object: id) -> Self {
         NSURL {
             objc: unsafe { ShareId::from_retained_ptr(object) },
-            phantom: PhantomData,
+            phantom: PhantomData
         }
     }
 
@@ -60,7 +60,7 @@ impl<'a> NSURL<'a> {
         Self {
             objc: unsafe { ShareId::from_ptr(msg_send![class!(NSURL), URLWithString:&*url]) },
 
-            phantom: PhantomData,
+            phantom: PhantomData
         }
     }
 
@@ -91,7 +91,7 @@ impl<'a> NSURL<'a> {
         &self,
         options: &[NSURLBookmarkCreationOption],
         resource_value_keys: &[NSURLResourceKey],
-        relative_to_url: Option<NSURL>,
+        relative_to_url: Option<NSURL>
     ) -> Result<NSData, Box<dyn Error>> {
         let mut opts: NSUInteger = 0;
         for mask in options {
@@ -118,7 +118,7 @@ impl<'a> NSURL<'a> {
                     relativeToURL:nil
                     error:nil
                 ]
-            },
+            }
         });
 
         // Check for errors...
@@ -132,7 +132,7 @@ impl<'a> NSURL<'a> {
         data: NSData,
         options: &[NSURLBookmarkResolutionOption],
         relative_to_url: Option<NSURL>,
-        data_is_stale: bool,
+        data_is_stale: bool
     ) -> Result<Self, Box<dyn Error>> {
         Err("LOL".into())
     }

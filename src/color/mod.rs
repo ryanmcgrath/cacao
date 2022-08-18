@@ -31,7 +31,7 @@ mod appkit_dynamic_color;
 #[cfg(feature = "appkit")]
 use appkit_dynamic_color::{
     AQUA_DARK_COLOR_HIGH_CONTRAST, AQUA_DARK_COLOR_NORMAL_CONTRAST, AQUA_LIGHT_COLOR_HIGH_CONTRAST,
-    AQUA_LIGHT_COLOR_NORMAL_CONTRAST,
+    AQUA_LIGHT_COLOR_NORMAL_CONTRAST
 };
 
 /// Represents a rendering style - dark mode or light mode.
@@ -45,7 +45,7 @@ pub enum Theme {
     Light,
 
     /// Dark mode.
-    Dark,
+    Dark
 }
 
 /// Represents the contrast level for a rendering context.
@@ -55,7 +55,7 @@ pub enum Contrast {
     Normal,
 
     /// The high contrast level for the system.
-    High,
+    High
 }
 
 /// A `Style` is passed to you when doing dynamic color calculations. You can opt to
@@ -67,7 +67,7 @@ pub struct Style {
     pub theme: Theme,
 
     /// Represents the current contrast level for where this color may render.
-    pub contrast: Contrast,
+    pub contrast: Contrast
 }
 
 /// Represents a Color. You can create custom colors using the various
@@ -235,7 +235,7 @@ pub enum Color {
 
     /// The background color that should appear under a page per the system theme.
     #[cfg(feature = "appkit")]
-    MacOSUnderPageBackgroundColor,
+    MacOSUnderPageBackgroundColor
 }
 
 impl Color {
@@ -337,7 +337,7 @@ impl Color {
     #[cfg(feature = "appkit")]
     pub fn dynamic<F>(handler: F) -> Self
     where
-        F: Fn(Style) -> Color + 'static,
+        F: Fn(Style) -> Color + 'static
     {
         // It's *possible* that we shouldn't cache these up-front and let them be truly dynamically
         // allocated, but this is fine for now (and more predictable, even if perhaps wrong). I'm
@@ -350,7 +350,7 @@ impl Color {
             (&mut *color).set_ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST, {
                 let color: id = handler(Style {
                     theme: Theme::Light,
-                    contrast: Contrast::Normal,
+                    contrast: Contrast::Normal
                 })
                 .into();
 
@@ -360,7 +360,7 @@ impl Color {
             (&mut *color).set_ivar(AQUA_LIGHT_COLOR_HIGH_CONTRAST, {
                 let color: id = handler(Style {
                     theme: Theme::Light,
-                    contrast: Contrast::High,
+                    contrast: Contrast::High
                 })
                 .into();
 
@@ -370,7 +370,7 @@ impl Color {
             (&mut *color).set_ivar(AQUA_DARK_COLOR_NORMAL_CONTRAST, {
                 let color: id = handler(Style {
                     theme: Theme::Dark,
-                    contrast: Contrast::Normal,
+                    contrast: Contrast::Normal
                 })
                 .into();
 
@@ -380,7 +380,7 @@ impl Color {
             (&mut *color).set_ivar(AQUA_DARK_COLOR_HIGH_CONTRAST, {
                 let color: id = handler(Style {
                     theme: Theme::Light,
-                    contrast: Contrast::Normal,
+                    contrast: Contrast::Normal
                 })
                 .into();
 
@@ -517,6 +517,6 @@ unsafe fn to_objc(obj: &Color) -> id {
         Color::MacOSWindowBackgroundColor => system_color_with_fallback!(color, windowBackgroundColor, clearColor),
 
         #[cfg(feature = "appkit")]
-        Color::MacOSUnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor),
+        Color::MacOSUnderPageBackgroundColor => system_color_with_fallback!(color, underPageBackgroundColor, clearColor)
     }
 }

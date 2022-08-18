@@ -30,7 +30,7 @@ impl AutoReleasePool {
     /// with an autorelease pool - otherwise your memory footprint will continue to grow.
     pub fn run<F>(handler: F)
     where
-        F: Fn() + 'static,
+        F: Fn() + 'static
     {
         let _pool = AutoReleasePool::new();
         handler();

@@ -35,21 +35,21 @@ use crate::utils::properties::ObjcProperty;
 #[derive(Clone, Debug)]
 pub struct Layer {
     /// The underlying layer pointer.
-    pub objc: ObjcProperty,
+    pub objc: ObjcProperty
 }
 
 impl Layer {
     /// Creates a new `CALayer` and retains it.
     pub fn new() -> Self {
         Layer {
-            objc: ObjcProperty::retain(unsafe { msg_send![class!(CALayer), new] }),
+            objc: ObjcProperty::retain(unsafe { msg_send![class!(CALayer), new] })
         }
     }
 
     /// Wraps an existing (already retained) `CALayer`.
     pub fn wrap(layer: id) -> Self {
         Layer {
-            objc: ObjcProperty::from_retained(layer),
+            objc: ObjcProperty::from_retained(layer)
         }
     }
 

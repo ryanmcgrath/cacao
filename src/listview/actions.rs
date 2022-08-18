@@ -17,7 +17,7 @@ pub enum RowActionStyle {
     Regular,
 
     /// Use this to denote that an action is destructive.
-    Destructive,
+    Destructive
 }
 
 impl Default for RowActionStyle {
@@ -30,7 +30,7 @@ impl From<RowActionStyle> for NSUInteger {
     fn from(style: RowActionStyle) -> Self {
         match style {
             RowActionStyle::Regular => 0,
-            RowActionStyle::Destructive => 1,
+            RowActionStyle::Destructive => 1
         }
     }
 }
@@ -52,7 +52,7 @@ impl RowAction {
     /// our definitions.
     pub fn new<F>(title: &str, style: RowActionStyle, handler: F) -> Self
     where
-        F: Fn(RowAction, usize) + 'static,
+        F: Fn(RowAction, usize) + 'static
     {
         let title = NSString::new(title);
         let block = ConcreteBlock::new(move |action: id, row: NSUInteger| {

@@ -10,48 +10,39 @@ use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
 use cacao::appkit::{App, AppDelegate};
 
 struct BasicApp {
-    window: Window<AppWindow>,
+    window: Window<AppWindow>
 }
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
         App::set_menu(vec![
-            Menu::new(
-                "",
-                vec![
-                    MenuItem::Services,
-                    MenuItem::Separator,
-                    MenuItem::Hide,
-                    MenuItem::HideOthers,
-                    MenuItem::ShowAll,
-                    MenuItem::Separator,
-                    MenuItem::Quit,
-                ],
-            ),
+            Menu::new("", vec![
+                MenuItem::Services,
+                MenuItem::Separator,
+                MenuItem::Hide,
+                MenuItem::HideOthers,
+                MenuItem::ShowAll,
+                MenuItem::Separator,
+                MenuItem::Quit,
+            ]),
             Menu::new("File", vec![MenuItem::CloseWindow]),
-            Menu::new(
-                "Edit",
-                vec![
-                    MenuItem::Undo,
-                    MenuItem::Redo,
-                    MenuItem::Separator,
-                    MenuItem::Cut,
-                    MenuItem::Copy,
-                    MenuItem::Paste,
-                    MenuItem::Separator,
-                    MenuItem::SelectAll,
-                ],
-            ),
+            Menu::new("Edit", vec![
+                MenuItem::Undo,
+                MenuItem::Redo,
+                MenuItem::Separator,
+                MenuItem::Cut,
+                MenuItem::Copy,
+                MenuItem::Paste,
+                MenuItem::Separator,
+                MenuItem::SelectAll,
+            ]),
             Menu::new("View", vec![MenuItem::EnterFullScreen]),
-            Menu::new(
-                "Window",
-                vec![
-                    MenuItem::Minimize,
-                    MenuItem::Zoom,
-                    MenuItem::Separator,
-                    MenuItem::new("Bring All to Front"),
-                ],
-            ),
+            Menu::new("Window", vec![
+                MenuItem::Minimize,
+                MenuItem::Zoom,
+                MenuItem::Separator,
+                MenuItem::new("Bring All to Front"),
+            ]),
             Menu::new("Help", vec![]),
         ]);
 
@@ -87,14 +78,14 @@ impl TextFieldDelegate for ConsoleLogger {
 #[derive(Debug)]
 struct AppWindow {
     input: TextField<ConsoleLogger>,
-    content: View,
+    content: View
 }
 
 impl AppWindow {
     pub fn new() -> Self {
         AppWindow {
             input: TextField::with(ConsoleLogger),
-            content: View::new(),
+            content: View::new()
         }
     }
 }
@@ -112,17 +103,14 @@ impl WindowDelegate for AppWindow {
         LayoutConstraint::activate(&[
             self.input.center_x.constraint_equal_to(&self.content.center_x),
             self.input.center_y.constraint_equal_to(&self.content.center_y),
-            self.input.width.constraint_equal_to_constant(280.),
+            self.input.width.constraint_equal_to_constant(280.)
         ]);
     }
 }
 
 fn main() {
-    App::new(
-        "com.test.window",
-        BasicApp {
-            window: Window::with(WindowConfig::default(), AppWindow::new()),
-        },
-    )
+    App::new("com.test.window", BasicApp {
+        window: Window::with(WindowConfig::default(), AppWindow::new())
+    })
     .run();
 }

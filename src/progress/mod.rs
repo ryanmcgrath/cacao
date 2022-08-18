@@ -77,7 +77,7 @@ pub struct ProgressIndicator {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl Default for ProgressIndicator {
@@ -134,7 +134,7 @@ impl ProgressIndicator {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 }

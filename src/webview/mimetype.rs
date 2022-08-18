@@ -13,7 +13,7 @@ pub enum MimeType {
     JSONLD,
     OCTETSTREAM,
     RTF,
-    SVG,
+    SVG
 }
 
 impl std::fmt::Display for MimeType {
@@ -28,7 +28,7 @@ impl std::fmt::Display for MimeType {
             MimeType::JSONLD => "application/ld+json",
             MimeType::OCTETSTREAM => "application/octet-stream",
             MimeType::RTF => "application/rtf",
-            MimeType::SVG => "image/svg+xml",
+            MimeType::SVG => "image/svg+xml"
         };
         write!(f, "{}", mime)
     }
@@ -53,7 +53,7 @@ impl MimeType {
             Some(_) => Self::HTML,
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
             // using octet stream according to this:
-            None => Self::OCTETSTREAM,
+            None => Self::OCTETSTREAM
         }
     }
 
@@ -61,7 +61,7 @@ impl MimeType {
     pub fn parse(content: &[u8], uri: &str) -> String {
         let mime = match infer::get(&content) {
             Some(info) => info.mime_type(),
-            None => MIMETYPE_PLAIN,
+            None => MIMETYPE_PLAIN
         };
 
         if mime == MIMETYPE_PLAIN {

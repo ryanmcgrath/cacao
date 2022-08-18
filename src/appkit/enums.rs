@@ -16,7 +16,7 @@ pub enum FocusRingType {
 
     // Should never be used, but used as a placeholder in case the underlying
     // system framework ever opts to return something we don't expect.
-    Unknown(NSUInteger),
+    Unknown(NSUInteger)
 }
 
 impl From<FocusRingType> for NSUInteger {
@@ -25,7 +25,7 @@ impl From<FocusRingType> for NSUInteger {
             FocusRingType::Default => 0,
             FocusRingType::None => 1,
             FocusRingType::Exterior => 2,
-            FocusRingType::Unknown(i) => i,
+            FocusRingType::Unknown(i) => i
         }
     }
 }
@@ -36,7 +36,7 @@ impl From<NSUInteger> for FocusRingType {
             0 => Self::Default,
             1 => Self::None,
             2 => Self::Exterior,
-            i => Self::Unknown(i),
+            i => Self::Unknown(i)
         }
     }
 }

@@ -25,7 +25,7 @@ pub enum LayoutAnchorDimension {
     Width(ShareId<Object>),
 
     /// Represents a Height anchor.
-    Height(ShareId<Object>),
+    Height(ShareId<Object>)
 }
 
 impl Default for LayoutAnchorDimension {
@@ -87,7 +87,7 @@ impl LayoutAnchorDimension {
     /// wrong.
     fn constraint_with<F>(&self, anchor_to: &LayoutAnchorDimension, handler: F) -> LayoutConstraint
     where
-        F: Fn(&ShareId<Object>, &ShareId<Object>) -> id,
+        F: Fn(&ShareId<Object>, &ShareId<Object>) -> id
     {
         match (self, anchor_to) {
             (Self::Width(from), Self::Width(to))
@@ -105,7 +105,7 @@ impl LayoutAnchorDimension {
 
             (_, Self::Uninitialized) => {
                 panic!("Attempted to create constraints with an uninitialized \"to\" dimension anchor.");
-            },
+            }
         }
     }
 

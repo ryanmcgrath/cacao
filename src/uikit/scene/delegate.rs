@@ -46,14 +46,14 @@ extern "C" fn scene_will_connect_to_session_with_options<T: WindowSceneDelegate>
     _: Sel,
     scene: id,
     session: id,
-    options: id,
+    options: id
 ) {
     let delegate = load::<T>(this, WINDOW_SCENE_PTR);
 
     delegate.will_connect(
         Scene::with(scene),
         SceneSession::with(session),
-        SceneConnectionOptions::with(options),
+        SceneConnectionOptions::with(options)
     );
 }
 
@@ -80,7 +80,7 @@ pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn
         // UIWindowSceneDelegate API
         decl.add_method(
             sel!(scene:willConnectToSession:options:),
-            scene_will_connect_to_session_with_options::<T> as extern "C" fn(&Object, _, _, _, _),
+            scene_will_connect_to_session_with_options::<T> as extern "C" fn(&Object, _, _, _, _)
         );
 
         // Launching Applications

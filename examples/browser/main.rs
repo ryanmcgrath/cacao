@@ -16,7 +16,7 @@ use toolbar::BrowserToolbar;
 pub enum Action {
     Back,
     Forwards,
-    Load(String),
+    Load(String)
 }
 
 impl Action {
@@ -26,48 +26,39 @@ impl Action {
 }
 
 struct BasicApp {
-    window: Window<AppWindow>,
+    window: Window<AppWindow>
 }
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
         App::set_menu(vec![
-            Menu::new(
-                "",
-                vec![
-                    MenuItem::Services,
-                    MenuItem::Separator,
-                    MenuItem::Hide,
-                    MenuItem::HideOthers,
-                    MenuItem::ShowAll,
-                    MenuItem::Separator,
-                    MenuItem::Quit,
-                ],
-            ),
+            Menu::new("", vec![
+                MenuItem::Services,
+                MenuItem::Separator,
+                MenuItem::Hide,
+                MenuItem::HideOthers,
+                MenuItem::ShowAll,
+                MenuItem::Separator,
+                MenuItem::Quit,
+            ]),
             Menu::new("File", vec![MenuItem::CloseWindow]),
-            Menu::new(
-                "Edit",
-                vec![
-                    MenuItem::Undo,
-                    MenuItem::Redo,
-                    MenuItem::Separator,
-                    MenuItem::Cut,
-                    MenuItem::Copy,
-                    MenuItem::Paste,
-                    MenuItem::Separator,
-                    MenuItem::SelectAll,
-                ],
-            ),
+            Menu::new("Edit", vec![
+                MenuItem::Undo,
+                MenuItem::Redo,
+                MenuItem::Separator,
+                MenuItem::Cut,
+                MenuItem::Copy,
+                MenuItem::Paste,
+                MenuItem::Separator,
+                MenuItem::SelectAll,
+            ]),
             Menu::new("View", vec![MenuItem::EnterFullScreen]),
-            Menu::new(
-                "Window",
-                vec![
-                    MenuItem::Minimize,
-                    MenuItem::Zoom,
-                    MenuItem::Separator,
-                    MenuItem::new("Bring All to Front"),
-                ],
-            ),
+            Menu::new("Window", vec![
+                MenuItem::Minimize,
+                MenuItem::Zoom,
+                MenuItem::Separator,
+                MenuItem::new("Bring All to Front"),
+            ]),
             Menu::new("Help", vec![]),
         ]);
 
@@ -92,7 +83,7 @@ impl Dispatcher for BasicApp {
             },
             Action::Load(url) => {
                 window.load_url(&url);
-            },
+            }
         }
     }
 }
@@ -104,14 +95,14 @@ impl WebViewDelegate for WebViewInstance {}
 
 struct AppWindow {
     toolbar: Toolbar<BrowserToolbar>,
-    content: WebView<WebViewInstance>,
+    content: WebView<WebViewInstance>
 }
 
 impl AppWindow {
     pub fn new() -> Self {
         AppWindow {
             toolbar: Toolbar::new("com.example.BrowserToolbar", BrowserToolbar::new()),
-            content: WebView::with(WebViewConfig::default(), WebViewInstance::default()),
+            content: WebView::with(WebViewConfig::default(), WebViewInstance::default())
         }
     }
 
@@ -137,21 +128,18 @@ impl WindowDelegate for AppWindow {
 }
 
 fn main() {
-    App::new(
-        "com.test.window",
-        BasicApp {
-            window: Window::with(
-                {
-                    let mut config = WindowConfig::default();
+    App::new("com.test.window", BasicApp {
+        window: Window::with(
+            {
+                let mut config = WindowConfig::default();
 
-                    // This flag is necessary for Big Sur to use the correct toolbar style.
-                    config.toolbar_style = WindowToolbarStyle::Expanded;
+                // This flag is necessary for Big Sur to use the correct toolbar style.
+                config.toolbar_style = WindowToolbarStyle::Expanded;
 
-                    config
-                },
-                AppWindow::new(),
-            ),
-        },
-    )
+                config
+            },
+            AppWindow::new()
+        )
+    })
     .run();
 }

@@ -12,7 +12,7 @@ use super::toggle_option_view::ToggleOptionView;
 /// A general preferences view.
 #[derive(Debug, Default)]
 pub struct GeneralPreferencesContentView {
-    pub example_option: ToggleOptionView,
+    pub example_option: ToggleOptionView
 }
 
 impl ViewDelegate for GeneralPreferencesContentView {
@@ -23,7 +23,7 @@ impl ViewDelegate for GeneralPreferencesContentView {
             "An example preference",
             "This can be true, or it can be false.",
             Defaults::should_whatever(), // initial value
-            Defaults::toggle_should_whatever,
+            Defaults::toggle_should_whatever
         );
 
         view.add_subview(&self.example_option.view);
@@ -40,7 +40,7 @@ impl ViewDelegate for GeneralPreferencesContentView {
                 .trailing
                 .constraint_equal_to(&view.trailing)
                 .offset(-22.),
-            self.example_option.view.bottom.constraint_equal_to(&view.bottom).offset(-22.),
+            self.example_option.view.bottom.constraint_equal_to(&view.bottom).offset(-22.)
         ]);
     }
 }

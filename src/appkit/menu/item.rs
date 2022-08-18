@@ -39,7 +39,7 @@ fn make_menu_item<S: AsRef<str>>(
     title: S,
     key: Option<&str>,
     action: Option<Sel>,
-    modifiers: Option<&[EventModifierFlag]>,
+    modifiers: Option<&[EventModifierFlag]>
 ) -> Id<Object> {
     unsafe {
         let title = NSString::new(title.as_ref());
@@ -47,7 +47,7 @@ fn make_menu_item<S: AsRef<str>>(
         // Note that AppKit requires a blank string if nil, not nil.
         let key = NSString::new(match key {
             Some(s) => s,
-            None => "",
+            None => ""
         });
 
         // Stock menu items that use selectors targeted at system pieces are just standard
@@ -59,7 +59,7 @@ fn make_menu_item<S: AsRef<str>>(
 
             None => msg_send![alloc, initWithTitle:&*title
                 action:sel!(fireBlockAction:)
-                keyEquivalent:&*key],
+                keyEquivalent:&*key]
         });
 
         if let Some(modifiers) = modifiers {
@@ -147,7 +147,7 @@ pub enum MenuItem {
 
     /// Represents a Separator. It's useful nonetheless for
     /// separating out pieces of the `NSMenu` structure.
-    Separator,
+    Separator
 }
 
 impl MenuItem {
@@ -178,7 +178,7 @@ impl MenuItem {
                 "Hide Others",
                 Some("h"),
                 Some(sel!(hide:)),
-                Some(&[EventModifierFlag::Command, EventModifierFlag::Option]),
+                Some(&[EventModifierFlag::Command, EventModifierFlag::Option])
             ),
 
             Self::ShowAll => make_menu_item("Show All", None, Some(sel!(unhideAllApplications:)), None),
@@ -195,7 +195,7 @@ impl MenuItem {
                 "Enter Full Screen",
                 Some("f"),
                 Some(sel!(toggleFullScreen:)),
-                Some(&[EventModifierFlag::Command, EventModifierFlag::Control]),
+                Some(&[EventModifierFlag::Command, EventModifierFlag::Control])
             ),
 
             Self::Minimize => make_menu_item("Minimize", Some("m"), Some(sel!(performMiniaturize:)), None),
@@ -205,14 +205,14 @@ impl MenuItem {
                 "Toggle Sidebar",
                 Some("s"),
                 Some(sel!(toggleSidebar:)),
-                Some(&[EventModifierFlag::Command, EventModifierFlag::Option]),
+                Some(&[EventModifierFlag::Command, EventModifierFlag::Option])
             ),
 
             Self::Separator => {
                 let cls = class!(NSMenuItem);
                 let separator: id = msg_send![cls, separatorItem];
                 Id::from_ptr(separator)
-            },
+            }
         }
     }
 
