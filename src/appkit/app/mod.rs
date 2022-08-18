@@ -98,7 +98,7 @@ pub struct App<T = (), M = ()> {
     /// The main-thread AutoReleasePool. Drains on app exit.
     pub pool: AutoReleasePool,
 
-    _message: std::marker::PhantomData<M>,
+    _message: std::marker::PhantomData<M>
 }
 
 impl<T, M> fmt::Debug for App<T, M> {
@@ -130,7 +130,7 @@ impl<T> App<T> {
 
 impl<T> App<T>
 where
-    T: AppDelegate + 'static,
+    T: AppDelegate + 'static
 {
     /// Creates an NSAutoReleasePool, configures various NSApplication properties (e.g, activation
     /// policies), injects an `NSObject` delegate wrapper, and retains everything on the
@@ -163,7 +163,7 @@ where
             objc_delegate,
             delegate: app_delegate,
             pool,
-            _message: std::marker::PhantomData,
+            _message: std::marker::PhantomData
         }
     }
 }
@@ -186,7 +186,7 @@ where
 impl<T, M> App<T, M>
 where
     M: Send + Sync + 'static,
-    T: AppDelegate + Dispatcher<Message = M>,
+    T: AppDelegate + Dispatcher<Message = M>
 {
     /// Dispatches a message by grabbing the `sharedApplication`, getting ahold of the delegate,
     /// and passing back through there.

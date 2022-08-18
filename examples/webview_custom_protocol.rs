@@ -9,7 +9,7 @@ use cacao::appkit::{App, AppDelegate};
 use cacao::webview::{WebView, WebViewConfig, WebViewDelegate};
 
 struct BasicApp {
-    window: Window<AppWindow>,
+    window: Window<AppWindow>
 }
 
 impl AppDelegate for BasicApp {
@@ -56,13 +56,13 @@ impl WebViewDelegate for WebViewInstance {
 
         return match requested_asset_path.as_str() {
             "/hello.html" => Some(link_html.as_bytes().into()),
-            _ => Some(index_html.as_bytes().into()),
+            _ => Some(index_html.as_bytes().into())
         };
     }
 }
 
 struct AppWindow {
-    content: WebView<WebViewInstance>,
+    content: WebView<WebViewInstance>
 }
 
 impl AppWindow {
@@ -73,7 +73,7 @@ impl AppWindow {
         webview_config.add_custom_protocol("cacao");
 
         AppWindow {
-            content: WebView::with(webview_config, WebViewInstance::default()),
+            content: WebView::with(webview_config, WebViewInstance::default())
         }
     }
 
@@ -98,11 +98,8 @@ impl WindowDelegate for AppWindow {
 }
 
 fn main() {
-    App::new(
-        "com.test.window",
-        BasicApp {
-            window: Window::with(WindowConfig::default(), AppWindow::new()),
-        },
-    )
+    App::new("com.test.window", BasicApp {
+        window: Window::with(WindowConfig::default(), AppWindow::new())
+    })
     .run();
 }

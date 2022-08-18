@@ -32,7 +32,7 @@ pub struct WindowConfig {
     /// for other variants.
     ///
     /// This setting is notably important for Preferences windows.
-    pub toolbar_style: WindowToolbarStyle,
+    pub toolbar_style: WindowToolbarStyle
 }
 
 impl Default for WindowConfig {
@@ -41,7 +41,7 @@ impl Default for WindowConfig {
             style: 0,
             initial_dimensions: Rect::new(100., 100., 1024., 768.),
             defer: true,
-            toolbar_style: WindowToolbarStyle::Automatic,
+            toolbar_style: WindowToolbarStyle::Automatic
         };
 
         config.set_styles(&[
@@ -50,7 +50,7 @@ impl Default for WindowConfig {
             WindowStyle::UnifiedTitleAndToolbar,
             WindowStyle::Closable,
             WindowStyle::Titled,
-            WindowStyle::FullSizeContentView,
+            WindowStyle::FullSizeContentView
         ]);
 
         config

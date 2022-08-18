@@ -10,7 +10,7 @@ use crate::storage::{Todo, TodoStatus};
 #[derive(Default, Debug)]
 pub struct TodoViewRow {
     pub title: Label,
-    pub status: Label,
+    pub status: Label
 }
 
 impl TodoViewRow {
@@ -27,7 +27,7 @@ impl TodoViewRow {
             TodoStatus::Complete => {
                 self.status.set_text_color(Color::SystemBlue);
                 self.status.set_text("Complete");
-            },
+            }
         }
     }
 }
@@ -53,7 +53,7 @@ impl ViewDelegate for TodoViewRow {
             self.status.top.constraint_equal_to(&self.title.bottom).offset(8.),
             self.status.leading.constraint_equal_to(&view.leading).offset(16.),
             self.status.trailing.constraint_equal_to(&view.trailing).offset(-16.),
-            self.status.bottom.constraint_equal_to(&view.bottom).offset(-16.),
+            self.status.bottom.constraint_equal_to(&view.bottom).offset(-16.)
         ]);
     }
 }

@@ -19,7 +19,7 @@ pub struct FileSavePanel {
     pub delegate: ShareId<Object>,
 
     /// Whether the user can choose files. Defaults to `true`.
-    pub can_create_directories: bool,
+    pub can_create_directories: bool
 }
 
 impl Default for FileSavePanel {
@@ -41,7 +41,7 @@ impl FileSavePanel {
 
             delegate: unsafe { ShareId::from_ptr(msg_send![class!(NSObject), new]) },
 
-            can_create_directories: true,
+            can_create_directories: true
         }
     }
 

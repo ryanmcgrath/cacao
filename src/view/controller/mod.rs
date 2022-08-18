@@ -40,12 +40,12 @@ pub struct ViewController<T> {
     pub objc: ShareId<Object>,
 
     /// The underlying View that we manage.
-    pub view: View<T>,
+    pub view: View<T>
 }
 
 impl<T> ViewController<T>
 where
-    T: ViewDelegate + 'static,
+    T: ViewDelegate + 'static
 {
     /// Creates and returns a new `ViewController` with the provided `delegate`.
     pub fn new(delegate: T) -> Self {

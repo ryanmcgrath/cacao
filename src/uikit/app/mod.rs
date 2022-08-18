@@ -83,7 +83,7 @@ pub struct App<T = (), W = (), F = ()> {
     pub delegate: Box<T>,
     pub vendor: Box<F>,
     pub pool: AutoReleasePool,
-    _w: std::marker::PhantomData<W>,
+    _w: std::marker::PhantomData<W>
 }
 
 // Temporary. ;P
@@ -97,7 +97,7 @@ impl<T, W, F> App<T, W, F>
 where
     T: AppDelegate + 'static,
     W: WindowSceneDelegate,
-    F: Fn() -> Box<W>,
+    F: Fn() -> Box<W>
 {
     /// iOS manages creating a new Application (`UIApplication`) differently than you'd expect if
     /// you were looking at the macOS side of things.
@@ -134,7 +134,7 @@ where
             delegate: app_delegate,
             vendor,
             pool,
-            _w: std::marker::PhantomData,
+            _w: std::marker::PhantomData
         }
     }
 }

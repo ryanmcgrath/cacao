@@ -15,7 +15,7 @@ pub enum ToolbarDisplayMode {
     IconOnly,
 
     /// Show label only.
-    LabelOnly,
+    LabelOnly
 }
 
 impl From<ToolbarDisplayMode> for NSUInteger {
@@ -24,7 +24,7 @@ impl From<ToolbarDisplayMode> for NSUInteger {
             ToolbarDisplayMode::Default => 0,
             ToolbarDisplayMode::IconAndLabel => 1,
             ToolbarDisplayMode::IconOnly => 2,
-            ToolbarDisplayMode::LabelOnly => 3,
+            ToolbarDisplayMode::LabelOnly => 3
         }
     }
 }
@@ -77,7 +77,7 @@ pub enum ItemIdentifier {
     /// Note that this API was introduced in Big Sur (11.0), and you may need to check against this
     /// at runtime to ensure behavior is appropriate on older OS versions (if you support them).
     ///
-    SidebarTracker,
+    SidebarTracker
 }
 
 extern "C" {
@@ -106,7 +106,7 @@ impl ItemIdentifier {
 
                 // This ensures that the framework compiles and runs on 10.15.7 and lower; it will
                 // not actually work on anything except 11.0+. Use a runtime check to be safe.
-                Self::SidebarTracker => NSString::no_copy("NSToolbarSidebarTrackingSeparatorItemIdentifier").into(),
+                Self::SidebarTracker => NSString::no_copy("NSToolbarSidebarTrackingSeparatorItemIdentifier").into()
             }
         }
     }
@@ -122,7 +122,7 @@ pub enum ToolbarSizeMode {
     Regular,
 
     /// The small size mode.
-    Small,
+    Small
 }
 
 impl From<ToolbarSizeMode> for NSUInteger {
@@ -130,7 +130,7 @@ impl From<ToolbarSizeMode> for NSUInteger {
         match mode {
             ToolbarSizeMode::Default => 0,
             ToolbarSizeMode::Regular => 1,
-            ToolbarSizeMode::Small => 2,
+            ToolbarSizeMode::Small => 2
         }
     }
 }

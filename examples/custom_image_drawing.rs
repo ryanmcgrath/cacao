@@ -15,7 +15,7 @@ struct BasicApp {
     window: Window,
     content_view: View,
     image_view: ImageView,
-    image: Image,
+    image: Image
 }
 
 impl Default for BasicApp {
@@ -23,7 +23,7 @@ impl Default for BasicApp {
         let config = DrawConfig {
             source: (100., 100.),
             target: (800., 800.),
-            resize: cacao::image::ResizeBehavior::Stretch,
+            resize: cacao::image::ResizeBehavior::Stretch
         };
 
         Self {
@@ -91,25 +91,22 @@ impl Default for BasicApp {
                 context.fill_path();
 
                 true
-            }),
+            })
         }
     }
 }
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
-        App::set_menu(vec![Menu::new(
-            "",
-            vec![
-                MenuItem::Services,
-                MenuItem::Separator,
-                MenuItem::Hide,
-                MenuItem::HideOthers,
-                MenuItem::ShowAll,
-                MenuItem::Separator,
-                MenuItem::Quit,
-            ],
-        )]);
+        App::set_menu(vec![Menu::new("", vec![
+            MenuItem::Services,
+            MenuItem::Separator,
+            MenuItem::Hide,
+            MenuItem::HideOthers,
+            MenuItem::ShowAll,
+            MenuItem::Separator,
+            MenuItem::Quit,
+        ])]);
 
         App::activate();
         self.window.set_title("Hello World!");
@@ -122,7 +119,7 @@ impl AppDelegate for BasicApp {
             self.image_view.top.constraint_equal_to(&self.content_view.top),
             self.image_view.leading.constraint_equal_to(&self.content_view.leading),
             self.image_view.trailing.constraint_equal_to(&self.content_view.trailing),
-            self.image_view.bottom.constraint_equal_to(&self.content_view.bottom),
+            self.image_view.bottom.constraint_equal_to(&self.content_view.bottom)
         ]);
 
         self.window.set_content_view(&self.content_view);

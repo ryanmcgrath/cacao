@@ -34,7 +34,7 @@ pub struct LayoutConstraint {
     /// An animator proxy that can be used inside animation contexts.
     /// This is currently only supported on macOS with the `appkit` feature.
     #[cfg(all(feature = "appkit", target_os = "macos"))]
-    pub animator: LayoutConstraintAnimatorProxy,
+    pub animator: LayoutConstraintAnimatorProxy
 }
 
 impl LayoutConstraint {
@@ -47,7 +47,7 @@ impl LayoutConstraint {
             constraint: unsafe { ShareId::from_ptr(object) },
             offset: 0.0,
             multiplier: 0.0,
-            priority: 0.0,
+            priority: 0.0
         }
     }
 
@@ -66,7 +66,7 @@ impl LayoutConstraint {
             constraint: self.constraint,
             offset: offset,
             multiplier: self.multiplier,
-            priority: self.priority,
+            priority: self.priority
         }
     }
 

@@ -38,7 +38,7 @@ pub struct SafeAreaLayoutGuide {
     pub center_x: LayoutAnchorX,
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl SafeAreaLayoutGuide {
@@ -48,7 +48,7 @@ impl SafeAreaLayoutGuide {
         // For versions prior to Big Sur, we'll just use the default view anchors in place.
         let guide: id = match os::is_minimum_version(11) {
             true => unsafe { msg_send![view, layoutMarginsGuide] },
-            false => view,
+            false => view
         };
 
         Self {
@@ -61,7 +61,7 @@ impl SafeAreaLayoutGuide {
             width: LayoutAnchorDimension::width(guide),
             height: LayoutAnchorDimension::height(guide),
             center_x: LayoutAnchorX::center(guide),
-            center_y: LayoutAnchorY::center(guide),
+            center_y: LayoutAnchorY::center(guide)
         }
     }
 }

@@ -9,7 +9,7 @@ use crate::foundation::{id, nil, NSString};
 /// An EventMask describes the type of event.
 #[derive(Debug)]
 pub enum EventMask {
-    KeyDown,
+    KeyDown
 }
 
 /// A wrapper over an `NSEvent`.
@@ -55,14 +55,14 @@ impl Event {
     /// monitors are required - the streams don't mix.
     pub fn local_monitor<F>(_mask: EventMask, handler: F) -> EventMonitor
     where
-        F: Fn(Event) -> Option<Event> + Send + Sync + 'static,
+        F: Fn(Event) -> Option<Event> + Send + Sync + 'static
     {
         let block = ConcreteBlock::new(move |event: id| {
             let evt = Event::new(event);
 
             match handler(evt) {
                 Some(mut evt) => &mut *evt.0,
-                None => nil,
+                None => nil
             }
         });
         let block = block.copy();
@@ -82,7 +82,7 @@ pub enum EventModifierFlag {
     Control,
     Option,
     Command,
-    DeviceIndependentFlagsMask,
+    DeviceIndependentFlagsMask
 }
 
 impl From<EventModifierFlag> for NSUInteger {
@@ -92,7 +92,7 @@ impl From<EventModifierFlag> for NSUInteger {
             EventModifierFlag::Control => 1 << 18,
             EventModifierFlag::Option => 1 << 19,
             EventModifierFlag::Command => 1 << 20,
-            EventModifierFlag::DeviceIndependentFlagsMask => 0xffff0000,
+            EventModifierFlag::DeviceIndependentFlagsMask => 0xffff0000
         }
     }
 }
@@ -104,7 +104,7 @@ impl From<&EventModifierFlag> for NSUInteger {
             EventModifierFlag::Control => 1 << 18,
             EventModifierFlag::Option => 1 << 19,
             EventModifierFlag::Command => 1 << 20,
-            EventModifierFlag::DeviceIndependentFlagsMask => 0xffff0000,
+            EventModifierFlag::DeviceIndependentFlagsMask => 0xffff0000
         }
     }
 }

@@ -28,7 +28,7 @@ pub enum ThumbnailQuality {
     /// Provided in case this is ever expanded by the OS, and the system
     /// returns a thumbnail quality type that can't be matched here. Users
     /// could then handle the edge case themselves.
-    Unknown(NSUInteger),
+    Unknown(NSUInteger)
 }
 
 impl From<&ThumbnailQuality> for NSUInteger {
@@ -38,7 +38,7 @@ impl From<&ThumbnailQuality> for NSUInteger {
             ThumbnailQuality::Low => 1 << 1,
             ThumbnailQuality::High => 1 << 2,
             ThumbnailQuality::All => NSUInteger::MAX,
-            ThumbnailQuality::Unknown(x) => *x,
+            ThumbnailQuality::Unknown(x) => *x
         }
     }
 }
@@ -50,7 +50,7 @@ impl From<ThumbnailQuality> for NSUInteger {
             ThumbnailQuality::Low => 1 << 1,
             ThumbnailQuality::High => 1 << 2,
             ThumbnailQuality::All => NSUInteger::MAX,
-            ThumbnailQuality::Unknown(x) => x,
+            ThumbnailQuality::Unknown(x) => x
         }
     }
 }
@@ -62,7 +62,7 @@ impl From<NSUInteger> for ThumbnailQuality {
             2 => ThumbnailQuality::Low,
             4 => ThumbnailQuality::High,
             NSUInteger::MAX => ThumbnailQuality::All,
-            i => ThumbnailQuality::Unknown(i),
+            i => ThumbnailQuality::Unknown(i)
         }
     }
 }
@@ -73,7 +73,7 @@ pub struct ThumbnailConfig {
     pub scale: CGFloat,
     pub minimum_dimension: CGFloat,
     pub icon_mode: bool,
-    pub types: &'static [ThumbnailQuality],
+    pub types: &'static [ThumbnailQuality]
 }
 
 impl Default for ThumbnailConfig {
@@ -89,7 +89,7 @@ impl Default for ThumbnailConfig {
 
             icon_mode: false,
 
-            types: &[ThumbnailQuality::All],
+            types: &[ThumbnailQuality::All]
         }
     }
 }

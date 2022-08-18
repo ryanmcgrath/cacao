@@ -25,7 +25,7 @@ pub enum NSURLFileResource {
     Socket,
 
     /// The resource’s type is unknown.
-    Unknown,
+    Unknown
 }
 
 /// Values that describe the iCloud storage state of a file.
@@ -38,7 +38,7 @@ pub enum NSUbiquitousItemDownloadingStatus {
     Downloaded,
 
     /// This item has not been downloaded yet. Initiate a download.
-    NotDownloaded,
+    NotDownloaded
 }
 
 #[derive(Debug)]
@@ -166,5 +166,5 @@ pub enum NSURLResourceKey {
     MayHaveExtendedAttributes,
     MayShareFileContent,
     UbiquitousItemIsExcludedFromSync,
-    VolumeSupportsFileProtection,
+    VolumeSupportsFileProtection
 }

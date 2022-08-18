@@ -19,7 +19,7 @@ const UTF8_ENCODING: usize = 4;
 pub struct NSString<'a> {
     /// A reference to the backing `NSString`.
     pub objc: Id<Object>,
-    phantom: PhantomData<&'a ()>,
+    phantom: PhantomData<&'a ()>
 }
 
 impl<'a> NSString<'a> {
@@ -34,7 +34,7 @@ impl<'a> NSString<'a> {
                 ])
             },
 
-            phantom: PhantomData,
+            phantom: PhantomData
         }
     }
 
@@ -50,7 +50,7 @@ impl<'a> NSString<'a> {
                 ])
             },
 
-            phantom: PhantomData,
+            phantom: PhantomData
         }
     }
 
@@ -59,7 +59,7 @@ impl<'a> NSString<'a> {
     pub fn retain(object: id) -> Self {
         NSString {
             objc: unsafe { Id::from_ptr(object) },
-            phantom: PhantomData,
+            phantom: PhantomData
         }
     }
 
@@ -67,7 +67,7 @@ impl<'a> NSString<'a> {
     pub fn from_retained(object: id) -> Self {
         NSString {
             objc: unsafe { Id::from_retained_ptr(object) },
-            phantom: PhantomData,
+            phantom: PhantomData
         }
     }
 

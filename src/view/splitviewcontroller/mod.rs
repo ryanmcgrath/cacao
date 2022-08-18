@@ -19,12 +19,12 @@ pub struct SplitViewItem<T> {
     pub objc: ShareId<Object>,
 
     /// The wrapped ViewController.
-    pub view_controller: ViewController<T>,
+    pub view_controller: ViewController<T>
 }
 
 impl<T> SplitViewItem<T>
 where
-    T: ViewDelegate + 'static,
+    T: ViewDelegate + 'static
 {
     /// Creates and returns a new `SplitViewItem`. This has no special properties out the default
     /// split view item type.
@@ -38,7 +38,7 @@ where
                 ])
             },
 
-            view_controller,
+            view_controller
         }
     }
 
@@ -64,7 +64,7 @@ where
                     ])
                 },
 
-                view_controller,
+                view_controller
             }
         }
 
@@ -121,14 +121,14 @@ pub struct SplitViewController<Sidebar, Content, Details> {
     pub content: SplitViewItem<Content>,
 
     /// An optional reference to the details `SplitViewItem`, if set.
-    pub details: Option<SplitViewItem<Details>>,
+    pub details: Option<SplitViewItem<Details>>
 }
 
 impl<Sidebar, Content, Details> SplitViewController<Sidebar, Content, Details>
 where
     Sidebar: ViewDelegate + 'static,
     Content: ViewDelegate + 'static,
-    Details: ViewDelegate + 'static,
+    Details: ViewDelegate + 'static
 {
     /// Creates and returns a new `SplitViewController`.
     pub fn new(sidebar: Sidebar, content: Content, details: Option<Details>) -> Self {
@@ -137,7 +137,7 @@ where
 
         let details = match details {
             Some(vc) => Some(SplitViewItem::item(vc)),
-            None => None,
+            None => None
         };
 
         let objc = unsafe {
@@ -156,7 +156,7 @@ where
             objc,
             sidebar,
             content,
-            details,
+            details
         }
     }
 }

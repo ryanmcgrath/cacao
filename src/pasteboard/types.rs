@@ -16,7 +16,7 @@ pub enum PasteboardName {
     General,
 
     /// The ruler pasteboard.
-    Ruler,
+    Ruler
 }
 
 impl From<PasteboardName> for NSString<'_> {
@@ -26,7 +26,7 @@ impl From<PasteboardName> for NSString<'_> {
             PasteboardName::Find => "Apple CFPasteboard find",
             PasteboardName::Font => "Apple CFPasteboard font",
             PasteboardName::General => "Apple CFPasteboard general",
-            PasteboardName::Ruler => "Apple CFPasteboard ruler",
+            PasteboardName::Ruler => "Apple CFPasteboard ruler"
         })
     }
 }
@@ -77,7 +77,7 @@ pub enum PasteboardType {
     TabularText,
 
     /// Tag Image File Format (TIFF) data.
-    TIFF,
+    TIFF
 }
 
 impl From<PasteboardType> for NSString<'_> {
@@ -97,7 +97,7 @@ impl From<PasteboardType> for NSString<'_> {
             PasteboardType::Sound => "com.apple.cocoa.pasteboard.sound",
             PasteboardType::String => "public.utf8-plain-text",
             PasteboardType::TabularText => "public.utf8-tab-separated-values-text",
-            PasteboardType::TIFF => "public.tiff",
+            PasteboardType::TIFF => "public.tiff"
         })
     }
 }

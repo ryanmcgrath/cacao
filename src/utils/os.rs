@@ -14,7 +14,7 @@ lazy_static! {
 pub fn is_minimum_version(minimum_major: u64) -> bool {
     match OS_VERSION.version() {
         Version::Semantic(os_major, _, _) => *os_major >= minimum_major,
-        _ => false,
+        _ => false
     }
 }
 
