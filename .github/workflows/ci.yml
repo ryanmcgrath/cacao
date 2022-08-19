@@ -58,8 +58,7 @@ jobs:
       with:
         command: build
         args: --features webview --example webview_custom_protocol
-    # The below should technically, maybe, probably use the iOS rust toolchain.
-    # That said, since it's all Objective-C message passing under the hood, we're
+    # Since it's all Objective-C message passing under the hood, we're
     # really just looking for whether we've broken the iOS build. It is likely
     # that more robust tests/checking infrastructure should exist for this side
     # of things as the iOS portion gets iterated on.
@@ -69,4 +68,5 @@ jobs:
     - uses: actions-rs/cargo@v1
       with:
         command: build
+        target: x86_64-apple-ios
         args: --example ios-beta --no-default-features --features uikit,autolayout
