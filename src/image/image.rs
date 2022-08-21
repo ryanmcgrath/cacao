@@ -192,8 +192,8 @@ impl Image {
     }
 
     /// Creates and returns an Image with the specified `SFSymbol`. Note that `SFSymbol` is
-    /// supported on macOS 11.0+ and iOS 13.0+; as such, this will panic if called on a 
-    /// lower system. Take care to provide a fallback image or user experience if you 
+    /// supported on macOS 11.0+ and iOS 13.0+; as such, this will panic if called on a
+    /// lower system. Take care to provide a fallback image or user experience if you
     /// need to support an older OS.
     ///
     /// This is `target_os` gated as SFSymbols is fairly Apple-specific. If another runtime
@@ -220,7 +220,7 @@ impl Image {
                 false => {
                     #[cfg(feature = "appkit")]
                     panic!("SFSymbols are only supported on macOS 11.0 and up.");
-                    
+
                     #[cfg(all(feature = "uikit", not(feature = "appkit")))]
                     panic!("SFSymbols are only supported on macOS 11.0 and up.");
                 }
