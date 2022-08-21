@@ -79,17 +79,22 @@ jobs:
     name: Check that iOS tests pass via dinghy.
     runs-on: macos-latest
     steps:
+
+    - name: Install cargo-dinghy
+      uses: baptiste0928/cargo-install@v1
+      with:
+        crate: cargo-dinghy
+
+    - name: Install Cargo Dinghy
+      if: matrix.dinghy && steps.extern-cache.outputs.cache-hit != 'true'
+      run: cargo install cargo-dinghy --version=^0.6.0 --root=$HOME/extern --target=x86_64-apple-darwin
+
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
           override: true
           target: x86_64-apple-ios
-    - uses: actions-rs/install@v0.1
-      with:
-        crate: cargo-dinghy
-        version: latest
-        use-tool-cache: true
 
     - name: Launch XCode Simulator and prepare Dinghy
       run: |
