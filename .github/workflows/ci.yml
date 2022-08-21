@@ -85,10 +85,6 @@ jobs:
       with:
         crate: cargo-dinghy
 
-    - name: Install Cargo Dinghy
-      if: matrix.dinghy && steps.extern-cache.outputs.cache-hit != 'true'
-      run: cargo install cargo-dinghy --version=^0.6.0 --root=$HOME/extern --target=x86_64-apple-darwin
-
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
       with:
