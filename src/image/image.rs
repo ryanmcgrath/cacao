@@ -141,7 +141,7 @@ impl Image {
         let file_path = NSString::new(path);
 
         Image(unsafe {
-            let alloc: id = msg_send![class!(NSImage), alloc];
+            let alloc: id = msg_send![Self::class(), alloc];
             ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile: file_path])
         })
     }
@@ -166,7 +166,7 @@ impl Image {
         Image(unsafe {
             ShareId::from_ptr({
                 let icon = icon.to_id();
-                msg_send![class!(NSImage), imageNamed: icon]
+                msg_send![Self::class(), imageNamed: icon]
             })
         })
     }
@@ -188,13 +188,13 @@ impl Image {
                 true => {
                     let icon = NSString::new(icon.to_sfsymbol_str());
                     let desc = NSString::new(accessibility_description);
-                    msg_send![class!(NSImage), imageWithSystemSymbolName:&*icon
+                    msg_send![Self::class(), imageWithSystemSymbolName:&*icon
                         accessibilityDescription:&*desc]
                 },
 
                 false => {
                     let icon = icon.to_id();
-                    msg_send![class!(NSImage), imageNamed: icon]
+                    msg_send![Self::class(), imageNamed: icon]
                 }
             })
         })
@@ -222,7 +222,7 @@ impl Image {
                 true => {
                     let icon = NSString::new(symbol.to_str());
                     let desc = NSString::new(accessibility_description);
-                    msg_send![class!(NSImage), imageWithSystemSymbolName:&*icon
+                    msg_send![Self::class(), imageWithSystemSymbolName:&*icon
                         accessibilityDescription:&*desc]
                 },
 
@@ -276,7 +276,7 @@ impl Image {
         let block = block.copy();
 
         Image(unsafe {
-            let img: id = msg_send![class!(NSImage), imageWithSize:target_frame.size
+            let img: id = msg_send![Self::class(), imageWithSize:target_frame.size
                 flipped:YES
                 drawingHandler:block
             ];
@@ -284,4 +284,15 @@ impl Image {
             ShareId::from_ptr(img)
         })
     }
+}
+
+#[test]
+fn test_image_from_bytes() {
+    let image_bytes = include_bytes!("../../test-data/favicon.ico");
+    let image = Image::with_data(image_bytes);
+}
+#[test]
+#[cfg(target_os = "macos")]
+fn test_image_from_file() {
+    let image = Image::with_contents_of_file("./test-data/favicon.ico");
 }
