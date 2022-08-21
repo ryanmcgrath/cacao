@@ -103,7 +103,6 @@ impl LayoutConstraint {
     pub fn activate(constraints: &[LayoutConstraint]) {
         let ids: Vec<&Object> = constraints.into_iter().map(|constraint| &*constraint.constraint).collect();
         unsafe {
-
             let constraints: id = msg_send![class!(NSArray), arrayWithObjects:ids.as_ptr() count:ids.len()];
             let _: () = msg_send![class!(NSLayoutConstraint), activateConstraints: constraints];
         }
@@ -112,7 +111,6 @@ impl LayoutConstraint {
     pub fn deactivate(constraints: &[LayoutConstraint]) {
         let ids: Vec<&Object> = constraints.into_iter().map(|constraint| &*constraint.constraint).collect();
         unsafe {
-
             let constraints: id = msg_send![class!(NSArray), arrayWithObjects:ids.as_ptr() count:ids.len()];
             let _: () = msg_send![class!(NSLayoutConstraint), deactivateConstraints: constraints];
         }

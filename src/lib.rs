@@ -143,8 +143,6 @@ pub mod image;
 #[cfg(feature = "appkit")]
 pub mod input;
 pub(crate) mod invoker;
-#[cfg(test)]
-mod tests;
 
 pub mod keys;
 

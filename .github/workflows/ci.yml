@@ -72,7 +72,7 @@ jobs:
         args: --example ios-beta --no-default-features --features uikit,autolayout
 
   ios:
-    name: Check that examples build
+    name: Check that iOS tests pass via dinghy.
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
