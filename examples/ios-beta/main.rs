@@ -3,9 +3,9 @@ use std::sync::RwLock;
 use cacao::uikit::{App, AppDelegate, Scene, SceneConfig, SceneConnectionOptions, SceneSession, Window, WindowSceneDelegate};
 
 use cacao::color::Color;
+use cacao::image::{Image, ImageView};
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::{View, ViewController, ViewDelegate};
-use cacao::image::{ImageView, Image};
 
 #[derive(Default)]
 struct TestApp;
@@ -21,7 +21,7 @@ pub struct RootView {
     pub red: View,
     pub green: View,
     pub blue: View,
-    pub image: ImageView,
+    pub image: ImageView
 }
 
 impl ViewDelegate for RootView {
