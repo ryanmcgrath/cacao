@@ -148,10 +148,10 @@ pub mod keys;
 
 pub mod layer;
 pub mod layout;
-pub mod networking;
 
 #[cfg(feature = "appkit")]
 pub mod listview;
+pub mod networking;
 pub mod notification_center;
 pub(crate) mod objc_access;
 
