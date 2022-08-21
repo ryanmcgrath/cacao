@@ -5,6 +5,7 @@ use cacao::uikit::{App, AppDelegate, Scene, SceneConfig, SceneConnectionOptions,
 use cacao::color::Color;
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::view::{View, ViewController, ViewDelegate};
+use cacao::image::{ImageView, Image};
 
 #[derive(Default)]
 struct TestApp;
@@ -19,7 +20,8 @@ impl AppDelegate for TestApp {
 pub struct RootView {
     pub red: View,
     pub green: View,
-    pub blue: View
+    pub blue: View,
+    pub image: ImageView,
 }
 
 impl ViewDelegate for RootView {
@@ -35,6 +37,11 @@ impl ViewDelegate for RootView {
 
         self.blue.set_background_color(Color::SystemBlue);
         view.add_subview(&self.blue);
+
+        let image_bytes = include_bytes!("../../test-data/favicon.ico");
+        self.image = ImageView::new();
+        self.image.set_image(&Image::with_data(image_bytes));
+        view.add_subview(&self.image);
 
         LayoutConstraint::activate(&[
             self.red.top.constraint_equal_to(&view.top).offset(16.),

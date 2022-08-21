@@ -1,4 +1,4 @@
-use objc::runtime::Object;
+use objc::runtime::{Object, Class};
 use objc_id::ShareId;
 
 use objc::{class, msg_send, sel, sel_impl};
@@ -122,6 +122,15 @@ pub struct DrawConfig {
 pub struct Image(pub ShareId<Object>);
 
 impl Image {
+    fn class() -> &'static Class {
+        #[cfg(feature = "appkit")]
+        let class = class!(NSImage);
+        #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+        let class = class!(UIImage);
+
+        class
+    }
+
     /// Wraps a system-returned image, e.g from QuickLook previews.
     pub fn with(image: id) -> Self {
         Image(unsafe { ShareId::from_ptr(image) })
@@ -143,7 +152,7 @@ impl Image {
         let data = NSData::with_slice(data);
 
         Image(unsafe {
-            let alloc: id = msg_send![class!(NSImage), alloc];
+            let alloc: id = msg_send![Self::class(), alloc];
             ShareId::from_ptr(msg_send![alloc, initWithData: data])
         })
     }

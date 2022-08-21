@@ -13,33 +13,15 @@ use crate::utils::load;
 /// Injects an `NSView` subclass. This is used for the default views that don't use delegates - we
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
-pub(crate) fn register_view_class() -> *const Class {
+pub(crate) fn register_image_view_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
-        let superclass = class!(UIView);
-        let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
+        let superclass = class!(UIImageView);
+        let mut decl = ClassDecl::new("RSTImageView", superclass).expect("Failed to get RSTVIEW");
         VIEW_CLASS = decl.register();
     });
 
     unsafe { VIEW_CLASS }
-}
-
-/// Injects an `NSView` subclass, with some callback and pointer ivars for what we
-/// need to do.
-pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(UIView);
-        let mut decl = ClassDecl::new("RSTViewWithDelegate", superclass).unwrap();
-        decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe {
-        VIEW_CLASS
-    }
 }

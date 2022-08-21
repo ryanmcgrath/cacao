@@ -65,3 +65,37 @@ required-features = ["webview"]
 [[example]]
 name = "ios-beta"
 required-features = ["uikit", "autolayout"]
+
+[[example]]
+name = "calculator"
+required-features = ["appkit"]
+[[example]]
+name = "todos_list"
+required-features = ["appkit"]
+[[example]]
+name = "animation"
+required-features = ["appkit"]
+[[example]]
+name = "autolayout"
+required-features = ["appkit"]
+[[example]]
+name = "custom_image_drawing"
+required-features = ["appkit"]
+[[example]]
+name = "text_input"
+required-features = ["appkit"]
+[[example]]
+name = "defaults"
+required-features = ["appkit"]
+[[example]]
+name = "frame_layout"
+required-features = ["appkit"]
+[[example]]
+name = "window"
+required-features = ["appkit"]
+[[example]]
+name = "window_delegate"
+required-features = ["appkit"]
+[[example]]
+name = "window_controller"
+required-features = ["appkit"]

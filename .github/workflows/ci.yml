@@ -70,3 +70,32 @@ jobs:
         command: build
         target: x86_64-apple-ios
         args: --example ios-beta --no-default-features --features uikit,autolayout
+
+  ios:
+    name: Check that examples build
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          override: true
+          target: x86_64-apple-ios
+    - uses: actions-rs/install@v0.1
+      with:
+        crate: cargo-dinghy
+        version: latest
+        use-tool-cache: true
+
+    - name: Launch XCode Simulator and prepare Dinghy
+      run: |
+        # Get system info
+        xcrun simctl list runtimes
+        # Launch the simulator
+        RUNTIME_ID=$(xcrun simctl list runtimes | grep iOS | cut -d ' ' -f 7 | tail -1)
+        SIM_ID=$(xcrun simctl create My-iphone7 com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation $RUNTIME_ID)
+        xcrun simctl boot $SIM_ID
+
+    - name: Dinghy test
+      run: |
+        cargo dinghy --platform auto-ios-x86_64 test --no-default-features --features uikit,autolayout
