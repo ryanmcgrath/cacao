@@ -192,11 +192,24 @@ impl Image {
     }
 
     /// Creates and returns an Image with the specified `SFSymbol`. Note that `SFSymbol` is
-    /// supported on 11.0+; as such, this will panic if called on a lower system. Take care to
-    /// provide a fallback image or user experience if you need to support an older OS.
+    /// supported on macOS 11.0+ and iOS 13.0+; as such, this will panic if called on a 
+    /// lower system. Take care to provide a fallback image or user experience if you 
+    /// need to support an older OS.
+    ///
+    /// This is `target_os` gated as SFSymbols is fairly Apple-specific. If another runtime
+    /// ever exposes a compatible API, this can be tweaked in a PR.
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
     pub fn symbol(symbol: SFSymbol, accessibility_description: &str) -> Self {
+        // SFSymbols is macOS 11.0+
+        #[cfg(feature = "appkit")]
+        let min_version = 11;
+
+        // SFSymbols is iOS 13.0+.
+        #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+        let min_version = 13;
+
         Image(unsafe {
-            ShareId::from_ptr(match os::is_minimum_version(11) {
+            ShareId::from_ptr(match os::is_minimum_version(min_version) {
                 true => {
                     let icon = NSString::new(symbol.to_str());
                     let desc = NSString::new(accessibility_description);
@@ -205,7 +218,10 @@ impl Image {
                 },
 
                 false => {
-                    #[cfg(target_os = "macos")]
+                    #[cfg(feature = "appkit")]
+                    panic!("SFSymbols are only supported on macOS 11.0 and up.");
+                    
+                    #[cfg(all(feature = "uikit", not(feature = "appkit")))]
                     panic!("SFSymbols are only supported on macOS 11.0 and up.");
                 }
             })
@@ -213,6 +229,10 @@ impl Image {
     }
 
     /// Draw a custom image and get it back as a returned `Image`.
+    ///
+    /// This is currently only supported on AppKit-based backends, and has
+    /// only been tested on macOS.
+    #[cfg(feature = "appkit")]
     pub fn draw<F>(config: DrawConfig, handler: F) -> Self
     where
         F: Fn(CGRect, &CGContextRef) -> bool + 'static
