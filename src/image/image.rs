@@ -291,6 +291,7 @@ fn test_image_from_bytes() {
     let image_bytes = include_bytes!("../../test-data/favicon.ico");
     let image = Image::with_data(image_bytes);
 }
+// It's unclear where the file is on the ios simulator.
 #[test]
 #[cfg(target_os = "macos")]
 fn test_image_from_file() {
