@@ -58,7 +58,10 @@ use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY, SafeAre
 #[cfg(feature = "appkit")]
 use crate::pasteboard::PasteboardType;
 
+#[cfg(all(feature = "appkit", target_os = "macos"))]
 mod animator;
+
+#[cfg(all(feature = "appkit", target_os = "macos"))]
 pub use animator::ViewAnimatorProxy;
 
 #[cfg_attr(feature = "appkit", path = "appkit.rs")]
@@ -94,6 +97,9 @@ pub struct View<T = ()> {
     pub objc: ObjcProperty,
 
     /// An object that supports limited animations. Can be cloned into animation closures.
+    ///
+    /// This is currently only supported on macOS with the `appkit` feature.
+    #[cfg(all(feature = "appkit", target_os = "macos"))]
     pub animator: ViewAnimatorProxy,
 
     /// References the underlying layer. This is consistent across AppKit & UIKit - in AppKit
@@ -209,6 +215,7 @@ impl View {
 
             layer: Layer::wrap(unsafe { msg_send![view, layer] }),
 
+            #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: ViewAnimatorProxy::new(view),
             objc: ObjcProperty::retain(view)
         }
@@ -256,6 +263,8 @@ impl<T> View<T> {
             is_handle: true,
             layer: self.layer.clone(),
             objc: self.objc.clone(),
+
+            #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: self.animator.clone(),
 
             #[cfg(feature = "autolayout")]

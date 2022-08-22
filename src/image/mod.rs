@@ -17,11 +17,11 @@ mod appkit;
 #[cfg(feature = "appkit")]
 use appkit::register_image_view_class;
 
-//#[cfg(feature = "uikit")]
-//mod uikit;
+#[cfg(feature = "uikit")]
+mod uikit;
 
-//#[cfg(feature = "uikit")]
-//use uikit::register_image_view_class;
+#[cfg(all(feature = "uikit", not(feature = "appkit")))]
+use uikit::register_image_view_class;
 
 mod image;
 pub use image::{DrawConfig, Image, ResizeBehavior};
@@ -193,4 +193,13 @@ impl Drop for ImageView {
             }
         }*/
     }
+}
+
+#[test]
+fn test_image() {
+    let image_view = ImageView::new();
+    image_view.set_background_color(Color::SystemBlue);
+    let image_bytes = include_bytes!("../../test-data/favicon.ico");
+    let image = Image::with_data(image_bytes);
+    image_view.set_image(&image);
 }

@@ -1,4 +1,4 @@
-use objc::runtime::Object;
+use objc::runtime::{Class, Object};
 use objc_id::ShareId;
 
 use objc::{class, msg_send, sel, sel_impl};
@@ -122,6 +122,15 @@ pub struct DrawConfig {
 pub struct Image(pub ShareId<Object>);
 
 impl Image {
+    fn class() -> &'static Class {
+        #[cfg(feature = "appkit")]
+        let class = class!(NSImage);
+        #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+        let class = class!(UIImage);
+
+        class
+    }
+
     /// Wraps a system-returned image, e.g from QuickLook previews.
     pub fn with(image: id) -> Self {
         Image(unsafe { ShareId::from_ptr(image) })
@@ -132,7 +141,7 @@ impl Image {
         let file_path = NSString::new(path);
 
         Image(unsafe {
-            let alloc: id = msg_send![class!(NSImage), alloc];
+            let alloc: id = msg_send![Self::class(), alloc];
             ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile: file_path])
         })
     }
@@ -143,7 +152,7 @@ impl Image {
         let data = NSData::with_slice(data);
 
         Image(unsafe {
-            let alloc: id = msg_send![class!(NSImage), alloc];
+            let alloc: id = msg_send![Self::class(), alloc];
             ShareId::from_ptr(msg_send![alloc, initWithData: data])
         })
     }
@@ -157,7 +166,7 @@ impl Image {
         Image(unsafe {
             ShareId::from_ptr({
                 let icon = icon.to_id();
-                msg_send![class!(NSImage), imageNamed: icon]
+                msg_send![Self::class(), imageNamed: icon]
             })
         })
     }
@@ -179,13 +188,13 @@ impl Image {
                 true => {
                     let icon = NSString::new(icon.to_sfsymbol_str());
                     let desc = NSString::new(accessibility_description);
-                    msg_send![class!(NSImage), imageWithSystemSymbolName:&*icon
+                    msg_send![Self::class(), imageWithSystemSymbolName:&*icon
                         accessibilityDescription:&*desc]
                 },
 
                 false => {
                     let icon = icon.to_id();
-                    msg_send![class!(NSImage), imageNamed: icon]
+                    msg_send![Self::class(), imageNamed: icon]
                 }
             })
         })
@@ -213,7 +222,7 @@ impl Image {
                 true => {
                     let icon = NSString::new(symbol.to_str());
                     let desc = NSString::new(accessibility_description);
-                    msg_send![class!(NSImage), imageWithSystemSymbolName:&*icon
+                    msg_send![Self::class(), imageWithSystemSymbolName:&*icon
                         accessibilityDescription:&*desc]
                 },
 
@@ -267,7 +276,7 @@ impl Image {
         let block = block.copy();
 
         Image(unsafe {
-            let img: id = msg_send![class!(NSImage), imageWithSize:target_frame.size
+            let img: id = msg_send![Self::class(), imageWithSize:target_frame.size
                 flipped:YES
                 drawingHandler:block
             ];
@@ -275,4 +284,16 @@ impl Image {
             ShareId::from_ptr(img)
         })
     }
+}
+
+#[test]
+fn test_image_from_bytes() {
+    let image_bytes = include_bytes!("../../test-data/favicon.ico");
+    let image = Image::with_data(image_bytes);
+}
+// It's unclear where the file is on the ios simulator.
+#[test]
+#[cfg(target_os = "macos")]
+fn test_image_from_file() {
+    let image = Image::with_contents_of_file("./test-data/favicon.ico");
 }

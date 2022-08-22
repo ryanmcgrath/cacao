@@ -137,7 +137,7 @@ pub mod filesystem;
 pub mod foundation;
 pub mod geometry;
 
-#[cfg(feature = "appkit")]
+#[cfg(any(feature = "appkit", feature = "uikit"))]
 pub mod image;
 
 #[cfg(feature = "appkit")]
