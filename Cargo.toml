@@ -30,7 +30,7 @@ objc = "0.2.7"
 objc_id = "0.1.1"
 os_info = "3.0.1"
 url = "2.1.1"
-uuid = { version = "0.8", features = ["v4"], optional = true }
+uuid = { version = "1.1", features = ["v4"], optional = true }
 
 [dev-dependencies]
 eval = "0.4"
