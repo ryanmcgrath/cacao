@@ -5,7 +5,6 @@ use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel, sel_impl};
 use objc_id::Id;
 
-use crate::dragdrop::DragInfo;
 use crate::foundation::{id, NSUInteger, NO, YES};
 use crate::utils::load;
 use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};

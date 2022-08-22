@@ -121,7 +121,7 @@ pub mod color;
 #[cfg(feature = "appkit")]
 pub mod control;
 
-#[cfg(any(feature = "appkit", feature = "uikit"))]
+#[cfg(feature = "appkit")]
 pub mod dragdrop;
 
 pub mod error;
@@ -155,7 +155,7 @@ pub mod networking;
 pub mod notification_center;
 pub(crate) mod objc_access;
 
-#[cfg(any(feature = "appkit", feature = "uikit"))]
+#[cfg(feature = "appkit")]
 pub mod pasteboard;
 
 #[cfg(feature = "appkit")]
