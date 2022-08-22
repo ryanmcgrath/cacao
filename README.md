@@ -83,7 +83,7 @@ Non-Apple platforms that shim or provide a form of AppKit may be able to use a g
 | ListView            | Reusable list w/ cached rows        |   ✅   | ❌  |  ❌  |
 | Button              | Styling, events, toolbar support    |   ✅   | ❌  |  ❌  |
 | Label/TextField     | Text rendering & input              |   ✅   | ❌  |  ❌  |
-| Image/ImageView     | Loading, drawing, etc               |   ✅   | ❌  |  ❌  |
+| Image/ImageView     | Loading, drawing, etc               |   ✅   | ✅  |  ❌  |
 | Toolbar             | Basic native toolbar                |   ✅   | ❌  |  ❌  |
 | SplitViewController | Split views (Big Sur friendly)      |   ✅   | ❌  |  ❌  |
 | WebView             | Wrapper for WKWebView               |   ✅   | ❌  |  ❌  |
