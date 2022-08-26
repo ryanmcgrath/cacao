@@ -16,7 +16,7 @@ pub enum TextAlign {
     Justified,
 
     /// Natural.
-    Natural
+    Natural,
 }
 
 impl From<TextAlign> for NSInteger {
@@ -26,7 +26,7 @@ impl From<TextAlign> for NSInteger {
             TextAlign::Center => 1,
             TextAlign::Right => 2,
             TextAlign::Justified => 3,
-            TextAlign::Natural => 4
+            TextAlign::Natural => 4,
         }
     }
 }
@@ -50,7 +50,7 @@ pub enum LineBreakMode {
     TruncateTail,
 
     /// Truncate the middle, e.g, my se...ce
-    TruncateMiddle
+    TruncateMiddle,
 }
 
 impl Into<NSUInteger> for LineBreakMode {
@@ -61,7 +61,7 @@ impl Into<NSUInteger> for LineBreakMode {
             LineBreakMode::Clip => 2,
             LineBreakMode::TruncateHead => 3,
             LineBreakMode::TruncateTail => 4,
-            LineBreakMode::TruncateMiddle => 5
+            LineBreakMode::TruncateMiddle => 5,
         }
     }
 }

@@ -14,7 +14,7 @@ use crate::webview::enums::InjectAt;
 pub struct WebViewConfig {
     pub objc: Id<Object>,
     pub handlers: Vec<String>,
-    pub protocols: Vec<String>
+    pub protocols: Vec<String>,
 }
 
 impl Default for WebViewConfig {
@@ -28,7 +28,7 @@ impl Default for WebViewConfig {
         WebViewConfig {
             objc: config,
             handlers: vec![],
-            protocols: vec![]
+            protocols: vec![],
         }
     }
 }

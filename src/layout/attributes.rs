@@ -12,7 +12,7 @@ pub enum LayoutConstraintOrientation {
     /// Represents an unknown value. This should never be constructed, but acts as a guard against
     /// a change in representation on the framework side. If a new value was ever introduced, it's
     /// caught here, and applications can handle it themselves if need be.
-    Unknown(NSInteger)
+    Unknown(NSInteger),
 }
 
 impl From<NSInteger> for LayoutConstraintOrientation {
@@ -20,7 +20,7 @@ impl From<NSInteger> for LayoutConstraintOrientation {
         match i {
             0 => Self::Horizontal,
             1 => Self::Vertical,
-            i => Self::Unknown(i)
+            i => Self::Unknown(i),
         }
     }
 }
@@ -40,7 +40,7 @@ pub enum LayoutRelation {
     /// Represents an unknown value. This should never be constructed, but acts as a guard against
     /// a change in representation on the framework side. If a new value was ever introduced, it's
     /// caught here, and applications can handle it themselves if need be.
-    Unknown(NSInteger)
+    Unknown(NSInteger),
 }
 
 impl From<NSInteger> for LayoutRelation {
@@ -49,7 +49,7 @@ impl From<NSInteger> for LayoutRelation {
             -1 => Self::LessThanOrEqual,
             0 => Self::Equal,
             1 => Self::GreaterThanOrEqual,
-            i => Self::Unknown(i)
+            i => Self::Unknown(i),
         }
     }
 }
@@ -108,7 +108,7 @@ pub enum LayoutAttribute {
     /// Represents an unknown value. This should never be constructed, but acts as a guard against
     /// a change in representation on the framework side. If a new value was ever introduced, it's
     /// caught here, and applications can handle it themselves if need be.
-    Unknown(NSInteger)
+    Unknown(NSInteger),
 }
 
 impl From<NSInteger> for LayoutAttribute {
@@ -127,7 +127,7 @@ impl From<NSInteger> for LayoutAttribute {
             11 => Self::LastBaseline,
             12 => Self::FirstBaseline,
             0 => Self::NotAnAttribute,
-            i => Self::Unknown(i)
+            i => Self::Unknown(i),
         }
     }
 }
@@ -182,7 +182,7 @@ pub enum LayoutFormat {
     /// Represents an unknown value. This should never be constructed, but acts as a guard against
     /// a change in representation on the framework side. If a new value was ever introduced, it's
     /// caught here, and applications can handle it themselves if need be.
-    Unknown(NSUInteger)
+    Unknown(NSUInteger),
 }
 
 impl From<NSUInteger> for LayoutFormat {
@@ -200,7 +200,7 @@ impl From<NSUInteger> for LayoutFormat {
             0 => Self::DirectionLeadingToTrailing,
             65536 => Self::DirectionLeftToRight,
             131072 => Self::DirectionRightToLeft,
-            i => Self::Unknown(i)
+            i => Self::Unknown(i),
         }
     }
 }
@@ -215,5 +215,5 @@ pub enum LayoutPriority {
     High,
 
     /// Low priority.
-    Low
+    Low,
 }

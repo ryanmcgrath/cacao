@@ -27,7 +27,7 @@ use content_view::CalculatorView;
 struct CalculatorApp {
     window: Window,
     content: View<CalculatorView>,
-    key_monitor: RwLock<Option<EventMonitor>>
+    key_monitor: RwLock<Option<EventMonitor>>,
 }
 
 impl AppDelegate for CalculatorApp {
@@ -105,10 +105,13 @@ fn main() {
     let mut config = WindowConfig::default();
     config.set_initial_dimensions(100., 100., 240., 300.);
 
-    App::new("com.example.calculator", CalculatorApp {
-        window: Window::new(config),
-        content: View::with(CalculatorView::new()),
-        key_monitor: RwLock::new(None)
-    })
+    App::new(
+        "com.example.calculator",
+        CalculatorApp {
+            window: Window::new(config),
+            content: View::with(CalculatorView::new()),
+            key_monitor: RwLock::new(None),
+        },
+    )
     .run();
 }

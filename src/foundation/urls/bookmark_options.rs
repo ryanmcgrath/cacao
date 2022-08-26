@@ -16,7 +16,7 @@ pub enum NSURLBookmarkCreationOption {
     /// When combined with the NSURLBookmarkCreationOptions::SecurityScoped option, specifies that you
     /// want to create a security-scoped bookmark that, when resolved, provides a security-scoped URL allowing
     /// read-only access to a file-system resource.
-    SecurityScopedReadOnly
+    SecurityScopedReadOnly,
 }
 
 impl From<NSURLBookmarkCreationOption> for NSUInteger {
@@ -25,7 +25,7 @@ impl From<NSURLBookmarkCreationOption> for NSUInteger {
             NSURLBookmarkCreationOption::Minimal => 1u64 << 9,
             NSURLBookmarkCreationOption::SuitableForBookmarkFile => 1u64 << 10,
             NSURLBookmarkCreationOption::SecurityScoped => 1 << 11,
-            NSURLBookmarkCreationOption::SecurityScopedReadOnly => 1 << 12
+            NSURLBookmarkCreationOption::SecurityScopedReadOnly => 1 << 12,
         }
     }
 }
@@ -36,7 +36,7 @@ impl From<&NSURLBookmarkCreationOption> for NSUInteger {
             NSURLBookmarkCreationOption::Minimal => 1u64 << 9,
             NSURLBookmarkCreationOption::SuitableForBookmarkFile => 1u64 << 10,
             NSURLBookmarkCreationOption::SecurityScoped => 1 << 11,
-            NSURLBookmarkCreationOption::SecurityScopedReadOnly => 1 << 12
+            NSURLBookmarkCreationOption::SecurityScopedReadOnly => 1 << 12,
         }
     }
 }
@@ -52,7 +52,7 @@ pub enum NSURLBookmarkResolutionOption {
 
     /// Specifies that the security scope, applied to the bookmark when it was created, should
     /// be used during resolution of the bookmark data.
-    SecurityScoped
+    SecurityScoped,
 }
 
 impl From<NSURLBookmarkResolutionOption> for NSUInteger {
@@ -60,7 +60,7 @@ impl From<NSURLBookmarkResolutionOption> for NSUInteger {
         match flag {
             NSURLBookmarkResolutionOption::WithoutUI => 1u64 << 8,
             NSURLBookmarkResolutionOption::WithoutMounting => 1u64 << 9,
-            NSURLBookmarkResolutionOption::SecurityScoped => 1 << 10
+            NSURLBookmarkResolutionOption::SecurityScoped => 1 << 10,
         }
     }
 }

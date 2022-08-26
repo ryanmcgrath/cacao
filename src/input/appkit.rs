@@ -35,7 +35,7 @@ extern "C" fn text_should_begin_editing<T: TextFieldDelegate>(this: &mut Object,
 
     match view.text_should_begin_editing(s.to_str()) {
         true => YES,
-        false => NO
+        false => NO,
     }
 }
 
@@ -44,7 +44,7 @@ extern "C" fn text_should_end_editing<T: TextFieldDelegate>(this: &mut Object, _
     let s = NSString::retain(unsafe { msg_send![this, stringValue] });
     match view.text_should_end_editing(s.to_str()) {
         true => YES,
-        false => NO
+        false => NO,
     }
 }
 
@@ -74,20 +74,20 @@ pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>(instance: 
 
         decl.add_method(
             sel!(textDidEndEditing:),
-            text_did_end_editing::<T> as extern "C" fn(&mut Object, _, _)
+            text_did_end_editing::<T> as extern "C" fn(&mut Object, _, _),
         );
         decl.add_method(
             sel!(textDidBeginEditing:),
-            text_did_begin_editing::<T> as extern "C" fn(&mut Object, _, _)
+            text_did_begin_editing::<T> as extern "C" fn(&mut Object, _, _),
         );
         decl.add_method(sel!(textDidChange:), text_did_change::<T> as extern "C" fn(&mut Object, _, _));
         decl.add_method(
             sel!(textShouldBeginEditing:),
-            text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL
+            text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL,
         );
         decl.add_method(
             sel!(textShouldEndEditing:),
-            text_should_end_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL
+            text_should_end_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL,
         );
     })
 }

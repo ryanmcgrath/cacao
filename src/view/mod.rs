@@ -151,7 +151,7 @@ pub struct View<T = ()> {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY
+    pub center_y: LayoutAnchorY,
 }
 
 impl Default for View {
@@ -217,7 +217,7 @@ impl View {
 
             #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: ViewAnimatorProxy::new(view),
-            objc: ObjcProperty::retain(view)
+            objc: ObjcProperty::retain(view),
         }
     }
 
@@ -229,7 +229,7 @@ impl View {
 
 impl<T> View<T>
 where
-    T: ViewDelegate + 'static
+    T: ViewDelegate + 'static,
 {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
@@ -298,7 +298,7 @@ impl<T> View<T> {
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone()
+            center_y: self.center_y.clone(),
         }
     }
 

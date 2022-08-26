@@ -31,7 +31,7 @@ extern "C" fn view_for_column<T: ListViewDelegate>(
     _: Sel,
     _table_view: id,
     _table_column: id,
-    item: NSInteger
+    item: NSInteger,
 ) -> id {
     /*use core_graphics::geometry::CGRect;
     unsafe {
@@ -61,7 +61,7 @@ extern "C" fn will_display_cell<T: ListViewDelegate>(
     _table_view: id,
     _cell: id,
     _column: id,
-    item: NSInteger
+    item: NSInteger,
 ) {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
     view.will_display_item(item as usize);
@@ -109,7 +109,7 @@ extern "C" fn row_actions_for_row<T: ListViewDelegate>(
     _: Sel,
     _table_view: id,
     row: NSInteger,
-    edge: NSInteger
+    edge: NSInteger,
 ) -> id {
     let edge: RowEdge = edge.into();
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
@@ -133,7 +133,7 @@ extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
 extern "C" fn dragging_entered<T: ListViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
     view.dragging_entered(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::from_ptr(info) },
     })
     .into()
 }
@@ -143,10 +143,10 @@ extern "C" fn prepare_for_drag_operation<T: ListViewDelegate>(this: &mut Object,
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
 
     match view.prepare_for_drag_operation(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::from_ptr(info) },
     }) {
         true => YES,
-        false => NO
+        false => NO,
     }
 }
 
@@ -155,10 +155,10 @@ extern "C" fn perform_drag_operation<T: ListViewDelegate>(this: &mut Object, _: 
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
 
     match view.perform_drag_operation(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::from_ptr(info) },
     }) {
         true => YES,
-        false => NO
+        false => NO,
     }
 }
 
@@ -167,7 +167,7 @@ extern "C" fn conclude_drag_operation<T: ListViewDelegate>(this: &mut Object, _:
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
 
     view.conclude_drag_operation(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::from_ptr(info) },
     });
 }
 
@@ -176,7 +176,7 @@ extern "C" fn dragging_exited<T: ListViewDelegate>(this: &mut Object, _: Sel, in
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
 
     view.dragging_exited(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::from_ptr(info) },
     });
 }
 
@@ -210,23 +210,23 @@ pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instanc
         // Tableview-specific
         decl.add_method(
             sel!(numberOfRowsInTableView:),
-            number_of_items::<T> as extern "C" fn(&Object, _, id) -> NSInteger
+            number_of_items::<T> as extern "C" fn(&Object, _, id) -> NSInteger,
         );
         decl.add_method(
             sel!(tableView:willDisplayCell:forTableColumn:row:),
-            will_display_cell::<T> as extern "C" fn(&Object, _, id, id, id, NSInteger)
+            will_display_cell::<T> as extern "C" fn(&Object, _, id, id, id, NSInteger),
         );
         decl.add_method(
             sel!(tableView:viewForTableColumn:row:),
-            view_for_column::<T> as extern "C" fn(&Object, _, id, id, NSInteger) -> id
+            view_for_column::<T> as extern "C" fn(&Object, _, id, id, NSInteger) -> id,
         );
         decl.add_method(
             sel!(tableViewSelectionDidChange:),
-            selection_did_change::<T> as extern "C" fn(&Object, _, id)
+            selection_did_change::<T> as extern "C" fn(&Object, _, id),
         );
         decl.add_method(
             sel!(tableView:rowActionsForRow:edge:),
-            row_actions_for_row::<T> as extern "C" fn(&Object, _, id, NSInteger, NSInteger) -> id
+            row_actions_for_row::<T> as extern "C" fn(&Object, _, id, NSInteger, NSInteger) -> id,
         );
 
         // A slot for some menu handling; we just let it be done here for now rather than do the
@@ -234,29 +234,29 @@ pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instanc
         // menu.
         decl.add_method(
             sel!(menuNeedsUpdate:),
-            menu_needs_update::<T> as extern "C" fn(&Object, _, id)
+            menu_needs_update::<T> as extern "C" fn(&Object, _, id),
         );
 
         // Drag and drop operations (e.g, accepting files)
         decl.add_method(
             sel!(draggingEntered:),
-            dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger
+            dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger,
         );
         decl.add_method(
             sel!(prepareForDragOperation:),
-            prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL,
         );
         decl.add_method(
             sel!(performDragOperation:),
-            perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL,
         );
         decl.add_method(
             sel!(concludeDragOperation:),
-            conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _)
+            conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _),
         );
         decl.add_method(
             sel!(draggingExited:),
-            dragging_exited::<T> as extern "C" fn(&mut Object, _, _)
+            dragging_exited::<T> as extern "C" fn(&mut Object, _, _),
         );
     })
 }

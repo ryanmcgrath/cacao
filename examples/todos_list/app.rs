@@ -11,7 +11,7 @@ use crate::windows::WindowManager;
 /// This handles routing lifecycle events, and maintains our `WindowManager`.
 #[derive(Default)]
 pub struct TodosApp {
-    pub window_manager: WindowManager
+    pub window_manager: WindowManager,
 }
 
 impl AppDelegate for TodosApp {

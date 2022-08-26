@@ -19,7 +19,7 @@ pub enum ControlSize {
     /// A large control. Only available on macOS 11.0+.
     /// If you pass this to the `set_control_size` method on the `Control` trait, it will
     /// transparently map to `Regular` on 10.15 and below.
-    Large
+    Large,
 }
 
 /// A trait that view wrappers must conform to. Enables managing the subview tree.
@@ -44,8 +44,8 @@ pub trait Control: ObjcAccess {
 
             ControlSize::Large => match crate::utils::os::is_minimum_version(11) {
                 true => 3,
-                false => 0
-            }
+                false => 0,
+            },
         };
 
         self.with_backing_obj_mut(|obj| unsafe {

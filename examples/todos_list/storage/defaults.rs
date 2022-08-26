@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use cacao::defaults::{UserDefaults, Value};
 
-const EXAMPLE: &'static str = "exampleSetting";
+const EXAMPLE: &str = "exampleSetting";
 
 /// A very basic wrapper around UserDefaults. If I wind up implementing Serde support for
 /// UserDefaults, then much of this could be removed or simplified - but I'm not sold on that yet,

@@ -35,7 +35,7 @@ pub struct CalculatorView {
     pub row3: ButtonRow,
     pub dot: Button,
     pub zero: Button,
-    pub equals: Button
+    pub equals: Button,
 }
 
 impl CalculatorView {
@@ -56,30 +56,30 @@ impl CalculatorView {
             row0: ButtonRow::new(
                 [Msg::Clear, Msg::Invert, Msg::Mod, Msg::Divide],
                 Color::rgb(69, 69, 69),
-                Color::rgb(255, 148, 10)
+                Color::rgb(255, 148, 10),
             ),
 
             row1: ButtonRow::new(
                 [Msg::Push(7), Msg::Push(8), Msg::Push(9), Msg::Multiply],
                 Color::rgb(100, 100, 100),
-                Color::rgb(255, 148, 10)
+                Color::rgb(255, 148, 10),
             ),
 
             row2: ButtonRow::new(
                 [Msg::Push(4), Msg::Push(5), Msg::Push(6), Msg::Subtract],
                 Color::rgb(100, 100, 100),
-                Color::rgb(255, 148, 10)
+                Color::rgb(255, 148, 10),
             ),
 
             row3: ButtonRow::new(
                 [Msg::Push(1), Msg::Push(2), Msg::Push(3), Msg::Add],
                 Color::rgb(100, 100, 100),
-                Color::rgb(255, 148, 10)
+                Color::rgb(255, 148, 10),
             ),
 
             zero: button("0", Msg::Push(0)),
             dot: button(".", Msg::Decimal),
-            equals: button("=", Msg::Equals)
+            equals: button("=", Msg::Equals),
         }
     }
 
@@ -158,7 +158,7 @@ impl ViewDelegate for CalculatorView {
             self.equals.trailing.constraint_equal_to(&view.trailing),
             self.equals.bottom.constraint_equal_to(&view.bottom),
             self.equals.width.constraint_equal_to_constant(BUTTON_WIDTH),
-            self.equals.height.constraint_equal_to_constant(BUTTON_HEIGHT)
+            self.equals.height.constraint_equal_to_constant(BUTTON_HEIGHT),
         ])
     }
 }

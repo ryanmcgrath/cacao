@@ -6,7 +6,7 @@ use crate::foundation::NSUInteger;
 pub enum NotificationAuthOption {
     Badge,
     Sound,
-    Alert
+    Alert,
 }
 
 impl From<NotificationAuthOption> for NSUInteger {
@@ -14,7 +14,7 @@ impl From<NotificationAuthOption> for NSUInteger {
         match option {
             NotificationAuthOption::Badge => 1 << 0,
             NotificationAuthOption::Sound => 1 << 1,
-            NotificationAuthOption::Alert => 1 << 2
+            NotificationAuthOption::Alert => 1 << 2,
         }
     }
 }
@@ -24,7 +24,7 @@ impl From<&NotificationAuthOption> for NSUInteger {
         match option {
             NotificationAuthOption::Badge => 1 << 0,
             NotificationAuthOption::Sound => 1 << 1,
-            NotificationAuthOption::Alert => 1 << 2
+            NotificationAuthOption::Alert => 1 << 2,
         }
     }
 }

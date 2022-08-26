@@ -122,7 +122,7 @@ impl ClassMap {
 #[inline(always)]
 pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> *const Class
 where
-    F: Fn(&mut ClassDecl) + 'static
+    F: Fn(&mut ClassDecl) + 'static,
 {
     if let Some(subclass) = CLASSES.load_subclass(subclass_name, superclass_name) {
         return subclass;
@@ -145,7 +145,7 @@ where
                     "Subclass of type {}_{} could not be allocated.",
                     subclass_name, superclass_name
                 );
-            }
+            },
         }
     }
 

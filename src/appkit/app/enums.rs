@@ -17,7 +17,7 @@ pub enum TerminateResponse {
     ///
     /// This return value is for primarily for cases where you need to provide alerts
     /// in order to decide whether to quit.
-    Later
+    Later,
 }
 
 impl From<TerminateResponse> for NSUInteger {
@@ -25,7 +25,7 @@ impl From<TerminateResponse> for NSUInteger {
         match response {
             TerminateResponse::Now => 1,
             TerminateResponse::Cancel => 0,
-            TerminateResponse::Later => 2
+            TerminateResponse::Later => 2,
         }
     }
 }
@@ -44,7 +44,7 @@ pub enum AppDelegateResponse {
     Success,
 
     /// Failed.
-    Failure
+    Failure,
 }
 
 impl From<AppDelegateResponse> for NSUInteger {
@@ -52,7 +52,7 @@ impl From<AppDelegateResponse> for NSUInteger {
         match response {
             AppDelegateResponse::Cancelled => 1,
             AppDelegateResponse::Success => 0,
-            AppDelegateResponse::Failure => 2
+            AppDelegateResponse::Failure => 2,
         }
     }
 }
@@ -112,7 +112,7 @@ pub enum PresentationOption {
     AutoHideToolbar,
 
     /// The behavior that allows the user to shake the mouse to locate the cursor is disabled.
-    DisableCursorLocationAssistance
+    DisableCursorLocationAssistance,
 }
 
 impl From<PresentationOption> for NSUInteger {
@@ -131,7 +131,7 @@ impl From<PresentationOption> for NSUInteger {
             PresentationOption::DisableMenuBarTransparency => (1 << 9),
             PresentationOption::FullScreen => (1 << 10),
             PresentationOption::AutoHideToolbar => (1 << 11),
-            PresentationOption::DisableCursorLocationAssistance => (1 << 12)
+            PresentationOption::DisableCursorLocationAssistance => (1 << 12),
         }
     }
 }
@@ -152,7 +152,7 @@ impl From<&PresentationOption> for NSUInteger {
             PresentationOption::DisableMenuBarTransparency => (1 << 9),
             PresentationOption::FullScreen => (1 << 10),
             PresentationOption::AutoHideToolbar => (1 << 11),
-            PresentationOption::DisableCursorLocationAssistance => (1 << 12)
+            PresentationOption::DisableCursorLocationAssistance => (1 << 12),
         }
     }
 }
