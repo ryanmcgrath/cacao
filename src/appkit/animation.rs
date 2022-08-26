@@ -29,7 +29,7 @@ impl AnimationContext {
     /// the supported methods here.
     pub fn run<F>(animation: F)
     where
-        F: Fn(&mut AnimationContext) + Send + Sync + 'static,
+        F: Fn(&mut AnimationContext) + Send + Sync + 'static
     {
         let block = ConcreteBlock::new(move |ctx| {
             let mut context = AnimationContext(ctx);
@@ -53,7 +53,7 @@ impl AnimationContext {
     pub fn run_with_completion_handler<F, C>(animation: F, completion_handler: C)
     where
         F: Fn(&mut AnimationContext) + Send + Sync + 'static,
-        C: Fn() + Send + Sync + 'static,
+        C: Fn() + Send + Sync + 'static
     {
         let block = ConcreteBlock::new(move |ctx| {
             let mut context = AnimationContext(ctx);

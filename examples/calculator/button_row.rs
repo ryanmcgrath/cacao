@@ -8,7 +8,7 @@ use crate::content_view::{button, BUTTON_HEIGHT, BUTTON_WIDTH};
 
 pub struct ButtonRow {
     pub view: View,
-    pub buttons: Vec<Button>,
+    pub buttons: Vec<Button>
 }
 
 impl ButtonRow {
@@ -36,9 +36,9 @@ impl ButtonRow {
                         Msg::Push(i) if *i == 7 => "7",
                         Msg::Push(i) if *i == 8 => "8",
                         Msg::Push(i) if *i == 9 => "9",
-                        _ => "W",
+                        _ => "W"
                     },
-                    y.clone(),
+                    y.clone()
                 );
 
                 view.add_subview(&button);
@@ -71,7 +71,7 @@ impl ButtonRow {
             buttons[3].trailing.constraint_equal_to(&view.trailing),
             buttons[3].bottom.constraint_equal_to(&view.bottom),
             buttons[3].width.constraint_equal_to(&width),
-            view.height.constraint_equal_to_constant(BUTTON_HEIGHT),
+            view.height.constraint_equal_to_constant(BUTTON_HEIGHT)
         ]);
 
         Self { view, buttons }

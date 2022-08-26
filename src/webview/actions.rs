@@ -9,7 +9,7 @@ use crate::webview::enums::NavigationType;
 #[derive(Debug)]
 pub struct NavigationAction {
     pub navigation_type: NavigationType,
-    pub request: URLRequest,
+    pub request: URLRequest
 }
 
 impl NavigationAction {
@@ -20,14 +20,14 @@ impl NavigationAction {
                 nav_type.into()
             },
 
-            request: URLRequest::with(unsafe { msg_send![action, request] }),
+            request: URLRequest::with(unsafe { msg_send![action, request] })
         }
     }
 }
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct NavigationResponse {
-    pub can_show_mime_type: bool,
+    pub can_show_mime_type: bool
 }
 
 impl NavigationResponse {
@@ -40,7 +40,7 @@ impl NavigationResponse {
                 } else {
                     false
                 }
-            },
+            }
         }
     }
 }
@@ -48,7 +48,7 @@ impl NavigationResponse {
 #[derive(Copy, Clone, Debug, Default)]
 pub struct OpenPanelParameters {
     pub allows_directories: bool,
-    pub allows_multiple_selection: bool,
+    pub allows_multiple_selection: bool
 }
 
 impl From<id> for OpenPanelParameters {
@@ -62,7 +62,7 @@ impl From<id> for OpenPanelParameters {
                     #[cfg(not(target_arch = "aarch64"))]
                     _ => {
                         panic!("Invalid value from WKOpenPanelParameters:allowsDirectories");
-                    },
+                    }
                 }
             },
 
@@ -74,9 +74,9 @@ impl From<id> for OpenPanelParameters {
                     #[cfg(not(target_arch = "aarch64"))]
                     _ => {
                         panic!("Invalid value from WKOpenPanelParameters:allowsMultipleSelection");
-                    },
+                    }
                 }
-            },
+            }
         }
     }
 }

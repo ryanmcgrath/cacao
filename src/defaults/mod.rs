@@ -213,7 +213,7 @@ impl UserDefaults {
                     println!("Unexpected code type found: {}", _x);
 
                     None
-                },
+                }
             };
         }
 

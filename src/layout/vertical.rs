@@ -19,7 +19,7 @@ pub enum LayoutAnchorY {
     Bottom(ShareId<Object>),
 
     /// Represents a center anchor for the Y axis.
-    Center(ShareId<Object>),
+    Center(ShareId<Object>)
 }
 
 impl Default for LayoutAnchorY {
@@ -49,7 +49,7 @@ impl LayoutAnchorY {
     /// wrong.
     fn constraint_with<F>(&self, anchor_to: &LayoutAnchorY, handler: F) -> LayoutConstraint
     where
-        F: Fn(&ShareId<Object>, &ShareId<Object>) -> id,
+        F: Fn(&ShareId<Object>, &ShareId<Object>) -> id
     {
         match (self, anchor_to) {
             (Self::Top(from), Self::Top(to))
@@ -72,7 +72,7 @@ impl LayoutAnchorY {
 
             (_, Self::Uninitialized) => {
                 panic!("Attempted to create constraints with an uninitialized \"to\" y anchor.");
-            },
+            }
         }
     }
 

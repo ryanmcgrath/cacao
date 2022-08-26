@@ -43,7 +43,7 @@ impl AppDelegate for DefaultsTest {
             Err(e) => {
                 eprintln!("Error converting bytes {}", e);
                 "Error converting bytes"
-            },
+            }
         };
 
         assert_eq!(s, "BYTES TEST");

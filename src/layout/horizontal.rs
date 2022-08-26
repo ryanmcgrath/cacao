@@ -28,7 +28,7 @@ pub enum LayoutAnchorX {
     Right(ShareId<Object>),
 
     /// Represents a center anchor on the X axis.
-    Center(ShareId<Object>),
+    Center(ShareId<Object>)
 }
 
 impl Default for LayoutAnchorX {
@@ -69,7 +69,7 @@ impl LayoutAnchorX {
     /// wrong.
     fn constraint_with<F>(&self, anchor_to: &LayoutAnchorX, handler: F) -> LayoutConstraint
     where
-        F: Fn(&ShareId<Object>, &ShareId<Object>) -> id,
+        F: Fn(&ShareId<Object>, &ShareId<Object>) -> id
     {
         match (self, anchor_to) {
             // The anchors that can connect to each other. These blocks could be condensed, but are
@@ -153,7 +153,7 @@ impl LayoutAnchorX {
 
             (_, Self::Uninitialized) => {
                 panic!("Attempted to create constraints with an uninitialized \"to\" X anchor.");
-            },
+            }
         }
     }
 

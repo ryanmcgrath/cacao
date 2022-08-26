@@ -73,19 +73,19 @@ pub(crate) fn register_toolbar_class<T: ToolbarDelegate>(instance: &T) -> *const
         // Add callback methods
         decl.add_method(
             sel!(toolbarAllowedItemIdentifiers:),
-            allowed_item_identifiers::<T> as extern "C" fn(&Object, _, _) -> id,
+            allowed_item_identifiers::<T> as extern "C" fn(&Object, _, _) -> id
         );
         decl.add_method(
             sel!(toolbarDefaultItemIdentifiers:),
-            default_item_identifiers::<T> as extern "C" fn(&Object, _, _) -> id,
+            default_item_identifiers::<T> as extern "C" fn(&Object, _, _) -> id
         );
         decl.add_method(
             sel!(toolbarSelectableItemIdentifiers:),
-            selectable_item_identifiers::<T> as extern "C" fn(&Object, _, _) -> id,
+            selectable_item_identifiers::<T> as extern "C" fn(&Object, _, _) -> id
         );
         decl.add_method(
             sel!(toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:),
-            item_for_identifier::<T> as extern "C" fn(&Object, _, _, _, _) -> id,
+            item_for_identifier::<T> as extern "C" fn(&Object, _, _, _, _) -> id
         );
     })
 }

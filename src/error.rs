@@ -23,7 +23,7 @@ pub struct Error {
     pub domain: String,
 
     /// Maps over to `[NSError localizedDescription]`.
-    pub description: String,
+    pub description: String
 }
 
 impl Error {
@@ -42,7 +42,7 @@ impl Error {
         Error {
             code,
             domain: domain.to_string(),
-            description: description.to_string(),
+            description: description.to_string()
         }
     }
 

@@ -194,7 +194,7 @@ pub struct ListView<T = ()> {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl Default for ListView {
@@ -270,14 +270,14 @@ impl ListView {
 
             objc: ObjcProperty::retain(view),
 
-            scrollview,
+            scrollview
         }
     }
 }
 
 impl<T> ListView<T>
 where
-    T: ListViewDelegate + 'static,
+    T: ListViewDelegate + 'static
 {
     /// Initializes a new View with a given `ViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
@@ -349,7 +349,7 @@ where
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(anchor_view),
 
-            scrollview,
+            scrollview
         };
 
         (&mut delegate).did_load(view.clone_as_handle());
@@ -401,7 +401,7 @@ impl<T> ListView<T> {
             #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
 
-            scrollview: self.scrollview.clone_as_handle(),
+            scrollview: self.scrollview.clone_as_handle()
         }
     }
 
@@ -410,7 +410,7 @@ impl<T> ListView<T> {
     pub fn register<F, R>(&self, identifier: &'static str, vendor: F)
     where
         F: Fn() -> R + 'static,
-        R: ViewDelegate + 'static,
+        R: ViewDelegate + 'static
     {
         self.cell_factory.insert(identifier, vendor);
     }

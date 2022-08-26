@@ -146,7 +146,7 @@ pub struct ListViewRow<T = ()> {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl Default for ListViewRow {
@@ -196,14 +196,14 @@ impl ListViewRow {
             center_x: LayoutAnchorX::center(view),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view),
+            center_y: LayoutAnchorY::center(view)
         }
     }
 }
 
 impl<T> ListViewRow<T>
 where
-    T: ViewDelegate + 'static,
+    T: ViewDelegate + 'static
 {
     /// When we're able to retrieve a reusable view cell from the backing table view, we can check
     /// for the pointer and attempt to reconstruct the ListViewRow<T> that corresponds to this.
@@ -260,7 +260,7 @@ where
             center_x: LayoutAnchorX::center(view),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view),
+            center_y: LayoutAnchorY::center(view)
         };
 
         view
@@ -316,7 +316,7 @@ where
             center_x: LayoutAnchorX::center(view),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view),
+            center_y: LayoutAnchorY::center(view)
         };
 
         (&mut delegate).did_load(view.clone_as_handle());
@@ -368,7 +368,7 @@ where
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone(),
+            center_y: self.center_y.clone()
         }
     }
 }
@@ -417,7 +417,7 @@ impl<T> ListViewRow<T> {
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone(),
+            center_y: self.center_y.clone()
         }
     }
 

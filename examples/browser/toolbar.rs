@@ -27,7 +27,7 @@ pub struct BrowserToolbar {
     back_item: ToolbarItem,
     forwards_item: ToolbarItem,
     url_bar: TextField<URLBar>,
-    url_bar_item: ToolbarItem,
+    url_bar_item: ToolbarItem
 }
 
 impl BrowserToolbar {
@@ -59,7 +59,7 @@ impl BrowserToolbar {
             back_item,
             forwards_item,
             url_bar,
-            url_bar_item,
+            url_bar_item
         }
     }
 
@@ -100,7 +100,7 @@ impl ToolbarDelegate for BrowserToolbar {
             URL_BAR => &self.url_bar_item,
             _ => {
                 std::unreachable!();
-            },
+            }
         }
     }
 }

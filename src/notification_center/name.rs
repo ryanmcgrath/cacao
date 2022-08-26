@@ -1310,13 +1310,13 @@ pub enum NotificationName {
     SKStorefrontCountryCodeDidChange,
 
     ///
-    WKAccessibilityReduceMotionStatusDidChange,
+    WKAccessibilityReduceMotionStatusDidChange
 }
 
 impl From<NotificationName> for NSString<'_> {
     fn from(name: NotificationName) -> Self {
         match name {
-            _ => NSString::no_copy(""),
+            _ => NSString::no_copy("")
         }
     }
 }

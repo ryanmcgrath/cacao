@@ -31,7 +31,7 @@ impl CellFactory {
     pub fn insert<F, T>(&self, identifier: &'static str, vendor: F)
     where
         F: Fn() -> T + 'static,
-        T: ViewDelegate + 'static,
+        T: ViewDelegate + 'static
     {
         let mut lock = self.0.borrow_mut();
         lock.insert(
@@ -39,7 +39,7 @@ impl CellFactory {
             Box::new(move || {
                 let cell = vendor();
                 Box::new(cell) as Box<dyn Any>
-            }),
+            })
         );
     }
 
@@ -47,14 +47,14 @@ impl CellFactory {
     /// unable to retrieve the closure with the requested type.
     pub fn get<R>(&self, identifier: &'static str) -> Box<R>
     where
-        R: ViewDelegate + 'static,
+        R: ViewDelegate + 'static
     {
         let lock = self.0.borrow();
         let vendor = match lock.get(identifier) {
             Some(v) => v,
             None => {
                 panic!("Unable to dequeue cell for {}: did you forget to register it?", identifier);
-            },
+            }
         };
 
         let view = vendor();

@@ -16,7 +16,7 @@ const TODO_ROW: &str = "TodoViewRowCell";
 #[derive(Debug, Default)]
 pub struct TodosListView {
     view: Option<ListView>,
-    todos: Todos,
+    todos: Todos
 }
 
 impl TodosListView {
@@ -49,7 +49,7 @@ impl TodosListView {
                 });
             },
 
-            _ => {},
+            _ => {}
         }
     }
 }
@@ -99,7 +99,7 @@ impl ListViewDelegate for TodosListView {
                     RowActionStyle::Destructive,
                     move |_action, row| {
                         dispatch_ui(Message::MarkTodoIncomplete(row));
-                    },
+                    }
                 ));
             },
 
@@ -109,9 +109,9 @@ impl ListViewDelegate for TodosListView {
                     RowActionStyle::Regular,
                     move |_action, row| {
                         dispatch_ui(Message::MarkTodoComplete(row));
-                    },
+                    }
                 ));
-            },
+            }
         });
 
         actions

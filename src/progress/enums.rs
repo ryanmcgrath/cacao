@@ -7,14 +7,14 @@ pub enum ProgressIndicatorStyle {
     Bar,
 
     /// A spinning circle.
-    Spinner,
+    Spinner
 }
 
 impl From<ProgressIndicatorStyle> for NSUInteger {
     fn from(style: ProgressIndicatorStyle) -> Self {
         match style {
             ProgressIndicatorStyle::Bar => 0,
-            ProgressIndicatorStyle::Spinner => 1,
+            ProgressIndicatorStyle::Spinner => 1
         }
     }
 }
