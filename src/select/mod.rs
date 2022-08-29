@@ -1,6 +1,6 @@
 //! Implements a Select-style dropdown. By default this uses NSPopupSelect on macOS.
 
-use core_graphics::geometry::CGRect;
+use objc::foundation::NSRect;
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
@@ -85,7 +85,7 @@ impl Select {
     /// Creates a new `Select` instance, configures it appropriately,
     /// and retains the necessary Objective-C runtime pointer.
     pub fn new() -> Self {
-        let zero: CGRect = Rect::zero().into();
+        let zero: NSRect = Rect::zero().into();
 
         let view: id = unsafe {
             let alloc: id = msg_send![register_class(), alloc];

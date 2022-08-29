@@ -1,12 +1,11 @@
 use std::path::Path;
 
-use core_graphics::base::CGFloat;
+use objc::foundation::{CGFloat, NSSize};
 use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, NSString, NSUInteger, YES};
-use crate::utils::CGSize;
 
 /// Describes the quality of the thumbnail you expect back from the
 /// generator service.
@@ -107,7 +106,7 @@ impl ThumbnailConfig {
         }
 
         unsafe {
-            let size = CGSize::new(self.size.0, self.size.1);
+            let size = NSSize::new(self.size.0, self.size.1);
             // @TODO: Check nil here, or other bad conversion
             let from_url: id = msg_send![class!(NSURL), fileURLWithPath:&*file];
 

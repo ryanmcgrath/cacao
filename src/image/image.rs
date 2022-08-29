@@ -1,3 +1,4 @@
+use objc::foundation::{CGFloat, NSPoint, NSRect, NSSize};
 use objc::rc::{Id, Shared};
 use objc::runtime::{Bool, Class, Object};
 
@@ -6,10 +7,6 @@ use objc::{class, msg_send, msg_send_id, sel};
 use block::ConcreteBlock;
 
 use core_graphics::context::{CGContext, CGContextRef};
-use core_graphics::{
-    base::CGFloat,
-    geometry::{CGPoint, CGRect, CGSize}
-};
 
 use super::icons::*;
 use crate::foundation::{id, NSData, NSString, NSURL};
@@ -56,49 +53,47 @@ fn min_cgfloat(x: CGFloat, y: CGFloat) -> CGFloat {
 impl ResizeBehavior {
     /// Given a source and target rectangle, configures and returns a new rectangle configured with
     /// the resizing properties of this enum.
-    pub fn apply(&self, source: CGRect, target: CGRect) -> CGRect {
+    pub fn apply(&self, source: NSRect, target: NSRect) -> NSRect {
         // if equal, just return source
-        if source.origin.x == target.origin.x
-            && source.origin.y == target.origin.y
-            && source.size.width == target.size.width
-            && source.size.height == target.size.height
-        {
+        if source == target {
             return source;
         }
 
-        if source.origin.x == 0. && source.origin.y == 0. && source.size.width == 0. && source.size.height == 0. {
+        if source == NSRect::ZERO {
             return source;
         }
 
-        let mut scales = CGSize::new(0., 0.);
-        scales.width = (target.size.width / source.size.width).abs();
-        scales.height = (target.size.height / source.size.height).abs();
+        let mut scale_width = (target.size.width() / source.size.width()).abs();
+        let mut scale_height = (target.size.height() / source.size.height()).abs();
 
         match self {
             ResizeBehavior::AspectFit => {
-                scales.width = min_cgfloat(scales.width, scales.height);
-                scales.height = scales.width;
+                scale_width = min_cgfloat(scale_width, scale_height);
+                scale_height = scale_width;
             },
 
             ResizeBehavior::AspectFill => {
-                scales.width = max_cgfloat(scales.width, scales.height);
-                scales.height = scales.width;
+                scale_width = max_cgfloat(scale_width, scale_height);
+                scale_height = scale_width;
             },
 
             ResizeBehavior::Stretch => { /* will do this as default */ },
 
             ResizeBehavior::Center => {
-                scales.width = 1.;
-                scales.height = 1.;
+                scale_width = 1.;
+                scale_height = 1.;
             }
         }
 
-        let mut result = source;
-        result.size.width *= scales.width;
-        result.size.height *= scales.height;
-        result.origin.x = target.origin.x + (target.size.width - result.size.width) / 2.;
-        result.origin.y = target.origin.y + (target.size.height - result.size.height) / 2.;
-        result
+        let result_size = NSSize::new(source.size.width() * scale_width, source.size.height() * scale_height);
+
+        NSRect::new(
+            NSPoint::new(
+                target.origin.x + (target.size.width() - result_size.width()) / 2.,
+                target.origin.y + (target.size.height() - result_size.height()) / 2.
+            ),
+            result_size
+        )
     }
 }
 
@@ -256,15 +251,15 @@ impl Image {
     #[cfg(feature = "appkit")]
     pub fn draw<F>(config: DrawConfig, handler: F) -> Self
     where
-        F: Fn(CGRect, &CGContextRef) -> bool + 'static
+        F: Fn(NSRect, &CGContextRef) -> bool + 'static
     {
-        let source_frame = CGRect::new(&CGPoint::new(0., 0.), &CGSize::new(config.source.0, config.source.1));
+        let source_frame = NSRect::new(NSPoint::new(0., 0.), NSSize::new(config.source.0, config.source.1));
 
-        let target_frame = CGRect::new(&CGPoint::new(0., 0.), &CGSize::new(config.target.0, config.target.1));
+        let target_frame = NSRect::new(NSPoint::new(0., 0.), NSSize::new(config.target.0, config.target.1));
 
         let resized_frame = config.resize.apply(source_frame, target_frame);
 
-        let block = ConcreteBlock::new(move |_destination: CGRect| unsafe {
+        let block = ConcreteBlock::new(move |_destination: NSRect| unsafe {
             let current_context: id = msg_send![class!(NSGraphicsContext), currentContext];
             let context_ptr: core_graphics::sys::CGContextRef = msg_send![current_context, CGContext];
             let context = CGContext::from_existing_context_ptr(context_ptr);
@@ -272,8 +267,8 @@ impl Image {
 
             context.translate(resized_frame.origin.x, resized_frame.origin.y);
             context.scale(
-                resized_frame.size.width / config.source.0,
-                resized_frame.size.height / config.source.1
+                resized_frame.size.width() / config.source.0,
+                resized_frame.size.height() / config.source.1
             );
 
             let result = handler(resized_frame, &context);

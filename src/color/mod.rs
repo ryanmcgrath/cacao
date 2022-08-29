@@ -16,9 +16,9 @@
 use std::sync::{Arc, RwLock};
 
 use core_foundation::base::TCFType;
-use core_graphics::base::CGFloat;
 use core_graphics::color::CGColor;
 
+use objc::foundation::CGFloat;
 use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
