@@ -2,11 +2,11 @@
 //! creates a custom `UIApplication` subclass that currently does nothing; this is meant as a hook
 //! for potential future use.
 
-use objc::runtime::{Class, Object, Sel};
+use objc::runtime::{Bool, Class, Object, Sel};
 use objc::sel;
 
 //use crate::error::Error;
-use crate::foundation::{id, load_or_register_class_with_optional_generated_suffix, BOOL, YES};
+use crate::foundation::{id, load_or_register_class_with_optional_generated_suffix};
 use crate::uikit::app::{AppDelegate, APP_DELEGATE};
 use crate::uikit::scene::{SceneConnectionOptions, SceneSession};
 
@@ -27,9 +27,9 @@ fn app<T>(this: &Object) -> &T {
 }
 
 /// Fires when the Application Delegate receives a `applicationDidFinishLaunching` notification.
-extern "C" fn did_finish_launching<T: AppDelegate>(this: &Object, _: Sel, _: id, _: id) -> BOOL {
+extern "C" fn did_finish_launching<T: AppDelegate>(this: &Object, _: Sel, _: id, _: id) -> Bool {
     app::<T>(this).did_finish_launching();
-    YES
+    Bool::YES
 }
 
 extern "C" fn configuration_for_scene_session<T: AppDelegate>(this: &Object, _: Sel, _: id, session: id, opts: id) -> id {

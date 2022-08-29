@@ -8,12 +8,12 @@
 //! color, and enforcing layer backing by default.
 
 use objc::rc::{Id, Owned};
-use objc::runtime::{Class, Object, Sel, BOOL};
+use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{msg_send, sel};
 
 use crate::appkit::menu::Menu;
 use crate::dragdrop::DragInfo;
-use crate::foundation::{id, load_or_register_class, NSArray, NSInteger, NSUInteger, NO, YES};
+use crate::foundation::{id, load_or_register_class, NSArray, NSInteger, NSUInteger};
 use crate::listview::{ListViewDelegate, RowEdge, LISTVIEW_DELEGATE_PTR};
 use crate::utils::load;
 
@@ -81,10 +81,10 @@ extern "C" fn select_row<T: ListViewDelegate>(
     _: Sel,
     _table_view: id,
     item: NSInteger
-) -> BOOL {
+) -> Bool {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
     view.item_selected(item as usize);
-    YES
+    Bool::YES
 }*/
 
 extern "C" fn selection_did_change<T: ListViewDelegate>(this: &Object, _: Sel, notification: id) {
@@ -122,8 +122,8 @@ extern "C" fn row_actions_for_row<T: ListViewDelegate>(
 }
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
-extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
-    return YES;
+extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> Bool {
+    return Bool::YES;
 }
 
 /// Called when a drag/drop operation has entered this view.
@@ -136,27 +136,21 @@ extern "C" fn dragging_entered<T: ListViewDelegate>(this: &mut Object, _: Sel, i
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn prepare_for_drag_operation<T: ListViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern "C" fn prepare_for_drag_operation<T: ListViewDelegate>(this: &mut Object, _: Sel, info: id) -> Bool {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
 
-    match view.prepare_for_drag_operation(DragInfo {
+    Bool::new(view.prepare_for_drag_operation(DragInfo {
         info: unsafe { Id::retain(info).unwrap() }
-    }) {
-        true => YES,
-        false => NO
-    }
+    }))
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn perform_drag_operation<T: ListViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern "C" fn perform_drag_operation<T: ListViewDelegate>(this: &mut Object, _: Sel, info: id) -> Bool {
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);
 
-    match view.perform_drag_operation(DragInfo {
+    Bool::new(view.perform_drag_operation(DragInfo {
         info: unsafe { Id::retain(info).unwrap() }
-    }) {
-        true => YES,
-        false => NO
-    }
+    }))
 }
 
 /// Called when a drag/drop operation has entered this view.

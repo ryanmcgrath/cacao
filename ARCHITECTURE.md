@@ -401,12 +401,12 @@ to the Rust `ViewDelegate` implementation.
 The methods we're setting up can range from simple to complex - take `isFlipped`:
 
 ``` rust
-extern "C" fn is_flipped(_: &Object, _: Sel) -> BOOL {
-    return YES;
+extern "C" fn is_flipped(_: &Object, _: Sel) -> Bool {
+    return Bool::YES;
 }
 ```
 
-Here, we just want to tell `NSView` to use top,left as the origin point, so we need to respond `YES` in this subclass method.
+Here, we just want to tell `NSView` to use top,left as the origin point, so we need to respond `Bool::YES` in this subclass method.
 
 ``` rust
 extern "C" fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {

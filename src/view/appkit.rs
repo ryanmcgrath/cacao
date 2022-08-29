@@ -9,17 +9,17 @@
 
 use objc::declare::ClassDecl;
 use objc::rc::{Id, Owned};
-use objc::runtime::{Class, Object, Sel, BOOL};
+use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, sel};
 
 use crate::dragdrop::DragInfo;
-use crate::foundation::{id, load_or_register_class, nil, NSUInteger, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSUInteger};
 use crate::utils::load;
 use crate::view::{ViewDelegate, BACKGROUND_COLOR, VIEW_DELEGATE_PTR};
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
-extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
-    return YES;
+extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> Bool {
+    return Bool::YES;
 }
 
 /// Called when a drag/drop operation has entered this view.
@@ -32,27 +32,21 @@ extern "C" fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info:
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern "C" fn prepare_for_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> Bool {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
 
-    match view.prepare_for_drag_operation(DragInfo {
+    Bool::new(view.prepare_for_drag_operation(DragInfo {
         info: unsafe { Id::retain(info).unwrap() }
-    }) {
-        true => YES,
-        false => NO
-    }
+    }))
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern "C" fn perform_drag_operation<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> Bool {
     let view = load::<T>(this, VIEW_DELEGATE_PTR);
 
-    match view.perform_drag_operation(DragInfo {
+    Bool::new(view.perform_drag_operation(DragInfo {
         info: unsafe { Id::retain(info).unwrap() }
-    }) {
-        true => YES,
-        false => NO
-    }
+    }))
 }
 
 /// Called when a drag/drop operation has entered this view.

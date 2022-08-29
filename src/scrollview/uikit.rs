@@ -10,16 +10,16 @@
 use std::sync::Once;
 
 use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel, BOOL};
+use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, sel};
 
-use crate::foundation::{id, NSUInteger, NO, YES};
+use crate::foundation::{id, NSUInteger};
 use crate::scrollview::{ScrollViewDelegate, SCROLLVIEW_DELEGATE_PTR};
 use crate::utils::load;
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
-extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
-    return YES;
+extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> Bool {
+    return Bool::YES;
 }
 
 /*
@@ -34,27 +34,21 @@ extern "C" fn dragging_entered<T: ScrollViewDelegate>(this: &mut Object, _: Sel,
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn prepare_for_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern "C" fn prepare_for_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> Bool {
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
-    match view.prepare_for_drag_operation(DragInfo {
+    Bool::new(view.prepare_for_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
-    }) {
-        true => YES,
-        false => NO
-    }
+    }))
 }
 
 /// Called when a drag/drop operation has entered this view.
-extern "C" fn perform_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> BOOL {
+extern "C" fn perform_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> Bool {
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
-    match view.perform_drag_operation(DragInfo {
+    Bool::new(view.perform_drag_operation(DragInfo {
         info: unsafe { Id::from_ptr(info) }
-    }) {
-        true => YES,
-        false => NO
-    }
+    }))
 }
 
 /// Called when a drag/drop operation has entered this view.

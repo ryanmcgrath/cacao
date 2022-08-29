@@ -5,7 +5,7 @@
 use std::ffi::c_void;
 
 use block::Block;
-use objc::runtime::{Class, Object, Sel};
+use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{msg_send, sel};
 use url::Url;
 
@@ -14,7 +14,7 @@ use crate::appkit::printing::PrintSettings;
 #[cfg(feature = "cloudkit")]
 use crate::cloudkit::share::CKShareMetaData;
 use crate::error::Error;
-use crate::foundation::{id, load_or_register_class, nil, to_bool, NSArray, NSString, NSUInteger, BOOL, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSArray, NSString, NSUInteger};
 use crate::user_activity::UserActivity;
 
 /// A handy method for grabbing our `AppDelegate` from the pointer. This is different from our
@@ -99,11 +99,8 @@ extern "C" fn did_update<T: AppDelegate>(this: &Object, _: Sel, _: id) {
 
 /// Fires when the Application Delegate receives a
 /// `applicationShouldHandleReopen:hasVisibleWindows:` notification.
-extern "C" fn should_handle_reopen<T: AppDelegate>(this: &Object, _: Sel, _: id, has_visible_windows: BOOL) -> BOOL {
-    match app::<T>(this).should_handle_reopen(to_bool(has_visible_windows)) {
-        true => YES,
-        false => NO
-    }
+extern "C" fn should_handle_reopen<T: AppDelegate>(this: &Object, _: Sel, _: id, has_visible_windows: Bool) -> Bool {
+    Bool::new(app::<T>(this).should_handle_reopen(has_visible_windows.as_bool()))
 }
 
 /// Fires when the application delegate receives a `applicationDockMenu:` request.
@@ -128,29 +125,23 @@ extern "C" fn did_change_screen_parameters<T: AppDelegate>(this: &Object, _: Sel
 
 /// Fires when the application receives a `application:willContinueUserActivityWithType:`
 /// notification.
-extern "C" fn will_continue_user_activity_with_type<T: AppDelegate>(this: &Object, _: Sel, _: id, activity_type: id) -> BOOL {
+extern "C" fn will_continue_user_activity_with_type<T: AppDelegate>(this: &Object, _: Sel, _: id, activity_type: id) -> Bool {
     let activity = NSString::retain(activity_type);
 
-    match app::<T>(this).will_continue_user_activity(activity.to_str()) {
-        true => YES,
-        false => NO
-    }
+    Bool::new(app::<T>(this).will_continue_user_activity(activity.to_str()))
 }
 
 /// Fires when the application receives a `application:continueUserActivity:restorationHandler:` notification.
-extern "C" fn continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: id, activity: id, handler: id) -> BOOL {
+extern "C" fn continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: id, activity: id, handler: id) -> Bool {
     // @TODO: This needs to support restorable objects, but it involves a larger question about how
     // much `NSObject` retainping we want to do here. For now, pass the handler for whenever it's
     // useful.
     let activity = UserActivity::with_inner(activity);
 
-    match app::<T>(this).continue_user_activity(activity, || unsafe {
+    Bool::new(app::<T>(this).continue_user_activity(activity, || unsafe {
         let handler = handler as *const Block<(id,), ()>;
         (*handler).call((nil,));
-    }) {
-        true => YES,
-        false => NO
-    }
+    }))
 }
 
 /// Fires when the application receives a
@@ -199,57 +190,39 @@ extern "C" fn open_urls<T: AppDelegate>(this: &Object, _: Sel, _: id, file_urls:
 }
 
 /// Fires when the application receives an `application:openFileWithoutUI:` message.
-extern "C" fn open_file_without_ui<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
+extern "C" fn open_file_without_ui<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> Bool {
     let filename = NSString::retain(file);
 
-    match app::<T>(this).open_file_without_ui(filename.to_str()) {
-        true => YES,
-        false => NO
-    }
+    Bool::new(app::<T>(this).open_file_without_ui(filename.to_str()))
 }
 
 /// Fired when the application receives an `applicationShouldOpenUntitledFile:` message.
-extern "C" fn should_open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
-    match app::<T>(this).should_open_untitled_file() {
-        true => YES,
-        false => NO
-    }
+extern "C" fn should_open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> Bool {
+    Bool::new(app::<T>(this).should_open_untitled_file())
 }
 
 /// Fired when the application receives an `applicationShouldTerminateAfterLastWindowClosed:` message.
-extern "C" fn should_terminate_after_last_window_closed<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
-    match app::<T>(this).should_terminate_after_last_window_closed() {
-        true => YES,
-        false => NO
-    }
+extern "C" fn should_terminate_after_last_window_closed<T: AppDelegate>(this: &Object, _: Sel, _: id) -> Bool {
+    Bool::new(app::<T>(this).should_terminate_after_last_window_closed())
 }
 
 /// Fired when the application receives an `applicationOpenUntitledFile:` message.
-extern "C" fn open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
-    match app::<T>(this).open_untitled_file() {
-        true => YES,
-        false => NO
-    }
+extern "C" fn open_untitled_file<T: AppDelegate>(this: &Object, _: Sel, _: id) -> Bool {
+    Bool::new(app::<T>(this).open_untitled_file())
 }
 
 /// Fired when the application receives an `application:openTempFile:` message.
-extern "C" fn open_temp_file<T: AppDelegate>(this: &Object, _: Sel, _: id, filename: id) -> BOOL {
+extern "C" fn open_temp_file<T: AppDelegate>(this: &Object, _: Sel, _: id, filename: id) -> Bool {
     let filename = NSString::retain(filename);
 
-    match app::<T>(this).open_temp_file(filename.to_str()) {
-        true => YES,
-        false => NO
-    }
+    Bool::new(app::<T>(this).open_temp_file(filename.to_str()))
 }
 
 /// Fired when the application receives an `application:printFile:` message.
-extern "C" fn print_file<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> BOOL {
+extern "C" fn print_file<T: AppDelegate>(this: &Object, _: Sel, _: id, file: id) -> Bool {
     let filename = NSString::retain(file);
 
-    match app::<T>(this).print_file(filename.to_str()) {
-        true => YES,
-        false => NO
-    }
+    Bool::new(app::<T>(this).print_file(filename.to_str()))
 }
 
 /// Fired when the application receives an `application:printFiles:withSettings:showPrintPanels:`
@@ -260,7 +233,7 @@ extern "C" fn print_files<T: AppDelegate>(
     _: id,
     files: id,
     settings: id,
-    show_print_panels: BOOL
+    show_print_panels: Bool
 ) -> NSUInteger {
     let files = NSArray::retain(files)
         .iter()
@@ -269,7 +242,9 @@ extern "C" fn print_files<T: AppDelegate>(
 
     let settings = PrintSettings::with_inner(settings);
 
-    app::<T>(this).print_files(files, settings, to_bool(show_print_panels)).into()
+    app::<T>(this)
+        .print_files(files, settings, show_print_panels.as_bool())
+        .into()
 }
 
 /// Called when the application's occlusion state has changed.
@@ -280,13 +255,10 @@ extern "C" fn did_change_occlusion_state<T: AppDelegate>(this: &Object, _: Sel, 
 /// Called when the application receives an `application:delegateHandlesKey:` message.
 /// Note: this may not fire in sandboxed applications. Apple's documentation is unclear on the
 /// matter.
-extern "C" fn delegate_handles_key<T: AppDelegate>(this: &Object, _: Sel, _: id, key: id) -> BOOL {
+extern "C" fn delegate_handles_key<T: AppDelegate>(this: &Object, _: Sel, _: id, key: id) -> Bool {
     let key = NSString::retain(key);
 
-    match app::<T>(this).delegate_handles_key(key.to_str()) {
-        true => YES,
-        false => NO
-    }
+    Bool::new(app::<T>(this).delegate_handles_key(key.to_str()))
 }
 
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and

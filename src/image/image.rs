@@ -1,5 +1,5 @@
 use objc::rc::{Id, Shared};
-use objc::runtime::{Class, Object};
+use objc::runtime::{Bool, Class, Object};
 
 use objc::{class, msg_send, msg_send_id, sel};
 
@@ -12,7 +12,7 @@ use core_graphics::{
 };
 
 use super::icons::*;
-use crate::foundation::{id, NSData, NSString, NO, NSURL, YES};
+use crate::foundation::{id, NSData, NSString, NSURL};
 use crate::utils::os;
 
 /// Specifies resizing behavior for image drawing.
@@ -280,10 +280,7 @@ impl Image {
 
             let _: () = msg_send![class!(NSGraphicsContext), restoreGraphicsState];
 
-            match result {
-                true => YES,
-                false => NO
-            }
+            Bool::new(result)
         });
         let block = block.copy();
 
@@ -291,7 +288,7 @@ impl Image {
             msg_send_id![
                 Self::class(),
                 imageWithSize: target_frame.size,
-                flipped: YES,
+                flipped: Bool::YES,
                 drawingHandler: &*block,
             ]
         })

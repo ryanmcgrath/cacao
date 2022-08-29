@@ -9,10 +9,10 @@ use std::sync::Once;
 use block::Block;
 
 use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel, BOOL};
+use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, sel};
 
-use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString};
 use crate::webview::actions::{NavigationAction, NavigationResponse};
 use crate::webview::{mimetype::MimeType, WebViewDelegate, WEBVIEW_DELEGATE_PTR}; //, OpenPanelParameters};
                                                                                  //use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
@@ -151,7 +151,7 @@ extern "C" fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, p
 extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
-    let handler = handler as *const Block<(objc::runtime::BOOL, id), ()>;
+    let handler = handler as *const Block<(objc::runtime::Bool, id), ()>;
     let filename = NSString::from_retained(suggested_filename);
 
     delegate.run_save_panel(filename.to_str(), move |can_overwrite, path| unsafe {
@@ -161,19 +161,13 @@ extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, downloa
 
         let path = NSString::new(&path.unwrap());
 
-        (*handler).call((
-            match can_overwrite {
-                true => YES,
-                false => NO
-            },
-            path.into()
-        ));
+        (*handler).call((Bool::new(can_overwrite), path.into()));
     });
 }
 
 /// Whether the view should be sent a mouseDown event for the first click when not focused.
-extern "C" fn accepts_first_mouse(_: &mut Object, _: Sel, _: id) -> BOOL {
-    YES
+extern "C" fn accepts_first_mouse(_: &mut Object, _: Sel, _: id) -> Bool {
+    Bool::YES
 }
 
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as

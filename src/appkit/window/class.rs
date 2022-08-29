@@ -6,22 +6,19 @@ use std::sync::Once;
 use core_graphics::base::CGFloat;
 
 use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
+use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, sel};
 
 use crate::appkit::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
-use crate::foundation::{id, load_or_register_class, NSUInteger, BOOL, NO, YES};
+use crate::foundation::{id, load_or_register_class, NSUInteger};
 use crate::utils::{load, CGSize};
 
 /// Called when an `NSWindowDelegate` receives a `windowWillClose:` event.
 /// Good place to clean up memory and what not.
-extern "C" fn should_close<T: WindowDelegate>(this: &Object, _: Sel, _: id) -> BOOL {
+extern "C" fn should_close<T: WindowDelegate>(this: &Object, _: Sel, _: id) -> Bool {
     let window = load::<T>(this, WINDOW_DELEGATE_PTR);
 
-    match window.should_close() {
-        true => YES,
-        false => NO
-    }
+    Bool::new(window.should_close())
 }
 
 /// Called when an `NSWindowDelegate` receives a `windowWillClose:` event.

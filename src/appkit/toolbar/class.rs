@@ -3,11 +3,11 @@
 use std::sync::Once;
 
 use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
+use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, sel};
 
 use crate::appkit::toolbar::{ToolbarDelegate, TOOLBAR_PTR};
-use crate::foundation::{id, load_or_register_class, NSArray, NSString, BOOL};
+use crate::foundation::{id, load_or_register_class, NSArray, NSString};
 use crate::utils::load;
 
 /// Retrieves and passes the allowed item identifiers for this toolbar.
@@ -54,7 +54,7 @@ extern "C" fn selectable_item_identifiers<T: ToolbarDelegate>(this: &Object, _: 
 
 /// Loads the controller, grabs whatever item is for this identifier, and returns what the
 /// Objective-C runtime needs.
-extern "C" fn item_for_identifier<T: ToolbarDelegate>(this: &Object, _: Sel, _: id, identifier: id, _: BOOL) -> id {
+extern "C" fn item_for_identifier<T: ToolbarDelegate>(this: &Object, _: Sel, _: id, identifier: id, _: Bool) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
     let identifier = NSString::from_retained(identifier);
 
