@@ -1,6 +1,8 @@
 use std::sync::RwLock;
 
 use cacao::uikit::{App, AppDelegate, Scene, SceneConfig, SceneConnectionOptions, SceneSession, Window, WindowSceneDelegate};
+use cacao::input::{TextField, TextFieldDelegate};
+use cacao::text::{Label, TextAlign};
 
 use cacao::color::Color;
 use cacao::image::{Image, ImageView};
@@ -15,22 +17,62 @@ impl AppDelegate for TestApp {
         SceneConfig::new("Default Configuration", session.role())
     }
 }
+#[derive(Debug, Default)]
+pub struct ConsoleLogger(String);
 
-#[derive(Default)]
+impl TextFieldDelegate for ConsoleLogger {
+    const NAME: &'static str = "ConsoleLogger";
+
+    fn text_should_begin_editing(&self, value: &str) -> bool {
+        println!("{} should begin editing: {}", self.0, value);
+        true
+    }
+
+    fn text_did_change(&self, value: &str) {
+        println!("{} text did change to {}", self.0, value);
+    }
+
+    fn text_did_end_editing(&self, value: &str) {
+        println!("{} did end editing: {}", self.0, value);
+    }
+
+    fn text_should_end_editing(&self, value: &str) -> bool {
+        println!("{} should end editing: {}", self.0, value);
+        true
+    }
+}
+
 pub struct RootView {
-    pub red: View,
     pub green: View,
     pub blue: View,
-    pub image: ImageView
+    pub label: Label,
+    pub image: ImageView,
+    pub input: TextField<ConsoleLogger>,
+}
+
+impl Default for RootView {
+    fn default() -> Self {
+        RootView {
+            green: View::new(),
+            blue: View::new(),
+            label: Label::new(),
+            image: ImageView::new(),
+            input: TextField::with(ConsoleLogger("input_1".to_string())),
+        }
+    }
 }
 
 impl ViewDelegate for RootView {
     const NAME: &'static str = "RootView";
 
     fn did_load(&mut self, view: View) {
-        self.red.set_background_color(Color::SystemRed);
-        self.red.layer.set_corner_radius(16.);
-        view.add_subview(&self.red);
+        self.label.set_text("my label");
+        self.label.set_text_color(Color::SystemWhite);
+        self.label.set_background_color(Color::SystemRed);
+        self.label.layer.set_corner_radius(16.);
+        self.label.set_text_alignment(TextAlign::Center);
+
+        view.add_subview(&self.label);
 
         self.green.set_background_color(Color::SystemGreen);
         view.add_subview(&self.green);
@@ -43,19 +85,31 @@ impl ViewDelegate for RootView {
         self.image.set_image(&Image::with_data(image_bytes));
         view.add_subview(&self.image);
 
+        self.input.set_text("my input box 1");
+        view.add_subview(&self.input);
+
         LayoutConstraint::activate(&[
-            self.red.top.constraint_equal_to(&view.top).offset(16.),
-            self.red.leading.constraint_equal_to(&view.leading).offset(16.),
-            self.red.trailing.constraint_equal_to(&view.trailing).offset(-16.),
-            self.red.height.constraint_equal_to_constant(100.),
-            self.green.top.constraint_equal_to(&self.red.bottom).offset(16.),
+
+            self.label.leading.constraint_equal_to(&view.leading).offset(16.),
+            self.label.top.constraint_equal_to(&view.top).offset(16.),
+            self.label.height.constraint_equal_to_constant(100.),
+            self.label.trailing.constraint_equal_to(&view.trailing).offset(-16.),
+
+            self.green.top.constraint_equal_to(&self.label.bottom).offset(16.),
             self.green.leading.constraint_equal_to(&view.leading).offset(16.),
             self.green.trailing.constraint_equal_to(&view.trailing).offset(-16.),
             self.green.height.constraint_equal_to_constant(120.),
+
+            self.input.center_x.constraint_equal_to(&self.green.center_x),
+            self.input.center_y.constraint_equal_to(&self.green.center_y),
+
             self.blue.top.constraint_equal_to(&self.green.bottom).offset(16.),
             self.blue.leading.constraint_equal_to(&view.leading).offset(16.),
             self.blue.trailing.constraint_equal_to(&view.trailing).offset(-16.),
-            self.blue.bottom.constraint_equal_to(&view.bottom).offset(-16.)
+            self.blue.bottom.constraint_equal_to(&view.bottom).offset(-16.),
+
+            self.image.center_x.constraint_equal_to(&self.blue.center_x),
+            self.image.center_y.constraint_equal_to(&self.blue.center_y),
         ]);
     }
 }

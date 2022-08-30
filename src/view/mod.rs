@@ -347,3 +347,10 @@ impl<T> Drop for View<T> {
         }
     }
 }
+
+#[test]
+fn test_view() {
+    let view = View::new();
+    let clone = view.clone_as_handle();
+    view.set_background_color(Color::SystemGreen);
+}

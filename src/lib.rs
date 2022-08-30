@@ -118,7 +118,7 @@ pub mod cloudkit;
 
 pub mod color;
 
-#[cfg(feature = "appkit")]
+#[cfg(any(feature = "appkit", feature = "uikit"))]
 pub mod control;
 
 #[cfg(feature = "appkit")]
@@ -140,7 +140,7 @@ pub mod geometry;
 #[cfg(any(feature = "appkit", feature = "uikit"))]
 pub mod image;
 
-#[cfg(feature = "appkit")]
+#[cfg(any(feature = "appkit", feature = "uikit"))]
 pub mod input;
 pub(crate) mod invoker;
 
@@ -170,7 +170,6 @@ pub mod switch;
 #[cfg(feature = "appkit")]
 pub mod select;
 
-#[cfg(feature = "appkit")]
 pub mod text;
 
 #[cfg(feature = "quicklook")]

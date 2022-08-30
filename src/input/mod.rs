@@ -44,7 +44,7 @@
 //! For more information on Autolayout, view the module or check out the examples folder.
 
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel, sel_impl, class};
 use objc_id::ShareId;
 
 use crate::color::Color;
@@ -64,11 +64,11 @@ mod appkit;
 #[cfg(feature = "appkit")]
 use appkit::{register_view_class, register_view_class_with_delegate};
 
-//#[cfg(feature = "uikit")]
-//mod uikit;
+#[cfg(feature = "uikit")]
+mod uikit;
 
-//#[cfg(feature = "uikit")]
-//use uikit::{register_view_class, register_view_class_with_delegate};
+#[cfg(all(feature = "uikit", not(feature = "appkit")))]
+use uikit::{register_view_class, register_view_class_with_delegate};
 
 mod traits;
 pub use traits::TextFieldDelegate;
@@ -200,50 +200,52 @@ where
         let class = register_view_class_with_delegate(&delegate);
         let mut delegate = Box::new(delegate);
 
-        let label = common_init(class);
+        let input = common_init(class);
         unsafe {
             let ptr: *const T = &*delegate;
-            (&mut *label).set_ivar(TEXTFIELD_DELEGATE_PTR, ptr as usize);
+            (&mut *input).set_ivar(TEXTFIELD_DELEGATE_PTR, ptr as usize);
         };
+        #[cfg(feature = "uikit")]
+        let _: () = unsafe {msg_send![input, setDelegate: input] };
 
-        let mut label = TextField {
+        let mut input = TextField {
             delegate: None,
-            objc: ObjcProperty::retain(label),
+            objc: ObjcProperty::retain(input),
 
             #[cfg(feature = "autolayout")]
-            top: LayoutAnchorY::top(label),
+            top: LayoutAnchorY::top(input),
 
             #[cfg(feature = "autolayout")]
-            left: LayoutAnchorX::left(label),
+            left: LayoutAnchorX::left(input),
 
             #[cfg(feature = "autolayout")]
-            leading: LayoutAnchorX::leading(label),
+            leading: LayoutAnchorX::leading(input),
 
             #[cfg(feature = "autolayout")]
-            right: LayoutAnchorX::right(label),
+            right: LayoutAnchorX::right(input),
 
             #[cfg(feature = "autolayout")]
-            trailing: LayoutAnchorX::trailing(label),
+            trailing: LayoutAnchorX::trailing(input),
 
             #[cfg(feature = "autolayout")]
-            bottom: LayoutAnchorY::bottom(label),
+            bottom: LayoutAnchorY::bottom(input),
 
             #[cfg(feature = "autolayout")]
-            width: LayoutAnchorDimension::width(label),
+            width: LayoutAnchorDimension::width(input),
 
             #[cfg(feature = "autolayout")]
-            height: LayoutAnchorDimension::height(label),
+            height: LayoutAnchorDimension::height(input),
 
             #[cfg(feature = "autolayout")]
-            center_x: LayoutAnchorX::center(label),
+            center_x: LayoutAnchorX::center(input),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(label)
+            center_y: LayoutAnchorY::center(input)
         };
 
-        (&mut delegate).did_load(label.clone_as_handle());
-        label.delegate = Some(delegate);
-        label
+        (&mut delegate).did_load(input.clone_as_handle());
+        input.delegate = Some(delegate);
+        input
     }
 }
 
@@ -290,9 +292,15 @@ impl<T> TextField<T> {
     }
 
     /// Grabs the value from the textfield and returns it as an owned String.
+    #[cfg(feature = "appkit")]
     pub fn get_value(&self) -> String {
         self.objc
             .get(|obj| unsafe { NSString::retain(msg_send![obj, stringValue]).to_string() })
+    }
+    #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+    pub fn get_value(&self) -> String {
+        self.objc
+            .get(|obj| unsafe { NSString::retain(msg_send![obj, text]).to_string() })
     }
 
     /// Call this to set the background color for the backing layer.
@@ -309,7 +317,10 @@ impl<T> TextField<T> {
         let s = NSString::new(text);
 
         self.objc.with_mut(|obj| unsafe {
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![obj, setStringValue:&*s];
+            #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+            let _: () = msg_send![obj, setText:&*s];
         });
     }
 
@@ -318,7 +329,10 @@ impl<T> TextField<T> {
         let s = NSString::new(text);
 
         self.objc.with_mut(|obj| unsafe {
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![obj, setPlaceholderString:&*s];
+            #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+            let _: () = msg_send![obj, setPlaceholder:&*s];
         });
     }
 
@@ -326,7 +340,10 @@ impl<T> TextField<T> {
     pub fn set_text_alignment(&self, alignment: TextAlign) {
         self.objc.with_mut(|obj| unsafe {
             let alignment: NSInteger = alignment.into();
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![obj, setAlignment: alignment];
+            #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+            let _: () = msg_send![obj, setTextAlignment: alignment];
         });
     }
 
@@ -400,4 +417,17 @@ impl<T> Drop for TextField<T> {
             }
         }*/
     }
+}
+
+#[test]
+fn test_text_view() {
+    let text_field = TextField::new();
+    let value = text_field.get_value();
+    assert!(value.is_empty());
+    text_field.set_background_color(Color::SystemBlue);
+    text_field.set_text("foobar");
+    let value = text_field.get_value();
+    assert_eq!(value, "foobar".to_string());
+    text_field.set_text_alignment(TextAlign::Left);
+    text_field.set_font(Font::default());
 }

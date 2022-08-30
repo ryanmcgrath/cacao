@@ -19,27 +19,39 @@ pub struct Font(pub ShareId<Object>);
 impl Default for Font {
     /// Returns the default `labelFont` on macOS.
     fn default() -> Self {
-        Font(unsafe {
-            let cls = class!(NSFont);
-            let default_size: id = msg_send![cls, labelFontSize];
-            ShareId::from_ptr(msg_send![cls, labelFontOfSize: default_size])
-        })
+        let cls = Self::class();
+        let default_size: id = unsafe {msg_send![cls, labelFontSize]};
+
+        #[cfg(feature = "appkit")]
+        let font = Font(unsafe {ShareId::from_ptr(msg_send![cls, labelFontOfSize: default_size]) });
+
+        #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+        let font = Font(unsafe {ShareId::from_ptr(msg_send![cls, systemFontOfSize: default_size])});
+        font
     }
 }
 
 impl Font {
+    fn class() -> &'static Class {
+        #[cfg(feature = "appkit")]
+        let class = class!(NSFont);
+        #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+        let class = class!(UIFont);
+
+        class
+    }
     /// Creates and returns a default system font at the specified size.
     pub fn system(size: f64) -> Self {
         let size = size as CGFloat;
 
-        Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), systemFontOfSize: size]) })
+        Font(unsafe { ShareId::from_ptr(msg_send![Self::class(), systemFontOfSize: size]) })
     }
 
     /// Creates and returns a default bold system font at the specified size.
     pub fn bold_system(size: f64) -> Self {
         let size = size as CGFloat;
 
-        Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), boldSystemFontOfSize: size]) })
+        Font(unsafe { ShareId::from_ptr(msg_send![Self::class(), boldSystemFontOfSize: size]) })
     }
 
     /// Creates and returns a monospace system font at the specified size and weight
@@ -77,4 +89,11 @@ impl AsRef<Font> for Font {
     fn as_ref(&self) -> &Font {
         self
     }
+}
+
+#[test]
+fn font_test() {
+    let default_font = Font::default();
+    let system_font = Font::system(100.0);
+    let bold_system_font = Font::bold_system(100.0);
 }
