@@ -8,9 +8,9 @@ use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
+use crate::layer::Layer;
 #[cfg(feature = "autolayout")]
 use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
-use crate::layer::Layer;
 
 #[cfg(feature = "appkit")]
 mod appkit;

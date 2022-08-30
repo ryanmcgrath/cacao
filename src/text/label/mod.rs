@@ -49,8 +49,8 @@ use objc_id::ShareId;
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
-use crate::layout::Layout;
 use crate::layer::Layer;
+use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::text::{AttributedString, Font, LineBreakMode, TextAlign};
 use crate::utils::properties::ObjcProperty;
@@ -216,7 +216,6 @@ impl Label {
     }
 
     pub(crate) fn init<T>(view: id, delegate: Option<Box<T>>) -> Label<T> {
-
         Label {
             delegate,
 
@@ -371,17 +370,16 @@ impl<T> Label<T> {
     }
     #[cfg(all(feature = "uikit", not(feature = "appkit")))]
     pub fn get_text(&self) -> String {
-        self.objc
-            .get(|obj| {
-                let val : id = unsafe {msg_send![obj, text]};
-                // Through trial and error, this seems to return a null pointer when there's no
-                // text.
-                if val.is_null() {
-                    String::new()
-                } else {
-                    NSString::retain(val).to_string()
-                }
-            })
+        self.objc.get(|obj| {
+            let val: id = unsafe { msg_send![obj, text] };
+            // Through trial and error, this seems to return a null pointer when there's no
+            // text.
+            if val.is_null() {
+                String::new()
+            } else {
+                NSString::retain(val).to_string()
+            }
+        })
     }
 
     /// Sets the text alignment for this label.
@@ -465,7 +463,6 @@ impl<T> Drop for Label<T> {
         }*/
     }
 }
-
 
 #[test]
 fn test_label() {

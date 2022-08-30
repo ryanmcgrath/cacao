@@ -44,7 +44,7 @@
 //! For more information on Autolayout, view the module or check out the examples folder.
 
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl, class};
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::color::Color;
@@ -206,7 +206,7 @@ where
             (&mut *input).set_ivar(TEXTFIELD_DELEGATE_PTR, ptr as usize);
         };
         #[cfg(feature = "uikit")]
-        let _: () = unsafe {msg_send![input, setDelegate: input] };
+        let _: () = unsafe { msg_send![input, setDelegate: input] };
 
         let mut input = TextField {
             delegate: None,

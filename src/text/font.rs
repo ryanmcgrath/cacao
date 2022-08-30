@@ -20,13 +20,13 @@ impl Default for Font {
     /// Returns the default `labelFont` on macOS.
     fn default() -> Self {
         let cls = Self::class();
-        let default_size: id = unsafe {msg_send![cls, labelFontSize]};
+        let default_size: id = unsafe { msg_send![cls, labelFontSize] };
 
         #[cfg(feature = "appkit")]
-        let font = Font(unsafe {ShareId::from_ptr(msg_send![cls, labelFontOfSize: default_size]) });
+        let font = Font(unsafe { ShareId::from_ptr(msg_send![cls, labelFontOfSize: default_size]) });
 
         #[cfg(all(feature = "uikit", not(feature = "appkit")))]
-        let font = Font(unsafe {ShareId::from_ptr(msg_send![cls, systemFontOfSize: default_size])});
+        let font = Font(unsafe { ShareId::from_ptr(msg_send![cls, systemFontOfSize: default_size]) });
         font
     }
 }

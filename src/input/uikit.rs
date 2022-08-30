@@ -79,7 +79,10 @@ pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>(instance: 
             sel!(textFieldDidBeginEditing:),
             text_did_begin_editing::<T> as extern "C" fn(&mut Object, _, _)
         );
-        decl.add_method(sel!(textFieldDidChangeSelection:), text_did_change::<T> as extern "C" fn(&mut Object, _, _));
+        decl.add_method(
+            sel!(textFieldDidChangeSelection:),
+            text_did_change::<T> as extern "C" fn(&mut Object, _, _)
+        );
         decl.add_method(
             sel!(textFieldShouldBeginEditing:),
             text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL
