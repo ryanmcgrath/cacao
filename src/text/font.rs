@@ -40,6 +40,14 @@ impl Font {
 
         Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), boldSystemFontOfSize: size]) })
     }
+
+    /// Creates and returns a monospace system font at the specified size and weight
+    pub fn monospace(size: f64, weight: f64) -> Self {
+        let size = size as CGFloat;
+        let weight = weight as CGFloat;
+
+        Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), monospacedSystemFontOfSize: size weight: weight]) })
+    }
 }
 
 impl Deref for Font {
