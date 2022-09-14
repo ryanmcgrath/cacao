@@ -10,5 +10,7 @@ pub use traits::*;
 pub mod save;
 pub use save::FileSavePanel;
 
+#[cfg(feature = "appkit")]
 pub mod select;
+#[cfg(feature = "appkit")]
 pub use select::FileSelectPanel;

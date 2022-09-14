@@ -131,7 +131,7 @@ pub mod events;
 
 pub mod defaults;
 
-#[cfg(feature = "appkit")]
+#[cfg(any(feature = "appkit", feature = "uikit"))]
 pub mod filesystem;
 
 pub mod foundation;
