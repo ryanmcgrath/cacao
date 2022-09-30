@@ -37,7 +37,8 @@ impl Default for ToggleOptionView {
             subtitle.top.constraint_equal_to(&title.bottom),
             subtitle.leading.constraint_equal_to(&switch.trailing),
             subtitle.trailing.constraint_equal_to(&view.trailing),
-            subtitle.bottom.constraint_equal_to(&view.bottom)
+            subtitle.bottom.constraint_equal_to(&view.bottom),
+            subtitle.width.constraint_greater_than_or_equal_to_constant(200.)
         ]);
 
         ToggleOptionView {
