@@ -94,8 +94,6 @@ Non-Apple platforms that shim or provide a form of AppKit may be able to use a g
 
 The following are a list of [Cargo features][cargo-features] that can be enabled or disabled.
 
-The following are a list of [Cargo features][cargo-features] that can be enabled or disabled.
-
 - `appkit`: Links `AppKit.framework`.
 - `uikit`: Links `UIKit.framework` (iOS/tvOS only).
 - `cloudkit`: Links `CloudKit.framework` and provides some wrappers around CloudKit functionality. Currently not feature complete.
