@@ -11,98 +11,82 @@ lazy_static! {
     static ref CLASSES: ClassMap = ClassMap::new();
 }
 
+/// Represents an entry in a `ClassMap`. We store an optional superclass_name for debugging
+/// purposes; it's an `Option` to make the logic of loading a class type where we don't need to 
+/// care about the superclass type simpler.
+#[derive(Debug)]
+struct ClassEntry {
+    pub superclass_name: Option<&'static str>,
+    pub ptr: usize
+}
+
+/// Represents a key in a `ClassMap`.
+type ClassKey = (&'static str, Option<&'static str>);
+
 /// A ClassMap is a general cache for our Objective-C class lookup and registration. Rather than
 /// constantly calling into the runtime, we store pointers to Class types here after first lookup
-/// and/or creation. The general store format is (roughly speaking) as follows:
-///
-/// ```ignore
-/// {
-///     "subclass_type": {
-///         "superclass_type": *const Class as usize
-///     }
-/// }
-/// ```
-///
-/// The reasoning behind the double map is that it allows for lookup without allocating a `String`
-/// on each hit; allocations are only required when creating a Class to inject, purely for naming
-/// and debugging reasons.
+/// and/or creation.
 ///
 /// There may be a way to do this without using HashMaps and avoiding the heap, but working and
 /// usable beats ideal for now. Open to suggestions.
 #[derive(Debug)]
-pub(crate) struct ClassMap(RwLock<HashMap<&'static str, HashMap<&'static str, usize>>>);
+pub(crate) struct ClassMap(RwLock<HashMap<ClassKey, ClassEntry>>);
 
 impl ClassMap {
     /// Returns a new ClassMap.
     pub fn new() -> Self {
-        ClassMap(RwLock::new({
-            let mut map = HashMap::new();
-
-            // Top-level classes, like `NSView`, we cache here. The reasoning is that if a subclass
-            // is being created, we can avoid querying the runtime for the superclass - i.e, many
-            // subclasses will have `NSView` as their superclass.
-            map.insert("_supers", HashMap::new());
-
-            map
-        }))
+        ClassMap(RwLock::new(HashMap::new()))
     }
 
-    /// Attempts to load a previously registered subclass.
-    pub fn load_subclass(&self, subclass_name: &'static str, superclass_name: &'static str) -> Option<*const Class> {
-        let reader = self.0.read().unwrap();
-
-        if let Some(inner) = (*reader).get(subclass_name) {
-            if let Some(class) = inner.get(superclass_name) {
-                return Some(*class as *const Class);
-            }
-        }
-
-        None
-    }
-
-    /// Store a newly created subclass type.
-    pub fn store_subclass(&self, subclass_name: &'static str, superclass_name: &'static str, class: *const Class) {
-        let mut writer = self.0.write().unwrap();
-
-        if let Some(map) = (*writer).get_mut(subclass_name) {
-            map.insert(superclass_name, class as usize);
-        } else {
-            let mut map = HashMap::new();
-            map.insert(superclass_name, class as usize);
-            (*writer).insert(subclass_name, map);
-        }
-    }
-
-    /// Attempts to load a Superclass. This first checks for the cached pointer; if not present, it
-    /// will load the superclass from the Objective-C runtime and cache it for future lookup. This
-    /// assumes that the class is one that should *already* and *always* exist in the runtime, and
-    /// by design will panic if it can't load the correct superclass, as that would lead to very
-    /// invalid behavior.
-    pub fn load_superclass(&self, name: &'static str) -> Option<*const Class> {
+    /// Attempts to load a previously registered class.
+    ///
+    /// This checks our internal map first, and then calls out to the Objective-C runtime to ensure
+    /// we're not missing anything.
+    pub fn load(&self, class_name: &'static str, superclass_name: Option<&'static str>) -> Option<*const Class> {
         {
             let reader = self.0.read().unwrap();
-            if let Some(superclass) = (*reader)["_supers"].get(name) {
-                return Some(*superclass as *const Class);
+            if let Some(entry) = (*reader).get(&(class_name, superclass_name)) {
+                let ptr = &entry.ptr;
+                return Some(*ptr as *const Class);
             }
         }
 
-        let objc_superclass_name = CString::new(name).unwrap();
-        let superclass = unsafe { objc_getClass(objc_superclass_name.as_ptr() as *const _) };
+        // If we don't have an entry for the class_name in our internal map, we should still check
+        // if we can load it from the Objective-C runtime directly. The reason we need to do this
+        // is that there's a use-case where someone might have multiple bundles attempting to
+        // use or register the same subclass; Rust doesn't see the same pointers unlike the Objective-C
+        // runtime, and we can wind up in a situation where we're attempting to register a Class
+        // that already exists but we can't see.
+        let objc_class_name = CString::new(class_name).unwrap();
+        let class = unsafe { objc_getClass(objc_class_name.as_ptr() as *const _) };
 
-        // This should not happen, for our use-cases, but it's conceivable that this could actually
+        // This should not happen for our use-cases, but it's conceivable that this could actually
         // be expected, so just return None and let the caller panic if so desired.
-        if superclass.is_null() {
+        if class.is_null() {
             return None;
         }
 
+        // If we got here, then this class exists in the Objective-C runtime but is not known to
+        // us. For consistency's sake, we'll add this to our store and return that.
         {
             let mut writer = self.0.write().unwrap();
-            if let Some(supers) = (*writer).get_mut("_supers") {
-                supers.insert(name, superclass as usize);
-            }
+            writer.insert((class_name, superclass_name), ClassEntry {
+                superclass_name,
+                ptr: class as usize
+            });
         }
 
-        Some(superclass)
+        Some(class)
+    }
+
+    /// Store a newly created subclass type.
+    pub fn store(&self, class_name: &'static str, superclass_name: Option<&'static str>, class: *const Class) {
+        let mut writer = self.0.write().unwrap();
+
+        writer.insert((class_name, superclass_name), ClassEntry {
+            superclass_name,
+            ptr: class as usize
+        });
     }
 }
 
@@ -120,15 +104,21 @@ impl ClassMap {
 ///
 /// There's definitely room to optimize here, but it works for now.
 #[inline(always)]
-pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> *const Class
+pub fn load_or_register_class<F>(
+    superclass_name: &'static str,
+    subclass_name: &'static str,
+    config: F
+) -> *const Class
 where
     F: Fn(&mut ClassDecl) + 'static
 {
-    if let Some(subclass) = CLASSES.load_subclass(subclass_name, superclass_name) {
+    if let Some(subclass) = CLASSES.load(subclass_name, Some(superclass_name)) {
         return subclass;
     }
 
-    if let Some(superclass) = CLASSES.load_superclass(superclass_name) {
+    // If we can't find the class anywhere, then we'll attempt to load the superclass and register
+    // our new class type.
+    if let Some(superclass) = CLASSES.load(superclass_name, None) {
         let objc_subclass_name = format!("{}_{}", subclass_name, superclass_name);
 
         match ClassDecl::new(&objc_subclass_name, unsafe { &*superclass }) {
@@ -136,7 +126,7 @@ where
                 config(&mut decl);
 
                 let class = decl.register();
-                CLASSES.store_subclass(subclass_name, superclass_name, class);
+                CLASSES.store(subclass_name, Some(superclass_name), class);
                 return class;
             },
 
