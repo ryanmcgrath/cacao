@@ -185,8 +185,8 @@ pub fn register_webview_class() -> *const Class {
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
-pub fn register_webview_delegate_class<T: WebViewDelegate>() -> *const Class {
-    load_or_register_class("NSObject", "RSTWebViewDelegate", |decl| unsafe {
+pub fn register_webview_delegate_class<T: WebViewDelegate>(instance: &T) -> *const Class {
+    load_or_register_class("NSObject", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(WEBVIEW_DELEGATE_PTR);
 
         // WKNavigationDelegate
