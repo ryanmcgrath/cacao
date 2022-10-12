@@ -10,7 +10,7 @@ mod row;
 use row::TodoViewRow;
 
 /// An identifier for the cell(s) we dequeue.
-const TODO_ROW: &'static str = "TodoViewRowCell";
+const TODO_ROW: &str = "TodoViewRowCell";
 
 /// The list view for todos.
 #[derive(Debug, Default)]

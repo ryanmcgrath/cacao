@@ -7,9 +7,9 @@ use cacao::appkit::toolbar::{ItemIdentifier, Toolbar, ToolbarDelegate, ToolbarDi
 
 use super::Action;
 
-const BACK_BUTTON: &'static str = "BackButton";
-const FWDS_BUTTON: &'static str = "FwdsButton";
-const URL_BAR: &'static str = "URLBar";
+const BACK_BUTTON: &str = "BackButton";
+const FWDS_BUTTON: &str = "FwdsButton";
+const URL_BAR: &str = "URLBar";
 
 #[derive(Debug)]
 pub struct URLBar;
