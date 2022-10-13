@@ -170,16 +170,7 @@ extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, downloa
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
 pub fn register_webview_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(WKWebView);
-        let decl = ClassDecl::new("RSTWebView", superclass).unwrap();
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    load_or_register_class("WKWebView", "CacaoWebView", |decl| unsafe {})
 }
 
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
