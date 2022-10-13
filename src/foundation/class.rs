@@ -4,11 +4,35 @@ use std::sync::{Arc, RwLock};
 
 use lazy_static::lazy_static;
 
+use objc::{class, msg_send, sel, sel_impl};
 use objc::declare::ClassDecl;
-use objc::runtime::{objc_getClass, Class};
+use objc::runtime::{objc_getClass, Class, Object};
 
 lazy_static! {
     static ref CLASSES: ClassMap = ClassMap::new();
+}
+
+/// A temporary method for testing; this will get cleaned up if it's worth bringing in permanently.
+///
+/// (and probably not repeatedly queried...)
+///
+/// This accounts for code not running in a standard bundle, and returns `None` if the bundle
+/// identifier is nil.
+fn get_bundle_id() -> Option<String> {
+    let identifier: *mut Object = unsafe {
+        let bundle: *mut Object = msg_send![class!(NSBundle), mainBundle];
+        msg_send![bundle, bundleIdentifier]
+    };
+
+    if identifier == crate::foundation::nil {
+        return None;
+    }
+    
+    let identifier = crate::foundation::NSString::retain(identifier).to_string()
+        .replace(".", "_")
+        .replace("-", "_");
+
+    Some(identifier)
 }
 
 /// Represents an entry in a `ClassMap`. We store an optional superclass_name for debugging
@@ -119,7 +143,10 @@ where
     // If we can't find the class anywhere, then we'll attempt to load the superclass and register
     // our new class type.
     if let Some(superclass) = CLASSES.load(superclass_name, None) {
-        let objc_subclass_name = format!("{}_{}", subclass_name, superclass_name);
+        let objc_subclass_name = match get_bundle_id() {
+            Some(bundle_id) => format!("{}_{}_{}", subclass_name, superclass_name, bundle_id),
+            None => format!("{}_{}", subclass_name, superclass_name)
+        };
 
         match ClassDecl::new(&objc_subclass_name, unsafe { &*superclass }) {
             Some(mut decl) => {
