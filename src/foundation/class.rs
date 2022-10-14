@@ -152,8 +152,6 @@ where
             ((t >> 64) as u64) ^ (t as u64)
         }));
 
-        println!("{}", objc_subclass_name);
-
         match ClassDecl::new(&objc_subclass_name, unsafe { &*superclass }) {
             Some(mut decl) => {
                 config(&mut decl);
