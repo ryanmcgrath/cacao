@@ -1,38 +1,34 @@
+use std::cell::Cell;
 use std::collections::HashMap;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use std::ffi::CString;
+use std::thread;
+use std::time::Instant;
 use std::sync::{Arc, RwLock};
 
 use lazy_static::lazy_static;
-
-use objc::{class, msg_send, sel, sel_impl};
 use objc::declare::ClassDecl;
-use objc::runtime::{objc_getClass, Class, Object};
+use objc::runtime::{objc_getClass, Class};
 
 lazy_static! {
     static ref CLASSES: ClassMap = ClassMap::new();
 }
 
-/// A temporary method for testing; this will get cleaned up if it's worth bringing in permanently.
-///
-/// (and probably not repeatedly queried...)
-///
-/// This accounts for code not running in a standard bundle, and returns `None` if the bundle
-/// identifier is nil.
-fn get_bundle_id() -> Option<String> {
-    let identifier: *mut Object = unsafe {
-        let bundle: *mut Object = msg_send![class!(NSBundle), mainBundle];
-        msg_send![bundle, bundleIdentifier]
-    };
-
-    if identifier == crate::foundation::nil {
-        return None;
-    }
-    
-    let identifier = crate::foundation::NSString::retain(identifier).to_string()
-        .replace(".", "_")
-        .replace("-", "_");
-
-    Some(identifier)
+thread_local! {
+    /// A very simple RNG seed that we use in constructing unique subclass names.
+    ///
+    /// Why are we doing this? Mainly because I just don't want to bring in another
+    /// crate for something that can be done like this; we don't need cryptographically
+    /// secure generation or anything fancy, as we're just after a unique dangling bit
+    /// for class names.
+    static RNG_SEED: Cell<u64> = Cell::new({
+        let mut hasher = DefaultHasher::new();
+        Instant::now().hash(&mut hasher);
+        thread::current().id().hash(&mut hasher);
+        let hash = hasher.finish();
+        (hash << 1) | 1
+    });
 }
 
 /// Represents an entry in a `ClassMap`. We store an optional superclass_name for debugging
@@ -143,10 +139,20 @@ where
     // If we can't find the class anywhere, then we'll attempt to load the superclass and register
     // our new class type.
     if let Some(superclass) = CLASSES.load(superclass_name, None) {
-        let objc_subclass_name = match get_bundle_id() {
-            Some(bundle_id) => format!("{}_{}_{}", subclass_name, superclass_name, bundle_id),
-            None => format!("{}_{}", subclass_name, superclass_name)
-        };
+        // When we're generating a new Subclass name, we need to append a random-ish component
+        // due to some oddities that can come up in certain scenarios (e.g, various bundler
+        // situations appear to have odd rules about subclass name usage/registration, this simply
+        // guarantees that we almost always have a unique name to register with the ObjC runtime).
+        //
+        // For more context, see: https://github.com/ryanmcgrath/cacao/issues/63
+        let objc_subclass_name = format!("{}_{}_{}", subclass_name, superclass_name, RNG_SEED.with(|rng| {
+            rng.set(rng.get().wrapping_add(0xa0761d6478bd642f));
+            let s = rng.get();
+            let t = u128::from(s) * (u128::from(s ^ 0xe7037ed1a0b428db));
+            ((t >> 64) as u64) ^ (t as u64)
+        }));
+
+        println!("{}", objc_subclass_name);
 
         match ClassDecl::new(&objc_subclass_name, unsafe { &*superclass }) {
             Some(mut decl) => {
