@@ -51,13 +51,13 @@ impl Font {
     /// If the current system is using an older version the `monospacedSystemFontOfSize`
     /// option will be omitted.
     pub fn monospace(size: f64, weight: f64) -> Self {
-        if os::is_minimum_semversion(10, 15, 0) {
-            let size = size as CGFloat;
-            let weight = weight as CGFloat;
+        let size = size as CGFloat;
+        let weight = weight as CGFloat;
 
+        if os::is_minimum_semversion(10, 15, 0) {
             Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), monospacedSystemFontOfSize: size weight: weight]) })
         } else {
-            Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), weight: weight]) })
+            Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), systemFontOfSize: size weight: weight ]) })
         }
     }
 }
