@@ -9,6 +9,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
+use crate::utils::os;
 
 /// A `Font` can be constructed and applied to supported controls to control things like text
 /// appearance and size.
@@ -39,6 +40,25 @@ impl Font {
         let size = size as CGFloat;
 
         Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), boldSystemFontOfSize: size]) })
+    }
+
+    /// Creates and returns a monospace system font at the specified size and weight
+    ///
+    /// # Support
+    ///
+    /// The `monospace` font feature is available from version `10.15`.
+    ///
+    /// If the current system is using an older version the `monospacedSystemFontOfSize`
+    /// option will be omitted.
+    pub fn monospace(size: f64, weight: f64) -> Self {
+        let size = size as CGFloat;
+        let weight = weight as CGFloat;
+
+        if os::is_minimum_semversion(10, 15, 0) {
+            Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), monospacedSystemFontOfSize: size weight: weight]) })
+        } else {
+            Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), systemFontOfSize: size weight: weight ]) })
+        }
     }
 }
 
