@@ -1,11 +1,11 @@
 use std::cell::Cell;
-use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
+use std::collections::HashMap;
 use std::ffi::CString;
+use std::hash::{Hash, Hasher};
+use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Instant;
-use std::sync::{Arc, RwLock};
 
 use lazy_static::lazy_static;
 use objc::declare::ClassDecl;
@@ -32,7 +32,7 @@ thread_local! {
 }
 
 /// Represents an entry in a `ClassMap`. We store an optional superclass_name for debugging
-/// purposes; it's an `Option` to make the logic of loading a class type where we don't need to 
+/// purposes; it's an `Option` to make the logic of loading a class type where we don't need to
 /// care about the superclass type simpler.
 #[derive(Debug)]
 struct ClassEntry {
@@ -124,11 +124,7 @@ impl ClassMap {
 ///
 /// There's definitely room to optimize here, but it works for now.
 #[inline(always)]
-pub fn load_or_register_class<F>(
-    superclass_name: &'static str,
-    subclass_name: &'static str,
-    config: F
-) -> *const Class
+pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> *const Class
 where
     F: Fn(&mut ClassDecl) + 'static
 {
@@ -145,12 +141,17 @@ where
         // guarantees that we almost always have a unique name to register with the ObjC runtime).
         //
         // For more context, see: https://github.com/ryanmcgrath/cacao/issues/63
-        let objc_subclass_name = format!("{}_{}_{}", subclass_name, superclass_name, RNG_SEED.with(|rng| {
-            rng.set(rng.get().wrapping_add(0xa0761d6478bd642f));
-            let s = rng.get();
-            let t = u128::from(s) * (u128::from(s ^ 0xe7037ed1a0b428db));
-            ((t >> 64) as u64) ^ (t as u64)
-        }));
+        let objc_subclass_name = format!(
+            "{}_{}_{}",
+            subclass_name,
+            superclass_name,
+            RNG_SEED.with(|rng| {
+                rng.set(rng.get().wrapping_add(0xa0761d6478bd642f));
+                let s = rng.get();
+                let t = u128::from(s) * (u128::from(s ^ 0xe7037ed1a0b428db));
+                ((t >> 64) as u64) ^ (t as u64)
+            })
+        );
 
         match ClassDecl::new(&objc_subclass_name, unsafe { &*superclass }) {
             Some(mut decl) => {
