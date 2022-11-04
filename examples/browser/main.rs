@@ -91,7 +91,9 @@ impl Dispatcher for BasicApp {
 #[derive(Default)]
 pub struct WebViewInstance;
 
-impl WebViewDelegate for WebViewInstance {}
+impl WebViewDelegate for WebViewInstance {
+    const NAME: &'static str = "BrowserWebViewDelegate";
+}
 
 struct AppWindow {
     toolbar: Toolbar<BrowserToolbar>,

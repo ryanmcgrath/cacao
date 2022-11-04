@@ -8,6 +8,17 @@ use crate::webview::WebView;
 
 /// You can implement this on structs to handle callbacks from the underlying `WKWebView`.
 pub trait WebViewDelegate {
+    /// Used to cache subclass creations on the Objective-C side.
+    /// You can just set this to be the name of your delegate type. This
+    /// value *must* be unique per-type.
+    const NAME: &'static str;
+
+    /// You should rarely (read: probably never) need to implement this yourself.
+    /// It simply acts as a getter for the associated `NAME` const on this trait.
+    fn subclass_name(&self) -> &'static str {
+        Self::NAME
+    }
+
     /// Called when the View is ready to work with. You're passed a `ViewHandle` - this is safe to
     /// store and use repeatedly, but it's not thread safe - any UI calls must be made from the
     /// main thread!
