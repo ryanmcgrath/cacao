@@ -161,7 +161,7 @@ pub mod pasteboard;
 #[cfg(feature = "appkit")]
 pub mod progress;
 
-#[cfg(feature = "appkit")]
+#[cfg(any(feature = "appkit", feature = "uikit"))]
 pub mod scrollview;
 
 #[cfg(feature = "appkit")]

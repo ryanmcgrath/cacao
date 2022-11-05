@@ -50,7 +50,6 @@ use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
-use crate::pasteboard::PasteboardType;
 use crate::utils::properties::ObjcProperty;
 
 #[cfg(feature = "autolayout")]
@@ -62,11 +61,11 @@ mod appkit;
 #[cfg(feature = "appkit")]
 use appkit::{register_scrollview_class, register_scrollview_class_with_delegate};
 
-//#[cfg(feature = "uikit")]
-//mod ios;
+#[cfg(feature = "uikit")]
+mod uikit;
 
-//#[cfg(feature = "uikit")]
-//use ios::{register_view_class, register_view_class_with_delegate};
+#[cfg(all(feature = "uikit", not(feature = "appkit")))]
+use uikit::{register_view_class, register_view_class_with_delegate};
 
 mod traits;
 pub use traits::ScrollViewDelegate;
@@ -333,4 +332,10 @@ impl<T> Drop for ScrollView<T> {
             }
         }*/
     }
+}
+
+
+#[test]
+fn test_scrollview() {
+    let view = ScrollView::new();
 }
