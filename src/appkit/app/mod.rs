@@ -63,13 +63,15 @@ pub use enums::*;
 mod traits;
 pub use traits::AppDelegate;
 
+use super::window::Window;
+
 pub(crate) static APP_PTR: &str = "rstAppPtr";
 
 /// A handler to make some boilerplate less annoying.
 #[inline]
-fn shared_application<F: Fn(id)>(handler: F) {
+fn shared_application<T, F: Fn(id) -> T>(handler: F) -> T {
     let app: id = unsafe { msg_send![register_app_class(), sharedApplication] };
-    handler(app);
+    handler(app)
 }
 
 /// A wrapper for `NSApplication` in AppKit/Cocoa, and `UIApplication` in UIKit/Cocoa Touch.
@@ -296,6 +298,13 @@ impl App {
             let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
             let _: () = msg_send![current_app, activateWithOptions:1<<1];
         });
+    }
+
+    pub fn main_window() -> Window {
+        shared_application(|app| unsafe {
+            let window: id = msg_send![app, mainWindow];
+            Window::existing(window)
+        })
     }
 
     /// Terminates the application, firing the requisite cleanup delegate methods in the process.
