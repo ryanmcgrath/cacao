@@ -41,6 +41,14 @@ impl Rect {
     }
 }
 
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[repr(u32)]
+pub enum Edge {
+    MinX = 0,
+    MinY = 1,
+    MaxX = 2,
+    MaxY = 3,
+}
 impl From<Rect> for CGRect {
     fn from(rect: Rect) -> CGRect {
         CGRect::new(&CGPoint::new(rect.left, rect.top), &CGSize::new(rect.width, rect.height))
