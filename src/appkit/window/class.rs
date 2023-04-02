@@ -227,8 +227,8 @@ extern "C" fn cancel<T: WindowDelegate>(this: &Object, _: Sel, _: id) {
 
 /// Injects an `NSWindowDelegate` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>(instance: &T) -> *const Class {
-    load_or_register_class("NSWindow", instance.subclass_name(), |decl| unsafe {
+pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>(class_name: &'static str, instance: &T) -> *const Class {
+    load_or_register_class(class_name, instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(WINDOW_DELEGATE_PTR);
 
         // NSWindowDelegate methods

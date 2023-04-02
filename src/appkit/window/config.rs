@@ -2,6 +2,9 @@
 //! mask). This configuration object acts as a way to orchestrate enabling customization before the
 //! window object is created - it's returned in your `WindowDelegate` object.
 
+use objc::class;
+use objc::runtime::Class;
+
 use crate::appkit::window::enums::{WindowStyle, WindowToolbarStyle};
 use crate::foundation::NSUInteger;
 use crate::geometry::Rect;
@@ -32,7 +35,11 @@ pub struct WindowConfig {
     /// for other variants.
     ///
     /// This setting is notably important for Preferences windows.
-    pub toolbar_style: WindowToolbarStyle
+    pub toolbar_style: WindowToolbarStyle,
+
+    /// The base class to use for Window construction, by default will be
+    /// NSWindow but you can use any class here that inherits from NSWindow.
+    pub window_class: &'static Class,
 }
 
 impl Default for WindowConfig {
@@ -41,7 +48,8 @@ impl Default for WindowConfig {
             style: 0,
             initial_dimensions: Rect::new(100., 100., 1024., 768.),
             defer: true,
-            toolbar_style: WindowToolbarStyle::Automatic
+            toolbar_style: WindowToolbarStyle::Automatic,
+            window_class: class!(NSWindow),
         };
 
         config.set_styles(&[
@@ -82,5 +90,9 @@ impl WindowConfig {
     /// `ToolbarStyle` enum for more information on possible values.
     pub fn set_toolbar_style(&mut self, style: WindowToolbarStyle) {
         self.toolbar_style = style;
+    }
+
+    pub fn set_window_class(&mut self, cls : &'static Class) {
+        self.window_class = cls;
     }
 }
