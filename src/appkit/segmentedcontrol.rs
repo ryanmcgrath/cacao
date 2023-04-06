@@ -42,7 +42,7 @@ use crate::appkit::FocusRingType;
 /// let mut button = Button::new("My button title");
 /// button.set_key_equivalent("c");
 ///
-/// button.set_action(|| {
+/// button.set_action(|_| {
 ///     println!("My button was clicked.");
 /// });
 /// let my_view : View<()> = todo!();
