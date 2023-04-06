@@ -19,7 +19,7 @@ use crate::storage::{dispatch_ui, Message};
 pub struct AddNewTodoContentView {
     pub view: Option<View>,
     pub input: Option<TextField>,
-    pub button: Option<Button>
+    pub button: Option<Button>,
 }
 
 impl AddNewTodoContentView {
@@ -34,7 +34,7 @@ impl AddNewTodoContentView {
                 }
             },
 
-            _ => {}
+            _ => {},
         }
     }
 }
@@ -50,7 +50,7 @@ impl ViewDelegate for AddNewTodoContentView {
 
         let mut button = Button::new("Add");
         button.set_key_equivalent("\r");
-        button.set_action(|| dispatch_ui(Message::ProcessNewTodo));
+        button.set_action(|_| dispatch_ui(Message::ProcessNewTodo));
 
         view.add_subview(&instructions);
         view.add_subview(&input);
@@ -65,7 +65,7 @@ impl ViewDelegate for AddNewTodoContentView {
             input.trailing.constraint_equal_to(&view.trailing).offset(-16.),
             button.top.constraint_equal_to(&input.bottom).offset(8.),
             button.trailing.constraint_equal_to(&view.trailing).offset(-16.),
-            button.bottom.constraint_equal_to(&view.bottom).offset(-16.)
+            button.bottom.constraint_equal_to(&view.bottom).offset(-16.),
         ]);
 
         self.view = Some(view);

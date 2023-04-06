@@ -19,7 +19,7 @@ impl Default for PreferencesToolbar {
                 let icon = Image::toolbar_icon(MacSystemIcon::PreferencesGeneral, "General");
                 item.set_image(icon);
 
-                item.set_action(|| {
+                item.set_action(|_| {
                     dispatch_ui(Message::SwitchPreferencesToGeneralPane);
                 });
 
@@ -32,12 +32,12 @@ impl Default for PreferencesToolbar {
                 let icon = Image::toolbar_icon(MacSystemIcon::PreferencesAdvanced, "Advanced");
                 item.set_image(icon);
 
-                item.set_action(|| {
+                item.set_action(|_| {
                     dispatch_ui(Message::SwitchPreferencesToAdvancedPane);
                 });
 
                 item
-            }
+            },
         ))
     }
 }
@@ -67,7 +67,7 @@ impl ToolbarDelegate for PreferencesToolbar {
             "advanced" => &self.0 .1,
             _ => {
                 unreachable!();
-            }
+            },
         }
     }
 }
