@@ -83,7 +83,7 @@ pub struct Select {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY
+    pub center_y: LayoutAnchorY,
 }
 
 impl Select {
@@ -135,7 +135,7 @@ impl Select {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view)
+            objc: ObjcProperty::retain(view),
         }
     }
 
@@ -145,7 +145,7 @@ impl Select {
     /// Really, this is not ideal.
     ///
     /// I cannot stress this enough.
-    pub fn set_action<F: Fn() + Send + Sync + 'static>(&mut self, action: F) {
+    pub fn set_action<F: Fn(*const Object) + Send + Sync + 'static>(&mut self, action: F) {
         // @TODO: This probably isn't ideal but gets the job done for now; needs revisiting.
         let this = self.objc.get(|obj| unsafe { ShareId::from_ptr(msg_send![obj, self]) });
         let handler = TargetActionHandler::new(&*this, action);

@@ -5,13 +5,15 @@
 //! - Another Controller / View
 
 use cacao::appkit::menu::{Menu, MenuItem};
+use cacao::appkit::segmentedcontrol::SegmentedControl;
 use cacao::appkit::window::{Window, WindowConfig, WindowController, WindowDelegate};
 use cacao::appkit::{App, AppDelegate};
 use cacao::button::Button;
+use cacao::foundation::NSArray;
 use cacao::geometry::{Edge, Rect};
+use cacao::image::Image;
 use cacao::layout::{Layout, LayoutConstraint};
 use cacao::notification_center::Dispatcher;
-use cacao::text::{Font, Label};
 use cacao::view::{Popover, PopoverConfig, View, ViewController, ViewDelegate};
 
 struct BasicApp {
@@ -133,7 +135,7 @@ impl ViewDelegate for PopoverExampleContentView {
 
     fn did_load(&mut self, view: cacao::view::View) {
         let mut button = Button::new("Show");
-        button.set_action(|| dispatch_ui(Msg::Click));
+        button.set_action(|_| dispatch_ui(Msg::Click));
 
         let controller = PopoverExampleContentViewController::new();
         let config = PopoverConfig {
@@ -173,16 +175,21 @@ impl Dispatcher for BasicApp {
 
 #[derive(Debug)]
 struct PopoverExampleContentViewController {
-    pub label: Label,
+    pub control: SegmentedControl,
 }
 
 impl PopoverExampleContentViewController {
     fn new() -> Self {
-        let label = Label::new();
-        let font = Font::system(20.);
-        label.set_font(&font);
-        label.set_text("Hello");
-        Self { label }
+        let images = NSArray::from(vec![
+            &*Image::symbol(cacao::image::SFSymbol::AtSymbol, "Hello").0,
+            &*Image::symbol(cacao::image::SFSymbol::PaperPlane, "Hello").0,
+            &*Image::symbol(cacao::image::SFSymbol::PaperPlaneFilled, "Hello").0,
+        ]);
+        let mut control = SegmentedControl::new(images, cacao::appkit::segmentedcontrol::TrackingMode::SelectOne);
+        control.set_action(|index| {
+            println!("Selected Index {index}");
+        });
+        Self { control }
     }
 }
 
@@ -190,6 +197,6 @@ impl ViewDelegate for PopoverExampleContentViewController {
     const NAME: &'static str = "PopoverExampleContentViewController";
 
     fn did_load(&mut self, view: View) {
-        view.add_subview(&self.label);
+        view.add_subview(&self.control);
     }
 }

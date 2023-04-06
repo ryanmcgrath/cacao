@@ -30,7 +30,7 @@ pub static ACTION_CALLBACK_PTR: &str = "rstTargetActionPtr";
 /// Point is, Button aren't created that much in the grand scheme of things,
 /// and the heap isn't our enemy in a GUI framework anyway. If someone knows
 /// a better way to do this that doesn't require double-boxing, I'm all ears.
-pub struct Action(Box<dyn Fn() + Send + Sync + 'static>);
+pub struct Action(Box<dyn Fn(*const Object) + Send + Sync + 'static>);
 
 impl fmt::Debug for Action {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -49,12 +49,12 @@ impl fmt::Debug for Action {
 #[derive(Debug)]
 pub struct TargetActionHandler {
     action: Box<Action>,
-    invoker: ShareId<Object>
+    invoker: ShareId<Object>,
 }
 
 impl TargetActionHandler {
     /// Returns a new TargetEventHandler.
-    pub fn new<F: Fn() + Send + Sync + 'static>(control: &Object, action: F) -> Self {
+    pub fn new<F: Fn(*const Object) + Send + Sync + 'static>(control: &Object, action: F) -> Self {
         let block = Box::new(Action(Box::new(action)));
         let ptr = Box::into_raw(block);
 
@@ -71,15 +71,15 @@ impl TargetActionHandler {
 
         TargetActionHandler {
             invoker: invoker,
-            action: unsafe { Box::from_raw(ptr) }
+            action: unsafe { Box::from_raw(ptr) },
         }
     }
 }
 
 /// This will fire for an NSButton callback.
-extern "C" fn perform<F: Fn() + 'static>(this: &mut Object, _: Sel, _sender: id) {
+extern "C" fn perform<F: Fn(*const Object) + 'static>(this: &mut Object, _: Sel, sender: id) {
     let action = load::<Action>(this, ACTION_CALLBACK_PTR);
-    (action.0)();
+    (action.0)(sender.cast_const());
 }
 
 /// Due to the way that Rust and Objective-C live... very different lifestyles,
@@ -94,7 +94,7 @@ extern "C" fn perform<F: Fn() + 'static>(this: &mut Object, _: Sel, _sender: id)
 /// The `NSButton` owns this object on instantiation, and will release it
 /// on drop. We handle the heap copy on the Rust side, so setting the block
 /// is just an ivar.
-pub(crate) fn register_invoker_class<F: Fn() + 'static>() -> *const Class {
+pub(crate) fn register_invoker_class<F: Fn(*const Object) + 'static>() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
 

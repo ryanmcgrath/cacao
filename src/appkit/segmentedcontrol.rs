@@ -1,25 +1,4 @@
-//! Wraps `NSButton` on appkit, and `UIButton` on iOS and tvOS.
-//!
-//! You'd use this type to create a button that a user can interact with. Buttons can be configured
-//! a number of ways, and support setting a callback to fire when they're clicked or tapped.
-//!
-//! Some properties are platform-specific; see the documentation for further information.
-//!
-//! ```rust,no_run
-//! use cacao::button::Button;
-//! use cacao::view::View;
-//! use crate::cacao::layout::Layout;
-//! let mut button = Button::new("My button title");
-//! button.set_key_equivalent("c");
-//!
-//! button.set_action(|| {
-//!     println!("My button was clicked.");
-//! });
-//! let my_view : View<()> = todo!();
-//!
-//! // Make sure you don't let your Button drop for as long as you need it.
-//! my_view.add_subview(&button);
-//! ```
+//! Wraps `NSSegmentedControl` on appkit
 
 use std::fmt;
 use std::sync::Once;
@@ -34,7 +13,7 @@ use objc_id::ShareId;
 
 use crate::color::Color;
 use crate::control::Control;
-use crate::foundation::{id, nil, NSString, NSUInteger, BOOL, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSString, NSUInteger, BOOL, NO, YES};
 use crate::image::Image;
 use crate::invoker::TargetActionHandler;
 use crate::keys::Key;
@@ -48,9 +27,6 @@ use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
 #[cfg(feature = "appkit")]
 use crate::appkit::FocusRingType;
-
-mod enums;
-pub use enums::*;
 
 /// Wraps `NSButton` on appkit, and `UIButton` on iOS and tvOS.
 ///
@@ -75,12 +51,12 @@ pub use enums::*;
 /// my_view.add_subview(&button);
 /// ```
 #[derive(Debug)]
-pub struct Button {
+pub struct SegmentedControl {
     /// A handle for the underlying Objective-C object.
     pub objc: ObjcProperty,
 
-    /// A reference to an image, if set. We keep a copy to avoid any ownership snafus.
-    pub image: Option<Image>,
+    /// Hold on to the images
+    images: NSArray,
 
     handler: Option<TargetActionHandler>,
 
@@ -125,29 +101,37 @@ pub struct Button {
     pub center_y: LayoutAnchorY,
 }
 
-impl Button {
-    /// Creates a new `NSButton` instance, configures it appropriately,
-    /// and retains the necessary Objective-C runtime pointer.
-    pub fn new(text: &str) -> Self {
-        let title = NSString::new(text);
+#[derive(Debug)]
+#[repr(u8)]
+pub enum TrackingMode {
+    SelectOne = 0,
+    SelectMany = 1,
+    SelectMomentary = 2,
+}
 
+impl SegmentedControl {
+    /// Creates a new `NSSegmentedControl` instance, configures it appropriately,
+    /// and retains the necessary Objective-C runtime pointer.
+    pub fn new(images: NSArray, tracking_mode: TrackingMode) -> Self {
         let view: id = unsafe {
-            let button: id = msg_send![register_class(), buttonWithTitle:&*title
+            let tracking_mode = tracking_mode as u8 as i32;
+            let control: id = msg_send![register_class(), segmentedControlWithImages:&*images trackingMode:tracking_mode
                 target:nil
                 action:nil
             ];
 
-            let _: () = msg_send![button, setWantsLayer: YES];
+            let _: () = msg_send![control, setWantsLayer: YES];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![control, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
-            button
+            control
         };
 
-        Button {
+        SegmentedControl {
             handler: None,
-            image: None,
+
+            images,
 
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
@@ -183,31 +167,37 @@ impl Button {
         }
     }
 
-    /// Sets an image on the underlying button.
-    pub fn set_image(&mut self, image: Image) {
+    /// Select the segment at index
+    pub fn set_tooltip_segment(&mut self, index: NSUInteger, tooltip: &str) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setImage:&*image.0];
-        });
-
-        self.image = Some(image);
+            let converted = NSString::new(tooltip);
+            let _: () = msg_send![obj, setToolTip: converted forSegment: index];
+        })
     }
 
-    /// Sets the bezel style for this button. Only supported on appkit.
-    #[cfg(feature = "appkit")]
-    pub fn set_bezel_style(&self, bezel_style: BezelStyle) {
-        let style: NSUInteger = bezel_style.into();
-
+    /// Select the segment at index
+    pub fn select_segment(&mut self, index: NSUInteger) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setBezelStyle: style];
+            let _: () = msg_send![obj, setSelectedSegment: index];
+        })
+    }
+
+    /// Sets an image on the underlying button.
+    pub fn set_image_segment(&mut self, image: Image, segment: NSUInteger) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setImage:&*image.0 forSegment: segment];
         });
     }
 
     /// Attaches a callback for button press events. Don't get too creative now...
     /// best just to message pass or something.
-    pub fn set_action<F: Fn(*const Object) + Send + Sync + 'static>(&mut self, action: F) {
+    pub fn set_action<F: Fn(i32) + Send + Sync + 'static>(&mut self, action: F) {
         // @TODO: This probably isn't ideal but gets the job done for now; needs revisiting.
         let this = self.objc.get(|obj| unsafe { ShareId::from_ptr(msg_send![obj, self]) });
-        let handler = TargetActionHandler::new(&*this, action);
+        let handler = TargetActionHandler::new(&*this, move |obj: *const Object| unsafe {
+            let selected: i32 = msg_send![obj, selectedSegment];
+            action(selected)
+        });
         self.handler = Some(handler);
     }
 
@@ -302,7 +292,7 @@ impl Button {
     }
 }
 
-impl ObjcAccess for Button {
+impl ObjcAccess for SegmentedControl {
     fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
@@ -312,10 +302,10 @@ impl ObjcAccess for Button {
     }
 }
 
-impl Layout for Button {}
-impl Control for Button {}
+impl Layout for SegmentedControl {}
+impl Control for SegmentedControl {}
 
-impl ObjcAccess for &Button {
+impl ObjcAccess for &SegmentedControl {
     fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
@@ -325,10 +315,10 @@ impl ObjcAccess for &Button {
     }
 }
 
-impl Layout for &Button {}
-impl Control for &Button {}
+impl Layout for &SegmentedControl {}
+impl Control for &SegmentedControl {}
 
-impl Drop for Button {
+impl Drop for SegmentedControl {
     /// Nils out references on the Objective-C side and removes this from the backing view.
     // Just to be sure, let's... nil these out. They should be weak references,
     // but I'd rather be paranoid and remove them later.
@@ -347,8 +337,8 @@ fn register_class() -> *const Class {
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
-        let superclass = class!(NSButton);
-        let decl = ClassDecl::new("RSTButton", superclass).unwrap();
+        let superclass = class!(NSSegmentedControl);
+        let decl = ClassDecl::new("RSTSegmentedControl", superclass).unwrap();
         VIEW_CLASS = decl.register();
     });
 

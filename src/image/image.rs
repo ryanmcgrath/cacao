@@ -8,11 +8,11 @@ use block::ConcreteBlock;
 use core_graphics::context::{CGContext, CGContextRef};
 use core_graphics::{
     base::CGFloat,
-    geometry::{CGPoint, CGRect, CGSize}
+    geometry::{CGPoint, CGRect, CGSize},
 };
 
 use super::icons::*;
-use crate::foundation::{id, NSData, NSString, NO, YES};
+use crate::foundation::{id, NSData, NSString, NO, NSURL, YES};
 use crate::utils::os;
 
 /// Specifies resizing behavior for image drawing.
@@ -28,7 +28,7 @@ pub enum ResizeBehavior {
     Stretch,
 
     /// Center and then let whatever else flow around it.
-    Center
+    Center,
 }
 
 fn max_cgfloat(x: CGFloat, y: CGFloat) -> CGFloat {
@@ -38,7 +38,7 @@ fn max_cgfloat(x: CGFloat, y: CGFloat) -> CGFloat {
 
     match x > y {
         true => x,
-        false => y
+        false => y,
     }
 }
 
@@ -49,7 +49,7 @@ fn min_cgfloat(x: CGFloat, y: CGFloat) -> CGFloat {
 
     match x < y {
         true => x,
-        false => y
+        false => y,
     }
 }
 
@@ -90,7 +90,7 @@ impl ResizeBehavior {
             ResizeBehavior::Center => {
                 scales.width = 1.;
                 scales.height = 1.;
-            }
+            },
         }
 
         let mut result = source;
@@ -113,7 +113,7 @@ pub struct DrawConfig {
     pub target: (CGFloat, CGFloat),
 
     /// The type of resizing to use during drawing and scaling.
-    pub resize: ResizeBehavior
+    pub resize: ResizeBehavior,
 }
 
 /// Wraps `NSImage` under AppKit, and `UIImage` on under UIKit (iOS and tvOS). Can be used to display images, icons,
@@ -143,6 +143,14 @@ impl Image {
         Image(unsafe {
             let alloc: id = msg_send![Self::class(), alloc];
             ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile: file_path])
+        })
+    }
+
+    #[cfg(target_os = "macos")]
+    pub fn with_contents_of_url(url: NSURL) -> Self {
+        Image(unsafe {
+            let alloc: id = msg_send![Self::class(), alloc];
+            ShareId::from_ptr(msg_send![alloc, initWithContentsOfURL: url.objc])
         })
     }
 
@@ -195,7 +203,7 @@ impl Image {
                 false => {
                     let icon = icon.to_id();
                     msg_send![Self::class(), imageNamed: icon]
-                }
+                },
             })
         })
     }
@@ -232,7 +240,7 @@ impl Image {
 
                     #[cfg(all(feature = "uikit", not(feature = "appkit")))]
                     panic!("SFSymbols are only supported on macOS 11.0 and up.");
-                }
+                },
             })
         })
     }
@@ -244,7 +252,7 @@ impl Image {
     #[cfg(feature = "appkit")]
     pub fn draw<F>(config: DrawConfig, handler: F) -> Self
     where
-        F: Fn(CGRect, &CGContextRef) -> bool + 'static
+        F: Fn(CGRect, &CGContextRef) -> bool + 'static,
     {
         let source_frame = CGRect::new(&CGPoint::new(0., 0.), &CGSize::new(config.source.0, config.source.1));
 
@@ -261,7 +269,7 @@ impl Image {
             context.translate(resized_frame.origin.x, resized_frame.origin.y);
             context.scale(
                 resized_frame.size.width / config.source.0,
-                resized_frame.size.height / config.source.1
+                resized_frame.size.height / config.source.1,
             );
 
             let result = handler(resized_frame, &context);
@@ -270,7 +278,7 @@ impl Image {
 
             match result {
                 true => YES,
-                false => NO
+                false => NO,
             }
         });
         let block = block.copy();

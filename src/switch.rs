@@ -64,7 +64,7 @@ pub struct Switch {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY
+    pub center_y: LayoutAnchorY,
 }
 
 impl Switch {
@@ -117,7 +117,7 @@ impl Switch {
             center_x: LayoutAnchorX::center(view),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view)
+            center_y: LayoutAnchorY::center(view),
         }
     }
 
@@ -135,7 +135,7 @@ impl Switch {
 
     /// Attaches a callback for button press events. Don't get too creative now...
     /// best just to message pass or something.
-    pub fn set_action<F: Fn() + Send + Sync + 'static>(&mut self, action: F) {
+    pub fn set_action<F: Fn(*const Object) + Send + Sync + 'static>(&mut self, action: F) {
         // @TODO: This probably isn't ideal but gets the job done for now; needs revisiting.
         let this = self.objc.get(|obj| unsafe { ShareId::from_ptr(msg_send![obj, self]) });
         let handler = TargetActionHandler::new(&*this, action);
