@@ -2,27 +2,19 @@
 //! creates a custom `UIApplication` subclass that currently does nothing; this is meant as a hook
 //! for potential future use.
 
-//use std::ffi::c_void;
-use std::sync::Once;
+use objc::runtime::{Class, Object, Sel};
+use objc::{sel, sel_impl};
+
+//use crate::error::Error;
+use crate::foundation::{id, load_or_register_class, BOOL, YES};
+use crate::uikit::app::{AppDelegate, APP_DELEGATE};
+use crate::uikit::scene::{SceneConnectionOptions, SceneSession};
+
 //use std::unreachable;
 
 //use block::Block;
 
-use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
-
-use url::Url;
-
-//use crate::error::Error;
-use crate::foundation::{id, nil, NSArray, NSString, NSUInteger, BOOL, NO, YES};
 //use crate::user_activity::UserActivity;
-
-use crate::uikit::app::{AppDelegate, APP_DELEGATE};
-use crate::uikit::scene::{SceneConfig, SceneConnectionOptions, SceneSession};
-
-#[cfg(feature = "cloudkit")]
-use crate::cloudkit::share::CKShareMetaData;
 
 /// A handy method for grabbing our `AppDelegate` from the pointer. This is different from our
 /// standard `utils` version as this doesn't require `RefCell` backing.
@@ -49,36 +41,21 @@ extern "C" fn configuration_for_scene_session<T: AppDelegate>(this: &Object, _: 
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and
 /// pointers we need to have.
 pub(crate) fn register_app_delegate_class<T: AppDelegate>() -> *const Class {
-    static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-    const CLASS_NAME: &str = "RSTAppDelegate";
+    load_or_register_class("NSObject", "RSTAppDelegate", |decl| unsafe {
+        // Launching Applications
+        decl.add_method(
+            sel!(application:didFinishLaunchingWithOptions:),
+            did_finish_launching::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
+        );
 
-    if let Some(c) = Class::get(CLASS_NAME) {
-        unsafe { DELEGATE_CLASS = c };
-    } else {
-        INIT.call_once(|| unsafe {
-            let superclass = class!(NSObject);
-            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
-
-            // Launching Applications
-            decl.add_method(
-                sel!(application:didFinishLaunchingWithOptions:),
-                did_finish_launching::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
-            );
-
-            // Scenes
-            decl.add_method(
-                sel!(application:configurationForConnectingSceneSession:options:),
-                configuration_for_scene_session::<T> as extern "C" fn(&Object, _, _, id, id) -> id
-            );
-            /*decl.add_method(
-                sel!(application:didDiscardSceneSessions:),
-                did_discard_scene_sessions::<T> as extern "C" fn(&Object, _, _, id)
-            );*/
-
-            DELEGATE_CLASS = decl.register();
-        });
-    }
-
-    unsafe { DELEGATE_CLASS }
+        // Scenes
+        decl.add_method(
+            sel!(application:configurationForConnectingSceneSession:options:),
+            configuration_for_scene_session::<T> as extern "C" fn(&Object, _, _, id, id) -> id
+        );
+        /*decl.add_method(
+            sel!(application:didDiscardSceneSessions:),
+            did_discard_scene_sessions::<T> as extern "C" fn(&Object, _, _, id)
+        );*/
+    })
 }

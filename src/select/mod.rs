@@ -1,24 +1,19 @@
 //! Implements a Select-style dropdown. By default this uses NSPopupSelect on macOS.
 
-use std::sync::Once;
-
 use core_graphics::geometry::CGRect;
-
-use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::{Class, Object};
+use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::control::Control;
-use crate::foundation::{id, nil, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSInteger, NSString, NO, YES};
 use crate::geometry::Rect;
 use crate::invoker::TargetActionHandler;
 use crate::layout::Layout;
-use crate::objc_access::ObjcAccess;
-use crate::utils::properties::ObjcProperty;
-
 #[cfg(feature = "autolayout")]
 use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
+use crate::objc_access::ObjcAccess;
+use crate::utils::properties::ObjcProperty;
 
 /// Wraps `NSPopUpSelect` on AppKit. Not currently implemented for iOS.
 ///
@@ -268,19 +263,5 @@ impl Drop for Select {
 /// Registers an `NSSelect` subclass, and configures it to hold some ivars
 /// for various things we need to store.
 fn register_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-    const CLASS_NAME: &str = "CacaoSelect";
-
-    if let Some(c) = Class::get(CLASS_NAME) {
-        unsafe { VIEW_CLASS = c };
-    } else {
-        INIT.call_once(|| unsafe {
-            let superclass = class!(NSPopUpButton);
-            let decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
-            VIEW_CLASS = decl.register();
-        });
-    }
-
-    unsafe { VIEW_CLASS }
+    load_or_register_class("NSPopUpButton", "CacaoSelect", |decl| unsafe {})
 }

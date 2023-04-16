@@ -9,15 +9,12 @@
 //! is going away.
 
 use std::fmt;
-use std::sync::{Arc, Mutex, Once};
 
-use block::{Block, ConcreteBlock, RcBlock};
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
-use crate::foundation::{id, nil, NSString};
+use crate::foundation::{id, load_or_register_class};
 use crate::utils::load;
 
 pub static ACTION_CALLBACK_PTR: &str = "rstTargetActionPtr";
@@ -95,25 +92,8 @@ extern "C" fn perform<F: Fn() + 'static>(this: &mut Object, _: Sel, _sender: id)
 /// on drop. We handle the heap copy on the Rust side, so setting the block
 /// is just an ivar.
 pub(crate) fn register_invoker_class<F: Fn() + 'static>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-    const CLASS_NAME: &str = "RSTTargetActionHandler";
-
-    if let Some(c) = Class::get(CLASS_NAME) {
-        unsafe {
-            VIEW_CLASS = c;
-        }
-    } else {
-        INIT.call_once(|| unsafe {
-            let superclass = class!(NSObject);
-            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
-
-            decl.add_ivar::<usize>(ACTION_CALLBACK_PTR);
-            decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(&mut Object, _, id));
-
-            VIEW_CLASS = decl.register();
-        });
-    }
-
-    unsafe { VIEW_CLASS }
+    load_or_register_class("NSObject", "RSTTargetActionHandler", |decl| unsafe {
+        decl.add_ivar::<usize>(ACTION_CALLBACK_PTR);
+        decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(&mut Object, _, id));
+    })
 }

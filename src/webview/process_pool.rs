@@ -4,46 +4,23 @@
 //!
 //! If you use that feature, there are no guarantees you'll be accepted into the App Store.
 
-use std::sync::Once;
-use std::ffi::c_void;
-
 use block::Block;
-
-use cocoa::foundation::{NSRect, NSPoint, NSSize, NSString, NSArray, NSInteger};
-
+use cocoa::foundation::{NSArray, NSInteger, NSPoint, NSRect, NSSize, NSString};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, YES, NO};
+use crate::foundation::{id, nil, NO, YES};
 use crate::webview::traits::WebViewController;
 
 extern "C" fn download_delegate(this: &Object, _: Sel) -> id {
     println!("YO!");
-    unsafe {
-    NSString::alloc(nil).init_str("")
-    }
+    unsafe { NSString::alloc(nil).init_str("") }
 }
 
 pub fn register_process_pool() -> *const Object {
-    static mut PROCESS_POOL: *const Object = 0 as *const Object;
-    static INIT: Once = Once::new();
-    const CLASS_NAME: &str = "RSTWebViewProcessPool";
-
-    if let Some(c) = Class::get(CLASS_NAME) {
-        unsafe { PROCESS_POOL = c };
-    } else {
-        INIT.call_once(|| unsafe {
-            let superclass = Class::get("WKProcessPool").unwrap();
-            let mut decl = ClassDecl::new("RSTWebViewProcessPool", superclass).unwrap();
-
-            //decl.add_ivar::<id>(DOWNLOAD_DELEGATE_PTR);
-            decl.add_method(sel!(_downloadDelegate), download_delegate as extern "C" fn(&Object, _) -> id);
-
-            //PROCESS_POOL = decl.register();
-            PROCESS_POOL = msg_send![decl.register(), new];
-        });
-    }
-
-    unsafe { PROCESS_POOL }
+    load_or_register_class("WKProcessPool", "RSTWebViewProcessPool", |decl| unsafe {
+        //decl.add_ivar::<id>(DOWNLOAD_DELEGATE_PTR);
+        decl.add_method(sel!(_downloadDelegate), download_delegate as extern "C" fn(&Object, _) -> id);
+    })
 }

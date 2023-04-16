@@ -7,15 +7,12 @@
 //! for in the modern era. It also implements a few helpers for things like setting a background
 //! color, and enforcing layer backing by default.
 
-use std::sync::Once;
-
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::dragdrop::DragInfo;
-use crate::foundation::{id, nil, NSUInteger, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSUInteger, NO, YES};
 use crate::listview::row::{ViewDelegate, BACKGROUND_COLOR, LISTVIEW_ROW_DELEGATE_PTR};
 use crate::utils::load;
 
@@ -107,76 +104,46 @@ extern "C" fn dealloc<T: ViewDelegate>(this: &Object, _: Sel) {
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
 pub(crate) fn register_listview_row_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-    const CLASS_NAME: &str = "RSTTableViewRow";
-
-    if let Some(c) = Class::get(CLASS_NAME) {
-        unsafe { VIEW_CLASS = c };
-    } else {
-        INIT.call_once(|| unsafe {
-            let superclass = class!(NSView);
-            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
-
-            decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
-
-            VIEW_CLASS = decl.register();
-        });
-    }
-
-    unsafe { VIEW_CLASS }
+    load_or_register_class("NSView", "RSTTableViewRow", |decl| unsafe {
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+    })
 }
 
 /// Injects an `NSView` subclass, with some callback and pointer ivars for what we
 /// need to do.
 pub(crate) fn register_listview_row_class_with_delegate<T: ViewDelegate>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-    const CLASS_NAME: &str = "RSTableViewRowWithDelegate";
+    load_or_register_class("NSView", "RSTableViewRowWithDelegate", |decl| unsafe {
+        // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
+        // move.
+        decl.add_ivar::<usize>(LISTVIEW_ROW_DELEGATE_PTR);
+        decl.add_ivar::<id>(BACKGROUND_COLOR);
 
-    if let Some(c) = Class::get(CLASS_NAME) {
-        unsafe { VIEW_CLASS = c };
-    } else {
-        INIT.call_once(|| unsafe {
-            let superclass = class!(NSView);
-            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(&Object, _));
 
-            // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
-            // move.
-            decl.add_ivar::<usize>(LISTVIEW_ROW_DELEGATE_PTR);
-            decl.add_ivar::<id>(BACKGROUND_COLOR);
+        // Drag and drop operations (e.g, accepting files)
+        decl.add_method(
+            sel!(draggingEntered:),
+            dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger
+        );
+        decl.add_method(
+            sel!(prepareForDragOperation:),
+            prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+        );
+        decl.add_method(
+            sel!(performDragOperation:),
+            perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+        );
+        decl.add_method(
+            sel!(concludeDragOperation:),
+            conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _)
+        );
+        decl.add_method(
+            sel!(draggingExited:),
+            dragging_exited::<T> as extern "C" fn(&mut Object, _, _)
+        );
 
-            decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
-            decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(&Object, _));
-
-            // Drag and drop operations (e.g, accepting files)
-            decl.add_method(
-                sel!(draggingEntered:),
-                dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger
-            );
-            decl.add_method(
-                sel!(prepareForDragOperation:),
-                prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
-            );
-            decl.add_method(
-                sel!(performDragOperation:),
-                perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
-            );
-            decl.add_method(
-                sel!(concludeDragOperation:),
-                conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _)
-            );
-            decl.add_method(
-                sel!(draggingExited:),
-                dragging_exited::<T> as extern "C" fn(&mut Object, _, _)
-            );
-
-            // Cleanup
-            decl.add_method(sel!(dealloc), dealloc::<T> as extern "C" fn(&Object, _));
-
-            VIEW_CLASS = decl.register();
-        });
-    }
-
-    unsafe { VIEW_CLASS }
+        // Cleanup
+        decl.add_method(sel!(dealloc), dealloc::<T> as extern "C" fn(&Object, _));
+    })
 }
