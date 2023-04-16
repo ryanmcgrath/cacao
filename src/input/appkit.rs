@@ -54,12 +54,17 @@ extern "C" fn text_should_end_editing<T: TextFieldDelegate>(this: &mut Object, _
 pub(crate) fn register_view_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTTextInputField";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSTextField);
-        let decl = ClassDecl::new("RSTTextInputField", superclass).unwrap();
-        VIEW_CLASS = decl.register();
-    });
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { VIEW_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSTextField);
+            let decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
+            VIEW_CLASS = decl.register();
+        });
+    }
 
     unsafe { VIEW_CLASS }
 }

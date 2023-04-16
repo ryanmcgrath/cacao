@@ -15,12 +15,17 @@ use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};
 pub(crate) fn register_image_view_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTImageView";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(UIImageView);
-        let mut decl = ClassDecl::new("RSTImageView", superclass).expect("Failed to get RSTVIEW");
-        VIEW_CLASS = decl.register();
-    });
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { VIEW_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(UIImageView);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).expect("Failed to get RSTVIEW");
+            VIEW_CLASS = decl.register();
+        });
+    }
 
     unsafe { VIEW_CLASS }
 }

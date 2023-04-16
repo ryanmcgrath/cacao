@@ -97,16 +97,23 @@ extern "C" fn perform<F: Fn() + 'static>(this: &mut Object, _: Sel, _sender: id)
 pub(crate) fn register_invoker_class<F: Fn() + 'static>() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTTargetActionHandler";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSObject);
-        let mut decl = ClassDecl::new("RSTTargetActionHandler", superclass).unwrap();
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe {
+            VIEW_CLASS = c;
+        }
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSObject);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
 
-        decl.add_ivar::<usize>(ACTION_CALLBACK_PTR);
-        decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(&mut Object, _, id));
+            decl.add_ivar::<usize>(ACTION_CALLBACK_PTR);
+            decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(&mut Object, _, id));
 
-        VIEW_CLASS = decl.register();
-    });
+            VIEW_CLASS = decl.register();
+        });
+    }
 
     unsafe { VIEW_CLASS }
 }

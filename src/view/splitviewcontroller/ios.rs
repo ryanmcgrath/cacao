@@ -53,20 +53,30 @@ extern "C" fn did_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated
 pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTViewController";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(UIViewController);
-        let mut decl = ClassDecl::new("RSTViewController", superclass).unwrap();
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { VIEW_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(UIViewController);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
 
-        decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
+            decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
 
-        decl.add_method(sel!(viewWillAppear:), will_appear::<T> as extern "C" fn(&mut Object, _, BOOL));
-        decl.add_method(sel!(viewDidAppear:), did_appear::<T> as extern "C" fn(&mut Object, _, BOOL));
-        decl.add_method(sel!(viewWillDisappear:), will_disappear::<T> as extern "C" fn(&mut Object, _, BOOL));
-        decl.add_method(sel!(viewDidDisappear:), did_disappear::<T> as extern "C" fn(&mut Object, _, BOOL));
+            decl.add_method(sel!(viewWillAppear:), will_appear::<T> as extern "C" fn(&mut Object, _, BOOL));
+            decl.add_method(sel!(viewDidAppear:), did_appear::<T> as extern "C" fn(&mut Object, _, BOOL));
+            decl.add_method(
+                sel!(viewWillDisappear:),
+                will_disappear::<T> as extern "C" fn(&mut Object, _, BOOL)
+            );
+            decl.add_method(
+                sel!(viewDidDisappear:),
+                did_disappear::<T> as extern "C" fn(&mut Object, _, BOOL)
+            );
 
-        VIEW_CLASS = decl.register();
-    });
-
+            VIEW_CLASS = decl.register();
+        });
+    }
     unsafe { VIEW_CLASS }
 }

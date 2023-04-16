@@ -297,173 +297,178 @@ extern "C" fn delegate_handles_key<T: AppDelegate>(this: &Object, _: Sel, _: id,
 pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> *const Class {
     static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTAppDelegate";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSObject);
-        let mut decl = ClassDecl::new("RSTAppDelegate", superclass).unwrap();
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { DELEGATE_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSObject);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
 
-        decl.add_ivar::<usize>(APP_PTR);
+            decl.add_ivar::<usize>(APP_PTR);
 
-        // Launching Applications
-        decl.add_method(
-            sel!(applicationWillFinishLaunching:),
-            will_finish_launching::<T> as extern "C" fn(&Object, _, _)
-        );
-        decl.add_method(
-            sel!(applicationDidFinishLaunching:),
-            did_finish_launching::<T> as extern "C" fn(&Object, _, _)
-        );
+            // Launching Applications
+            decl.add_method(
+                sel!(applicationWillFinishLaunching:),
+                will_finish_launching::<T> as extern "C" fn(&Object, _, _)
+            );
+            decl.add_method(
+                sel!(applicationDidFinishLaunching:),
+                did_finish_launching::<T> as extern "C" fn(&Object, _, _)
+            );
 
-        // Managing Active Status
-        decl.add_method(
-            sel!(applicationWillBecomeActive:),
-            will_become_active::<T> as extern "C" fn(&Object, _, _)
-        );
-        decl.add_method(
-            sel!(applicationDidBecomeActive:),
-            did_become_active::<T> as extern "C" fn(&Object, _, _)
-        );
-        decl.add_method(
-            sel!(applicationWillResignActive:),
-            will_resign_active::<T> as extern "C" fn(&Object, _, _)
-        );
-        decl.add_method(
-            sel!(applicationDidResignActive:),
-            did_resign_active::<T> as extern "C" fn(&Object, _, _)
-        );
+            // Managing Active Status
+            decl.add_method(
+                sel!(applicationWillBecomeActive:),
+                will_become_active::<T> as extern "C" fn(&Object, _, _)
+            );
+            decl.add_method(
+                sel!(applicationDidBecomeActive:),
+                did_become_active::<T> as extern "C" fn(&Object, _, _)
+            );
+            decl.add_method(
+                sel!(applicationWillResignActive:),
+                will_resign_active::<T> as extern "C" fn(&Object, _, _)
+            );
+            decl.add_method(
+                sel!(applicationDidResignActive:),
+                did_resign_active::<T> as extern "C" fn(&Object, _, _)
+            );
 
-        // Terminating Applications
-        decl.add_method(
-            sel!(applicationShouldTerminate:),
-            should_terminate::<T> as extern "C" fn(&Object, _, _) -> NSUInteger
-        );
-        decl.add_method(
-            sel!(applicationWillTerminate:),
-            will_terminate::<T> as extern "C" fn(&Object, _, _)
-        );
-        decl.add_method(
-            sel!(applicationShouldTerminateAfterLastWindowClosed:),
-            should_terminate_after_last_window_closed::<T> as extern "C" fn(&Object, _, _) -> BOOL
-        );
+            // Terminating Applications
+            decl.add_method(
+                sel!(applicationShouldTerminate:),
+                should_terminate::<T> as extern "C" fn(&Object, _, _) -> NSUInteger
+            );
+            decl.add_method(
+                sel!(applicationWillTerminate:),
+                will_terminate::<T> as extern "C" fn(&Object, _, _)
+            );
+            decl.add_method(
+                sel!(applicationShouldTerminateAfterLastWindowClosed:),
+                should_terminate_after_last_window_closed::<T> as extern "C" fn(&Object, _, _) -> BOOL
+            );
 
-        // Hiding Applications
-        decl.add_method(sel!(applicationWillHide:), will_hide::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(sel!(applicationDidHide:), did_hide::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(sel!(applicationWillUnhide:), will_unhide::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(sel!(applicationDidUnhide:), did_unhide::<T> as extern "C" fn(&Object, _, _));
+            // Hiding Applications
+            decl.add_method(sel!(applicationWillHide:), will_hide::<T> as extern "C" fn(&Object, _, _));
+            decl.add_method(sel!(applicationDidHide:), did_hide::<T> as extern "C" fn(&Object, _, _));
+            decl.add_method(sel!(applicationWillUnhide:), will_unhide::<T> as extern "C" fn(&Object, _, _));
+            decl.add_method(sel!(applicationDidUnhide:), did_unhide::<T> as extern "C" fn(&Object, _, _));
 
-        // Managing Windows
-        decl.add_method(sel!(applicationWillUpdate:), will_update::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(sel!(applicationDidUpdate:), did_update::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(
-            sel!(applicationShouldHandleReopen:hasVisibleWindows:),
-            should_handle_reopen::<T> as extern "C" fn(&Object, _, _, BOOL) -> BOOL
-        );
+            // Managing Windows
+            decl.add_method(sel!(applicationWillUpdate:), will_update::<T> as extern "C" fn(&Object, _, _));
+            decl.add_method(sel!(applicationDidUpdate:), did_update::<T> as extern "C" fn(&Object, _, _));
+            decl.add_method(
+                sel!(applicationShouldHandleReopen:hasVisibleWindows:),
+                should_handle_reopen::<T> as extern "C" fn(&Object, _, _, BOOL) -> BOOL
+            );
 
-        // Dock Menu
-        decl.add_method(
-            sel!(applicationDockMenu:),
-            dock_menu::<T> as extern "C" fn(&Object, _, _) -> id
-        );
+            // Dock Menu
+            decl.add_method(
+                sel!(applicationDockMenu:),
+                dock_menu::<T> as extern "C" fn(&Object, _, _) -> id
+            );
 
-        // Displaying Errors
-        decl.add_method(
-            sel!(application:willPresentError:),
-            will_present_error::<T> as extern "C" fn(&Object, _, _, id) -> id
-        );
+            // Displaying Errors
+            decl.add_method(
+                sel!(application:willPresentError:),
+                will_present_error::<T> as extern "C" fn(&Object, _, _, id) -> id
+            );
 
-        // Managing the Screen
-        decl.add_method(
-            sel!(applicationDidChangeScreenParameters:),
-            did_change_screen_parameters::<T> as extern "C" fn(&Object, _, _)
-        );
-        decl.add_method(
-            sel!(applicationDidChangeOcclusionState:),
-            did_change_occlusion_state::<T> as extern "C" fn(&Object, _, _)
-        );
+            // Managing the Screen
+            decl.add_method(
+                sel!(applicationDidChangeScreenParameters:),
+                did_change_screen_parameters::<T> as extern "C" fn(&Object, _, _)
+            );
+            decl.add_method(
+                sel!(applicationDidChangeOcclusionState:),
+                did_change_occlusion_state::<T> as extern "C" fn(&Object, _, _)
+            );
 
-        // User Activities
-        decl.add_method(
-            sel!(application:willContinueUserActivityWithType:),
-            will_continue_user_activity_with_type::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
-        );
-        decl.add_method(
-            sel!(application:continueUserActivity:restorationHandler:),
-            continue_user_activity::<T> as extern "C" fn(&Object, _, _, id, id) -> BOOL
-        );
-        decl.add_method(
-            sel!(application:didFailToContinueUserActivityWithType:error:),
-            failed_to_continue_user_activity::<T> as extern "C" fn(&Object, _, _, id, id)
-        );
-        decl.add_method(
-            sel!(application:didUpdateUserActivity:),
-            did_update_user_activity::<T> as extern "C" fn(&Object, _, _, id)
-        );
+            // User Activities
+            decl.add_method(
+                sel!(application:willContinueUserActivityWithType:),
+                will_continue_user_activity_with_type::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
+            );
+            decl.add_method(
+                sel!(application:continueUserActivity:restorationHandler:),
+                continue_user_activity::<T> as extern "C" fn(&Object, _, _, id, id) -> BOOL
+            );
+            decl.add_method(
+                sel!(application:didFailToContinueUserActivityWithType:error:),
+                failed_to_continue_user_activity::<T> as extern "C" fn(&Object, _, _, id, id)
+            );
+            decl.add_method(
+                sel!(application:didUpdateUserActivity:),
+                did_update_user_activity::<T> as extern "C" fn(&Object, _, _, id)
+            );
 
-        // Handling push notifications
-        decl.add_method(
-            sel!(application:didRegisterForRemoteNotificationsWithDeviceToken:),
-            registered_for_remote_notifications::<T> as extern "C" fn(&Object, _, _, id)
-        );
-        decl.add_method(
-            sel!(application:didFailToRegisterForRemoteNotificationsWithError:),
-            failed_to_register_for_remote_notifications::<T> as extern "C" fn(&Object, _, _, id)
-        );
-        decl.add_method(
-            sel!(application:didReceiveRemoteNotification:),
-            did_receive_remote_notification::<T> as extern "C" fn(&Object, _, _, id)
-        );
+            // Handling push notifications
+            decl.add_method(
+                sel!(application:didRegisterForRemoteNotificationsWithDeviceToken:),
+                registered_for_remote_notifications::<T> as extern "C" fn(&Object, _, _, id)
+            );
+            decl.add_method(
+                sel!(application:didFailToRegisterForRemoteNotificationsWithError:),
+                failed_to_register_for_remote_notifications::<T> as extern "C" fn(&Object, _, _, id)
+            );
+            decl.add_method(
+                sel!(application:didReceiveRemoteNotification:),
+                did_receive_remote_notification::<T> as extern "C" fn(&Object, _, _, id)
+            );
 
-        // CloudKit
-        #[cfg(feature = "cloudkit")]
-        decl.add_method(
-            sel!(application:userDidAcceptCloudKitShareWithMetadata:),
-            accepted_cloudkit_share::<T> as extern "C" fn(&Object, _, _, id)
-        );
+            // CloudKit
+            #[cfg(feature = "cloudkit")]
+            decl.add_method(
+                sel!(application:userDidAcceptCloudKitShareWithMetadata:),
+                accepted_cloudkit_share::<T> as extern "C" fn(&Object, _, _, id)
+            );
 
-        // Opening Files
-        decl.add_method(
-            sel!(application:openURLs:),
-            open_urls::<T> as extern "C" fn(&Object, _, _, id)
-        );
-        decl.add_method(
-            sel!(application:openFileWithoutUI:),
-            open_file_without_ui::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
-        );
-        decl.add_method(
-            sel!(applicationShouldOpenUntitledFile:),
-            should_open_untitled_file::<T> as extern "C" fn(&Object, _, _) -> BOOL
-        );
-        decl.add_method(
-            sel!(applicationOpenUntitledFile:),
-            open_untitled_file::<T> as extern "C" fn(&Object, _, _) -> BOOL
-        );
-        decl.add_method(
-            sel!(application:openTempFile:),
-            open_temp_file::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
-        );
+            // Opening Files
+            decl.add_method(
+                sel!(application:openURLs:),
+                open_urls::<T> as extern "C" fn(&Object, _, _, id)
+            );
+            decl.add_method(
+                sel!(application:openFileWithoutUI:),
+                open_file_without_ui::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
+            );
+            decl.add_method(
+                sel!(applicationShouldOpenUntitledFile:),
+                should_open_untitled_file::<T> as extern "C" fn(&Object, _, _) -> BOOL
+            );
+            decl.add_method(
+                sel!(applicationOpenUntitledFile:),
+                open_untitled_file::<T> as extern "C" fn(&Object, _, _) -> BOOL
+            );
+            decl.add_method(
+                sel!(application:openTempFile:),
+                open_temp_file::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
+            );
 
-        // Printing
-        decl.add_method(
-            sel!(application:printFile:),
-            print_file::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
-        );
-        decl.add_method(
-            sel!(application:printFiles:withSettings:showPrintPanels:),
-            print_files::<T> as extern "C" fn(&Object, _, id, id, id, BOOL) -> NSUInteger
-        );
+            // Printing
+            decl.add_method(
+                sel!(application:printFile:),
+                print_file::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
+            );
+            decl.add_method(
+                sel!(application:printFiles:withSettings:showPrintPanels:),
+                print_files::<T> as extern "C" fn(&Object, _, id, id, id, BOOL) -> NSUInteger
+            );
 
-        // @TODO: Restoring Application State
-        // Depends on NSCoder support, which is... welp.
+            // @TODO: Restoring Application State
+            // Depends on NSCoder support, which is... welp.
 
-        // Scripting
-        decl.add_method(
-            sel!(application:delegateHandlesKey:),
-            delegate_handles_key::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
-        );
+            // Scripting
+            decl.add_method(
+                sel!(application:delegateHandlesKey:),
+                delegate_handles_key::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
+            );
 
-        DELEGATE_CLASS = decl.register();
-    });
+            DELEGATE_CLASS = decl.register();
+        });
+    }
 
     unsafe { DELEGATE_CLASS }
 }

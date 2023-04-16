@@ -79,12 +79,17 @@ extern "C" fn dragging_exited<T: ScrollViewDelegate>(this: &mut Object, _: Sel, 
 pub(crate) fn register_scrollview_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &'static str = "RSTScrollView";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSScrollView);
-        let decl = ClassDecl::new("RSTScrollView", superclass).unwrap();
-        VIEW_CLASS = decl.register();
-    });
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { VIEW_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSScrollView);
+            let decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
+            VIEW_CLASS = decl.register();
+        });
+    }
 
     unsafe { VIEW_CLASS }
 }
@@ -94,41 +99,46 @@ pub(crate) fn register_scrollview_class() -> *const Class {
 pub(crate) fn register_scrollview_class_with_delegate<T: ScrollViewDelegate>() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &'static str = "RSTScrollViewWithDelegate";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSScrollView);
-        let mut decl = ClassDecl::new("RSTScrollViewWithDelegate", superclass).unwrap();
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { VIEW_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSScrollView);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
 
-        // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
-        // move.
-        decl.add_ivar::<usize>(SCROLLVIEW_DELEGATE_PTR);
+            // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
+            // move.
+            decl.add_ivar::<usize>(SCROLLVIEW_DELEGATE_PTR);
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+            decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
 
-        // Drag and drop operations (e.g, accepting files)
-        decl.add_method(
-            sel!(draggingEntered:),
-            dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger
-        );
-        decl.add_method(
-            sel!(prepareForDragOperation:),
-            prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
-        );
-        decl.add_method(
-            sel!(performDragOperation:),
-            perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
-        );
-        decl.add_method(
-            sel!(concludeDragOperation:),
-            conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _)
-        );
-        decl.add_method(
-            sel!(draggingExited:),
-            dragging_exited::<T> as extern "C" fn(&mut Object, _, _)
-        );
+            // Drag and drop operations (e.g, accepting files)
+            decl.add_method(
+                sel!(draggingEntered:),
+                dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger
+            );
+            decl.add_method(
+                sel!(prepareForDragOperation:),
+                prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            );
+            decl.add_method(
+                sel!(performDragOperation:),
+                perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            );
+            decl.add_method(
+                sel!(concludeDragOperation:),
+                conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _)
+            );
+            decl.add_method(
+                sel!(draggingExited:),
+                dragging_exited::<T> as extern "C" fn(&mut Object, _, _)
+            );
 
-        VIEW_CLASS = decl.register();
-    });
+            VIEW_CLASS = decl.register();
+        });
+    }
 
     unsafe { VIEW_CLASS }
 }

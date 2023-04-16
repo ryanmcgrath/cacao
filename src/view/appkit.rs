@@ -94,19 +94,24 @@ extern "C" fn update_layer(this: &Object, _: Sel) {
 pub(crate) fn register_view_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTView";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSView);
-        let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { VIEW_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSView);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
-        decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(&Object, _));
-        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+            decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+            decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(&Object, _));
+            decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
 
-        decl.add_ivar::<id>(BACKGROUND_COLOR);
+            decl.add_ivar::<id>(BACKGROUND_COLOR);
 
-        VIEW_CLASS = decl.register();
-    });
+            VIEW_CLASS = decl.register();
+        });
+    }
 
     unsafe { VIEW_CLASS }
 }

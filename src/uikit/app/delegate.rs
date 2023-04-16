@@ -51,29 +51,34 @@ extern "C" fn configuration_for_scene_session<T: AppDelegate>(this: &Object, _: 
 pub(crate) fn register_app_delegate_class<T: AppDelegate>() -> *const Class {
     static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTAppDelegate";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSObject);
-        let mut decl = ClassDecl::new("RSTAppDelegate", superclass).unwrap();
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { DELEGATE_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSObject);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
 
-        // Launching Applications
-        decl.add_method(
-            sel!(application:didFinishLaunchingWithOptions:),
-            did_finish_launching::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
-        );
+            // Launching Applications
+            decl.add_method(
+                sel!(application:didFinishLaunchingWithOptions:),
+                did_finish_launching::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
+            );
 
-        // Scenes
-        decl.add_method(
-            sel!(application:configurationForConnectingSceneSession:options:),
-            configuration_for_scene_session::<T> as extern "C" fn(&Object, _, _, id, id) -> id
-        );
-        /*decl.add_method(
-            sel!(application:didDiscardSceneSessions:),
-            did_discard_scene_sessions::<T> as extern "C" fn(&Object, _, _, id)
-        );*/
+            // Scenes
+            decl.add_method(
+                sel!(application:configurationForConnectingSceneSession:options:),
+                configuration_for_scene_session::<T> as extern "C" fn(&Object, _, _, id, id) -> id
+            );
+            /*decl.add_method(
+                sel!(application:didDiscardSceneSessions:),
+                did_discard_scene_sessions::<T> as extern "C" fn(&Object, _, _, id)
+            );*/
 
-        DELEGATE_CLASS = decl.register();
-    });
+            DELEGATE_CLASS = decl.register();
+        });
+    }
 
     unsafe { DELEGATE_CLASS }
 }

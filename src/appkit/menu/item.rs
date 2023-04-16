@@ -316,17 +316,22 @@ extern "C" fn fire_block_action(this: &Object, _: Sel, _item: id) {
 pub(crate) fn register_menu_item_class() -> *const Class {
     static mut APP_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "CacaoMenuItem";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSMenuItem);
-        let mut decl = ClassDecl::new("CacaoMenuItem", superclass).unwrap();
-        decl.add_ivar::<usize>(BLOCK_PTR);
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { APP_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSMenuItem);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
+            decl.add_ivar::<usize>(BLOCK_PTR);
 
-        decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern "C" fn(&Object, _));
-        decl.add_method(sel!(fireBlockAction:), fire_block_action as extern "C" fn(&Object, _, id));
+            decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern "C" fn(&Object, _));
+            decl.add_method(sel!(fireBlockAction:), fire_block_action as extern "C" fn(&Object, _, id));
 
-        APP_CLASS = decl.register();
-    });
+            APP_CLASS = decl.register();
+        });
+    }
 
     unsafe { APP_CLASS }
 }

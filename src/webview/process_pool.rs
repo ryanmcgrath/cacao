@@ -28,17 +28,22 @@ extern "C" fn download_delegate(this: &Object, _: Sel) -> id {
 pub fn register_process_pool() -> *const Object {
     static mut PROCESS_POOL: *const Object = 0 as *const Object;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTWebViewProcessPool";
 
-    INIT.call_once(|| unsafe {
-        let superclass = Class::get("WKProcessPool").unwrap();
-        let mut decl = ClassDecl::new("RSTWebViewProcessPool", superclass).unwrap();
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { PROCESS_POOL = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = Class::get("WKProcessPool").unwrap();
+            let mut decl = ClassDecl::new("RSTWebViewProcessPool", superclass).unwrap();
 
-        //decl.add_ivar::<id>(DOWNLOAD_DELEGATE_PTR);
-        decl.add_method(sel!(_downloadDelegate), download_delegate as extern "C" fn(&Object, _) -> id);
+            //decl.add_ivar::<id>(DOWNLOAD_DELEGATE_PTR);
+            decl.add_method(sel!(_downloadDelegate), download_delegate as extern "C" fn(&Object, _) -> id);
 
-        //PROCESS_POOL = decl.register();
-        PROCESS_POOL = msg_send![decl.register(), new];
-    });
+            //PROCESS_POOL = decl.register();
+            PROCESS_POOL = msg_send![decl.register(), new];
+        });
+    }
 
     unsafe { PROCESS_POOL }
 }

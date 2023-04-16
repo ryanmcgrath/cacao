@@ -14,13 +14,18 @@ use crate::appkit::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
 pub(crate) fn register_window_controller_class<T: WindowDelegate>() -> *const Class {
     static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTWindowController";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSWindowController);
-        let mut decl = ClassDecl::new("RSTWindowController", superclass).unwrap();
-        decl.add_ivar::<usize>(WINDOW_DELEGATE_PTR);
-        DELEGATE_CLASS = decl.register();
-    });
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { DELEGATE_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSWindowController);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
+            decl.add_ivar::<usize>(WINDOW_DELEGATE_PTR);
+            DELEGATE_CLASS = decl.register();
+        });
+    }
 
     unsafe { DELEGATE_CLASS }
 }

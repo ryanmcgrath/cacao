@@ -62,30 +62,35 @@ extern "C" fn scene_will_connect_to_session_with_options<T: WindowSceneDelegate>
 pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn() -> Box<T>>() -> *const Class {
     static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTWindowSceneDelegate";
 
-    use objc::runtime::{class_addProtocol, Protocol};
-    INIT.call_once(|| unsafe {
-        let superclass = class!(UIResponder);
-        let mut decl = ClassDecl::new("RSTWindowSceneDelegate", superclass).unwrap();
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { DELEGATE_CLASS = c };
+    } else {
+        use objc::runtime::Protocol;
+        INIT.call_once(|| unsafe {
+            let superclass = class!(UIResponder);
+            let mut decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
 
-        let p = Protocol::get("UIWindowSceneDelegate").unwrap();
+            let p = Protocol::get("UIWindowSceneDelegate").unwrap();
 
-        // A spot to hold a pointer to
-        decl.add_ivar::<usize>(WINDOW_SCENE_PTR);
-        decl.add_protocol(p);
+            // A spot to hold a pointer to
+            decl.add_ivar::<usize>(WINDOW_SCENE_PTR);
+            decl.add_protocol(p);
 
-        // Override the `init` call to handle creating and attaching a WindowSceneDelegate.
-        decl.add_method(sel!(init), init::<T, F> as extern "C" fn(&mut Object, _) -> id);
+            // Override the `init` call to handle creating and attaching a WindowSceneDelegate.
+            decl.add_method(sel!(init), init::<T, F> as extern "C" fn(&mut Object, _) -> id);
 
-        // UIWindowSceneDelegate API
-        decl.add_method(
-            sel!(scene:willConnectToSession:options:),
-            scene_will_connect_to_session_with_options::<T> as extern "C" fn(&Object, _, _, _, _)
-        );
+            // UIWindowSceneDelegate API
+            decl.add_method(
+                sel!(scene:willConnectToSession:options:),
+                scene_will_connect_to_session_with_options::<T> as extern "C" fn(&Object, _, _, _, _)
+            );
 
-        // Launching Applications
-        DELEGATE_CLASS = decl.register();
-    });
+            // Launching Applications
+            DELEGATE_CLASS = decl.register();
+        });
+    }
 
     unsafe { DELEGATE_CLASS }
 }

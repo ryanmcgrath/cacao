@@ -187,12 +187,17 @@ extern "C" fn dragging_exited<T: ListViewDelegate>(this: &mut Object, _: Sel, in
 pub(crate) fn register_listview_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &'static str = "RSTListView";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSTableView);
-        let decl = ClassDecl::new("RSTListView", superclass).unwrap();
-        VIEW_CLASS = decl.register();
-    });
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { VIEW_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSTableView);
+            let decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
+            VIEW_CLASS = decl.register();
+        });
+    }
 
     unsafe { VIEW_CLASS }
 }

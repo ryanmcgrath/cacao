@@ -25,15 +25,20 @@ use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};
 pub(crate) fn register_image_view_class() -> *const Class {
     static mut VIEW_CLASS: *const Class = 0 as *const Class;
     static INIT: Once = Once::new();
+    const CLASS_NAME: &str = "RSTImageView";
 
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSImageView);
-        let decl = ClassDecl::new("RSTImageView", superclass).unwrap();
+    if let Some(c) = Class::get(CLASS_NAME) {
+        unsafe { VIEW_CLASS = c };
+    } else {
+        INIT.call_once(|| unsafe {
+            let superclass = class!(NSImageView);
+            let decl = ClassDecl::new(CLASS_NAME, superclass).unwrap();
 
-        //decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+            //decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
 
-        VIEW_CLASS = decl.register();
-    });
+            VIEW_CLASS = decl.register();
+        });
+    }
 
     unsafe { VIEW_CLASS }
 }
