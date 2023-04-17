@@ -9,7 +9,7 @@ use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};
 /// Called when the view controller receives a `viewWillAppear:` message.
 extern "C" fn will_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
     unsafe {
-        let _: () = msg_send![super(this, class!(UIViewController)), viewWillAppear:animated];
+        let _: () = msg_send![super(this, class!(UIViewController)), viewWillAppear: animated];
     }
 
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
@@ -19,7 +19,7 @@ extern "C" fn will_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: 
 /// Called when the view controller receives a `viewDidAppear:` message.
 extern "C" fn did_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
     unsafe {
-        let _: () = msg_send![super(this, class!(UIViewController)), viewDidAppear:animated];
+        let _: () = msg_send![super(this, class!(UIViewController)), viewDidAppear: animated];
     }
 
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
@@ -29,7 +29,7 @@ extern "C" fn did_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: B
 /// Called when the view controller receives a `viewWillDisappear:` message.
 extern "C" fn will_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
     unsafe {
-        let _: () = msg_send![super(this, class!(UIViewController)), viewWillDisappear:animated];
+        let _: () = msg_send![super(this, class!(UIViewController)), viewWillDisappear: animated];
     }
 
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);
@@ -39,7 +39,7 @@ extern "C" fn will_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animate
 /// Called when the view controller receives a `viewDidDisappear:` message.
 extern "C" fn did_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
     unsafe {
-        let _: () = msg_send![super(this, class!(UIViewController)), viewDidDisappear:animated];
+        let _: () = msg_send![super(this, class!(UIViewController)), viewDidDisappear: animated];
     }
 
     let controller = load::<T>(this, VIEW_DELEGATE_PTR);

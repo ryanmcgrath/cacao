@@ -305,6 +305,7 @@ impl ObjcAccess for Button {
 }
 
 impl Layout for Button {}
+
 impl Control for Button {}
 
 impl ObjcAccess for &Button {
@@ -318,6 +319,7 @@ impl ObjcAccess for &Button {
 }
 
 impl Layout for &Button {}
+
 impl Control for &Button {}
 
 impl Drop for Button {
