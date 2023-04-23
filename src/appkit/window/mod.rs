@@ -214,7 +214,7 @@ impl<T> Window<T> {
 
         unsafe {
             let subtitle = NSString::new(subtitle);
-            let _: () = msg_send![&*self.objc, setTitle: title];
+            let _: () = msg_send![&*self.objc, setSubtitle: subtitle];
         }
     }
 
