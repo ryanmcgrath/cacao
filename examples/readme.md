@@ -40,6 +40,11 @@ This example showcases text input, and logs it to the underlying console. It's m
 
 `cargo run --example text_input`
 
+## Safe Area
+This example showcases A window containg the text "Hello, world!" while keeping everything in the safearea to keep it visible.
+
+`cargo run --example safe_area`
+
 ## Calculator
 A Rust-rendition of the macOS Calculator app.
 
