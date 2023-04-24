@@ -205,6 +205,19 @@ impl<T> Window<T> {
         }
     }
 
+    /// Sets the subtitle (smaller text bellow the title on unified and expanded title bars) on the 
+    /// underlying window. When this property is an empty string, the system removes the subtitle
+    /// from the window layout. Allocates and passes an `NSString` over to the Objective C runtime.
+    /// Does nothing when less than version 11.
+    pub fn set_subtittle(&self, subtitle: &str) {
+        if !os::is_minimum_version(11) { return; }
+
+        unsafe {
+            let subtitle = NSString::new(subtitle);
+            let _: () = msg_send![&*self.objc, setSubtitle: subtitle];
+        }
+    }
+
     /// Sets the title visibility for the underlying window.
     pub fn set_title_visibility(&self, visibility: TitleVisibility) {
         unsafe {
