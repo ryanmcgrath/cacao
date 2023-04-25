@@ -230,10 +230,11 @@ where
     /// Initializes a new WebView with a given `WebViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
     pub fn with(config: WebViewConfig, delegate: T) -> WebView<T> {
+        let delegate_class = register_webview_delegate_class(&delegate);
         let mut delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
-            let objc_delegate: id = msg_send![register_webview_delegate_class::<T>(), new];
+            let objc_delegate: id = msg_send![delegate_class, new];
             let ptr: *const T = &*delegate;
             (&mut *objc_delegate).set_ivar(WEBVIEW_DELEGATE_PTR, ptr as usize);
             ShareId::from_ptr(objc_delegate)

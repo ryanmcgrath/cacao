@@ -3,24 +3,19 @@
 //! for potential future use.
 
 use std::ffi::c_void;
-use std::sync::Once;
 
 use block::Block;
-
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
-
+use objc::{msg_send, sel, sel_impl};
 use url::Url;
 
 use crate::appkit::app::{AppDelegate, APP_PTR};
 use crate::appkit::printing::PrintSettings;
-use crate::error::Error;
-use crate::foundation::{id, nil, to_bool, NSArray, NSString, NSUInteger, BOOL, NO, YES};
-use crate::user_activity::UserActivity;
-
 #[cfg(feature = "cloudkit")]
 use crate::cloudkit::share::CKShareMetaData;
+use crate::error::Error;
+use crate::foundation::{id, load_or_register_class, nil, to_bool, NSArray, NSString, NSUInteger, BOOL, NO, YES};
+use crate::user_activity::UserActivity;
 
 /// A handy method for grabbing our `AppDelegate` from the pointer. This is different from our
 /// standard `utils` version as this doesn't require `RefCell` backing.
@@ -295,13 +290,7 @@ extern "C" fn delegate_handles_key<T: AppDelegate>(this: &Object, _: Sel, _: id,
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and
 /// pointers we need to have.
 pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> *const Class {
-    static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSObject);
-        let mut decl = ClassDecl::new("RSTAppDelegate", superclass).unwrap();
-
+    load_or_register_class("NSObject", "RSTAppDelegate", |decl| unsafe {
         decl.add_ivar::<usize>(APP_PTR);
 
         // Launching Applications
@@ -461,9 +450,5 @@ pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> *co
             sel!(application:delegateHandlesKey:),
             delegate_handles_key::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
         );
-
-        DELEGATE_CLASS = decl.register();
-    });
-
-    unsafe { DELEGATE_CLASS }
+    })
 }

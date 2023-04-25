@@ -1,22 +1,17 @@
 //! A wrapper for NSSwitch. Currently the epitome of jank - if you're poking around here, expect
 //! that this will change at some point.
 
-use std::fmt;
-use std::sync::Once;
-
-use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::{Class, Object};
+use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
-use crate::foundation::{id, nil, NSString, BOOL, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSString, NO};
 use crate::invoker::TargetActionHandler;
 use crate::layout::Layout;
-use crate::objc_access::ObjcAccess;
-use crate::utils::{load, properties::ObjcProperty};
-
 #[cfg(feature = "autolayout")]
 use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
+use crate::objc_access::ObjcAccess;
+use crate::utils::properties::ObjcProperty;
 
 /// A wrapper for `NSSwitch`. Holds (retains) pointers for the Objective-C runtime
 /// where our `NSSwitch` lives.
@@ -178,14 +173,5 @@ impl Drop for Switch {
 /// Registers an `NSButton` subclass, and configures it to hold some ivars
 /// for various things we need to store.
 fn register_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSButton);
-        let decl = ClassDecl::new("RSTSwitch", superclass).unwrap();
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    load_or_register_class("NSButton", "RSTSwitch", |decl| unsafe {})
 }

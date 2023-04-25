@@ -153,7 +153,7 @@ pub mod layout;
 pub mod listview;
 pub mod networking;
 pub mod notification_center;
-pub(crate) mod objc_access;
+pub mod objc_access;
 
 #[cfg(feature = "appkit")]
 pub mod pasteboard;

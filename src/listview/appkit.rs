@@ -7,16 +7,13 @@
 //! for in the modern era. It also implements a few helpers for things like setting a background
 //! color, and enforcing layer backing by default.
 
-use std::sync::Once;
-
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::appkit::menu::{Menu, MenuItem};
+use crate::appkit::menu::Menu;
 use crate::dragdrop::DragInfo;
-use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSUInteger, NO, YES};
+use crate::foundation::{id, load_or_register_class, NSArray, NSInteger, NSUInteger, NO, YES};
 use crate::listview::{ListViewDelegate, RowEdge, LISTVIEW_DELEGATE_PTR};
 use crate::utils::load;
 
@@ -185,16 +182,7 @@ extern "C" fn dragging_exited<T: ListViewDelegate>(this: &mut Object, _: Sel, in
 /// `UITableView` semantics; if `NSTableView`'s multi column behavior is needed, then it can
 /// be added in.
 pub(crate) fn register_listview_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSTableView);
-        let decl = ClassDecl::new("RSTListView", superclass).unwrap();
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    load_or_register_class("NSTableView", "RSTListView", |decl| unsafe {})
 }
 
 /// Injects an `NSTableView` subclass, with some callback and pointer ivars for what we

@@ -23,6 +23,8 @@ impl AppDelegate for BasicApp {
 pub struct WebViewInstance;
 
 impl WebViewDelegate for WebViewInstance {
+    const NAME: &'static str = "CustomWebViewDelegate";
+
     fn on_custom_protocol_request(&self, path: &str) -> Option<Vec<u8>> {
         let requested_asset_path = path.replace("cacao://", "");
 

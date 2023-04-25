@@ -12,7 +12,7 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString, NO, YES};
 use crate::webview::actions::{NavigationAction, NavigationResponse};
 use crate::webview::{mimetype::MimeType, WebViewDelegate, WEBVIEW_DELEGATE_PTR}; //, OpenPanelParameters};
                                                                                  //use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
@@ -170,29 +170,14 @@ extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, downloa
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
 pub fn register_webview_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(WKWebView);
-        let decl = ClassDecl::new("RSTWebView", superclass).unwrap();
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    load_or_register_class("WKWebView", "CacaoWebView", |decl| unsafe {})
 }
 
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
-pub fn register_webview_delegate_class<T: WebViewDelegate>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSObject);
-        let mut decl = ClassDecl::new("RSTWebViewDelegate", superclass).unwrap();
-
+pub fn register_webview_delegate_class<T: WebViewDelegate>(instance: &T) -> *const Class {
+    load_or_register_class("NSObject", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(WEBVIEW_DELEGATE_PTR);
 
         // WKNavigationDelegate
@@ -239,9 +224,5 @@ pub fn register_webview_delegate_class<T: WebViewDelegate>() -> *const Class {
             sel!(_download:decideDestinationWithSuggestedFilename:completionHandler:),
             handle_download::<T> as extern "C" fn(&Object, _, id, id, usize)
         );
-
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    })
 }

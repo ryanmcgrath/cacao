@@ -23,6 +23,7 @@ use crate::foundation::{id, nil, to_bool, NSInteger, NSString, NSUInteger, NO, Y
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::{os, Controller};
+use crate::view::View;
 
 mod class;
 use class::register_window_class_with_delegate;
@@ -112,6 +113,13 @@ impl Window {
             delegate: None
         }
     }
+
+    pub(crate) unsafe fn existing(window: *mut Object) -> Window {
+        Window {
+            objc: ShareId::from_ptr(window),
+            delegate: None
+        }
+    }
 }
 
 impl<T> Window<T>
@@ -194,6 +202,19 @@ impl<T> Window<T> {
         unsafe {
             let title = NSString::new(title);
             let _: () = msg_send![&*self.objc, setTitle: title];
+        }
+    }
+
+    /// Sets the subtitle (smaller text bellow the title on unified and expanded title bars) on the 
+    /// underlying window. When this property is an empty string, the system removes the subtitle
+    /// from the window layout. Allocates and passes an `NSString` over to the Objective C runtime.
+    /// Does nothing when less than version 11.
+    pub fn set_subtittle(&self, subtitle: &str) {
+        if !os::is_minimum_version(11) { return; }
+
+        unsafe {
+            let subtitle = NSString::new(subtitle);
+            let _: () = msg_send![&*self.objc, setSubtitle: subtitle];
         }
     }
 
@@ -291,6 +312,11 @@ impl<T> Window<T> {
         }
     }
 
+    /// Return the objc ContentView from the window
+    pub(crate) unsafe fn content_view(&self) -> id {
+        let id: *mut Object = msg_send![&*self.objc, contentView];
+        id
+    }
     /// Given a view, sets it as the content view for this window.
     pub fn set_content_view<L: Layout + 'static>(&self, view: &L) {
         view.with_backing_obj_mut(|backing_node| unsafe {
