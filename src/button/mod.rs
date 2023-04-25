@@ -21,36 +21,28 @@
 //! my_view.add_subview(&button);
 //! ```
 
-use std::fmt;
-use std::sync::Once;
-
-use std::cell::RefCell;
-use std::rc::Rc;
-
-use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::{Class, Object};
+use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
+pub use enums::*;
+
+#[cfg(feature = "appkit")]
+use crate::appkit::FocusRingType;
 use crate::color::Color;
 use crate::control::Control;
-use crate::foundation::{id, nil, NSString, NSUInteger, BOOL, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSString, NSUInteger, NO, YES};
 use crate::image::Image;
 use crate::invoker::TargetActionHandler;
 use crate::keys::Key;
 use crate::layout::Layout;
-use crate::objc_access::ObjcAccess;
-use crate::text::{AttributedString, Font};
-use crate::utils::{load, properties::ObjcProperty};
-
 #[cfg(feature = "autolayout")]
 use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
-
-#[cfg(feature = "appkit")]
-use crate::appkit::FocusRingType;
+use crate::objc_access::ObjcAccess;
+use crate::text::{AttributedString, Font};
+use crate::utils::properties::ObjcProperty;
 
 mod enums;
-pub use enums::*;
 
 /// Wraps `NSButton` on appkit, and `UIButton` on iOS and tvOS.
 ///
@@ -313,6 +305,7 @@ impl ObjcAccess for Button {
 }
 
 impl Layout for Button {}
+
 impl Control for Button {}
 
 impl ObjcAccess for &Button {
@@ -326,6 +319,7 @@ impl ObjcAccess for &Button {
 }
 
 impl Layout for &Button {}
+
 impl Control for &Button {}
 
 impl Drop for Button {
@@ -343,14 +337,5 @@ impl Drop for Button {
 /// Registers an `NSButton` subclass, and configures it to hold some ivars
 /// for various things we need to store.
 fn register_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSButton);
-        let decl = ClassDecl::new("RSTButton", superclass).unwrap();
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    load_or_register_class("NSButton", "RSTButton", |decl| unsafe {})
 }

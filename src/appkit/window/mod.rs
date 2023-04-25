@@ -110,14 +110,14 @@ impl Window {
 
         Window {
             objc: objc,
-            delegate: None,
+            delegate: None
         }
     }
 
     pub(crate) unsafe fn existing(window: *mut Object) -> Window {
         Window {
             objc: ShareId::from_ptr(window),
-            delegate: None,
+            delegate: None
         }
     }
 }

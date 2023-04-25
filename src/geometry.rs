@@ -47,7 +47,7 @@ pub enum Edge {
     MinX = 0,
     MinY = 1,
     MaxX = 2,
-    MaxY = 3,
+    MaxY = 3
 }
 impl From<Rect> for CGRect {
     fn from(rect: Rect) -> CGRect {

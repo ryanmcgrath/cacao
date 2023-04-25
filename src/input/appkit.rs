@@ -1,12 +1,7 @@
-use std::sync::Once;
-
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{msg_send, sel, sel_impl};
 
-use crate::dragdrop::DragInfo;
-use crate::foundation::{id, load_or_register_class, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, load_or_register_class, NSString, NO, YES};
 use crate::input::{TextFieldDelegate, TEXTFIELD_DELEGATE_PTR};
 use crate::utils::load;
 
@@ -52,16 +47,7 @@ extern "C" fn text_should_end_editing<T: TextFieldDelegate>(this: &mut Object, _
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
 pub(crate) fn register_view_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSTextField);
-        let decl = ClassDecl::new("RSTTextInputField", superclass).unwrap();
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    load_or_register_class("NSTextField", "RSTTextInputField", |decl| unsafe {})
 }
 
 /// Injects an `NSTextField` subclass, with some callback and pointer ivars for what we
