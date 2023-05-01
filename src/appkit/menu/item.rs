@@ -165,8 +165,12 @@ impl MenuItem {
             // supported by MenuItem yet.
             Self::Services => {
                 let item = make_menu_item("Services", None, None, None);
-                let app: id = msg_send![class!(RSTApplication), sharedApplication];
-                let services: id = msg_send![app, servicesMenu];
+
+                let services = crate::appkit::app::shared_application(|app| {
+                    let services: id = msg_send![app, servicesMenu];
+                    services
+                });
+
                 let _: () = msg_send![&*item, setSubmenu: services];
                 item
             },
