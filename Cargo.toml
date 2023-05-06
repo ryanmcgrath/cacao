@@ -99,6 +99,6 @@ required-features = ["appkit"]
 [[example]]
 name = "window_controller"
 required-features = ["appkit"]
-[[exmaple]]
+[[example]]
 name = "safe_area"
 required-features = ["appkit"]

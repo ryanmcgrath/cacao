@@ -50,7 +50,7 @@ impl ViewDelegate for ContentView {
             self.content.top.constraint_equal_to(&view.safe_layout_guide.top),
             self.content.leading.constraint_equal_to(&view.safe_layout_guide.leading),
             self.content.trailing.constraint_equal_to(&view.safe_layout_guide.trailing),
-            self.content.bottom.constraint_equal_to(&view.safe_layout_guide.bottom),
+            self.content.bottom.constraint_equal_to(&view.safe_layout_guide.bottom)
         ])
     }
 }
@@ -59,5 +59,6 @@ fn main() {
     App::new("com.test.window", BasicApp {
         window: Window::default(),
         content_view: View::with(ContentView::default())
-    }).run();
+    })
+    .run();
 }
