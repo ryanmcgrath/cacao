@@ -92,3 +92,54 @@ impl From<NSUInteger> for BezelStyle {
         }
     }
 }
+
+#[cfg(feature = "appkit")]
+#[derive(Debug)]
+pub enum ImagePosition {
+    NoImage,
+    ImageOnly,
+    ImageLeft,
+    ImageRight,
+    ImageBelow,
+    ImageAbove,
+    ImageOverlaps,
+    ImageLeading,
+    ImageTrailing,
+    Other(NSUInteger)
+}
+
+impl From<ImagePosition> for NSUInteger {
+    fn from(value: ImagePosition) -> Self {
+        match value {
+            ImagePosition::NoImage => 0,
+            ImagePosition::ImageOnly => 1,
+            ImagePosition::ImageLeft => 2,
+            ImagePosition::ImageRight => 3,
+            ImagePosition::ImageBelow => 4,
+            ImagePosition::ImageAbove => 5,
+            ImagePosition::ImageOverlaps => 6,
+            ImagePosition::ImageLeading => 7,
+            ImagePosition::ImageTrailing => 8,
+            ImagePosition::Other(o) => o
+        }
+    }
+}
+
+impl From<NSUInteger> for ImagePosition {
+    fn from(value: NSUInteger) -> Self {
+        use ImagePosition::*;
+
+        match value {
+            0 => NoImage,
+            1 => ImageOnly,
+            2 => ImageLeft,
+            3 => ImageRight,
+            4 => ImageBelow,
+            5 => ImageAbove,
+            6 => ImageOverlaps,
+            7 => ImageLeading,
+            8 => ImageTrailing,
+            o => Other(o)
+        }
+    }
+}

@@ -175,6 +175,15 @@ impl Button {
         }
     }
 
+    /// Changes the text of the button
+    #[cfg(feature = "appkit")]
+    pub fn set_text(&self, text: &str) {
+        let title = NSString::new(text);
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setTitle:&*title];
+        });
+    }
+
     /// Sets an image on the underlying button.
     pub fn set_image(&mut self, image: Image) {
         self.objc.with_mut(|obj| unsafe {
@@ -182,6 +191,13 @@ impl Button {
         });
 
         self.image = Some(image);
+    }
+
+    pub fn set_image_position(&self, image_position: ImagePosition) {
+        let position: NSUInteger = image_position.into();
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setImagePosition: position];
+        });
     }
 
     /// Sets the bezel style for this button. Only supported on appkit.
