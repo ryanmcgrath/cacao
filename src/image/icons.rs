@@ -90,7 +90,7 @@ pub enum SFSymbol {
 }
 
 impl SFSymbol {
-    pub fn to_str(&self) -> &'static str {
+    pub fn to_str(&self) -> &str {
         match self {
             Self::AtSymbol => "at",
             Self::GearShape => "gearshape",
@@ -105,12 +105,12 @@ impl SFSymbol {
             Self::SquareAndArrowDownOnSquare => "square.and.arrow.down.on.square",
             Self::SquareAndArrowDownOnSquareFill => "square.and.arrow.down.on.square.fill",
             Self::SquareDashed => "square.dashed",
-            Self::Custom(icon) => icon,
+            Self::Custom(icon) => icon.as_str(),
         }
     }
 
     /// Create a custom icon given a string resource name
     pub fn from_custom(&self, icon: &str) -> Self {
-        Self::Custom(icon.as_str())
+        Self::Custom(icon.to_string())
     }
 }
