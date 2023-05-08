@@ -85,7 +85,8 @@ pub enum SFSymbol {
     SquareAndArrowUpOnSquareFill,
     SquareAndArrowDownOnSquare,
     SquareAndArrowDownOnSquareFill,
-    SquareDashed
+    SquareDashed,
+    Custom(String),
 }
 
 impl SFSymbol {
@@ -103,7 +104,13 @@ impl SFSymbol {
             Self::SquareAndArrowUpOnSquareFill => "square.and.arrow.up.on.square.fill",
             Self::SquareAndArrowDownOnSquare => "square.and.arrow.down.on.square",
             Self::SquareAndArrowDownOnSquareFill => "square.and.arrow.down.on.square.fill",
-            Self::SquareDashed => "square.dashed"
+            Self::SquareDashed => "square.dashed",
+            Self::Custom(icon) => icon,
         }
+    }
+
+    /// Create a custom icon given a string resource name
+    pub fn from_custom(&self, icon: &str) -> Self {
+        Self::Custom(icon.as_str())
     }
 }
