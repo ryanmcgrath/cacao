@@ -110,7 +110,7 @@ impl SFSymbol {
     }
 
     /// Create a custom icon given a string resource name
-    pub fn from_custom(&self, icon: &str) -> Self {
+    pub fn from_custom(icon: &str) -> Self {
         Self::Custom(icon.to_string())
     }
 }
