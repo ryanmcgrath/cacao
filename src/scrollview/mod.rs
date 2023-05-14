@@ -65,7 +65,7 @@ use appkit::{register_scrollview_class, register_scrollview_class_with_delegate}
 mod uikit;
 
 #[cfg(all(feature = "uikit", not(feature = "appkit")))]
-use uikit::{register_view_class, register_view_class_with_delegate};
+use uikit::{register_scrollview_class, register_scrollview_class_with_delegate};
 
 mod traits;
 pub use traits::ScrollViewDelegate;

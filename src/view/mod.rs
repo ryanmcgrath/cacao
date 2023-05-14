@@ -77,7 +77,9 @@ mod splitviewcontroller;
 #[cfg(feature = "appkit")]
 pub use splitviewcontroller::SplitViewController;
 
+#[cfg(feature = "appkit")]
 mod popover;
+#[cfg(feature = "appkit")]
 pub use popover::*;
 mod traits;
 pub use traits::ViewDelegate;
