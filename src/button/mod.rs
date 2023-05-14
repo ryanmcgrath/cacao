@@ -360,7 +360,6 @@ fn register_class() -> *const Class {
     load_or_register_class(super_class, "RSTButton", |decl| unsafe {})
 }
 
-
 #[test]
 fn test_button() {
     let button = Button::new("foobar");

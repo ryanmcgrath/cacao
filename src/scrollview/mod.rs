@@ -334,7 +334,6 @@ impl<T> Drop for ScrollView<T> {
     }
 }
 
-
 #[test]
 fn test_scrollview() {
     let view = ScrollView::new();
