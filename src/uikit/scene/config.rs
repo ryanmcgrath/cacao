@@ -25,7 +25,7 @@ impl SceneConfig {
             let _: () = msg_send![config, setSceneClass: class!(UIWindowScene)];
 
             // TODO: use register_window_scene_delegate_class rather than load_or_register_class.
-            let window_delegate = load_or_register_class("UIResponder", "RSTWindowSceneDelegate", |decl| unsafe { });
+            let window_delegate = load_or_register_class("UIResponder", "RSTWindowSceneDelegate", |decl| unsafe {});
             let _: () = msg_send![config, setDelegateClass: window_delegate];
 
             Id::from_ptr(config)

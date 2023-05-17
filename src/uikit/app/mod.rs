@@ -155,12 +155,8 @@ where
         let cls = register_app_class();
         let dl = register_app_delegate_class::<T>();
 
-        let cls_name: id = unsafe {
-            msg_send![cls, className]
-        };
-        let dl_name : id = unsafe {
-            msg_send![dl, className]
-        };
+        let cls_name: id = unsafe { msg_send![cls, className] };
+        let dl_name: id = unsafe { msg_send![dl, className] };
 
         unsafe {
             UIApplicationMain(c_args.len() as c_int, c_args.as_ptr(), cls_name, dl_name);
