@@ -2,7 +2,8 @@ use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, NSString, load_or_register_class};
+use crate::foundation::{id, load_or_register_class, NSString};
+
 use crate::uikit::scene::SessionRole;
 
 /// A wrapper for UISceneConfiguration.
