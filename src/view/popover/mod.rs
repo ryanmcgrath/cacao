@@ -3,9 +3,13 @@ use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
+#[cfg(feature = "appkit")]
 use crate::appkit::toolbar::ToolbarItem;
+#[cfg(feature = "appkit")]
 use crate::appkit::window::Window;
+#[cfg(feature = "appkit")]
 use crate::appkit::App;
+
 use crate::foundation::{id, nil, NSString};
 use crate::geometry::{Edge, Rect};
 use crate::layout::Layout;
@@ -84,6 +88,7 @@ impl<Content> Popover<Content> {
     }
 
     /// Show the popover relative to the content view of the main window
+    #[cfg(feature = "appkit")]
     pub fn show_popover_main(&self, rect: Rect, edge: Edge) {
         let window = App::main_window();
         unsafe {
