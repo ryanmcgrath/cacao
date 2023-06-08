@@ -161,7 +161,6 @@ impl<T, W, F> App<T, W, F> {
     }
 }
 
-
 impl<T, W, F> Drop for App<T, W, F> {
     fn drop(&mut self) {
         println!("DROPPING");

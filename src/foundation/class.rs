@@ -57,7 +57,7 @@ impl ClassMap {
     pub fn new() -> Self {
         ClassMap(RwLock::new(HashMap::new()))
     }
-    
+
     /// A publicly accessible load method that just passes through our global singleton.
     pub fn static_load(class_name: &'static str, superclass_name: Option<&'static str>) -> Option<*const Class> {
         CLASSES.load(class_name, superclass_name)
@@ -129,11 +129,7 @@ impl ClassMap {
 /// > class name - but most cases do not need this and it would be a larger change to orchestrate at
 /// > the moment.
 #[inline(always)]
-pub fn load_or_register_class<F>(
-    superclass_name: &'static str,
-    subclass_name: &'static str,
-    config: F
-) -> *const Class
+pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> *const Class
 where
     F: Fn(&mut ClassDecl) + 'static
 {
