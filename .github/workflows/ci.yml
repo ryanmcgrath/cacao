@@ -81,7 +81,7 @@ jobs:
     steps:
 
     - name: Install cargo-dinghy
-      uses: baptiste0928/cargo-install@v1
+      uses: baptiste0928/cargo-install@v2
       with:
         crate: cargo-dinghy
 
