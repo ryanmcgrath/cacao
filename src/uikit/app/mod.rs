@@ -149,13 +149,22 @@ impl<T, W, F> App<T, W, F> {
 
         let c_args = args.iter().map(|arg| arg.as_ptr()).collect::<Vec<*const c_char>>();
 
-        let mut s = NSString::new("RSTApplication");
-        let mut s2 = NSString::new("RSTAppDelegate");
+        let mut s = NSString::new("RSTApplication_UIApplication");
+        let mut s2 = NSString::new("RSTAppDelegate_NSObject");
 
         unsafe {
+            println!("RUNNING?!");
             UIApplicationMain(c_args.len() as c_int, c_args.as_ptr(), s.into(), s2.into());
         }
 
-        self.pool.drain();
+        //self.pool.drain();
+    }
+}
+
+
+impl<T, W, F> Drop for App<T, W, F> {
+    fn drop(&mut self) {
+        println!("DROPPING");
+        //self.pool.drain();
     }
 }
