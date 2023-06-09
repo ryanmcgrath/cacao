@@ -6,7 +6,7 @@ use objc::runtime::{Class, Object, Sel};
 use objc::{sel, sel_impl};
 
 //use crate::error::Error;
-use crate::foundation::{id, load_or_register_class, BOOL, YES};
+use crate::foundation::{id, load_or_register_class_with_optional_generated_suffix, BOOL, YES};
 use crate::uikit::app::{AppDelegate, APP_DELEGATE};
 use crate::uikit::scene::{SceneConnectionOptions, SceneSession};
 
@@ -41,7 +41,9 @@ extern "C" fn configuration_for_scene_session<T: AppDelegate>(this: &Object, _: 
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and
 /// pointers we need to have.
 pub(crate) fn register_app_delegate_class<T: AppDelegate>() -> *const Class {
-    load_or_register_class("NSObject", "RSTAppDelegate", |decl| unsafe {
+    let should_generate_suffix = false;
+
+    load_or_register_class_with_optional_generated_suffix("NSObject", "RSTAppDelegate", should_generate_suffix, |decl| unsafe {
         // Launching Applications
         decl.add_method(
             sel!(application:didFinishLaunchingWithOptions:),

@@ -162,6 +162,13 @@ where
             UIApplicationMain(c_args.len() as c_int, c_args.as_ptr(), cls_name, dl_name);
         }
 
-        self.pool.drain();
+        //self.pool.drain();
+    }
+}
+
+impl<T, W, F> Drop for App<T, W, F> {
+    fn drop(&mut self) {
+        println!("DROPPING");
+        //self.pool.drain();
     }
 }

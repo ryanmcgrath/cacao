@@ -28,7 +28,8 @@ mod array;
 pub use array::NSArray;
 
 mod class;
-pub use class::load_or_register_class;
+pub(crate) use class::ClassMap;
+pub use class::{load_or_register_class, load_or_register_class_with_optional_generated_suffix};
 
 mod data;
 pub use data::NSData;
