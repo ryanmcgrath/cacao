@@ -4,7 +4,6 @@ use objc_id::Id;
 
 use crate::foundation::{id, load_or_register_class, ClassMap, NSString};
 
-
 use crate::uikit::scene::SessionRole;
 
 /// A wrapper for UISceneConfiguration.
