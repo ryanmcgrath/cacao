@@ -102,3 +102,6 @@ required-features = ["appkit"]
 [[example]]
 name = "safe_area"
 required-features = ["appkit"]
+[[example]]
+name = "popover"
+required-features = ["appkit"]

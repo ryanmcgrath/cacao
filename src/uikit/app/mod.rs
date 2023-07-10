@@ -139,7 +139,10 @@ where
     }
 }
 
-impl<T, W, F> App<T, W, F> {
+impl<T, W, F> App<T, W, F>
+where
+    T: AppDelegate + 'static
+{
     /// Handles calling through to `UIApplicationMain()`, ensuring that it's using our custom
     /// `UIApplication` and `UIApplicationDelegate` classes.
     pub fn run(&self) {
@@ -149,12 +152,14 @@ impl<T, W, F> App<T, W, F> {
 
         let c_args = args.iter().map(|arg| arg.as_ptr()).collect::<Vec<*const c_char>>();
 
-        let mut s = NSString::new("RSTApplication_UIApplication");
-        let mut s2 = NSString::new("RSTAppDelegate_NSObject");
+        let cls = register_app_class();
+        let dl = register_app_delegate_class::<T>();
+
+        let cls_name: id = unsafe { msg_send![cls, className] };
+        let dl_name: id = unsafe { msg_send![dl, className] };
 
         unsafe {
-            println!("RUNNING?!");
-            UIApplicationMain(c_args.len() as c_int, c_args.as_ptr(), s.into(), s2.into());
+            UIApplicationMain(c_args.len() as c_int, c_args.as_ptr(), cls_name, dl_name);
         }
 
         //self.pool.drain();
