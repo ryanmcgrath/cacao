@@ -59,7 +59,7 @@ pub struct Switch {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl Switch {
@@ -112,7 +112,7 @@ impl Switch {
             center_x: LayoutAnchorX::center(view),
 
             #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(view),
+            center_y: LayoutAnchorY::center(view)
         }
     }
 

@@ -30,7 +30,7 @@ pub enum MacSystemIcon {
     Remove,
 
     /// Returns a Folder icon.
-    Folder,
+    Folder
 }
 
 extern "C" {
@@ -53,7 +53,7 @@ impl MacSystemIcon {
                 MacSystemIcon::PreferencesUserAccounts => NSImageNameUserAccounts,
                 MacSystemIcon::Add => NSImageNameAddTemplate,
                 MacSystemIcon::Remove => NSImageNameRemoveTemplate,
-                MacSystemIcon::Folder => NSImageNameFolder,
+                MacSystemIcon::Folder => NSImageNameFolder
             }
         }
     }
@@ -66,7 +66,7 @@ impl MacSystemIcon {
             MacSystemIcon::PreferencesUserAccounts => SFSymbol::AtSymbol.to_str(),
             MacSystemIcon::Add => SFSymbol::Plus.to_str(),
             MacSystemIcon::Remove => SFSymbol::Minus.to_str(),
-            MacSystemIcon::Folder => SFSymbol::FolderFilled.to_str(),
+            MacSystemIcon::Folder => SFSymbol::FolderFilled.to_str()
         }
     }
 }
@@ -98,7 +98,7 @@ pub enum SFSymbol {
     SquareAndArrowDownOnSquare,
     SquareAndArrowDownOnSquareFill,
     SquareDashed,
-    SquareAndPencil,
+    SquareAndPencil
 }
 
 impl SFSymbol {
@@ -129,7 +129,7 @@ impl SFSymbol {
             Self::SquareAndArrowDownOnSquare => "square.and.arrow.down.on.square",
             Self::SquareAndArrowDownOnSquareFill => "square.and.arrow.down.on.square.fill",
             Self::SquareDashed => "square.dashed",
-            Self::SquareAndPencil => "square.and.pencil",
+            Self::SquareAndPencil => "square.and.pencil"
         }
     }
 }

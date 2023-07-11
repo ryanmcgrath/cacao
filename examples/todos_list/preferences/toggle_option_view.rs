@@ -11,7 +11,7 @@ pub struct ToggleOptionView {
     pub view: View,
     pub switch: Switch,
     pub title: Label,
-    pub subtitle: Label,
+    pub subtitle: Label
 }
 
 impl Default for ToggleOptionView {
@@ -39,14 +39,14 @@ impl Default for ToggleOptionView {
             subtitle.leading.constraint_equal_to(&switch.trailing),
             subtitle.trailing.constraint_equal_to(&view.trailing),
             subtitle.bottom.constraint_equal_to(&view.bottom),
-            subtitle.width.constraint_greater_than_or_equal_to_constant(200.),
+            subtitle.width.constraint_greater_than_or_equal_to_constant(200.)
         ]);
 
         ToggleOptionView {
             view,
             switch,
             title,
-            subtitle,
+            subtitle
         }
     }
 }
@@ -56,7 +56,7 @@ impl ToggleOptionView {
     /// can toggle your settings and such there.
     pub fn configure<F>(&mut self, text: &str, subtitle: &str, state: bool, handler: F)
     where
-        F: Fn(*const Object) + Send + Sync + 'static,
+        F: Fn(*const Object) + Send + Sync + 'static
     {
         self.title.set_text(text);
         self.subtitle.set_text(subtitle);

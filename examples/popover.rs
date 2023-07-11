@@ -17,35 +17,29 @@ use cacao::notification_center::Dispatcher;
 use cacao::view::{Popover, PopoverConfig, View, ViewController, ViewDelegate};
 
 struct BasicApp {
-    window: WindowController<MyWindow>,
+    window: WindowController<MyWindow>
 }
 
 impl AppDelegate for BasicApp {
     fn did_finish_launching(&self) {
         App::set_menu(vec![
-            Menu::new(
-                "",
-                vec![
-                    MenuItem::Services,
-                    MenuItem::Separator,
-                    MenuItem::Hide,
-                    MenuItem::HideOthers,
-                    MenuItem::ShowAll,
-                    MenuItem::Separator,
-                    MenuItem::Quit,
-                ],
-            ),
+            Menu::new("", vec![
+                MenuItem::Services,
+                MenuItem::Separator,
+                MenuItem::Hide,
+                MenuItem::HideOthers,
+                MenuItem::ShowAll,
+                MenuItem::Separator,
+                MenuItem::Quit,
+            ]),
             Menu::new("File", vec![MenuItem::CloseWindow]),
             Menu::new("View", vec![MenuItem::EnterFullScreen]),
-            Menu::new(
-                "Window",
-                vec![
-                    MenuItem::Minimize,
-                    MenuItem::Zoom,
-                    MenuItem::Separator,
-                    MenuItem::new("Bring All to Front"),
-                ],
-            ),
+            Menu::new("Window", vec![
+                MenuItem::Minimize,
+                MenuItem::Zoom,
+                MenuItem::Separator,
+                MenuItem::new("Bring All to Front"),
+            ]),
         ]);
 
         App::activate();
@@ -60,7 +54,7 @@ impl AppDelegate for BasicApp {
 
 #[derive(Default)]
 struct MyWindow {
-    controller: Option<ViewController<PopoverExampleContentView>>,
+    controller: Option<ViewController<PopoverExampleContentView>>
 }
 
 impl WindowDelegate for MyWindow {
@@ -89,25 +83,22 @@ impl MyWindow {
 }
 
 fn main() {
-    App::new(
-        "com.test.window-delegate",
-        BasicApp {
-            window: WindowController::with(WindowConfig::default(), MyWindow::default()),
-        },
-    )
+    App::new("com.test.window-delegate", BasicApp {
+        window: WindowController::with(WindowConfig::default(), MyWindow::default())
+    })
     .run();
 }
 
 #[derive(Clone, Debug)]
 pub enum Msg {
-    Click,
+    Click
 }
 
 #[derive(Debug, Default)]
 struct PopoverExampleContentView {
     view: Option<View>,
     button: Option<Button>,
-    popover: Option<Popover<PopoverExampleContentViewController>>,
+    popover: Option<Popover<PopoverExampleContentViewController>>
 }
 
 impl PopoverExampleContentView {
@@ -115,7 +106,7 @@ impl PopoverExampleContentView {
         Self {
             view: None,
             button: None,
-            popover: None,
+            popover: None
         }
     }
 
@@ -125,7 +116,7 @@ impl PopoverExampleContentView {
                 let Some(ref popover) = self.popover else { return };
                 let Some(ref button) = self.button else { return };
                 popover.show_popover(Rect::zero(), button, Edge::MaxY);
-            },
+            }
         }
     }
 }
@@ -149,7 +140,7 @@ impl ViewDelegate for PopoverExampleContentView {
 
         LayoutConstraint::activate(&[
             button.center_x.constraint_equal_to(&view.center_x),
-            button.center_y.constraint_equal_to(&view.center_y),
+            button.center_y.constraint_equal_to(&view.center_y)
         ]);
 
         self.view = Some(view);
@@ -175,7 +166,7 @@ impl Dispatcher for BasicApp {
 
 #[derive(Debug)]
 struct PopoverExampleContentViewController {
-    pub control: SegmentedControl,
+    pub control: SegmentedControl
 }
 
 impl PopoverExampleContentViewController {

@@ -24,7 +24,7 @@ pub struct ToolbarItem {
     pub button: Option<Button>,
     pub segmented_control: Option<SegmentedControl>,
     pub image: Option<Image>,
-    handler: Option<TargetActionHandler>,
+    handler: Option<TargetActionHandler>
 }
 
 impl ToolbarItem {
@@ -46,7 +46,7 @@ impl ToolbarItem {
             button: None,
             segmented_control: None,
             image: None,
-            handler: None,
+            handler: None
         }
     }
 
@@ -57,7 +57,7 @@ impl ToolbarItem {
             button: None,
             segmented_control: None,
             image: None,
-            handler: None,
+            handler: None
         }
     }
 
