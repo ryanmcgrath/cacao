@@ -77,7 +77,9 @@ mod splitviewcontroller;
 #[cfg(feature = "appkit")]
 pub use splitviewcontroller::SplitViewController;
 
+#[cfg(feature = "appkit")]
 mod popover;
+#[cfg(feature = "appkit")]
 pub use popover::*;
 mod traits;
 pub use traits::ViewDelegate;
@@ -346,4 +348,11 @@ impl<T> Drop for View<T> {
             self.remove_from_superview();
         }
     }
+}
+
+#[test]
+fn test_view() {
+    let view = View::new();
+    let clone = view.clone_as_handle();
+    view.set_background_color(Color::SystemGreen);
 }

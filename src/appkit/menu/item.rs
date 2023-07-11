@@ -3,16 +3,13 @@
 //! now.
 
 use std::fmt;
-use std::sync::Once;
 
-use block::ConcreteBlock;
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::events::EventModifierFlag;
-use crate::foundation::{id, nil, NSString, NSUInteger};
+use crate::foundation::{id, load_or_register_class, NSString, NSUInteger};
 
 static BLOCK_PTR: &'static str = "cacaoMenuItemBlockPtr";
 
@@ -168,8 +165,12 @@ impl MenuItem {
             // supported by MenuItem yet.
             Self::Services => {
                 let item = make_menu_item("Services", None, None, None);
-                let app: id = msg_send![class!(RSTApplication), sharedApplication];
-                let services: id = msg_send![app, servicesMenu];
+
+                let services = crate::appkit::app::shared_application(|app| {
+                    let services: id = msg_send![app, servicesMenu];
+                    services
+                });
+
                 let _: () = msg_send![&*item, setSubmenu: services];
                 item
             },
@@ -314,19 +315,10 @@ extern "C" fn fire_block_action(this: &Object, _: Sel, _item: id) {
 /// In general, we do not want to do more than we need to here - menus are one of the last areas
 /// where Carbon still lurks, and subclassing things can get weird.
 pub(crate) fn register_menu_item_class() -> *const Class {
-    static mut APP_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSMenuItem);
-        let mut decl = ClassDecl::new("CacaoMenuItem", superclass).unwrap();
+    load_or_register_class("NSMenuItem", "CacaoMenuItem", |decl| unsafe {
         decl.add_ivar::<usize>(BLOCK_PTR);
 
         decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern "C" fn(&Object, _));
         decl.add_method(sel!(fireBlockAction:), fire_block_action as extern "C" fn(&Object, _, id));
-
-        APP_CLASS = decl.register();
-    });
-
-    unsafe { APP_CLASS }
+    })
 }

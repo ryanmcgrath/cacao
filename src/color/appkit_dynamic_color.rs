@@ -10,16 +10,11 @@
 //! that enables this functionality, we want to be able to provide this with some level of
 //! backwards compatibility for Mojave, as that's still a supported OS.
 
-use std::os::raw::c_void;
-use std::sync::Once;
-
 use core_graphics::base::CGFloat;
-
-use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel, BOOL};
+use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger};
 use crate::utils::os;
 
 pub(crate) const AQUA_LIGHT_COLOR_NORMAL_CONTRAST: &'static str = "AQUA_LIGHT_COLOR_NORMAL_CONTRAST";
@@ -259,13 +254,7 @@ extern "C" fn color_with_system_effect(this: &Object, _: Sel, effect: NSInteger)
 }
 
 pub(crate) fn register_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSColor);
-        let mut decl = ClassDecl::new("CacaoDynamicColor", superclass).unwrap();
-
+    load_or_register_class("NSColor", "CacaoDynamicColor", |decl| unsafe {
         // These methods all need to be forwarded, so let's hook them up.
         decl.add_method(sel!(colorSpace), color_space as extern "C" fn(&Object, _) -> id);
         decl.add_method(
@@ -359,9 +348,5 @@ pub(crate) fn register_class() -> *const Class {
         decl.add_ivar::<id>(AQUA_LIGHT_COLOR_HIGH_CONTRAST);
         decl.add_ivar::<id>(AQUA_DARK_COLOR_NORMAL_CONTRAST);
         decl.add_ivar::<id>(AQUA_DARK_COLOR_HIGH_CONTRAST);
-
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    })
 }

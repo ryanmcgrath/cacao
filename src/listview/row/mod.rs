@@ -55,6 +55,7 @@ use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
+#[cfg(all(feature = "appkit", target_os = "macos"))]
 use crate::view::{ViewAnimatorProxy, ViewDelegate};
 
 #[cfg(feature = "autolayout")]
@@ -96,6 +97,7 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 #[derive(Debug)]
 pub struct ListViewRow<T = ()> {
     /// An object that supports limited animations. Can be cloned into animation closures.
+    #[cfg(all(feature = "appkit", target_os = "macos"))]
     pub animator: ViewAnimatorProxy,
 
     /// A pointer to the Objective-C runtime view controller.
@@ -163,6 +165,7 @@ impl ListViewRow {
         ListViewRow {
             delegate: None,
             objc: ObjcProperty::retain(view),
+            #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: ViewAnimatorProxy::new(view),
 
             #[cfg(feature = "autolayout")]
@@ -227,6 +230,7 @@ where
         let view = ListViewRow {
             delegate: Some(delegate),
             objc: ObjcProperty::retain(view),
+            #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: ViewAnimatorProxy::new(view),
 
             #[cfg(feature = "autolayout")]
@@ -283,6 +287,7 @@ where
         let mut view = ListViewRow {
             delegate: None,
             objc: ObjcProperty::retain(view),
+            #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: ViewAnimatorProxy::new(view),
 
             #[cfg(feature = "autolayout")]
@@ -335,6 +340,7 @@ where
         ListViewRow {
             delegate: None,
             objc: self.objc.clone(),
+            #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: self.animator.clone(),
 
             #[cfg(feature = "autolayout")]
@@ -384,6 +390,7 @@ impl<T> ListViewRow<T> {
             is_handle: true,
             layer: Layer::new(), // @TODO: Fix & return cloned true layer for this row.
             objc: self.objc.clone(),
+            #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: self.animator.clone(),
 
             #[cfg(feature = "autolayout")]

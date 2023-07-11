@@ -1,25 +1,10 @@
-use std::ffi::c_void;
-use std::sync::Once;
-use std::unreachable;
-
-use block::Block;
-
-use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
+use objc::runtime::{Class, Object, Protocol, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 
-use url::Url;
-
-use crate::error::Error;
-use crate::foundation::{id, nil, NSArray, NSString, NSUInteger, BOOL, NO, YES};
-use crate::user_activity::UserActivity;
-use crate::utils::load;
-
+use crate::foundation::{id, load_or_register_class_with_optional_generated_suffix};
 use crate::uikit::app::SCENE_DELEGATE_VENDOR;
-use crate::uikit::scene::{Scene, SceneConfig, SceneConnectionOptions, SceneSession, WindowSceneDelegate};
-
-#[cfg(feature = "cloudkit")]
-use crate::cloudkit::share::CKShareMetaData;
+use crate::uikit::scene::{Scene, SceneConnectionOptions, SceneSession, WindowSceneDelegate};
+use crate::utils::load;
 
 pub(crate) static WINDOW_SCENE_PTR: &str = "rstWindowSceneDelegatePtr";
 
@@ -60,14 +45,9 @@ extern "C" fn scene_will_connect_to_session_with_options<T: WindowSceneDelegate>
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and
 /// pointers we need to have.
 pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn() -> Box<T>>() -> *const Class {
-    static mut DELEGATE_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
+    let should_generate_suffix = false;
 
-    use objc::runtime::{class_addProtocol, Protocol};
-    INIT.call_once(|| unsafe {
-        let superclass = class!(UIResponder);
-        let mut decl = ClassDecl::new("RSTWindowSceneDelegate", superclass).unwrap();
-
+    load_or_register_class_with_optional_generated_suffix("UIResponder", "RSTWindowSceneDelegate", false, |decl| unsafe {
         let p = Protocol::get("UIWindowSceneDelegate").unwrap();
 
         // A spot to hold a pointer to
@@ -82,10 +62,5 @@ pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn
             sel!(scene:willConnectToSession:options:),
             scene_will_connect_to_session_with_options::<T> as extern "C" fn(&Object, _, _, _, _)
         );
-
-        // Launching Applications
-        DELEGATE_CLASS = decl.register();
-    });
-
-    unsafe { DELEGATE_CLASS }
+    })
 }

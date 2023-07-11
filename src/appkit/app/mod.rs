@@ -69,7 +69,7 @@ pub(crate) static APP_PTR: &str = "rstAppPtr";
 
 /// A handler to make some boilerplate less annoying.
 #[inline]
-fn shared_application<T, F: Fn(id) -> T>(handler: F) -> T {
+pub(crate) fn shared_application<T, F: Fn(id) -> T>(handler: F) -> T {
     let app: id = unsafe { msg_send![register_app_class(), sharedApplication] };
     handler(app)
 }
@@ -123,7 +123,7 @@ impl<T> App<T> {
     pub fn run(&self) {
         unsafe {
             //let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
-            let shared_app: id = msg_send![class!(RSTApplication), sharedApplication];
+            let shared_app: id = msg_send![register_app_class(), sharedApplication];
             let _: () = msg_send![shared_app, run];
             self.pool.drain();
         }

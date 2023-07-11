@@ -9,7 +9,7 @@ use std::sync::Once;
 use block::Block;
 
 use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel};
+use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
 
 use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString, NO, YES};
@@ -166,11 +166,21 @@ extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, downloa
     });
 }
 
+/// Whether the view should be sent a mouseDown event for the first click when not focused.
+extern "C" fn accepts_first_mouse(_: &mut Object, _: Sel, _: id) -> BOOL {
+    YES
+}
+
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
 pub fn register_webview_class() -> *const Class {
-    load_or_register_class("WKWebView", "CacaoWebView", |decl| unsafe {})
+    load_or_register_class("WKWebView", "CacaoWebView", |decl| unsafe {
+        decl.add_method(
+            sel!(acceptsFirstMouse:),
+            accepts_first_mouse as extern "C" fn(&mut Object, Sel, id) -> BOOL
+        );
+    })
 }
 
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as

@@ -7,15 +7,12 @@
 //! for in the modern era. It also implements a few helpers for things like setting a background
 //! color, and enforcing layer backing by default.
 
-use std::sync::Once;
-
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::dragdrop::DragInfo;
-use crate::foundation::{id, nil, NSUInteger, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSUInteger, NO, YES};
 use crate::listview::row::{ViewDelegate, BACKGROUND_COLOR, LISTVIEW_ROW_DELEGATE_PTR};
 use crate::utils::load;
 
@@ -107,31 +104,15 @@ extern "C" fn dealloc<T: ViewDelegate>(this: &Object, _: Sel) {
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
 pub(crate) fn register_listview_row_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSView);
-        let mut decl = ClassDecl::new("RSTTableViewRow", superclass).unwrap();
-
+    load_or_register_class("NSView", "RSTTableViewRow", |decl| unsafe {
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
-
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    })
 }
 
 /// Injects an `NSView` subclass, with some callback and pointer ivars for what we
 /// need to do.
 pub(crate) fn register_listview_row_class_with_delegate<T: ViewDelegate>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| unsafe {
-        let superclass = class!(NSView);
-        let mut decl = ClassDecl::new("RSTableViewRowWithDelegate", superclass).unwrap();
-
+    load_or_register_class("NSView", "RSTableViewRowWithDelegate", |decl| unsafe {
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.
         decl.add_ivar::<usize>(LISTVIEW_ROW_DELEGATE_PTR);
@@ -164,9 +145,5 @@ pub(crate) fn register_listview_row_class_with_delegate<T: ViewDelegate>() -> *c
 
         // Cleanup
         decl.add_method(sel!(dealloc), dealloc::<T> as extern "C" fn(&Object, _));
-
-        VIEW_CLASS = decl.register();
-    });
-
-    unsafe { VIEW_CLASS }
+    })
 }

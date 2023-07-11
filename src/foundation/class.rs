@@ -58,6 +58,11 @@ impl ClassMap {
         ClassMap(RwLock::new(HashMap::new()))
     }
 
+    /// A publicly accessible load method that just passes through our global singleton.
+    pub fn static_load(class_name: &'static str, superclass_name: Option<&'static str>) -> Option<*const Class> {
+        CLASSES.load(class_name, superclass_name)
+    }
+
     /// Attempts to load a previously registered class.
     ///
     /// This checks our internal map first, and then calls out to the Objective-C runtime to ensure
@@ -110,6 +115,27 @@ impl ClassMap {
     }
 }
 
+/// Calls through to `load_or_register_class_with_optional_generated_suffix`, specifying that we
+/// should append a random suffix to the generated class name. This is important for situations
+/// where we may be loading classes from e.g two different bundles and need to avoid collision.
+///
+/// Some parts of the codebase (e.g, iOS UIApplication registration) may need to know the name
+/// ahead of time and are not concerned about potential duplications. These cases should feel free
+/// to call through to `load_or_register_class_with_optional_generated_suffix` directly, as they
+/// are comparatively rare in nature.
+///
+/// > In the future, this indirection may be removed and the return type of
+/// > `load_or_register_class_with_optional_generated_suffix` will be altered to return the generated
+/// > class name - but most cases do not need this and it would be a larger change to orchestrate at
+/// > the moment.
+#[inline(always)]
+pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> *const Class
+where
+    F: Fn(&mut ClassDecl) + 'static
+{
+    load_or_register_class_with_optional_generated_suffix(superclass_name, subclass_name, true, config)
+}
+
 /// Attempts to load a subclass, given a `superclass_name` and subclass_name. If
 /// the subclass cannot be loaded, it's dynamically created and injected into
 /// the runtime, and then returned. The returned value can be used for allocating new instances of
@@ -124,7 +150,12 @@ impl ClassMap {
 ///
 /// There's definitely room to optimize here, but it works for now.
 #[inline(always)]
-pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> *const Class
+pub fn load_or_register_class_with_optional_generated_suffix<F>(
+    superclass_name: &'static str,
+    subclass_name: &'static str,
+    should_append_random_subclass_name_suffix: bool,
+    config: F
+) -> *const Class
 where
     F: Fn(&mut ClassDecl) + 'static
 {
@@ -141,17 +172,21 @@ where
         // guarantees that we almost always have a unique name to register with the ObjC runtime).
         //
         // For more context, see: https://github.com/ryanmcgrath/cacao/issues/63
-        let objc_subclass_name = format!(
-            "{}_{}_{}",
-            subclass_name,
-            superclass_name,
-            RNG_SEED.with(|rng| {
-                rng.set(rng.get().wrapping_add(0xa0761d6478bd642f));
-                let s = rng.get();
-                let t = u128::from(s) * (u128::from(s ^ 0xe7037ed1a0b428db));
-                ((t >> 64) as u64) ^ (t as u64)
-            })
-        );
+        let objc_subclass_name = match should_append_random_subclass_name_suffix {
+            true => format!(
+                "{}_{}_{}",
+                subclass_name,
+                superclass_name,
+                RNG_SEED.with(|rng| {
+                    rng.set(rng.get().wrapping_add(0xa0761d6478bd642f));
+                    let s = rng.get();
+                    let t = u128::from(s) * (u128::from(s ^ 0xe7037ed1a0b428db));
+                    ((t >> 64) as u64) ^ (t as u64)
+                })
+            ),
+
+            false => format!("{}_{}", subclass_name, superclass_name)
+        };
 
         match ClassDecl::new(&objc_subclass_name, unsafe { &*superclass }) {
             Some(mut decl) => {

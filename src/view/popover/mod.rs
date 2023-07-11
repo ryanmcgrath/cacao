@@ -3,9 +3,13 @@ use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
+#[cfg(feature = "appkit")]
 use crate::appkit::toolbar::ToolbarItem;
+#[cfg(feature = "appkit")]
 use crate::appkit::window::Window;
+#[cfg(feature = "appkit")]
 use crate::appkit::App;
+
 use crate::foundation::{id, nil, NSString};
 use crate::geometry::{Edge, Rect};
 use crate::layout::Layout;
@@ -20,14 +24,14 @@ pub enum PopoverBehaviour {
     /// The system will close the popover when the user interacts with a user interface element outside the popover.
     Transient = 1,
     /// The system will close the popover when the user interacts with user interface elements in the window containing the popover's positioning view.
-    Semitransient = 2,
+    Semitransient = 2
 }
 
 #[derive(Debug)]
 pub struct PopoverConfig {
     pub content_size: CGSize,
     pub animates: bool,
-    pub behaviour: PopoverBehaviour,
+    pub behaviour: PopoverBehaviour
 }
 
 impl Default for PopoverConfig {
@@ -35,10 +39,10 @@ impl Default for PopoverConfig {
         Self {
             content_size: CGSize {
                 width: 320.0,
-                height: 320.0,
+                height: 320.0
             },
             animates: true,
-            behaviour: PopoverBehaviour::Transient,
+            behaviour: PopoverBehaviour::Transient
         }
     }
 }
@@ -49,12 +53,12 @@ pub struct Popover<Content> {
     pub objc: ShareId<Object>,
 
     /// The wrapped ViewController.
-    pub view_controller: ViewController<Content>,
+    pub view_controller: ViewController<Content>
 }
 
 impl<Content> Popover<Content>
 where
-    Content: ViewDelegate + 'static,
+    Content: ViewDelegate + 'static
 {
     pub fn new(content: Content, config: PopoverConfig) -> Self {
         let view_controller = ViewController::new(content);
@@ -84,6 +88,7 @@ impl<Content> Popover<Content> {
     }
 
     /// Show the popover relative to the content view of the main window
+    #[cfg(feature = "appkit")]
     pub fn show_popover_main(&self, rect: Rect, edge: Edge) {
         let window = App::main_window();
         unsafe {
