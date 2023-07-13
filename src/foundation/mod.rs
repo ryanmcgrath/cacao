@@ -59,7 +59,7 @@ pub fn to_bool(result: BOOL) -> bool {
         #[cfg(not(target_arch = "aarch64"))]
         _ => {
             std::unreachable!();
-        }
+        },
     }
 }
 
@@ -86,3 +86,5 @@ pub type NSInteger = libc::c_long;
 /// Platform-specific.
 #[cfg(target_pointer_width = "64")]
 pub type NSUInteger = libc::c_ulong;
+
+pub type NSPoint = core_graphics::geometry::CGPoint;

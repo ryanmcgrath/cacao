@@ -6,7 +6,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::events::EventType;
-use crate::foundation::{id, nil, NSString};
+use crate::foundation::{id, nil, NSInteger, NSPoint, NSString};
 
 /// An EventMask describes the type of event.
 #[bitmask(u64)]
@@ -64,13 +64,16 @@ impl Event {
         Event(unsafe { Id::from_ptr(objc) })
     }
 
-    /// Corresponds to the `type` getter
+    /// The event's type.
+    ///
+    /// Corresponds to the `type` getter.
     pub fn event_type(&self) -> EventType {
         let kind: NSUInteger = unsafe { msg_send![&*self.0, type] };
 
         unsafe { ::std::mem::transmute(kind) }
     }
 
+    /// The characters associated with a key-up or key-down event.
     pub fn characters(&self) -> String {
         // @TODO: Check here if key event, invalid otherwise.
         // @TODO: Figure out if we can just return &str here, since the Objective-C side
@@ -78,6 +81,26 @@ impl Event {
         let characters = NSString::retain(unsafe { msg_send![&*self.0, characters] });
 
         characters.to_string()
+    }
+
+    /// The indices of the currently pressed mouse buttons.
+    pub fn pressed_mouse_buttons() -> NSUInteger {
+        unsafe { msg_send![class!(NSEvent), pressedMouseButtons] }
+    }
+
+    /// Reports the current mouse position in screen coordinates.
+    pub fn mouse_location() -> NSPoint {
+        unsafe { msg_send![class!(NSEvent), mouseLocation] }
+    }
+
+    /// The button number for a mouse event.
+    pub fn button_number(&self) -> NSInteger {
+        unsafe { msg_send![&*self.0, buttonNumber] }
+    }
+
+    /// The number of mouse clicks associated with a mouse-down or mouse-up event.
+    pub fn click_count(&self) -> NSInteger {
+        unsafe { msg_send![&*self.0, clickCount] }
     }
 
     /*pub fn contains_modifier_flags(&self, flags: &[EventModifierFlag]) -> bool {
