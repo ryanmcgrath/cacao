@@ -67,7 +67,7 @@ impl Event {
     /// The event's type.
     ///
     /// Corresponds to the `type` getter.
-    pub fn event_type(&self) -> EventType {
+    pub fn kind(&self) -> EventType {
         let kind: NSUInteger = unsafe { msg_send![&*self.0, type] };
 
         unsafe { ::std::mem::transmute(kind) }
