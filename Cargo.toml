@@ -19,6 +19,7 @@ default-target = "x86_64-apple-darwin"
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
+bitmask-enum = "2.2.1"
 block = "0.1.6"
 core-foundation = "0.9"
 core-graphics = "0.23"
