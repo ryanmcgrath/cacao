@@ -13,7 +13,7 @@ Have a look at the [issue tracker](https://github.com/ryanmcgrath/cacao/issues).
 describing your problem (or a very similar one) there, please open a new issue with
 the following details:
 
-- Which versions of Rust and cacao (and macOS/iOS build/device) are you using?
+- Which versions of Rust and Cacao (and macOS/iOS build/device) are you using?
 - Which feature flags are you using?
 - What are you trying to accomplish?
 - What is the full error you are seeing?
@@ -34,17 +34,17 @@ If you can't find an issue (open or closed) describing your idea on the [issue
 tracker], open an issue. Adding answers to the following
 questions in your description is +1:
 
-- What do you want to do, and how do you expect Alchemy to support you with that?
-- How might this be added to Alchemy?
+- What do you want to do, and how do you expect Cacao to support you with that?
+- How might this be added to Cacao?
 - What are possible alternatives?
 - Are there any disadvantages?
 
 Thank you!
 
 
-## Contribute code to Alchemy
+## Contribute code to Cacao
 
-### Setting up cacao locally
+### Setting up Cacao locally
 
 1. Install Rust. Stable should be fine.
 2. Clone this repository and open it in your favorite editor.
@@ -57,8 +57,7 @@ In a few cases, though, it's fine to deviate - a good example is branching match
 
 To run rustfmt tests locally:
 
-1. Use rustup to set rust toolchain to the version specified in the
-   [rust-toolchain file](./rust-toolchain).
+1. Use rustup to set Rust toolchain to the latest stable version of Rust.
 
 2. Install the rustfmt and clippy by running
    ```
@@ -66,18 +65,18 @@ To run rustfmt tests locally:
    rustup component add clippy-preview
    ```
 
-3. Run clippy using cargo from the root of your alchemy repo.
+3. Run clippy nightly using cargo from the root of your Cacao repo.
    ```
-   cargo clippy
+   cargo +nightly clippy
    ```
    Each PR needs to compile without warning.
 
-4. Run rustfmt using cargo from the root of your alchemy repo.
+4. Run rustfmt nightly using cargo from the root of your Cacao repo.
 
    To see changes that need to be made, run
 
    ```
-   cargo fmt --all -- --check
+   cargo +nightly fmt --all -- --check
    ```
 
    If all code is properly formatted (e.g. if you have not made any changes),
@@ -89,15 +88,15 @@ To run rustfmt tests locally:
    Once you are ready to apply the formatting changes, run
 
    ```
-   cargo fmt --all
+   cargo +nightly fmt --all
    ```
 
    You won't see any output, but all your files will be corrected.
 
 You can also use rustfmt to make corrections or highlight issues in your editor.
-Check out [their README](https://github.com/rust-lang-nursery/rustfmt) for details.
+Check out [their README](https://github.com/rust-lang/rustfmt) for details.
 
 
 ### Notes
 This project prefers verbose naming, to a certain degree - UI code is read more often than written, so it's
-worthwhile to ensure that it scans well. It also maps well to existing Cocoa/cacao idioms and is generally preferred.
+worthwhile to ensure that it scans well. It also maps well to existing Cocoa/Cacao idioms and is generally preferred.
