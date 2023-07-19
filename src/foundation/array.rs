@@ -41,21 +41,41 @@ impl NSArray {
         unsafe { msg_send![&*self.0, count] }
     }
 
-    /// A helper method for mapping over the backing `NSArray` items and producing a Rust `Vec<T>`.
-    /// Often times we need to map in this framework to convert between Rust types, so isolating
-    /// this out makes life much easier.
-    pub fn map<T, F: Fn(id) -> T>(&self, transform: F) -> Vec<T> {
-        let count = self.count();
-        let objc = &*self.0;
+    /// Returns an iterator over the `NSArray`
+    pub fn iter<'a>(&'a self) -> NSArrayIterator<'a> {
+        NSArrayIterator {
+            next_index: 0,
+            count: self.count(),
+            array: self
+        }
+    }
+}
 
+#[derive(Debug)]
+pub struct NSArrayIterator<'a> {
+    next_index: usize,
+    count: usize,
+
+    array: &'a NSArray
+}
+
+impl Iterator for NSArrayIterator<'_> {
+    type Item = id;
+
+    fn next(&mut self) -> Option<Self::Item> {
         // I don't know if it's worth trying to get in with NSFastEnumeration here. I'm content to
         // just rely on Rust, but someone is free to profile it if they want.
-        (0..count)
-            .map(|index| {
-                let item: id = unsafe { msg_send![objc, objectAtIndex: index] };
-                transform(item)
-            })
-            .collect()
+        if self.next_index < self.count {
+            let objc = &*self.array.0;
+            let index = self.next_index;
+
+            let item: id = unsafe { msg_send![objc, objectAtIndex: index] };
+
+            self.next_index += 1;
+            Some(item)
+        } else {
+            None
+        }
     }
 }
 
