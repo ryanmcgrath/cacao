@@ -417,7 +417,10 @@ impl<T> Label<T> {
     /// Sets the maximum number of lines.
     pub fn set_max_number_of_lines(&self, num: NSInteger) {
         self.objc.with_mut(|obj| unsafe {
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![obj, setMaximumNumberOfLines: num];
+            #[cfg(feature = "uikit")]
+            let _: () = msg_send![obj, setNumberOfLines: num];
         });
     }
 
