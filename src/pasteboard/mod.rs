@@ -106,7 +106,7 @@ impl Pasteboard {
                 }));
             }
 
-            let urls = NSArray::retain(contents).map(|url| NSURL::retain(url)).into_iter().collect();
+            let urls = NSArray::retain(contents).iter().map(|url| NSURL::retain(url)).collect();
 
             Ok(urls)
         }
