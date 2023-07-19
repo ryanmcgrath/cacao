@@ -187,13 +187,12 @@ extern "C" fn accepted_cloudkit_share<T: AppDelegate>(this: &Object, _: Sel, _: 
 /// Fires when the application receives an `application:openURLs` message.
 extern "C" fn open_urls<T: AppDelegate>(this: &Object, _: Sel, _: id, file_urls: id) {
     let urls = NSArray::retain(file_urls)
-        .map(|url| {
+        .iter()
+        .filter_map(|url| {
             let uri = NSString::retain(unsafe { msg_send![url, absoluteString] });
 
-            Url::parse(uri.to_str())
+            Url::parse(uri.to_str()).ok()
         })
-        .into_iter()
-        .filter_map(|url| url.ok())
         .collect();
 
     app::<T>(this).open_urls(urls);
@@ -263,7 +262,10 @@ extern "C" fn print_files<T: AppDelegate>(
     settings: id,
     show_print_panels: BOOL
 ) -> NSUInteger {
-    let files = NSArray::retain(files).map(|file| NSString::retain(file).to_str().to_string());
+    let files = NSArray::retain(files)
+        .iter()
+        .map(|file| NSString::retain(file).to_str().to_string())
+        .collect();
 
     let settings = PrintSettings::with_inner(settings);
 
