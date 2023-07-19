@@ -11,7 +11,7 @@ use url::Url;
 
 use crate::error::Error as AppKitError;
 use crate::filesystem::enums::{SearchPathDirectory, SearchPathDomainMask};
-use crate::foundation::{id, nil, NSString, NSUInteger, NO};
+use crate::foundation::{id, nil, NSString, NSUInteger, Retainable, NO};
 
 /// A FileManager can be used for file operations (moving files, etc).
 ///

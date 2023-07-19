@@ -11,6 +11,8 @@ use objc_id::Id;
 
 use crate::foundation::{id, to_bool, NSUInteger, BOOL, NO, YES};
 
+use super::Retainable;
+
 /// Wrapper for a retained `NSData` object.
 ///
 /// Supports constructing a new `NSData` from a `Vec<u8>`, wrapping and retaining an existing
@@ -65,17 +67,6 @@ impl NSData {
         }
     }
 
-    /// Given a (presumably) `NSData`, wraps and retains it.
-    pub fn retain(data: id) -> Self {
-        NSData(unsafe { Id::from_ptr(data) })
-    }
-
-    /// If we're vended an NSData from a method (e.g, a push notification token) we might want to
-    /// wrap it while we figure out what to do with it. This does that.
-    pub fn from_retained(data: id) -> Self {
-        NSData(unsafe { Id::from_retained_ptr(data) })
-    }
-
     /// A helper method for determining if a given `NSObject` is an `NSData`.
     pub fn is(obj: id) -> bool {
         let result: BOOL = unsafe { msg_send![obj, isKindOfClass: class!(NSData)] };
@@ -124,6 +115,20 @@ impl NSData {
         data.copy_from_slice(bytes);
 
         data
+    }
+}
+
+impl Retainable for NSData {
+    /// In some cases, we're vended an `NSData` by the system that we need to call retain on.
+    /// This handles that case.
+    fn retain(data: id) -> Self {
+        NSData(unsafe { Id::from_ptr(data) })
+    }
+
+    /// If we're vended an NSData from a method (e.g, a push notification token) we might want to
+    /// wrap it while we figure out what to do with it. This does that.
+    fn from_retained(data: id) -> Self {
+        NSData(unsafe { Id::from_retained_ptr(data) })
     }
 }
 

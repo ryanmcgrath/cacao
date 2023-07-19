@@ -365,6 +365,8 @@ impl<T> Label<T> {
     /// Retrieve the text currently held in the label.
     #[cfg(feature = "appkit")]
     pub fn get_text(&self) -> String {
+        use crate::foundation::Retainable;
+
         self.objc
             .get(|obj| unsafe { NSString::retain(msg_send![obj, stringValue]).to_string() })
     }

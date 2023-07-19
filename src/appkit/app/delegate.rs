@@ -14,7 +14,7 @@ use crate::appkit::printing::PrintSettings;
 #[cfg(feature = "cloudkit")]
 use crate::cloudkit::share::CKShareMetaData;
 use crate::error::Error;
-use crate::foundation::{id, load_or_register_class, nil, to_bool, NSArray, NSString, NSUInteger, BOOL, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, to_bool, NSArray, NSString, NSUInteger, Retainable, BOOL, NO, YES};
 use crate::user_activity::UserActivity;
 
 /// A handy method for grabbing our `AppDelegate` from the pointer. This is different from our

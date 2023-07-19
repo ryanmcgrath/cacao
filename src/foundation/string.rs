@@ -9,6 +9,8 @@ use objc_id::Id;
 
 use crate::foundation::{id, to_bool, BOOL, NO, YES};
 
+use super::Retainable;
+
 const UTF8_ENCODING: usize = 4;
 
 /// A wrapper for `NSString`.
@@ -54,23 +56,6 @@ impl<'a> NSString<'a> {
         }
     }
 
-    /// In cases where we're vended an `NSString` by the system, this can be used to wrap and
-    /// retain it.
-    pub fn retain(object: id) -> Self {
-        NSString {
-            objc: unsafe { Id::from_ptr(object) },
-            phantom: PhantomData
-        }
-    }
-
-    /// In some cases, we want to wrap a system-provided NSString without retaining it.
-    pub fn from_retained(object: id) -> Self {
-        NSString {
-            objc: unsafe { Id::from_retained_ptr(object) },
-            phantom: PhantomData
-        }
-    }
-
     /// Utility method for checking whether an `NSObject` is an `NSString`.
     pub fn is(obj: id) -> bool {
         let result: BOOL = unsafe { msg_send![obj, isKindOfClass: class!(NSString)] };
@@ -104,6 +89,22 @@ impl<'a> NSString<'a> {
     /// A utility method for taking an `NSString` and getting an owned `String` from it.
     pub fn to_string(&self) -> String {
         self.to_str().to_string()
+    }
+}
+
+impl Retainable for NSString<'_> {
+    fn retain(object: id) -> Self {
+        NSString {
+            objc: unsafe { Id::from_ptr(object) },
+            phantom: PhantomData
+        }
+    }
+
+    fn from_retained(object: id) -> Self {
+        NSString {
+            objc: unsafe { Id::from_retained_ptr(object) },
+            phantom: PhantomData
+        }
     }
 }
 

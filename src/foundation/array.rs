@@ -6,6 +6,8 @@ use objc_id::Id;
 
 use crate::foundation::id;
 
+use super::Retainable;
+
 /// A wrapper for `NSArray` that makes common operations in our framework a bit easier to handle
 /// and reason about. This also provides a central place to look at replacing with `CFArray` if
 /// ever deemed necessary (unlikely, given how much Apple has optimized the Foundation classes, but
@@ -24,18 +26,6 @@ impl NSArray {
         })
     }
 
-    /// In some cases, we're vended an `NSArray` by the system that we need to call retain on.
-    /// This handles that case.
-    pub fn retain(array: id) -> Self {
-        NSArray(unsafe { Id::from_ptr(array) })
-    }
-
-    /// In some cases, we're vended an `NSArray` by the system, and it's ideal to not retain that.
-    /// This handles that edge case.
-    pub fn from_retained(array: id) -> Self {
-        NSArray(unsafe { Id::from_retained_ptr(array) })
-    }
-
     /// Returns the `count` (`len()` equivalent) for the backing `NSArray`.
     pub fn count(&self) -> usize {
         unsafe { msg_send![&*self.0, count] }
@@ -48,6 +38,20 @@ impl NSArray {
             count: self.count(),
             array: self
         }
+    }
+}
+
+impl Retainable for NSArray {
+    /// In some cases, we're vended an `NSArray` by the system that we need to call retain on.
+    /// This handles that case.
+    fn retain(array: id) -> Self {
+        NSArray(unsafe { Id::from_ptr(array) })
+    }
+
+    /// In some cases, we're vended an `NSArray` by the system, and it's ideal to not retain that.
+    /// This handles that edge case.
+    fn from_retained(array: id) -> Self {
+        NSArray(unsafe { Id::from_retained_ptr(array) })
     }
 }
 

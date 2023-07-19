@@ -8,7 +8,7 @@ use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
-use crate::foundation::{id, NSString};
+use crate::foundation::{id, NSString, Retainable};
 
 /// A wrapper around `NSURLRequest`.
 #[derive(Debug)]

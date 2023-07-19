@@ -294,6 +294,8 @@ impl<T> TextField<T> {
     /// Grabs the value from the textfield and returns it as an owned String.
     #[cfg(feature = "appkit")]
     pub fn get_value(&self) -> String {
+        use crate::foundation::Retainable;
+
         self.objc
             .get(|obj| unsafe { NSString::retain(msg_send![obj, stringValue]).to_string() })
     }

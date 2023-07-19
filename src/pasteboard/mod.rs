@@ -21,7 +21,7 @@ use objc_id::ShareId;
 use url::Url;
 
 use crate::error::Error;
-use crate::foundation::{id, nil, NSArray, NSString, NSURL};
+use crate::foundation::{id, nil, NSArray, NSString, Retainable, NSURL};
 
 mod types;
 pub use types::{PasteboardName, PasteboardType};
