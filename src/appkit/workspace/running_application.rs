@@ -128,7 +128,7 @@ impl RunningApplication {
 
     /// Indicates the date when the application was launched.
     pub fn launch_date(&self) -> Option<usize> {
-        unimplemented!("No NSDate implementation")
+        unimplemented!("Missing NSDate implementation")
     }
 
     /// Indicates whether the receiver’s process has finished launching.

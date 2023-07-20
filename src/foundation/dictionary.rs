@@ -38,9 +38,15 @@ impl NSMutableDictionary {
         }
     }
 
-    /// Consumes and returns the underlying `NSMutableDictionary`.
-    pub fn into_inner(mut self) -> id {
-        &mut *self.0
+}
+
+impl Retainable for NSMutableDictionary {
+    fn retain(object: id) -> Self {
+        unsafe { NSMutableDictionary(Id::from_ptr(object)) }
+    }
+
+    fn from_retained(object: id) -> Self {
+        unsafe { NSMutableDictionary(Id::from_retained_ptr(object)) }
     }
 }
 

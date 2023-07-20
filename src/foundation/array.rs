@@ -13,7 +13,7 @@ use super::Retainable;
 /// ever deemed necessary (unlikely, given how much Apple has optimized the Foundation classes, but
 /// still...).
 #[derive(Debug)]
-pub struct NSArray(pub Id<Object>);
+pub struct NSArray(Id<Object>);
 
 impl NSArray {
     /// Given a set of `Object`s, creates and retains an `NSArray` that holds them.
