@@ -7,6 +7,8 @@ use objc_id::Id;
 
 use crate::foundation::{id, to_bool, NSInteger, BOOL, NO, YES};
 
+use super::Retainable;
+
 /// Wrapper for a `NSNumber` object.
 ///
 /// In general we strive to avoid using this in the codebase, but it's a requirement for moving
@@ -15,18 +17,6 @@ use crate::foundation::{id, to_bool, NSInteger, BOOL, NO, YES};
 pub struct NSNumber(pub Id<Object>);
 
 impl NSNumber {
-    /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
-    /// wrap (and retain) it while we figure out what to do with it. This does that.
-    pub fn retain(data: id) -> Self {
-        NSNumber(unsafe { Id::from_ptr(data) })
-    }
-
-    /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
-    /// wrap it while we figure out what to do with it. This does that.
-    pub fn wrap(data: id) -> Self {
-        NSNumber(unsafe { Id::from_retained_ptr(data) })
-    }
-
     /// Constructs a `numberWithBool` instance of `NSNumber` and retains it.
     pub fn bool(value: bool) -> Self {
         NSNumber(unsafe {
@@ -94,6 +84,20 @@ impl NSNumber {
         let result: BOOL = unsafe { msg_send![obj, isKindOfClass: class!(NSNumber)] };
 
         to_bool(result)
+    }
+}
+
+impl Retainable for NSNumber {
+    /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
+    /// wrap (and retain) it while we figure out what to do with it. This does that.
+    fn retain(data: id) -> Self {
+        NSNumber(unsafe { Id::from_ptr(data) })
+    }
+
+    /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
+    /// wrap it while we figure out what to do with it. This does that.
+    fn from_retained(data: id) -> Self {
+        NSNumber(unsafe { Id::from_retained_ptr(data) })
     }
 }
 

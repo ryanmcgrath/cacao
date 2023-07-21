@@ -6,7 +6,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::events::EventType;
-use crate::foundation::{id, nil, NSInteger, NSPoint, NSString};
+use crate::foundation::{id, nil, NSInteger, NSPoint, NSString, Retainable};
 
 /// An EventMask describes the type of event.
 #[bitmask(u64)]

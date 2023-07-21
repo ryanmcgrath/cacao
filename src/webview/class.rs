@@ -12,7 +12,7 @@ use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString, Retainable, NO, YES};
 use crate::webview::actions::{NavigationAction, NavigationResponse};
 use crate::webview::{mimetype::MimeType, WebViewDelegate, WEBVIEW_DELEGATE_PTR}; //, OpenPanelParameters};
                                                                                  //use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};

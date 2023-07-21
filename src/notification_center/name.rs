@@ -1,11 +1,17 @@
+use std::{convert::TryInto, fmt::Display};
+
+use strum_macros::{AsRefStr, EnumString};
+
 #[allow(non_camel_case_types)]
 use crate::foundation::NSString;
+
+static NOTIFICATION_SUFFIX: &'static str = "Notification";
 
 /// An enum that wraps NSNotificationName.
 ///
 /// Since this framework utilizes Objective-C, these are ultimately backed by `NSString`... but we
 /// want them to be a bit more type-friendly and autocomplete-able.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug, AsRefStr, EnumString)]
 pub enum NotificationName {
     /// Posted when the audio engine config changes.
     ///
@@ -1310,13 +1316,60 @@ pub enum NotificationName {
     SKStorefrontCountryCodeDidChange,
 
     ///
-    WKAccessibilityReduceMotionStatusDidChange
+    WKAccessibilityReduceMotionStatusDidChange,
+
+    /// A custom or unknown NSNotificationName
+    #[strum(default)]
+    Custom(String)
+}
+
+impl From<NotificationName> for String {
+    fn from(name: NotificationName) -> Self {
+        let full_name = format!("{}{NOTIFICATION_SUFFIX}", name.as_ref());
+
+        match name {
+            // Custom does not have a `*Notification` suffix added
+            NotificationName::Custom(value) => value,
+            _ => full_name
+        }
+    }
 }
 
 impl From<NotificationName> for NSString<'_> {
     fn from(name: NotificationName) -> Self {
-        match name {
-            _ => NSString::no_copy("")
+        let name: String = name.into();
+        NSString::new(&name)
+    }
+}
+
+impl From<NSString<'_>> for NotificationName {
+    fn from(value: NSString<'_>) -> Self {
+        value.to_string().into()
+    }
+}
+
+impl From<String> for NotificationName {
+    fn from(value: String) -> Self {
+        if let Some(value) = value.strip_suffix(NOTIFICATION_SUFFIX) {
+            // Has notification suffix, find enum
+            let variant = TryInto::<NotificationName>::try_into(value);
+
+            if let Ok(variant) = variant {
+                variant
+            } else {
+                // Could not match name to any enum. Return custom
+                NotificationName::Custom(value.into())
+            }
+        } else {
+            // No notification suffix, must be custom
+            NotificationName::Custom(value.into())
         }
+    }
+}
+
+impl Display for NotificationName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let string: String = self.clone().into();
+        write!(f, "{}", string)
     }
 }

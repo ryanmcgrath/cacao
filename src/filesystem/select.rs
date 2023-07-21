@@ -11,7 +11,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::filesystem::enums::ModalResponse;
-use crate::foundation::{id, nil, NSInteger, NSString, NO, NSURL, YES};
+use crate::foundation::{id, nil, NSInteger, NSString, Retainable, NO, NSURL, YES};
 
 #[cfg(feature = "appkit")]
 use crate::appkit::window::{Window, WindowDelegate};

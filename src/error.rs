@@ -9,7 +9,7 @@ use std::fmt;
 
 use objc::{class, msg_send, sel, sel_impl};
 
-use crate::foundation::{id, nil, NSInteger, NSString};
+use crate::foundation::{id, nil, NSInteger, NSString, Retainable};
 
 /// A wrapper around pieces of data extracted from `NSError`. This could be improved: right now, it
 /// allocates `String` instances when theoretically it could be avoided, and we might be erasing

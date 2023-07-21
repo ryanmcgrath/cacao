@@ -49,7 +49,7 @@ use objc_id::ShareId;
 
 use crate::color::Color;
 use crate::control::Control;
-use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString, Retainable, NO, YES};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::text::{Font, TextAlign};

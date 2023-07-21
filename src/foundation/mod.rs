@@ -63,6 +63,27 @@ pub fn to_bool(result: BOOL) -> bool {
     }
 }
 
+pub trait Retainable {
+    /// In some cases, we're vended an `NSObject` by the system that we need to call retain on.
+    /// This handles that case.
+    fn retain(handle: id) -> Self;
+
+    /// In some cases, we're vended an `NSObject` by the system, and it's ideal to not retain that.
+    /// This handles that edge case.
+    fn from_retained(handle: id) -> Self;
+
+    fn retain_nullable(handle: id) -> Option<Self>
+    where
+        Self: Sized
+    {
+        if !handle.is_null() {
+            Some(Self::retain(handle))
+        } else {
+            None
+        }
+    }
+}
+
 /// More or less maps over to Objective-C's `id` type, which... can really be anything.
 #[allow(non_camel_case_types)]
 pub type id = *mut runtime::Object;

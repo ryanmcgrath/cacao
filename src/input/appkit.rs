@@ -1,7 +1,7 @@
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{msg_send, sel, sel_impl};
 
-use crate::foundation::{id, load_or_register_class, NSString, NO, YES};
+use crate::foundation::{id, load_or_register_class, NSString, Retainable, NO, YES};
 use crate::input::{TextFieldDelegate, TEXTFIELD_DELEGATE_PTR};
 use crate::utils::load;
 

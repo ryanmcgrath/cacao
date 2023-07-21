@@ -38,7 +38,7 @@ use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
-use crate::foundation::{id, nil, to_bool, NSData, NSMutableDictionary, NSNumber, NSString, BOOL, NO, YES};
+use crate::foundation::{id, nil, to_bool, NSData, NSMutableDictionary, NSNumber, NSString, Retainable, BOOL, NO, YES};
 
 mod value;
 pub use value::Value;
@@ -200,7 +200,7 @@ impl UserDefaults {
         //
         // For context: https://nshipster.com/type-encodings/
         if NSNumber::is(result) {
-            let number = NSNumber::wrap(result);
+            let number = NSNumber::from_retained(result);
 
             return match number.objc_type() {
                 "c" => Some(Value::Bool(number.as_bool())),

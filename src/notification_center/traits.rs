@@ -1,3 +1,5 @@
+// TODO: This should be moved elsewhere
+
 /// A trait for handling dispatched messages on the AppDelegate.
 ///
 /// You can use this for a jank message dispatching mechanism. It has no guarantees concerning

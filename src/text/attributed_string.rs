@@ -10,7 +10,7 @@ use objc::{class, msg_send, sel, sel_impl};
 use objc_id::Id;
 
 use crate::color::Color;
-use crate::foundation::{id, to_bool, NSString, BOOL, NO, YES};
+use crate::foundation::{id, to_bool, NSString, Retainable, BOOL, NO, YES};
 
 use super::Font;
 

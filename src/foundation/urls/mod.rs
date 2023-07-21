@@ -15,6 +15,8 @@ pub use bookmark_options::{NSURLBookmarkCreationOption, NSURLBookmarkResolutionO
 mod resource_keys;
 pub use resource_keys::{NSURLFileResource, NSURLResourceKey, NSUbiquitousItemDownloadingStatus};
 
+use super::Retainable;
+
 /// Wraps `NSURL` for use throughout the framework.
 ///
 /// This type may also be returned to users in some callbacks (e.g, file manager/selectors) as it's
@@ -36,23 +38,6 @@ pub struct NSURL<'a> {
 }
 
 impl<'a> NSURL<'a> {
-    /// In cases where we're vended an `NSURL` by the system, this can be used to wrap and
-    /// retain it.
-    pub fn retain(object: id) -> Self {
-        NSURL {
-            objc: unsafe { ShareId::from_ptr(object) },
-            phantom: PhantomData
-        }
-    }
-
-    /// In some cases, we want to wrap a system-provided NSURL without retaining it.
-    pub fn from_retained(object: id) -> Self {
-        NSURL {
-            objc: unsafe { ShareId::from_retained_ptr(object) },
-            phantom: PhantomData
-        }
-    }
-
     /// Creates and returns a URL object by calling through to `[NSURL URLWithString]`.
     pub fn with_str(url: &str) -> Self {
         let url = NSString::new(url);
@@ -154,6 +139,22 @@ impl<'a> NSURL<'a> {
     pub fn stop_accessing_security_scoped_resource(&self) {
         unsafe {
             let _: () = msg_send![&*self.objc, stopAccessingSecurityScopedResource];
+        }
+    }
+}
+
+impl Retainable for NSURL<'_> {
+    fn retain(object: id) -> Self {
+        NSURL {
+            objc: unsafe { ShareId::from_ptr(object) },
+            phantom: PhantomData
+        }
+    }
+
+    fn from_retained(object: id) -> Self {
+        NSURL {
+            objc: unsafe { ShareId::from_retained_ptr(object) },
+            phantom: PhantomData
         }
     }
 }

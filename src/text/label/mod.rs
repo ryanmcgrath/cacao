@@ -48,7 +48,7 @@ use objc::{msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
 use crate::color::Color;
-use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, Retainable, NO, YES};
 use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
