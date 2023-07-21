@@ -8,7 +8,7 @@ use crate::foundation::{id, nil, NSMutableDictionary, NSString, Retainable};
 use super::NotificationName;
 
 #[derive(Debug)]
-pub struct Notification(Id<Object>);
+pub struct Notification(pub(crate) Id<Object>);
 
 impl Notification {
     /// Returns a notification object with a specified name, object, and user information. Corresponds to notificationWithName:object:userInfo:
