@@ -77,8 +77,6 @@ impl NSMutableDictionary {
 
         let keys = self.keys();
 
-        println!("{keys:?}");
-
         for key in keys {
             let item_id = self.get(&key);
 
