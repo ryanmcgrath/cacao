@@ -31,7 +31,7 @@ impl Notification {
             (Some(object), None) => unsafe { msg_send![class!(NSNotification), notificationWithName: name object: object] },
             (Some(object), Some(user_info)) => unsafe {
                 msg_send![class!(NSNotification), notificationWithName: name object: object userInfo: user_info]
-            },
+            }
         };
 
         Notification::retain(id)

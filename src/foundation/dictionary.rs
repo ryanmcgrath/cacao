@@ -71,7 +71,7 @@ impl NSMutableDictionary {
     /// **NOTE:** This only works with string keys
     pub fn into_hashmap<T, F>(&self, item_transform: F) -> HashMap<String, T>
     where
-        F: Fn(&String, id) -> T,
+        F: Fn(&String, id) -> T
     {
         let mut map = HashMap::new();
 
@@ -103,7 +103,7 @@ impl NSMutableDictionary {
             next_index: 0,
             count: keys.len(),
             keys,
-            dict: self,
+            dict: self
         }
     }
 }
@@ -114,7 +114,7 @@ pub struct NSMutableDictionaryIterator<'a> {
     count: usize,
     keys: Vec<String>,
 
-    dict: &'a NSMutableDictionary,
+    dict: &'a NSMutableDictionary
 }
 
 impl Iterator for NSMutableDictionaryIterator<'_> {

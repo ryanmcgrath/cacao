@@ -1320,7 +1320,7 @@ pub enum NotificationName {
 
     /// A custom or unknown NSNotificationName
     #[strum(default)]
-    Custom(String),
+    Custom(String)
 }
 
 impl From<NotificationName> for String {
@@ -1330,7 +1330,7 @@ impl From<NotificationName> for String {
         match name {
             // Custom does not have a `*Notification` suffix added
             NotificationName::Custom(value) => value,
-            _ => full_name,
+            _ => full_name
         }
     }
 }

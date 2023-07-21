@@ -54,7 +54,7 @@ impl NotificationCenter {
     pub fn observe<F: Fn(Notification) -> () + Send + Sync + 'static>(
         &self,
         name: Option<NotificationName>,
-        block: F,
+        block: F
     ) -> NotificationObserver {
         let block = ConcreteBlock::new(move |ctx| {
             let notification = Notification::retain(ctx);
@@ -92,14 +92,14 @@ impl Retainable for NotificationCenter {
 #[derive(Debug)]
 pub struct NotificationObserver {
     objc: ShareId<Object>,
-    notification_center: ShareId<Object>,
+    notification_center: ShareId<Object>
 }
 
 impl NotificationObserver {
     fn new(observer: id, notification_center: &NotificationCenter) -> Self {
         NotificationObserver {
             objc: unsafe { ShareId::from_ptr(observer) },
-            notification_center: notification_center.0.clone(),
+            notification_center: notification_center.0.clone()
         }
     }
 

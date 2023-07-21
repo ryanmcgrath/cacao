@@ -6,7 +6,7 @@ use objc_id::Id;
 
 use crate::{
     foundation::{id, NSArray, NSInteger, NSString, NSUInteger, Retainable, NSURL},
-    image::Image,
+    image::Image
 };
 
 #[derive(Debug)]
@@ -60,7 +60,7 @@ impl RunningApplication {
             1 => ApplicationActivationPolicy::Accessory,
             2 => ApplicationActivationPolicy::Prohibited,
 
-            _ => ApplicationActivationPolicy::Regular,
+            _ => ApplicationActivationPolicy::Regular
         }
     }
 
@@ -187,7 +187,7 @@ pub enum ApplicationActivationOptions {
     ActivateAllWindows = 1 << 0,
 
     /// The application is activated regardless of the currently active app.
-    ActivateIgnoringOtherApps = 1 << 1,
+    ActivateIgnoringOtherApps = 1 << 1
 }
 
 /// Activation policies (used by `activationPolicy`) that control whether and how an app may be activated.
@@ -201,5 +201,5 @@ pub enum ApplicationActivationPolicy {
     Accessory = 1,
 
     /// The application doesn’t appear in the Dock and may not create windows or be activated.
-    Prohibited = 2,
+    Prohibited = 2
 }

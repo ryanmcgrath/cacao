@@ -8,7 +8,7 @@ use crate::{
     color::Color,
     error::Error,
     foundation::{id, nil, NSArray, NSInteger, NSMutableDictionary, NSString, Retainable, NSURL},
-    notification_center::NotificationCenter,
+    notification_center::NotificationCenter
 };
 
 use self::running_application::RunningApplication;
@@ -24,7 +24,7 @@ pub struct GetFileSystemInfoForPathResponse {
     pub writable: bool,
     pub unmountable: bool,
     pub description: String,
-    pub file_system_type: String,
+    pub file_system_type: String
 }
 
 impl Workspace {
@@ -51,7 +51,7 @@ impl Workspace {
     /// Maps to `openURL:configuration:completionHandler:`
     pub fn open_url_with_completion<F>(&self, _url: &str, _configuration: &str, _completion_handler: F)
     where
-        F: FnOnce() -> (),
+        F: FnOnce() -> ()
     {
         unimplemented!("Missing NSWorkspaceOpenConfiguration implementation. Only >=10.15");
     }
@@ -62,9 +62,9 @@ impl Workspace {
         _url: &str,
         _application_url: &str,
         _configuration: &str,
-        _completion_handler: F,
+        _completion_handler: F
     ) where
-        F: FnOnce() -> (),
+        F: FnOnce() -> ()
     {
         unimplemented!("Missing NSWorkspaceOpenConfiguration implementation. Only >=10.15");
     }
@@ -84,7 +84,7 @@ impl Workspace {
     /// Launches the app at the specified URL and asynchronously reports back on the app's status.
     pub fn open_application_at_url<F>(&self, _application_url: &str, _configuration: &str, _completion_handler: F)
     where
-        F: FnOnce() -> (),
+        F: FnOnce() -> ()
     {
         unimplemented!("Missing NSWorkspaceOpenConfiguration implementation. Only >=10.15");
     }
@@ -99,7 +99,7 @@ impl Workspace {
     /// Duplicates the specified URLS asynchronously in the same manner as the Finder.
     pub fn duplicate_urls<F>(&self, _urls: Vec<&str>, _completion_handler: Option<F>)
     where
-        F: Fn(HashMap<String, String>, Error) -> () + Send + Sync + 'static,
+        F: Fn(HashMap<String, String>, Error) -> () + Send + Sync + 'static
     {
         unimplemented!("Missing ability to create NSArrays of NSURL");
         // let urls = urls
@@ -132,7 +132,7 @@ impl Workspace {
     /// Moves the specified URLs to the trash in the same manner as the Finder.
     pub fn recycle_urls<F>(&self, _urls: Vec<&str>, _completion_handler: Option<F>)
     where
-        F: Fn(HashMap<String, String>, Error) -> () + Send + Sync + 'static,
+        F: Fn(HashMap<String, String>, Error) -> () + Send + Sync + 'static
     {
         unimplemented!("Missing ability to create NSArrays of NSURL");
     }
@@ -200,7 +200,7 @@ impl Workspace {
                 writable: *writable,
                 unmountable: *unmountable,
                 description: description.to_string(),
-                file_system_type: file_system_type.to_string(),
+                file_system_type: file_system_type.to_string()
             })
         } else {
             None
