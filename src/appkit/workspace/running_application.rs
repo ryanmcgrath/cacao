@@ -1,27 +1,24 @@
 use std::f32::consts::E;
 
 use bitmask_enum::bitmask;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, runtime::Object, sel, sel_impl};
+use objc_id::Id;
 
 use crate::{
     foundation::{id, NSArray, NSInteger, NSString, NSUInteger, Retainable, NSURL},
-    image::Image
+    image::Image,
 };
 
 #[derive(Debug)]
-pub struct RunningApplication(id);
+pub struct RunningApplication(Id<Object>);
 
 impl RunningApplication {
-    pub fn new(running_app: id) -> Self {
-        RunningApplication(running_app)
-    }
-
     /// Returns the running application with the given process identifier, or `None` if no application has that pid.
     pub fn from_process_identifier(pid: usize) -> Option<Self> {
         let id: id = unsafe { msg_send![class!(NSRunningApplication), runningApplicationWithProcessIdentifier:pid] };
 
         if !id.is_null() {
-            Some(RunningApplication::new(id))
+            Some(RunningApplication::retain(id))
         } else {
             None
         }
@@ -32,14 +29,14 @@ impl RunningApplication {
         let identifier = NSString::new(identifier);
         let id: id = unsafe { msg_send![class!(NSRunningApplication), runningApplicationsWithBundleIdentifier:identifier] };
 
-        NSArray::retain(id).iter().map(|a| RunningApplication(a)).collect()
+        NSArray::retain(id).iter().map(|a| RunningApplication::retain(a)).collect()
     }
 
     /// Returns an NSRunningApplication representing this application.
     pub fn current() -> Self {
         let id: id = unsafe { msg_send![class!(NSRunningApplication), currentApplication] };
 
-        Self::new(id)
+        Self::retain(id)
     }
 
     // Activating applications
@@ -63,7 +60,7 @@ impl RunningApplication {
             1 => ApplicationActivationPolicy::Accessory,
             2 => ApplicationActivationPolicy::Prohibited,
 
-            _ => ApplicationActivationPolicy::Regular
+            _ => ApplicationActivationPolicy::Regular,
         }
     }
 
@@ -169,6 +166,16 @@ impl RunningApplication {
     }
 }
 
+impl Retainable for RunningApplication {
+    fn retain(app: id) -> Self {
+        RunningApplication(unsafe { Id::from_ptr(app) })
+    }
+
+    fn from_retained(app: id) -> Self {
+        RunningApplication(unsafe { Id::from_retained_ptr(app) })
+    }
+}
+
 #[bitmask(u32)]
 /// Flags are for `activate_with_options`
 pub enum ApplicationActivationOptions {
@@ -180,7 +187,7 @@ pub enum ApplicationActivationOptions {
     ActivateAllWindows = 1 << 0,
 
     /// The application is activated regardless of the currently active app.
-    ActivateIgnoringOtherApps = 1 << 1
+    ActivateIgnoringOtherApps = 1 << 1,
 }
 
 /// Activation policies (used by `activationPolicy`) that control whether and how an app may be activated.
@@ -194,5 +201,5 @@ pub enum ApplicationActivationPolicy {
     Accessory = 1,
 
     /// The application doesn’t appear in the Dock and may not create windows or be activated.
-    Prohibited = 2
+    Prohibited = 2,
 }
