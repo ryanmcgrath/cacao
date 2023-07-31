@@ -318,7 +318,7 @@ pub(crate) fn register_menu_item_class() -> *const Class {
     load_or_register_class("NSMenuItem", "CacaoMenuItem", |decl| unsafe {
         decl.add_ivar::<usize>(BLOCK_PTR);
 
-        decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern "C" fn(&Object, _));
-        decl.add_method(sel!(fireBlockAction:), fire_block_action as extern "C" fn(&Object, _, id));
+        decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern "C" fn(_, _));
+        decl.add_method(sel!(fireBlockAction:), fire_block_action as extern "C" fn(_, _, _));
     })
 }

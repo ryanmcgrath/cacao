@@ -55,12 +55,12 @@ pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn
         decl.add_protocol(p);
 
         // Override the `init` call to handle creating and attaching a WindowSceneDelegate.
-        decl.add_method(sel!(init), init::<T, F> as extern "C" fn(&mut Object, _) -> id);
+        decl.add_method(sel!(init), init::<T, F> as extern "C" fn(_, _) -> _);
 
         // UIWindowSceneDelegate API
         decl.add_method(
             sel!(scene:willConnectToSession:options:),
-            scene_will_connect_to_session_with_options::<T> as extern "C" fn(&Object, _, _, _, _)
+            scene_will_connect_to_session_with_options::<T> as extern "C" fn(_, _, _, _, _)
         );
     })
 }

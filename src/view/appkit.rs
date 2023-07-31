@@ -91,9 +91,9 @@ extern "C" fn update_layer(this: &Object, _: Sel) {
 /// used if there's no delegates.
 pub(crate) fn register_view_class() -> *const Class {
     load_or_register_class("NSView", "RSTView", |decl| unsafe {
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
-        decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(&Object, _));
-        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
+        decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(_, _));
+        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern "C" fn(_, _) -> _);
 
         decl.add_ivar::<id>(BACKGROUND_COLOR);
     })
@@ -108,36 +108,30 @@ pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
         decl.add_ivar::<id>(BACKGROUND_COLOR);
 
-        decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(&Object, _));
+        decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(_, _));
 
-        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(wantsUpdateLayer), enforce_normalcy as extern "C" fn(_, _) -> _);
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
 
         // Drag and drop operations (e.g, accepting files)
-        decl.add_method(
-            sel!(draggingEntered:),
-            dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger
-        );
+        decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern "C" fn(_, _, _) -> _);
 
         decl.add_method(
             sel!(prepareForDragOperation:),
-            prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            prepare_for_drag_operation::<T> as extern "C" fn(_, _, _) -> _
         );
 
         decl.add_method(
             sel!(performDragOperation:),
-            perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            perform_drag_operation::<T> as extern "C" fn(_, _, _) -> _
         );
 
         decl.add_method(
             sel!(concludeDragOperation:),
-            conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _)
+            conclude_drag_operation::<T> as extern "C" fn(_, _, _)
         );
 
-        decl.add_method(
-            sel!(draggingExited:),
-            dragging_exited::<T> as extern "C" fn(&mut Object, _, _)
-        );
+        decl.add_method(sel!(draggingExited:), dragging_exited::<T> as extern "C" fn(_, _, _));
     })
 }

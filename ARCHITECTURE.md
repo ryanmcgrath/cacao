@@ -360,7 +360,7 @@ pub(crate) fn register_view_class() -> *const Class {
         let superclass = class!(NSView);
         let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
 
         decl.add_ivar::<id>(BACKGROUND_COLOR);
 
@@ -384,12 +384,12 @@ pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -
 
         decl.add_method(
             sel!(isFlipped),
-            enforce_normalcy as extern "C" fn(&Object, _) -> BOOL
+            enforce_normalcy as extern "C" fn(_, _) -> _,
         );
 
         decl.add_method(
             sel!(draggingEntered:),
-            dragging_entered::<T> as extern "C" fn (&mut Object, _, _) -> NSUInteger
+            dragging_entered::<T> as extern "C" fn (_, _, _) -> _,
         );
     })
 }

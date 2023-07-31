@@ -176,10 +176,7 @@ extern "C" fn accepts_first_mouse(_: &mut Object, _: Sel, _: id) -> BOOL {
 /// varieties of delegates needed there).
 pub fn register_webview_class() -> *const Class {
     load_or_register_class("WKWebView", "CacaoWebView", |decl| unsafe {
-        decl.add_method(
-            sel!(acceptsFirstMouse:),
-            accepts_first_mouse as extern "C" fn(&mut Object, Sel, id) -> BOOL
-        );
+        decl.add_method(sel!(acceptsFirstMouse:), accepts_first_mouse as extern "C" fn(_, _, _) -> _);
     })
 }
 
@@ -193,37 +190,37 @@ pub fn register_webview_delegate_class<T: WebViewDelegate>(instance: &T) -> *con
         // WKNavigationDelegate
         decl.add_method(
             sel!(webView:decidePolicyForNavigationAction:decisionHandler:),
-            decide_policy_for_action::<T> as extern "C" fn(&Object, _, _, id, usize)
+            decide_policy_for_action::<T> as extern "C" fn(_, _, _, _, _)
         );
         decl.add_method(
             sel!(webView:decidePolicyForNavigationResponse:decisionHandler:),
-            decide_policy_for_response::<T> as extern "C" fn(&Object, _, _, id, usize)
+            decide_policy_for_response::<T> as extern "C" fn(_, _, _, _, _)
         );
 
         // WKScriptMessageHandler
         decl.add_method(
             sel!(userContentController:didReceiveScriptMessage:),
-            on_message::<T> as extern "C" fn(&Object, _, _, id)
+            on_message::<T> as extern "C" fn(_, _, _, _)
         );
 
         // Custom protocol handler
         decl.add_method(
             sel!(webView:startURLSchemeTask:),
-            start_url_scheme_task::<T> as extern "C" fn(&Object, Sel, id, id)
+            start_url_scheme_task::<T> as extern "C" fn(_, _, _, _)
         );
         decl.add_method(
             sel!(webView:stopURLSchemeTask:),
-            stop_url_scheme_task::<T> as extern "C" fn(&Object, Sel, id, id)
+            stop_url_scheme_task::<T> as extern "C" fn(_, _, _, _)
         );
 
         // WKUIDelegate
         decl.add_method(
             sel!(webView:runJavaScriptAlertPanelWithMessage:initiatedByFrame:completionHandler:),
-            alert::<T> as extern "C" fn(&Object, _, _, id, _, _)
+            alert::<T> as extern "C" fn(_, _, _, _, _, _)
         );
         decl.add_method(
             sel!(webView:runOpenPanelWithParameters:initiatedByFrame:completionHandler:),
-            run_open_panel::<T> as extern "C" fn(&Object, _, _, id, _, usize)
+            run_open_panel::<T> as extern "C" fn(_, _, _, _, _, _)
         );
 
         // WKDownloadDelegate is a private class on macOS that handles downloading (saving) files.
@@ -232,7 +229,7 @@ pub fn register_webview_delegate_class<T: WebViewDelegate>(instance: &T) -> *con
         #[cfg(feature = "webview-downloading-macos")]
         decl.add_method(
             sel!(_download:decideDestinationWithSuggestedFilename:completionHandler:),
-            handle_download::<T> as extern "C" fn(&Object, _, id, id, usize)
+            handle_download::<T> as extern "C" fn(_, _, _, _, _)
         );
     })
 }

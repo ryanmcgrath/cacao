@@ -16,6 +16,6 @@ use crate::foundation::load_or_register_class;
 /// used if there's no delegates.
 pub(crate) fn register_image_view_class() -> *const Class {
     load_or_register_class("NSImageView", "RSTImageView", |decl| unsafe {
-        //decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        //decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
     })
 }

@@ -94,6 +94,6 @@ extern "C" fn perform<F: Fn(*const Object) + 'static>(this: &mut Object, _: Sel,
 pub(crate) fn register_invoker_class<F: Fn(*const Object) + 'static>() -> *const Class {
     load_or_register_class("NSObject", "RSTTargetActionHandler", |decl| unsafe {
         decl.add_ivar::<usize>(ACTION_CALLBACK_PTR);
-        decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(&mut Object, _, id));
+        decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(_, _, _));
     })
 }

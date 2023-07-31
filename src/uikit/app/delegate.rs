@@ -47,17 +47,17 @@ pub(crate) fn register_app_delegate_class<T: AppDelegate>() -> *const Class {
         // Launching Applications
         decl.add_method(
             sel!(application:didFinishLaunchingWithOptions:),
-            did_finish_launching::<T> as extern "C" fn(&Object, _, _, id) -> BOOL
+            did_finish_launching::<T> as extern "C" fn(_, _, _, _) -> _
         );
 
         // Scenes
         decl.add_method(
             sel!(application:configurationForConnectingSceneSession:options:),
-            configuration_for_scene_session::<T> as extern "C" fn(&Object, _, _, id, id) -> id
+            configuration_for_scene_session::<T> as extern "C" fn(_, _, _, _, _) -> _
         );
         /*decl.add_method(
             sel!(application:didDiscardSceneSessions:),
-            did_discard_scene_sessions::<T> as extern "C" fn(&Object, _, _, id)
+            did_discard_scene_sessions::<T> as extern "C" fn(_, _, _, _)
         );*/
     })
 }

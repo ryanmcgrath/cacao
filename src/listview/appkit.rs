@@ -193,58 +193,49 @@ pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instanc
     load_or_register_class("NSTableView", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(LISTVIEW_DELEGATE_PTR);
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
 
         // Tableview-specific
         decl.add_method(
             sel!(numberOfRowsInTableView:),
-            number_of_items::<T> as extern "C" fn(&Object, _, id) -> NSInteger
+            number_of_items::<T> as extern "C" fn(_, _, _) -> _
         );
         decl.add_method(
             sel!(tableView:willDisplayCell:forTableColumn:row:),
-            will_display_cell::<T> as extern "C" fn(&Object, _, id, id, id, NSInteger)
+            will_display_cell::<T> as extern "C" fn(_, _, _, _, _, _)
         );
         decl.add_method(
             sel!(tableView:viewForTableColumn:row:),
-            view_for_column::<T> as extern "C" fn(&Object, _, id, id, NSInteger) -> id
+            view_for_column::<T> as extern "C" fn(_, _, _, _, _) -> _
         );
         decl.add_method(
             sel!(tableViewSelectionDidChange:),
-            selection_did_change::<T> as extern "C" fn(&Object, _, id)
+            selection_did_change::<T> as extern "C" fn(_, _, _)
         );
         decl.add_method(
             sel!(tableView:rowActionsForRow:edge:),
-            row_actions_for_row::<T> as extern "C" fn(&Object, _, id, NSInteger, NSInteger) -> id
+            row_actions_for_row::<T> as extern "C" fn(_, _, _, _, _) -> _
         );
 
         // A slot for some menu handling; we just let it be done here for now rather than do the
         // whole delegate run, since things are fast enough nowadays to just replace the entire
         // menu.
-        decl.add_method(
-            sel!(menuNeedsUpdate:),
-            menu_needs_update::<T> as extern "C" fn(&Object, _, id)
-        );
+        decl.add_method(sel!(menuNeedsUpdate:), menu_needs_update::<T> as extern "C" fn(_, _, _));
 
         // Drag and drop operations (e.g, accepting files)
-        decl.add_method(
-            sel!(draggingEntered:),
-            dragging_entered::<T> as extern "C" fn(&mut Object, _, _) -> NSUInteger
-        );
+        decl.add_method(sel!(draggingEntered:), dragging_entered::<T> as extern "C" fn(_, _, _) -> _);
         decl.add_method(
             sel!(prepareForDragOperation:),
-            prepare_for_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            prepare_for_drag_operation::<T> as extern "C" fn(_, _, _) -> _
         );
         decl.add_method(
             sel!(performDragOperation:),
-            perform_drag_operation::<T> as extern "C" fn(&mut Object, _, _) -> BOOL
+            perform_drag_operation::<T> as extern "C" fn(_, _, _) -> _
         );
         decl.add_method(
             sel!(concludeDragOperation:),
-            conclude_drag_operation::<T> as extern "C" fn(&mut Object, _, _)
+            conclude_drag_operation::<T> as extern "C" fn(_, _, _)
         );
-        decl.add_method(
-            sel!(draggingExited:),
-            dragging_exited::<T> as extern "C" fn(&mut Object, _, _)
-        );
+        decl.add_method(sel!(draggingExited:), dragging_exited::<T> as extern "C" fn(_, _, _));
     })
 }

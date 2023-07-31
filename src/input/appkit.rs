@@ -58,22 +58,19 @@ pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>(instance: 
         // move.
         decl.add_ivar::<usize>(TEXTFIELD_DELEGATE_PTR);
 
-        decl.add_method(
-            sel!(textDidEndEditing:),
-            text_did_end_editing::<T> as extern "C" fn(&mut Object, _, _)
-        );
+        decl.add_method(sel!(textDidEndEditing:), text_did_end_editing::<T> as extern "C" fn(_, _, _));
         decl.add_method(
             sel!(textDidBeginEditing:),
-            text_did_begin_editing::<T> as extern "C" fn(&mut Object, _, _)
+            text_did_begin_editing::<T> as extern "C" fn(_, _, _)
         );
-        decl.add_method(sel!(textDidChange:), text_did_change::<T> as extern "C" fn(&mut Object, _, _));
+        decl.add_method(sel!(textDidChange:), text_did_change::<T> as extern "C" fn(_, _, _));
         decl.add_method(
             sel!(textShouldBeginEditing:),
-            text_should_begin_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL
+            text_should_begin_editing::<T> as extern "C" fn(_, _, _) -> _
         );
         decl.add_method(
             sel!(textShouldEndEditing:),
-            text_should_end_editing::<T> as extern "C" fn(&mut Object, Sel, id) -> BOOL
+            text_should_end_editing::<T> as extern "C" fn(_, _, _) -> _
         );
     })
 }

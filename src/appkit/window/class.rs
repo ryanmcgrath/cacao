@@ -232,112 +232,94 @@ pub(crate) fn register_window_class_with_delegate<T: WindowDelegate>(instance: &
         decl.add_ivar::<usize>(WINDOW_DELEGATE_PTR);
 
         // NSWindowDelegate methods
-        decl.add_method(
-            sel!(windowShouldClose:),
-            should_close::<T> as extern "C" fn(&Object, _, _) -> BOOL
-        );
-        decl.add_method(sel!(windowWillClose:), will_close::<T> as extern "C" fn(&Object, _, _));
+        decl.add_method(sel!(windowShouldClose:), should_close::<T> as extern "C" fn(_, _, _) -> _);
+        decl.add_method(sel!(windowWillClose:), will_close::<T> as extern "C" fn(_, _, _));
 
         // Sizing
         decl.add_method(
             sel!(windowWillResize:toSize:),
-            will_resize::<T> as extern "C" fn(&Object, _, _, CGSize) -> CGSize
+            will_resize::<T> as extern "C" fn(_, _, _, _) -> _
         );
-        decl.add_method(sel!(windowDidResize:), did_resize::<T> as extern "C" fn(&Object, _, _));
+        decl.add_method(sel!(windowDidResize:), did_resize::<T> as extern "C" fn(_, _, _));
         decl.add_method(
             sel!(windowWillStartLiveResize:),
-            will_start_live_resize::<T> as extern "C" fn(&Object, _, _)
+            will_start_live_resize::<T> as extern "C" fn(_, _, _)
         );
         decl.add_method(
             sel!(windowDidEndLiveResize:),
-            did_end_live_resize::<T> as extern "C" fn(&Object, _, _)
+            did_end_live_resize::<T> as extern "C" fn(_, _, _)
         );
 
         // Minimizing
-        decl.add_method(
-            sel!(windowWillMiniaturize:),
-            will_miniaturize::<T> as extern "C" fn(&Object, _, _)
-        );
-        decl.add_method(
-            sel!(windowDidMiniaturize:),
-            did_miniaturize::<T> as extern "C" fn(&Object, _, _)
-        );
+        decl.add_method(sel!(windowWillMiniaturize:), will_miniaturize::<T> as extern "C" fn(_, _, _));
+        decl.add_method(sel!(windowDidMiniaturize:), did_miniaturize::<T> as extern "C" fn(_, _, _));
         decl.add_method(
             sel!(windowDidDeminiaturize:),
-            did_deminiaturize::<T> as extern "C" fn(&Object, _, _)
+            did_deminiaturize::<T> as extern "C" fn(_, _, _)
         );
 
         // Full Screen
         decl.add_method(
             sel!(window:willUseFullScreenContentSize:),
-            content_size_for_full_screen::<T> as extern "C" fn(&Object, _, _, CGSize) -> CGSize
+            content_size_for_full_screen::<T> as extern "C" fn(_, _, _, _) -> _
         );
         decl.add_method(
             sel!(window:willUseFullScreenPresentationOptions:),
-            options_for_full_screen::<T> as extern "C" fn(&Object, _, _, NSUInteger) -> NSUInteger
+            options_for_full_screen::<T> as extern "C" fn(_, _, _, _) -> _
         );
         decl.add_method(
             sel!(windowWillEnterFullScreen:),
-            will_enter_full_screen::<T> as extern "C" fn(&Object, _, _)
+            will_enter_full_screen::<T> as extern "C" fn(_, _, _)
         );
         decl.add_method(
             sel!(windowDidEnterFullScreen:),
-            did_enter_full_screen::<T> as extern "C" fn(&Object, _, _)
+            did_enter_full_screen::<T> as extern "C" fn(_, _, _)
         );
         decl.add_method(
             sel!(windowWillExitFullScreen:),
-            will_exit_full_screen::<T> as extern "C" fn(&Object, _, _)
+            will_exit_full_screen::<T> as extern "C" fn(_, _, _)
         );
         decl.add_method(
             sel!(windowDidExitFullScreen:),
-            did_exit_full_screen::<T> as extern "C" fn(&Object, _, _)
+            did_exit_full_screen::<T> as extern "C" fn(_, _, _)
         );
         decl.add_method(
             sel!(windowDidFailToEnterFullScreen:),
-            did_fail_to_enter_full_screen::<T> as extern "C" fn(&Object, _, _)
+            did_fail_to_enter_full_screen::<T> as extern "C" fn(_, _, _)
         );
         decl.add_method(
             sel!(windowDidFailToExitFullScreen:),
-            did_fail_to_exit_full_screen::<T> as extern "C" fn(&Object, _, _)
+            did_fail_to_exit_full_screen::<T> as extern "C" fn(_, _, _)
         );
 
         // Key status
-        decl.add_method(sel!(windowDidBecomeKey:), did_become_key::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(sel!(windowDidResignKey:), did_resign_key::<T> as extern "C" fn(&Object, _, _));
+        decl.add_method(sel!(windowDidBecomeKey:), did_become_key::<T> as extern "C" fn(_, _, _));
+        decl.add_method(sel!(windowDidResignKey:), did_resign_key::<T> as extern "C" fn(_, _, _));
 
         // Main status
-        decl.add_method(
-            sel!(windowDidBecomeMain:),
-            did_become_main::<T> as extern "C" fn(&Object, _, _)
-        );
-        decl.add_method(
-            sel!(windowDidResignMain:),
-            did_resign_main::<T> as extern "C" fn(&Object, _, _)
-        );
+        decl.add_method(sel!(windowDidBecomeMain:), did_become_main::<T> as extern "C" fn(_, _, _));
+        decl.add_method(sel!(windowDidResignMain:), did_resign_main::<T> as extern "C" fn(_, _, _));
 
         // Moving Windows
-        decl.add_method(sel!(windowWillMove:), will_move::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(sel!(windowDidMove:), did_move::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(
-            sel!(windowDidChangeScreen:),
-            did_change_screen::<T> as extern "C" fn(&Object, _, _)
-        );
+        decl.add_method(sel!(windowWillMove:), will_move::<T> as extern "C" fn(_, _, _));
+        decl.add_method(sel!(windowDidMove:), did_move::<T> as extern "C" fn(_, _, _));
+        decl.add_method(sel!(windowDidChangeScreen:), did_change_screen::<T> as extern "C" fn(_, _, _));
         decl.add_method(
             sel!(windowDidChangeScreenProfile:),
-            did_change_screen_profile::<T> as extern "C" fn(&Object, _, _)
+            did_change_screen_profile::<T> as extern "C" fn(_, _, _)
         );
         decl.add_method(
             sel!(windowDidChangeBackingProperties:),
-            did_change_backing_properties::<T> as extern "C" fn(&Object, _, _)
+            did_change_backing_properties::<T> as extern "C" fn(_, _, _)
         );
 
         // Random
         decl.add_method(
             sel!(windowDidChangeOcclusionState:),
-            did_change_occlusion_state::<T> as extern "C" fn(&Object, _, _)
+            did_change_occlusion_state::<T> as extern "C" fn(_, _, _)
         );
-        decl.add_method(sel!(windowDidExpose:), did_expose::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(sel!(windowDidUpdate:), did_update::<T> as extern "C" fn(&Object, _, _));
-        decl.add_method(sel!(cancelOperation:), cancel::<T> as extern "C" fn(&Object, _, _));
+        decl.add_method(sel!(windowDidExpose:), did_expose::<T> as extern "C" fn(_, _, _));
+        decl.add_method(sel!(windowDidUpdate:), did_update::<T> as extern "C" fn(_, _, _));
+        decl.add_method(sel!(cancelOperation:), cancel::<T> as extern "C" fn(_, _, _));
     })
 }

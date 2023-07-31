@@ -55,9 +55,9 @@ pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>(instance
     load_or_register_class("NSViewController", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
 
-        decl.add_method(sel!(viewWillAppear), will_appear::<T> as extern "C" fn(&mut Object, _));
-        decl.add_method(sel!(viewDidAppear), did_appear::<T> as extern "C" fn(&mut Object, _));
-        decl.add_method(sel!(viewWillDisappear), will_disappear::<T> as extern "C" fn(&mut Object, _));
-        decl.add_method(sel!(viewDidDisappear), did_disappear::<T> as extern "C" fn(&mut Object, _));
+        decl.add_method(sel!(viewWillAppear), will_appear::<T> as extern "C" fn(_, _));
+        decl.add_method(sel!(viewDidAppear), did_appear::<T> as extern "C" fn(_, _));
+        decl.add_method(sel!(viewWillDisappear), will_disappear::<T> as extern "C" fn(_, _));
+        decl.add_method(sel!(viewDidDisappear), did_disappear::<T> as extern "C" fn(_, _));
     })
 }
