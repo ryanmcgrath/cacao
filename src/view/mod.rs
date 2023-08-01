@@ -46,7 +46,7 @@ use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
 
 use crate::color::Color;
-use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
 use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
@@ -318,6 +318,32 @@ impl<T> View<T> {
             let _: () = msg_send![&*obj, setBackgroundColor: color];
         });
     }
+
+    /// A setter for `[NSView layerContentsRedrawPolicy]`.
+    ///
+    /// For more information, consult:
+    ///
+    /// [https://developer.apple.com/documentation/appkit/nsview/1483514-layercontentsredrawpolicy?language=objc](https://developer.apple.com/documentation/appkit/nsview/1483514-layercontentsredrawpolicy?language=objc)
+    #[cfg(feature = "appkit")]
+    pub fn set_contents_redraw_policy(&self, policy: LayerContentsRedrawPolicy) {
+        self.objc.with_mut(|obj| unsafe {
+            let policy = policy.to_nsinteger();
+            let _: () = msg_send![obj, setLayerContentsRedrawPolicy:policy];
+        });
+    }
+
+    /// Mark all child layers as being able to be drawn into a single CALayer. This can be useful
+    /// for moments when you need to lower your total layer count, which can impair composition
+    /// time.
+    #[cfg(feature = "appkit")]
+    pub fn set_can_draw_subviews_into_layer(&self, can: bool) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![&*obj, setCanDrawSubviewsIntoLayer:match can {
+                true => YES,
+                false => NO
+            }];
+        });
+    }
 }
 
 impl<T> ObjcAccess for View<T> {
@@ -344,6 +370,31 @@ impl<T> Drop for View<T> {
     fn drop(&mut self) {
         if !self.is_handle {
             self.remove_from_superview();
+        }
+    }
+}
+
+/// Variants describing what an underlying NSView layer redraw policy should be.
+#[cfg(feature = "appkit")]
+#[derive(Debug)]
+pub enum LayerContentsRedrawPolicy {
+    Never,
+    OnSetNeedsDisplay,
+    DuringViewResize,
+    BeforeViewResize,
+    Crossfade
+}
+
+#[cfg(feature = "appkit")]
+impl LayerContentsRedrawPolicy {
+    /// Mapping required for ObjC setters.
+    pub fn to_nsinteger(&self) -> NSInteger {
+        match self {
+            Self::Never => 0,
+            Self::OnSetNeedsDisplay => 1,
+            Self::DuringViewResize => 2,
+            Self::BeforeViewResize => 3,
+            Self::Crossfade => 4
         }
     }
 }
