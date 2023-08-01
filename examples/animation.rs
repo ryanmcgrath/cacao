@@ -7,7 +7,7 @@
 
 use cacao::color::Color;
 use cacao::layout::{Layout, LayoutConstraint, LayoutConstraintAnimatorProxy};
-use cacao::view::{View, ViewAnimatorProxy, LayerContentsRedrawPolicy};
+use cacao::view::{LayerContentsRedrawPolicy, View, ViewAnimatorProxy};
 
 use cacao::appkit::menu::Menu;
 use cacao::appkit::window::{Window, WindowConfig, WindowDelegate};
@@ -104,10 +104,14 @@ impl WindowDelegate for AppWindow {
         window.set_title("Animation Example (Use W/A/S/D to change state!)");
         window.set_minimum_content_size(300., 300.);
 
-        self.blue.set_contents_redraw_policy(LayerContentsRedrawPolicy::OnSetNeedsDisplay);
-        self.red.set_contents_redraw_policy(LayerContentsRedrawPolicy::OnSetNeedsDisplay);
-        self.green.set_contents_redraw_policy(LayerContentsRedrawPolicy::OnSetNeedsDisplay);
-        self.content.set_contents_redraw_policy(LayerContentsRedrawPolicy::OnSetNeedsDisplay);
+        self.blue
+            .set_contents_redraw_policy(LayerContentsRedrawPolicy::OnSetNeedsDisplay);
+        self.red
+            .set_contents_redraw_policy(LayerContentsRedrawPolicy::OnSetNeedsDisplay);
+        self.green
+            .set_contents_redraw_policy(LayerContentsRedrawPolicy::OnSetNeedsDisplay);
+        self.content
+            .set_contents_redraw_policy(LayerContentsRedrawPolicy::OnSetNeedsDisplay);
 
         window.set_content_view(&self.content);
 
