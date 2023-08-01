@@ -50,7 +50,7 @@ impl ViewDelegate for AddNewTodoContentView {
 
         let mut button = Button::new("Add");
         button.set_key_equivalent("\r");
-        button.set_action(|| dispatch_ui(Message::ProcessNewTodo));
+        button.set_action(|_| dispatch_ui(Message::ProcessNewTodo));
 
         view.add_subview(&instructions);
         view.add_subview(&input);

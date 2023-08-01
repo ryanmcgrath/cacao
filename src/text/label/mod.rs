@@ -49,6 +49,7 @@ use objc_id::ShareId;
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
+use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::text::{AttributedString, Font, LineBreakMode, TextAlign};
@@ -63,11 +64,11 @@ mod appkit;
 #[cfg(feature = "appkit")]
 use appkit::{register_view_class, register_view_class_with_delegate};
 
-//#[cfg(feature = "uikit")]
-//mod uikit;
+#[cfg(feature = "uikit")]
+mod uikit;
 
-//#[cfg(feature = "uikit")]
-//use uikit::{register_view_class, register_view_class_with_delegate};
+#[cfg(all(feature = "uikit", not(feature = "appkit")))]
+use uikit::{register_view_class, register_view_class_with_delegate};
 
 mod traits;
 pub use traits::LabelDelegate;
@@ -156,6 +157,10 @@ pub struct Label<T = ()> {
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
 
+    /// References the underlying layer. This is consistent across AppKit & UIKit - in AppKit
+    /// we explicitly opt in to layer backed views.
+    pub layer: Layer,
+
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
     pub top: LayoutAnchorY,
@@ -207,9 +212,12 @@ impl Label {
     /// Returns a default `Label`, suitable for
     pub fn new() -> Self {
         let view = allocate_view(register_view_class);
+        Self::init(view, None)
+    }
 
+    pub(crate) fn init<T>(view: id, delegate: Option<Box<T>>) -> Label<T> {
         Label {
-            delegate: None,
+            delegate,
 
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
@@ -241,6 +249,8 @@ impl Label {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
+            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
+
             objc: ObjcProperty::retain(view)
         }
     }
@@ -255,51 +265,12 @@ where
     pub fn with(delegate: T) -> Label<T> {
         let delegate = Box::new(delegate);
 
-        let label = allocate_view(register_view_class_with_delegate::<T>);
+        let view = allocate_view(register_view_class_with_delegate::<T>);
         unsafe {
             let ptr: *const T = &*delegate;
-            (&mut *label).set_ivar(LABEL_DELEGATE_PTR, ptr as usize);
+            (&mut *view).set_ivar(LABEL_DELEGATE_PTR, ptr as usize);
         };
-
-        let mut label = Label {
-            delegate: None,
-
-            #[cfg(feature = "autolayout")]
-            top: LayoutAnchorY::top(label),
-
-            #[cfg(feature = "autolayout")]
-            left: LayoutAnchorX::left(label),
-
-            #[cfg(feature = "autolayout")]
-            leading: LayoutAnchorX::leading(label),
-
-            #[cfg(feature = "autolayout")]
-            right: LayoutAnchorX::right(label),
-
-            #[cfg(feature = "autolayout")]
-            trailing: LayoutAnchorX::trailing(label),
-
-            #[cfg(feature = "autolayout")]
-            bottom: LayoutAnchorY::bottom(label),
-
-            #[cfg(feature = "autolayout")]
-            width: LayoutAnchorDimension::width(label),
-
-            #[cfg(feature = "autolayout")]
-            height: LayoutAnchorDimension::height(label),
-
-            #[cfg(feature = "autolayout")]
-            center_x: LayoutAnchorX::center(label),
-
-            #[cfg(feature = "autolayout")]
-            center_y: LayoutAnchorY::center(label),
-
-            objc: ObjcProperty::retain(label)
-        };
-
-        //(&mut delegate).did_load(label.clone_as_handle());
-        label.delegate = Some(delegate);
-        label
+        Label::init(view, Some(delegate))
     }
 }
 
@@ -342,6 +313,8 @@ impl<T> Label<T> {
             #[cfg(feature = "autolayout")]
             center_y: self.center_y.clone(),
 
+            layer: self.layer.clone(),
+
             objc: self.objc.clone()
         }
     }
@@ -372,28 +345,51 @@ impl<T> Label<T> {
         let s = NSString::new(text);
 
         self.objc.with_mut(|obj| unsafe {
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![obj, setStringValue:&*s];
+            #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+            let _: () = msg_send![obj, setText:&*s];
         });
     }
 
     /// Sets the attributed string to be the attributed string value on this label.
     pub fn set_attributed_text(&self, text: AttributedString) {
         self.objc.with_mut(|obj| unsafe {
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![obj, setAttributedStringValue:&*text];
+            #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+            let _: () = msg_send![obj, setAttributedText:&*text];
         });
     }
 
     /// Retrieve the text currently held in the label.
+    #[cfg(feature = "appkit")]
     pub fn get_text(&self) -> String {
         self.objc
             .get(|obj| unsafe { NSString::retain(msg_send![obj, stringValue]).to_string() })
+    }
+    #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+    pub fn get_text(&self) -> String {
+        self.objc.get(|obj| {
+            let val: id = unsafe { msg_send![obj, text] };
+            // Through trial and error, this seems to return a null pointer when there's no
+            // text.
+            if val.is_null() {
+                String::new()
+            } else {
+                NSString::retain(val).to_string()
+            }
+        })
     }
 
     /// Sets the text alignment for this label.
     pub fn set_text_alignment(&self, alignment: TextAlign) {
         self.objc.with_mut(|obj| unsafe {
             let alignment: NSInteger = alignment.into();
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![obj, setAlignment: alignment];
+            #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+            let _: () = msg_send![obj, setTextAlignment: alignment];
         });
     }
 
@@ -421,7 +417,10 @@ impl<T> Label<T> {
     /// Sets the maximum number of lines.
     pub fn set_max_number_of_lines(&self, num: NSInteger) {
         self.objc.with_mut(|obj| unsafe {
+            #[cfg(feature = "appkit")]
             let _: () = msg_send![obj, setMaximumNumberOfLines: num];
+            #[cfg(feature = "uikit")]
+            let _: () = msg_send![obj, setNumberOfLines: num];
         });
     }
 
@@ -466,4 +465,19 @@ impl<T> Drop for Label<T> {
             }
         }*/
     }
+}
+
+#[test]
+fn test_label() {
+    let label = Label::new();
+    let text = label.get_text();
+    assert!(text.is_empty());
+    label.set_background_color(Color::SystemOrange);
+    label.set_text_color(Color::SystemRed);
+    label.set_text_alignment(TextAlign::Right);
+    label.set_text("foobar");
+    let text = label.get_text();
+    assert_eq!(text, "foobar".to_string());
+    label.set_font(Font::system(10.0));
+    label.set_attributed_text(AttributedString::new("foobar"));
 }

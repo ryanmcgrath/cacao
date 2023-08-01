@@ -10,6 +10,7 @@ use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
 use objc_id::{Id, ShareId};
 
+use crate::appkit::segmentedcontrol::SegmentedControl;
 use crate::button::{BezelStyle, Button};
 use crate::foundation::{id, NSString, NO, YES};
 use crate::image::Image;
@@ -21,6 +22,7 @@ pub struct ToolbarItem {
     pub identifier: String,
     pub objc: Id<Object>,
     pub button: Option<Button>,
+    pub segmented_control: Option<SegmentedControl>,
     pub image: Option<Image>,
     handler: Option<TargetActionHandler>
 }
@@ -42,6 +44,7 @@ impl ToolbarItem {
             identifier,
             objc,
             button: None,
+            segmented_control: None,
             image: None,
             handler: None
         }
@@ -52,6 +55,7 @@ impl ToolbarItem {
             identifier: "".to_string(),
             objc: unsafe { Id::from_retained_ptr(item) },
             button: None,
+            segmented_control: None,
             image: None,
             handler: None
         }
@@ -74,6 +78,15 @@ impl ToolbarItem {
         });
 
         self.button = Some(button);
+    }
+
+    /// Sets and takes ownership of the segmented control for this item.
+    pub fn set_segmented_control(&mut self, control: SegmentedControl) {
+        control.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![&*self.objc, setView: obj];
+        });
+
+        self.segmented_control = Some(control);
     }
 
     /// Sets and takes ownership of the image for this toolbar item.
@@ -102,7 +115,7 @@ impl ToolbarItem {
     }
 
     /// Sets an action on this item.
-    pub fn set_action<F: Fn() + Send + Sync + 'static>(&mut self, action: F) {
+    pub fn set_action<F: Fn(*const Object) + Send + Sync + 'static>(&mut self, action: F) {
         let handler = TargetActionHandler::new(&*self.objc, action);
         self.handler = Some(handler);
     }

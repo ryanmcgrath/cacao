@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use cacao::defaults::{UserDefaults, Value};
+use objc::runtime::Object;
 
 const EXAMPLE: &str = "exampleSetting";
 
@@ -25,7 +26,7 @@ impl Defaults {
     }
 
     /// Toggles the example setting.
-    pub fn toggle_should_whatever() {
+    pub fn toggle_should_whatever(_object: *const Object) {
         toggle_bool(EXAMPLE);
     }
 

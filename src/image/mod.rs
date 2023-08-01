@@ -8,6 +8,7 @@ use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
 
+use crate::layer::Layer;
 #[cfg(feature = "autolayout")]
 use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 
@@ -51,6 +52,10 @@ fn allocate_view(registration_fn: fn() -> *const Class) -> id {
 pub struct ImageView {
     /// A pointer to the Objective-C runtime view controller.
     pub objc: ObjcProperty,
+
+    /// References the underlying layer. This is consistent across AppKit & UIKit - in AppKit
+    /// we explicitly opt in to layer backed views.
+    pub layer: Layer,
 
     /// A pointer to the Objective-C runtime top layout constraint.
     #[cfg(feature = "autolayout")]
@@ -134,6 +139,8 @@ impl ImageView {
 
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
+
+            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
 
             objc: ObjcProperty::retain(view)
         }

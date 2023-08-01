@@ -77,7 +77,9 @@ mod splitviewcontroller;
 #[cfg(feature = "appkit")]
 pub use splitviewcontroller::SplitViewController;
 
+#[cfg(feature = "appkit")]
 mod popover;
+#[cfg(feature = "appkit")]
 pub use popover::*;
 mod traits;
 pub use traits::ViewDelegate;
@@ -397,4 +399,11 @@ impl LayerContentsRedrawPolicy {
             Self::Crossfade => 4
         }
     }
+}
+
+#[test]
+fn test_view() {
+    let view = View::new();
+    let _clone = view.clone_as_handle();
+    view.set_background_color(Color::SystemGreen);
 }

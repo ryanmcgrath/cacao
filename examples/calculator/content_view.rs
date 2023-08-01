@@ -16,7 +16,7 @@ pub fn button(text: &str, msg: Msg) -> Button {
     button.set_bordered(false);
     button.set_bezel_style(BezelStyle::SmallSquare);
     button.set_focus_ring_type(FocusRingType::None);
-    button.set_action(move || dispatch(msg.clone()));
+    button.set_action(move |_| dispatch(msg.clone()));
     button.set_key_equivalent(&*text.to_lowercase());
 
     let font = Font::system(22.);

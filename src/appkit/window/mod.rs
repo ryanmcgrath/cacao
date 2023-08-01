@@ -295,11 +295,27 @@ impl<T> Window<T> {
         }
     }
 
+    /// Used for setting a toolbar on this window.
+    pub fn toolbar(&self) -> ShareId<Object> {
+        unsafe {
+            let o: *mut Object = msg_send![&*self.objc, toolbar];
+            ShareId::from_ptr(o)
+        }
+    }
+
     /// Toggles whether the toolbar is shown for this window. Has no effect if no toolbar exists on
     /// this window.
     pub fn toggle_toolbar_shown(&self) {
         unsafe {
             let _: () = msg_send![&*self.objc, toggleToolbarShown: nil];
+        }
+    }
+
+    /// Set the toolbar style
+    pub fn set_toolbar_style(&self, style: WindowToolbarStyle) {
+        let style: NSUInteger = style.into();
+        unsafe {
+            let _: () = msg_send![&*self.objc, setToolbarStyle: style];
         }
     }
 

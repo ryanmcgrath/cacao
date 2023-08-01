@@ -74,36 +74,62 @@ impl MacSystemIcon {
 #[derive(Debug)]
 pub enum SFSymbol {
     AtSymbol,
+    ArrowClockwise,
+    Bell,
+    BellFill,
+    BellBadge,
+    BellBadgeFill,
     GearShape,
     FolderFilled,
+    ListAndFilm,
     PaperPlane,
     PaperPlaneFilled,
     Plus,
     Minus,
+    Message,
+    MessageFill,
+    MessageBadge,
+    MessageBadgeFill,
+    MessageBadgeFilledFill,
+    PersonCropCircle,
     SliderVertical3,
     SquareAndArrowUpOnSquare,
     SquareAndArrowUpOnSquareFill,
     SquareAndArrowDownOnSquare,
     SquareAndArrowDownOnSquareFill,
-    SquareDashed
+    SquareDashed,
+    SquareAndPencil
 }
 
 impl SFSymbol {
     pub fn to_str(&self) -> &'static str {
         match self {
             Self::AtSymbol => "at",
+            Self::ArrowClockwise => "arrow.clockwise",
             Self::GearShape => "gearshape",
             Self::FolderFilled => "folder.fill",
+            Self::ListAndFilm => "list.and.film",
+            Self::Bell => "bell",
+            Self::BellFill => "bell.fill",
+            Self::BellBadge => "bell.badge",
+            Self::BellBadgeFill => "bell.badge.fill",
             Self::PaperPlane => "paperplane",
             Self::PaperPlaneFilled => "paperplane.fill",
             Self::Plus => "plus",
             Self::Minus => "minus",
+            Self::Message => "message",
+            Self::MessageFill => "message.fill",
+            Self::MessageBadge => "message.badge",
+            Self::MessageBadgeFill => "message.badge.fill",
+            Self::MessageBadgeFilledFill => "message.badge.filled.fill",
+            Self::PersonCropCircle => "person.crop.circle",
             Self::SliderVertical3 => "slider.vertical.3",
             Self::SquareAndArrowUpOnSquare => "square.and.arrow.up.on.square",
             Self::SquareAndArrowUpOnSquareFill => "square.and.arrow.up.on.square.fill",
             Self::SquareAndArrowDownOnSquare => "square.and.arrow.down.on.square",
             Self::SquareAndArrowDownOnSquareFill => "square.and.arrow.down.on.square.fill",
-            Self::SquareDashed => "square.dashed"
+            Self::SquareDashed => "square.dashed",
+            Self::SquareAndPencil => "square.and.pencil"
         }
     }
 }

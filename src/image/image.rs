@@ -12,7 +12,7 @@ use core_graphics::{
 };
 
 use super::icons::*;
-use crate::foundation::{id, NSData, NSString, NO, YES};
+use crate::foundation::{id, NSData, NSString, NO, NSURL, YES};
 use crate::utils::os;
 
 /// Specifies resizing behavior for image drawing.
@@ -143,6 +143,14 @@ impl Image {
         Image(unsafe {
             let alloc: id = msg_send![Self::class(), alloc];
             ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile: file_path])
+        })
+    }
+
+    #[cfg(target_os = "macos")]
+    pub fn with_contents_of_url(url: NSURL) -> Self {
+        Image(unsafe {
+            let alloc: id = msg_send![Self::class(), alloc];
+            ShareId::from_ptr(msg_send![alloc, initWithContentsOfURL: url.objc])
         })
     }
 

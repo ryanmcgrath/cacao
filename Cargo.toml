@@ -19,11 +19,12 @@ default-target = "x86_64-apple-darwin"
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
+bitmask-enum = "2.2.1"
 block = "0.1.6"
 core-foundation = "0.9"
-core-graphics = "0.22"
+core-graphics = "0.23"
 dispatch = "0.2.0"
-infer = { version = "0.13", optional = true }
+infer = { version = "0.15", optional = true }
 lazy_static = "1.4.0"
 libc = "0.2"
 objc = "0.2.7"
@@ -101,4 +102,7 @@ name = "window_controller"
 required-features = ["appkit"]
 [[example]]
 name = "safe_area"
+required-features = ["appkit"]
+[[example]]
+name = "popover"
 required-features = ["appkit"]

@@ -1,48 +1,32 @@
-//! Wraps `NSButton` on appkit, and `UIButton` on iOS and tvOS.
-//!
-//! You'd use this type to create a button that a user can interact with. Buttons can be configured
-//! a number of ways, and support setting a callback to fire when they're clicked or tapped.
-//!
-//! Some properties are platform-specific; see the documentation for further information.
-//!
-//! ```rust,no_run
-//! use cacao::button::Button;
-//! use cacao::view::View;
-//! use crate::cacao::layout::Layout;
-//! let mut button = Button::new("My button title");
-//! button.set_key_equivalent("c");
-//!
-//! button.set_action(|_| {
-//!     println!("My button was clicked.");
-//! });
-//! let my_view : View<()> = todo!();
-//!
-//! // Make sure you don't let your Button drop for as long as you need it.
-//! my_view.add_subview(&button);
-//! ```
+//! Wraps `NSSegmentedControl` on appkit
 
-use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
+use std::fmt;
+use std::sync::Once;
+
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use objc::declare::ClassDecl;
+use objc::runtime::{Class, Object, Sel};
+use objc::{class, msg_send, sel, sel_impl};
 use objc_id::ShareId;
 
-pub use enums::*;
-
-#[cfg(feature = "appkit")]
-use crate::appkit::FocusRingType;
 use crate::color::Color;
 use crate::control::Control;
-use crate::foundation::{id, load_or_register_class, nil, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSString, NSUInteger, BOOL, NO, YES};
 use crate::image::Image;
 use crate::invoker::TargetActionHandler;
 use crate::keys::Key;
 use crate::layout::Layout;
-#[cfg(feature = "autolayout")]
-use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
 use crate::objc_access::ObjcAccess;
 use crate::text::{AttributedString, Font};
-use crate::utils::properties::ObjcProperty;
+use crate::utils::{load, properties::ObjcProperty};
 
-mod enums;
+#[cfg(feature = "autolayout")]
+use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};
+
+#[cfg(feature = "appkit")]
+use crate::appkit::FocusRingType;
 
 /// Wraps `NSButton` on appkit, and `UIButton` on iOS and tvOS.
 ///
@@ -67,12 +51,12 @@ mod enums;
 /// my_view.add_subview(&button);
 /// ```
 #[derive(Debug)]
-pub struct Button {
+pub struct SegmentedControl {
     /// A handle for the underlying Objective-C object.
     pub objc: ObjcProperty,
 
-    /// A reference to an image, if set. We keep a copy to avoid any ownership snafus.
-    pub image: Option<Image>,
+    /// Hold on to the images
+    images: NSArray,
 
     handler: Option<TargetActionHandler>,
 
@@ -117,29 +101,37 @@ pub struct Button {
     pub center_y: LayoutAnchorY
 }
 
-impl Button {
-    /// Creates a new `NSButton` instance, configures it appropriately,
-    /// and retains the necessary Objective-C runtime pointer.
-    pub fn new(text: &str) -> Self {
-        let title = NSString::new(text);
+#[derive(Debug)]
+#[repr(u8)]
+pub enum TrackingMode {
+    SelectOne = 0,
+    SelectMany = 1,
+    SelectMomentary = 2
+}
 
+impl SegmentedControl {
+    /// Creates a new `NSSegmentedControl` instance, configures it appropriately,
+    /// and retains the necessary Objective-C runtime pointer.
+    pub fn new(images: NSArray, tracking_mode: TrackingMode) -> Self {
         let view: id = unsafe {
-            let button: id = msg_send![register_class(), buttonWithTitle:&*title
+            let tracking_mode = tracking_mode as u8 as i32;
+            let control: id = msg_send![register_class(), segmentedControlWithImages:&*images trackingMode:tracking_mode
                 target:nil
                 action:nil
             ];
 
-            let _: () = msg_send![button, setWantsLayer: YES];
+            let _: () = msg_send![control, setWantsLayer: YES];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![control, setTranslatesAutoresizingMaskIntoConstraints: NO];
 
-            button
+            control
         };
 
-        Button {
+        SegmentedControl {
             handler: None,
-            image: None,
+
+            images,
 
             #[cfg(feature = "autolayout")]
             top: LayoutAnchorY::top(view),
@@ -175,47 +167,37 @@ impl Button {
         }
     }
 
-    /// Changes the text of the button
-    #[cfg(feature = "appkit")]
-    pub fn set_text(&self, text: &str) {
-        let title = NSString::new(text);
+    /// Select the segment at index
+    pub fn set_tooltip_segment(&mut self, index: NSUInteger, tooltip: &str) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setTitle:&*title];
-        });
+            let converted = NSString::new(tooltip);
+            let _: () = msg_send![obj, setToolTip: converted forSegment: index];
+        })
+    }
+
+    /// Select the segment at index
+    pub fn select_segment(&mut self, index: NSUInteger) {
+        self.objc.with_mut(|obj| unsafe {
+            let _: () = msg_send![obj, setSelectedSegment: index];
+        })
     }
 
     /// Sets an image on the underlying button.
-    pub fn set_image(&mut self, image: Image) {
+    pub fn set_image_segment(&mut self, image: Image, segment: NSUInteger) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setImage:&*image.0];
-        });
-
-        self.image = Some(image);
-    }
-
-    pub fn set_image_position(&self, image_position: ImagePosition) {
-        let position: NSUInteger = image_position.into();
-        self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setImagePosition: position];
-        });
-    }
-
-    /// Sets the bezel style for this button. Only supported on appkit.
-    #[cfg(feature = "appkit")]
-    pub fn set_bezel_style(&self, bezel_style: BezelStyle) {
-        let style: NSUInteger = bezel_style.into();
-
-        self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setBezelStyle: style];
+            let _: () = msg_send![obj, setImage:&*image.0 forSegment: segment];
         });
     }
 
     /// Attaches a callback for button press events. Don't get too creative now...
     /// best just to message pass or something.
-    pub fn set_action<F: Fn(*const Object) + Send + Sync + 'static>(&mut self, action: F) {
+    pub fn set_action<F: Fn(i32) + Send + Sync + 'static>(&mut self, action: F) {
         // @TODO: This probably isn't ideal but gets the job done for now; needs revisiting.
         let this = self.objc.get(|obj| unsafe { ShareId::from_ptr(msg_send![obj, self]) });
-        let handler = TargetActionHandler::new(&*this, action);
+        let handler = TargetActionHandler::new(&*this, move |obj: *const Object| unsafe {
+            let selected: i32 = msg_send![obj, selectedSegment];
+            action(selected)
+        });
         self.handler = Some(handler);
     }
 
@@ -310,7 +292,7 @@ impl Button {
     }
 }
 
-impl ObjcAccess for Button {
+impl ObjcAccess for SegmentedControl {
     fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
@@ -320,11 +302,10 @@ impl ObjcAccess for Button {
     }
 }
 
-impl Layout for Button {}
+impl Layout for SegmentedControl {}
+impl Control for SegmentedControl {}
 
-impl Control for Button {}
-
-impl ObjcAccess for &Button {
+impl ObjcAccess for &SegmentedControl {
     fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
         self.objc.with_mut(handler);
     }
@@ -334,11 +315,10 @@ impl ObjcAccess for &Button {
     }
 }
 
-impl Layout for &Button {}
+impl Layout for &SegmentedControl {}
+impl Control for &SegmentedControl {}
 
-impl Control for &Button {}
-
-impl Drop for Button {
+impl Drop for SegmentedControl {
     /// Nils out references on the Objective-C side and removes this from the backing view.
     // Just to be sure, let's... nil these out. They should be weak references,
     // but I'd rather be paranoid and remove them later.
@@ -353,14 +333,14 @@ impl Drop for Button {
 /// Registers an `NSButton` subclass, and configures it to hold some ivars
 /// for various things we need to store.
 fn register_class() -> *const Class {
-    #[cfg(feature = "appkit")]
-    let super_class = "NSButton";
-    #[cfg(all(feature = "uikit", not(feature = "appkit")))]
-    let super_class = "UIButton";
-    load_or_register_class(super_class, "RSTButton", |decl| unsafe {})
-}
+    static mut VIEW_CLASS: *const Class = 0 as *const Class;
+    static INIT: Once = Once::new();
 
-#[test]
-fn test_button() {
-    let button = Button::new("foobar");
+    INIT.call_once(|| unsafe {
+        let superclass = class!(NSSegmentedControl);
+        let decl = ClassDecl::new("RSTSegmentedControl", superclass).unwrap();
+        VIEW_CLASS = decl.register();
+    });
+
+    unsafe { VIEW_CLASS }
 }
