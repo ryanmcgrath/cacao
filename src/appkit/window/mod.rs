@@ -70,9 +70,9 @@ impl Window {
         let objc = unsafe {
             // This behavior might make sense to keep as default (YES), but I think the majority of
             // apps that would use this toolkit wouldn't be tab-oriented...
-            let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing: NO];
+            let _: () = msg_send![config.window_class, setAllowsAutomaticWindowTabbing: NO];
 
-            let alloc: id = msg_send![class!(NSWindow), alloc];
+            let alloc: id = msg_send![config.window_class, alloc];
 
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
@@ -131,13 +131,13 @@ where
     /// enables easier structure of your codebase, and in a way simulates traditional class based
     /// architectures... just without the subclassing.
     pub fn with(config: WindowConfig, delegate: T) -> Self {
-        let class = register_window_class_with_delegate::<T>(&delegate);
+        let class = register_window_class_with_delegate::<T>(config.window_class.name(), &delegate);
         let mut delegate = Box::new(delegate);
 
         let objc = unsafe {
             // This behavior might make sense to keep as default (YES), but I think the majority of
             // apps that would use this toolkit wouldn't be tab-oriented...
-            let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing: NO];
+            let _: () = msg_send![config.window_class, setAllowsAutomaticWindowTabbing: NO];
 
             let alloc: id = msg_send![class, alloc];
 
