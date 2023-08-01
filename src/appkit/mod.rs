@@ -29,3 +29,4 @@ pub mod toolbar;
 pub mod window;
 
 pub mod haptics;
+pub mod segmentedcontrol;

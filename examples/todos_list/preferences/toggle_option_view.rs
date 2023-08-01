@@ -2,6 +2,7 @@ use cacao::layout::{Layout, LayoutConstraint};
 use cacao::switch::Switch;
 use cacao::text::Label;
 use cacao::view::View;
+use objc::runtime::Object;
 
 /// A reusable widget for a toggle; this is effectively a standard checkbox/label combination for
 /// toggling a boolean value.
@@ -55,7 +56,7 @@ impl ToggleOptionView {
     /// can toggle your settings and such there.
     pub fn configure<F>(&mut self, text: &str, subtitle: &str, state: bool, handler: F)
     where
-        F: Fn() + Send + Sync + 'static
+        F: Fn(*const Object) + Send + Sync + 'static
     {
         self.title.set_text(text);
         self.subtitle.set_text(subtitle);
