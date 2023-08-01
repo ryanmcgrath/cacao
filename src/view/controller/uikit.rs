@@ -11,7 +11,7 @@ use crate::utils::load;
 use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};
 
 /// Called when the view controller receives a `viewWillAppear:` message.
-extern "C" fn will_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
+extern "C" fn will_appear<T: ViewDelegate>(this: &Object, _: Sel, animated: BOOL) {
     unsafe {
         let _: () = msg_send![super(this, class!(UIViewController)), viewWillAppear: animated];
     }
@@ -21,7 +21,7 @@ extern "C" fn will_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: 
 }
 
 /// Called when the view controller receives a `viewDidAppear:` message.
-extern "C" fn did_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
+extern "C" fn did_appear<T: ViewDelegate>(this: &Object, _: Sel, animated: BOOL) {
     unsafe {
         let _: () = msg_send![super(this, class!(UIViewController)), viewDidAppear: animated];
     }
@@ -31,7 +31,7 @@ extern "C" fn did_appear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: B
 }
 
 /// Called when the view controller receives a `viewWillDisappear:` message.
-extern "C" fn will_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
+extern "C" fn will_disappear<T: ViewDelegate>(this: &Object, _: Sel, animated: BOOL) {
     unsafe {
         let _: () = msg_send![super(this, class!(UIViewController)), viewWillDisappear: animated];
     }
@@ -41,7 +41,7 @@ extern "C" fn will_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animate
 }
 
 /// Called when the view controller receives a `viewDidDisappear:` message.
-extern "C" fn did_disappear<T: ViewDelegate>(this: &mut Object, _: Sel, animated: BOOL) {
+extern "C" fn did_disappear<T: ViewDelegate>(this: &Object, _: Sel, animated: BOOL) {
     unsafe {
         let _: () = msg_send![super(this, class!(UIViewController)), viewDidDisappear: animated];
     }

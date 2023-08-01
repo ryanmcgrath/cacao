@@ -10,25 +10,25 @@ use crate::input::{TextFieldDelegate, TEXTFIELD_DELEGATE_PTR};
 use crate::utils::load;
 
 /// Called when editing this text field has ended (e.g. user pressed enter).
-extern "C" fn text_did_end_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) {
+extern "C" fn text_did_end_editing<T: TextFieldDelegate>(this: &Object, _: Sel, _info: id) {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
     let s = NSString::retain(unsafe { msg_send![this, text] });
     view.text_did_end_editing(s.to_str());
 }
 
-extern "C" fn text_did_begin_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) {
+extern "C" fn text_did_begin_editing<T: TextFieldDelegate>(this: &Object, _: Sel, _info: id) {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
     let s = NSString::retain(unsafe { msg_send![this, text] });
     view.text_did_begin_editing(s.to_str());
 }
 
-extern "C" fn text_did_change<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) {
+extern "C" fn text_did_change<T: TextFieldDelegate>(this: &Object, _: Sel, _info: id) {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
     let s = NSString::retain(unsafe { msg_send![this, text] });
     view.text_did_change(s.to_str());
 }
 
-extern "C" fn text_should_begin_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) -> BOOL {
+extern "C" fn text_should_begin_editing<T: TextFieldDelegate>(this: &Object, _: Sel, _info: id) -> BOOL {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
     let s = NSString::retain(unsafe { msg_send![this, text] });
 
@@ -38,7 +38,7 @@ extern "C" fn text_should_begin_editing<T: TextFieldDelegate>(this: &mut Object,
     }
 }
 
-extern "C" fn text_should_end_editing<T: TextFieldDelegate>(this: &mut Object, _: Sel, _info: id) -> BOOL {
+extern "C" fn text_should_end_editing<T: TextFieldDelegate>(this: &Object, _: Sel, _info: id) -> BOOL {
     let view = load::<T>(this, TEXTFIELD_DELEGATE_PTR);
     let s = NSString::retain(unsafe { msg_send![this, text] });
     match view.text_should_end_editing(s.to_str()) {
