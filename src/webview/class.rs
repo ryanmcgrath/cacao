@@ -21,7 +21,7 @@ use crate::utils::load;
 /// Called when an `alert()` from the underlying `WKWebView` is fired. Will call over to your
 /// `WebViewController`, where you should handle the event.
 extern "C" fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, _: id, _: id, complete: id) {
-    //let alert = NSString::wrap(s).to_str();
+    //let alert = NSString::retain(s).to_str();
 
     // @TODO: This is technically (I think?) a private method, and there's some other dance that
     // needs to be done here involving taking the pointer/invoke/casting... but this is fine for

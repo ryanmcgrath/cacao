@@ -21,12 +21,6 @@ impl NSNumber {
         NSNumber(unsafe { Id::retain(data).unwrap() })
     }
 
-    /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
-    /// wrap it while we figure out what to do with it. This does that.
-    pub fn wrap(data: id) -> Self {
-        NSNumber(unsafe { Id::new(data).unwrap() })
-    }
-
     /// Constructs a `numberWithBool` instance of `NSNumber` and retains it.
     pub fn bool(value: bool) -> Self {
         NSNumber(unsafe {

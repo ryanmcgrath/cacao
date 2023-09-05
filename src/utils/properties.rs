@@ -23,11 +23,6 @@ impl ObjcProperty {
         ObjcProperty(Rc::new(RefCell::new(unsafe { Id::retain(obj).unwrap() })))
     }
 
-    /// Given an Objective-C object, retains it and wraps it as a `Property`.
-    pub fn from_retained(obj: id) -> Self {
-        ObjcProperty(Rc::new(RefCell::new(unsafe { Id::new(obj).unwrap() })))
-    }
-
     /// Runs a handler with mutable access for the underlying Objective-C object.
     ///
     /// Note that this is mutable access from the Rust side; we make every effort to ensure things are valid

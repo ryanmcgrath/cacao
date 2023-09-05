@@ -49,17 +49,6 @@ impl ToolbarItem {
         }
     }
 
-    pub(crate) fn wrap(item: id) -> Self {
-        ToolbarItem {
-            identifier: "".to_string(),
-            objc: unsafe { Id::new(item).unwrap() },
-            button: None,
-            segmented_control: None,
-            image: None,
-            handler: None
-        }
-    }
-
     /// Sets the title for this item.
     pub fn set_title(&mut self, title: &str) {
         unsafe {

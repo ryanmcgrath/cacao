@@ -2,7 +2,7 @@ use core_foundation::base::TCFType;
 
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel};
+use objc::{msg_send, msg_send_id, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
@@ -142,7 +142,7 @@ impl ImageView {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
+            layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
             objc: ObjcProperty::retain(view)
         }

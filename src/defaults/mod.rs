@@ -200,7 +200,7 @@ impl UserDefaults {
         //
         // For context: https://nshipster.com/type-encodings/
         if NSNumber::is(result) {
-            let number = NSNumber::wrap(result);
+            let number = NSNumber::retain(result);
 
             return match number.objc_type() {
                 "c" => Some(Value::Bool(number.as_bool())),

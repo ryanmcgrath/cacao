@@ -209,9 +209,7 @@ impl View {
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
 
-            layer: Layer::wrap(unsafe {
-                msg_send![view, layer]
-            }),
+            layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
             objc: ObjcProperty::retain(view),
         }

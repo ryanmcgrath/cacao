@@ -43,7 +43,7 @@
 //! For more information on Autolayout, view the module or check out the examples folder.
 
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel};
+use objc::{msg_send, msg_send_id, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
@@ -217,7 +217,7 @@ impl View {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
+            layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
             #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: ViewAnimatorProxy::new(view),
