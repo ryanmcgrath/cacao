@@ -1,6 +1,6 @@
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{msg_send, sel};
+use objc::{msg_send, msg_send_id, sel};
 
 use crate::foundation::id;
 use crate::layout::constraint::LayoutConstraint;
@@ -16,19 +16,19 @@ pub enum LayoutAnchorX {
     Uninitialized,
 
     /// Represents a leading anchor; side depends on system orientation.
-    Leading(ShareId<Object>),
+    Leading(Id<Object, Shared>),
 
     /// Represents a left anchor.
-    Left(ShareId<Object>),
+    Left(Id<Object, Shared>),
 
     /// Represents a trailing anchor; side depends on system orientation.
-    Trailing(ShareId<Object>),
+    Trailing(Id<Object, Shared>),
 
     /// Represents a right anchor.
-    Right(ShareId<Object>),
+    Right(Id<Object, Shared>),
 
     /// Represents a center anchor on the X axis.
-    Center(ShareId<Object>)
+    Center(Id<Object, Shared>)
 }
 
 impl Default for LayoutAnchorX {
@@ -41,27 +41,27 @@ impl Default for LayoutAnchorX {
 impl LayoutAnchorX {
     /// Given a view, returns an anchor for the leading anchor.
     pub(crate) fn leading(view: id) -> Self {
-        Self::Leading(unsafe { ShareId::from_ptr(msg_send![view, leadingAnchor]) })
+        Self::Leading(unsafe { msg_send_id![view, leadingAnchor].unwrap() })
     }
 
     /// Given a view, returns an anchor for the left anchor.
     pub(crate) fn left(view: id) -> Self {
-        Self::Left(unsafe { ShareId::from_ptr(msg_send![view, leftAnchor]) })
+        Self::Left(unsafe { msg_send_id![view, leftAnchor].unwrap() })
     }
 
     /// Given a view, returns an anchor for the trailing anchor.
     pub(crate) fn trailing(view: id) -> Self {
-        Self::Trailing(unsafe { ShareId::from_ptr(msg_send![view, trailingAnchor]) })
+        Self::Trailing(unsafe { msg_send_id![view, trailingAnchor].unwrap() })
     }
 
     /// Given a view, returns an anchor for the right anchor.
     pub(crate) fn right(view: id) -> Self {
-        Self::Right(unsafe { ShareId::from_ptr(msg_send![view, rightAnchor]) })
+        Self::Right(unsafe { msg_send_id![view, rightAnchor].unwrap() })
     }
 
     /// Given a view, returns an anchor for the right anchor.
     pub(crate) fn center(view: id) -> Self {
-        Self::Center(unsafe { ShareId::from_ptr(msg_send![view, centerXAnchor]) })
+        Self::Center(unsafe { msg_send_id![view, centerXAnchor].unwrap() })
     }
 
     /// Boilerplate for handling constraint construction and panic'ing with some more helpful
@@ -69,7 +69,7 @@ impl LayoutAnchorX {
     /// wrong.
     fn constraint_with<F>(&self, anchor_to: &LayoutAnchorX, handler: F) -> LayoutConstraint
     where
-        F: Fn(&ShareId<Object>, &ShareId<Object>) -> id
+        F: Fn(&Id<Object, Shared>, &Id<Object, Shared>) -> id
     {
         match (self, anchor_to) {
             // The anchors that can connect to each other. These blocks could be condensed, but are

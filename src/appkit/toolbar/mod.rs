@@ -5,9 +5,9 @@
 
 use std::fmt;
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, nil, NSString, NSUInteger, NO, YES};
 
@@ -32,10 +32,10 @@ pub struct Toolbar<T = ()> {
     pub identifier: String,
 
     /// The Objective-C runtime toolbar.
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object, Shared>,
 
     /// A pointer to the underlying delegate.
-    pub objc_delegate: ShareId<Object>,
+    pub objc_delegate: Id<Object, Shared>,
 
     /// The user supplied delegate.
     pub delegate: Option<Box<T>>
@@ -53,16 +53,18 @@ where
         let mut delegate = Box::new(delegate);
 
         let (objc, objc_delegate) = unsafe {
-            let alloc: id = msg_send![class!(NSToolbar), alloc];
+            let alloc = msg_send_id![class!(NSToolbar), alloc];
             let identifier = NSString::new(&identifier);
-            let toolbar: id = msg_send![alloc, initWithIdentifier: &*identifier];
-            let objc_delegate: id = msg_send![cls, new]; //WithIdentifier:identifier];
+            let mut toolbar: Id<Object, Owned> = msg_send_id![alloc, initWithIdentifier: &*identifier].unwrap();
+            let mut objc_delegate: Id<Object, Owned> = msg_send_id![cls, new].unwrap(); //WithIdentifier:identifier];
 
             let ptr: *const T = &*delegate;
-            (&mut *objc_delegate).set_ivar(TOOLBAR_PTR, ptr as usize);
-            let _: () = msg_send![toolbar, setDelegate: objc_delegate];
+            objc_delegate.set_ivar(TOOLBAR_PTR, ptr as usize);
 
-            (ShareId::from_ptr(toolbar), ShareId::from_ptr(objc_delegate))
+            let objc_delegate: Id<Object, Shared> = Id::from_owned(objc_delegate);
+            let _: () = msg_send![&mut toolbar, setDelegate: &*objc_delegate];
+
+            (Id::from_owned(toolbar), objc_delegate)
         };
 
         let _ret = &mut delegate.did_load(Toolbar {

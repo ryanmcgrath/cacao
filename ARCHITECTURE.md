@@ -412,7 +412,7 @@ Here, we just want to tell `NSView` to use top,left as the origin point, so we n
 extern "C" fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     let view = utils::load::<T>(this, VIEW_DELEGATE_PTR);
     view.dragging_entered(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::retain(info).unwrap() }
     }).into()
 }
 ```

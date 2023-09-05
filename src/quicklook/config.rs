@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use crate::id_shim::ShareId;
 use core_graphics::base::CGFloat;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};
 

@@ -34,9 +34,9 @@
 
 use std::collections::HashMap;
 
-use crate::id_shim::Id;
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, nil, to_bool, NSData, NSMutableDictionary, NSNumber, NSString, BOOL, NO, YES};
 
@@ -48,7 +48,7 @@ pub use value::Value;
 ///
 /// This should not be used for sensitive data - use the Keychain for that.
 #[derive(Debug)]
-pub struct UserDefaults(pub Id<Object>);
+pub struct UserDefaults(pub Id<Object, Owned>);
 
 impl Default for UserDefaults {
     /// Equivalent to calling `UserDefaults::standard()`.
@@ -71,7 +71,7 @@ impl UserDefaults {
     /// let _ = defaults.get("test");
     /// ```
     pub fn standard() -> Self {
-        UserDefaults(unsafe { Id::from_ptr(msg_send![class!(NSUserDefaults), standardUserDefaults]) })
+        UserDefaults(unsafe { msg_send_id![class!(NSUserDefaults), standardUserDefaults].unwrap() })
     }
 
     /// Returns a user defaults instance for the given suite name. You typically use this to share
@@ -89,8 +89,8 @@ impl UserDefaults {
         let name = NSString::new(named);
 
         UserDefaults(unsafe {
-            let alloc: id = msg_send![class!(NSUserDefaults), alloc];
-            Id::from_ptr(msg_send![alloc, initWithSuiteName:&*name])
+            let alloc = msg_send_id![class!(NSUserDefaults), alloc];
+            msg_send_id![alloc, initWithSuiteName:&*name].unwrap()
         })
     }
 

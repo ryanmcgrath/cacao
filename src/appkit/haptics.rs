@@ -1,12 +1,12 @@
 use std::convert::TryFrom;
 
-use crate::id_shim::ShareId;
-use objc::{class, msg_send, runtime::Object, sel};
+use objc::rc::{Id, Shared};
+use objc::{class, msg_send, msg_send_id, runtime::Object, sel};
 
 use crate::foundation::NSUInteger;
 
 #[derive(Clone, Debug)]
-pub struct HapticFeedbackPerformer(pub ShareId<Object>);
+pub struct HapticFeedbackPerformer(pub Id<Object, Shared>);
 
 impl HapticFeedbackPerformer {
     pub fn perform(&self, pattern: FeedbackPattern, performance_time: PerformanceTime) {
@@ -19,10 +19,7 @@ impl HapticFeedbackPerformer {
 impl Default for HapticFeedbackPerformer {
     /// Returns the default haptic feedback performer.
     fn default() -> Self {
-        HapticFeedbackPerformer(unsafe {
-            let manager = msg_send![class!(NSHapticFeedbackManager), defaultPerformer];
-            ShareId::from_ptr(manager)
-        })
+        HapticFeedbackPerformer(unsafe { msg_send_id![class!(NSHapticFeedbackManager), defaultPerformer].unwrap() })
     }
 }
 

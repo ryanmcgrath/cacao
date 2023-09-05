@@ -1,7 +1,7 @@
 //! Represents settings for printing items. Backed by an `NSDictionary` in Objective-C, this struct
 //! aims to make it easier to query/process printing operations.
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 
 use crate::foundation::id;
@@ -10,14 +10,14 @@ use crate::foundation::id;
 /// application/user.
 #[derive(Clone, Debug)]
 pub struct PrintSettings {
-    pub inner: ShareId<Object>
+    pub inner: Id<Object, Shared>
 }
 
 impl PrintSettings {
     /// Internal method, constructs a wrapper around the backing `NSDictionary` print settings.
     pub(crate) fn with_inner(inner: id) -> Self {
         PrintSettings {
-            inner: unsafe { ShareId::from_ptr(inner) }
+            inner: unsafe { Id::retain(inner).unwrap() }
         }
     }
 }

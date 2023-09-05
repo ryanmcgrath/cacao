@@ -45,7 +45,7 @@
 
 use core_foundation::base::TCFType;
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel};
 

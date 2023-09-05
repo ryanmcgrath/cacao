@@ -4,19 +4,19 @@
 
 use block::ConcreteBlock;
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, nil, NSInteger, NSString, NO, YES};
 
 #[derive(Debug)]
 pub struct FileSavePanel {
     /// The internal Objective C `NSOpenPanel` instance.
-    pub panel: ShareId<Object>,
+    pub panel: Id<Object, Shared>,
 
     /// The internal `NSObject` that routes delegate callbacks around.
-    pub delegate: ShareId<Object>,
+    pub delegate: Id<Object, Shared>,
 
     /// Whether the user can choose files. Defaults to `true`.
     pub can_create_directories: bool
@@ -35,11 +35,10 @@ impl FileSavePanel {
         FileSavePanel {
             panel: unsafe {
                 let cls = class!(NSSavePanel);
-                let x: id = msg_send![cls, savePanel];
-                ShareId::from_ptr(x)
+                msg_send_id![cls, savePanel].unwrap()
             },
 
-            delegate: unsafe { ShareId::from_ptr(msg_send![class!(NSObject), new]) },
+            delegate: unsafe { msg_send_id![class!(NSObject), new].unwrap() },
 
             can_create_directories: true
         }

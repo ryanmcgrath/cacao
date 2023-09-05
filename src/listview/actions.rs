@@ -1,6 +1,6 @@
-use crate::id_shim::Id;
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use block::ConcreteBlock;
 
@@ -39,7 +39,7 @@ impl From<RowActionStyle> for NSUInteger {
 /// on a ListViewRow. You return this from the appropriate delegate method,
 /// and the system will handle displaying the necessary pieces for you.
 #[derive(Debug)]
-pub struct RowAction(pub Id<Object>);
+pub struct RowAction(pub Id<Object, Owned>);
 
 impl RowAction {
     /// Creates and returns a new `RowAction`. You'd use this handler to
@@ -56,7 +56,7 @@ impl RowAction {
     {
         let title = NSString::new(title);
         let block = ConcreteBlock::new(move |action: id, row: NSUInteger| {
-            let action = RowAction(unsafe { Id::from_ptr(action) });
+            let action = RowAction(unsafe { Id::retain(action).unwrap() });
 
             handler(action, row as usize);
         });
@@ -65,12 +65,13 @@ impl RowAction {
 
         RowAction(unsafe {
             let cls = class!(NSTableViewRowAction);
-            Id::from_ptr(msg_send![
+            msg_send_id![
                 cls,
                 rowActionWithStyle: style,
                 title: &*title,
                 handler: &*block,
-            ])
+            ]
+            .unwrap()
         })
     }
 

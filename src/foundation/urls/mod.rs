@@ -3,9 +3,9 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, nil, NSData, NSString, NSUInteger};
 
@@ -31,7 +31,7 @@ pub use resource_keys::{NSURLFileResource, NSURLResourceKey, NSUbiquitousItemDow
 #[derive(Clone, Debug)]
 pub struct NSURL<'a> {
     /// A reference to the backing `NSURL`.
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object, Shared>,
     phantom: PhantomData<&'a ()>
 }
 
@@ -40,7 +40,7 @@ impl<'a> NSURL<'a> {
     /// retain it.
     pub fn retain(object: id) -> Self {
         NSURL {
-            objc: unsafe { ShareId::from_ptr(object) },
+            objc: unsafe { Id::retain(object).unwrap() },
             phantom: PhantomData
         }
     }
@@ -48,7 +48,7 @@ impl<'a> NSURL<'a> {
     /// In some cases, we want to wrap a system-provided NSURL without retaining it.
     pub fn from_retained(object: id) -> Self {
         NSURL {
-            objc: unsafe { ShareId::from_retained_ptr(object) },
+            objc: unsafe { Id::new(object).unwrap() },
             phantom: PhantomData
         }
     }
@@ -58,7 +58,7 @@ impl<'a> NSURL<'a> {
         let url = NSString::new(url);
 
         Self {
-            objc: unsafe { ShareId::from_ptr(msg_send![class!(NSURL), URLWithString:&*url]) },
+            objc: unsafe { msg_send_id![class!(NSURL), URLWithString:&*url].unwrap() },
 
             phantom: PhantomData
         }

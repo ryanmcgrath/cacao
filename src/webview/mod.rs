@@ -15,9 +15,9 @@
 
 use core_graphics::geometry::CGRect;
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, nil, NSString, NO, YES};
 use crate::geometry::Rect;
@@ -109,7 +109,7 @@ pub struct WebView<T = ()> {
 
     /// We need to store the underlying delegate separately from the `WKWebView` - this is a where
     /// we do so.
-    pub objc_delegate: Option<ShareId<Object>>,
+    pub objc_delegate: Option<Id<Object, Shared>>,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
@@ -234,10 +234,10 @@ where
         let mut delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
-            let objc_delegate: id = msg_send![delegate_class, new];
+            let mut objc_delegate: Id<Object, Owned> = msg_send_id![delegate_class, new].unwrap();
             let ptr: *const T = &*delegate;
-            (&mut *objc_delegate).set_ivar(WEBVIEW_DELEGATE_PTR, ptr as usize);
-            ShareId::from_ptr(objc_delegate)
+            objc_delegate.set_ivar(WEBVIEW_DELEGATE_PTR, ptr as usize);
+            objc_delegate
         };
 
         let view = allocate_webview(config, Some(&objc_delegate));

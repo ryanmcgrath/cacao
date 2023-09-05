@@ -7,7 +7,7 @@
 //! for in the modern era. It also implements a few helpers for things like setting a background
 //! color, and enforcing layer backing by default.
 
-use crate::id_shim::Id;
+use objc::rc::{Id, Owned};
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::sel;
 
@@ -25,7 +25,7 @@ extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> BOOL {
 extern "C" fn dragging_entered<T: ScrollViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
     view.dragging_entered(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::retain(info).unwrap() }
     })
     .into()
 }
@@ -35,7 +35,7 @@ extern "C" fn prepare_for_drag_operation<T: ScrollViewDelegate>(this: &mut Objec
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
     match view.prepare_for_drag_operation(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::retain(info).unwrap() }
     }) {
         true => YES,
         false => NO
@@ -47,7 +47,7 @@ extern "C" fn perform_drag_operation<T: ScrollViewDelegate>(this: &mut Object, _
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
     match view.perform_drag_operation(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::retain(info).unwrap() }
     }) {
         true => YES,
         false => NO
@@ -59,7 +59,7 @@ extern "C" fn conclude_drag_operation<T: ScrollViewDelegate>(this: &mut Object, 
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
     view.conclude_drag_operation(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::retain(info).unwrap() }
     });
 }
 
@@ -68,7 +68,7 @@ extern "C" fn dragging_exited<T: ScrollViewDelegate>(this: &mut Object, _: Sel, 
     let view = load::<T>(this, SCROLLVIEW_DELEGATE_PTR);
 
     view.dragging_exited(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::retain(info).unwrap() }
     });
 }
 

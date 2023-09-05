@@ -1,5 +1,5 @@
-use crate::id_shim::Id;
 use objc::declare::ClassDecl;
+use objc::rc::{Id, Owned};
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel};
 

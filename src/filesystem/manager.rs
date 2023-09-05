@@ -4,9 +4,9 @@
 use std::error::Error;
 use std::sync::{Arc, RwLock};
 
-use crate::id_shim::Id;
+use objc::rc::{Id, Owned};
 use objc::runtime::{Object, BOOL};
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 use url::Url;
 
 use crate::error::Error as AppKitError;
@@ -18,17 +18,16 @@ use crate::foundation::{id, nil, NSString, NSUInteger, NO};
 /// If your app is not sandboxed, you can use your favorite Rust library -
 /// but if you _are_ operating in the sandbox, there's a good chance you'll want to use this.
 ///
-/// @TODO: Couldn't this just be a ShareId?
+/// @TODO: Couldn't this just be a Id<Object, Shared>?
 #[derive(Clone, Debug)]
-pub struct FileManager(pub Arc<RwLock<Id<Object>>>);
+pub struct FileManager(pub Arc<RwLock<Id<Object, Owned>>>);
 
 impl Default for FileManager {
     /// Returns a default file manager, which maps to the default system file manager. For common
     /// and simple tasks, with no callbacks, you might want this.
     fn default() -> Self {
         FileManager(Arc::new(RwLock::new(unsafe {
-            let manager: id = msg_send![class!(NSFileManager), defaultManager];
-            Id::from_ptr(manager)
+            msg_send_id![class!(NSFileManager), defaultManager].unwrap()
         })))
     }
 }
@@ -37,8 +36,7 @@ impl FileManager {
     /// Returns a new FileManager that opts in to delegate methods.
     pub fn new() -> Self {
         FileManager(Arc::new(RwLock::new(unsafe {
-            let manager: id = msg_send![class!(NSFileManager), new];
-            Id::from_ptr(manager)
+            msg_send_id![class!(NSFileManager), new].unwrap()
         })))
     }
 

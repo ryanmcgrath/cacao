@@ -1,9 +1,9 @@
 //! A wrapper for `WKWebViewConfiguration`. It aims to (mostly) cover
 //! the important pieces of configuring and updating a WebView configuration.
 
-use crate::id_shim::Id;
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, NSInteger, NSString, NO, YES};
 use crate::webview::enums::InjectAt;
@@ -12,7 +12,7 @@ use crate::webview::enums::InjectAt;
 /// where everything lives.
 #[derive(Debug)]
 pub struct WebViewConfig {
-    pub objc: Id<Object>,
+    pub objc: Id<Object, Owned>,
     pub handlers: Vec<String>,
     pub protocols: Vec<String>
 }
@@ -20,10 +20,7 @@ pub struct WebViewConfig {
 impl Default for WebViewConfig {
     /// Initializes a default `WebViewConfig`.
     fn default() -> Self {
-        let config = unsafe {
-            let config: id = msg_send![class!(WKWebViewConfiguration), new];
-            Id::from_ptr(config)
-        };
+        let config = unsafe { msg_send_id![class!(WKWebViewConfiguration), new].unwrap() };
 
         WebViewConfig {
             objc: config,

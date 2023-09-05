@@ -45,7 +45,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::id_shim::{Id, ShareId};
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel};
 

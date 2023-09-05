@@ -17,7 +17,7 @@
 
 use core_graphics::base::CGFloat;
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel};
 

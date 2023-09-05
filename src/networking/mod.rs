@@ -1,6 +1,6 @@
 //! A lightweight wrapper over some networking components, like `NSURLRequest` and co.
 //!
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 /// At the moment, this is mostly used for inspection of objects returned from system
 /// calls, as `NSURL` is pervasive in some filesystem references. Over time this may grow to
@@ -12,17 +12,17 @@ use crate::foundation::{id, NSString};
 
 /// A wrapper around `NSURLRequest`.
 #[derive(Debug)]
-pub struct URLRequest(ShareId<Object>);
+pub struct URLRequest(Id<Object, Shared>);
 
 impl URLRequest {
     /// Wraps and retains an `NSURLRequest`.
     pub fn with(request: id) -> Self {
-        URLRequest(unsafe { ShareId::from_ptr(request) })
+        URLRequest(unsafe { Id::retain(request).unwrap() })
     }
 
     /// Returns the underlying request URL as an owned `String`.
     pub fn absolute_url(&self) -> String {
-        NSString::from_retained(unsafe {
+        NSString::retain(unsafe {
             let url: id = msg_send![&*self.0, URL];
             msg_send![url, absoluteString]
         })

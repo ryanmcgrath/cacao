@@ -15,9 +15,9 @@
 
 use std::path::PathBuf;
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 use url::Url;
 
 use crate::error::Error;
@@ -28,33 +28,33 @@ pub use types::{PasteboardName, PasteboardType};
 
 /// Represents an `NSPasteboard`, enabling you to handle copy/paste/drag and drop.
 #[derive(Debug)]
-pub struct Pasteboard(pub ShareId<Object>);
+pub struct Pasteboard(pub Id<Object, Shared>);
 
 impl Default for Pasteboard {
     /// Returns the default system pasteboard (the "general" pasteboard).
     fn default() -> Self {
-        Pasteboard(unsafe { ShareId::from_ptr(msg_send![class!(NSPasteboard), generalPasteboard]) })
+        Pasteboard(unsafe { msg_send_id![class!(NSPasteboard), generalPasteboard].unwrap() })
     }
 }
 
 impl Pasteboard {
     /// Used internally for wrapping a Pasteboard returned from operations (say, drag and drop).
     pub(crate) fn with(existing: id) -> Self {
-        Pasteboard(unsafe { ShareId::from_ptr(existing) })
+        Pasteboard(unsafe { Id::retain(existing).unwrap() })
     }
 
     /// Retrieves the system Pasteboard for the given name/type.
     pub fn named(name: PasteboardName) -> Self {
         Pasteboard(unsafe {
             let name: NSString = name.into();
-            ShareId::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithName:&*name])
+            msg_send_id![class!(NSPasteboard), pasteboardWithName:&*name].unwrap()
         })
     }
 
     /// Creates and returns a new pasteboard with a name that is guaranteed to be unique with
     /// respect to other pasteboards in the system.
     pub fn unique() -> Self {
-        Pasteboard(unsafe { ShareId::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithUniqueName]) })
+        Pasteboard(unsafe { msg_send_id![class!(NSPasteboard), pasteboardWithUniqueName].unwrap() })
     }
 
     /// A shorthand helper method for copying some text to the clipboard.

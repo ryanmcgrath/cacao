@@ -6,9 +6,9 @@
 use core_graphics::geometry::CGSize;
 use std::fmt;
 
-use crate::id_shim::{Id, ShareId};
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::appkit::segmentedcontrol::SegmentedControl;
 use crate::button::{BezelStyle, Button};
@@ -20,7 +20,7 @@ use crate::invoker::TargetActionHandler;
 #[derive(Debug)]
 pub struct ToolbarItem {
     pub identifier: String,
-    pub objc: Id<Object>,
+    pub objc: Id<Object, Owned>,
     pub button: Option<Button>,
     pub segmented_control: Option<SegmentedControl>,
     pub image: Option<Image>,
@@ -35,9 +35,8 @@ impl ToolbarItem {
 
         let objc = unsafe {
             let identifer = NSString::new(&identifier);
-            let alloc: id = msg_send![class!(NSToolbarItem), alloc];
-            let item: id = msg_send![alloc, initWithItemIdentifier: &*identifer];
-            Id::from_ptr(item)
+            let alloc = msg_send_id![class!(NSToolbarItem), alloc];
+            msg_send_id![alloc, initWithItemIdentifier: &*identifer].unwrap()
         };
 
         ToolbarItem {
@@ -53,7 +52,7 @@ impl ToolbarItem {
     pub(crate) fn wrap(item: id) -> Self {
         ToolbarItem {
             identifier: "".to_string(),
-            objc: unsafe { Id::from_retained_ptr(item) },
+            objc: unsafe { Id::new(item).unwrap() },
             button: None,
             segmented_control: None,
             image: None,

@@ -19,9 +19,9 @@ use core_foundation::base::TCFType;
 use core_graphics::base::CGFloat;
 use core_graphics::color::CGColor;
 
-use crate::id_shim::Id;
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::id;
 use crate::utils::os;
@@ -86,7 +86,7 @@ pub enum Color {
     ///
     /// If you need to do custom work not covered by this enum, you can drop to
     /// the Objective-C level yourself and wrap your color in this.
-    Custom(Arc<RwLock<Id<Object>>>),
+    Custom(Arc<RwLock<Id<Object, Owned>>>),
 
     /// The system-provided black. Harsh - you probably don't want to use this.
     SystemBlack,
@@ -248,9 +248,9 @@ impl Color {
         let b = blue as CGFloat / 255.0;
         let a = alpha as CGFloat / 255.0;
         #[cfg(feature = "appkit")]
-        let ptr = unsafe { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed: r, green: g, blue: b, alpha: a]) };
+        let ptr = unsafe { msg_send_id![class!(NSColor), colorWithCalibratedRed: r, green: g, blue: b, alpha: a].unwrap() };
         #[cfg(all(feature = "uikit", not(feature = "appkit")))]
-        let ptr = unsafe { Id::from_ptr(msg_send![class!(UIColor), colorWithRed: r, green: g, blue: b, alpha: a]) };
+        let ptr = unsafe { msg_send_id![class!(UIColor), colorWithRed: r, green: g, blue: b, alpha: a].unwrap() };
 
         Color::Custom(Arc::new(RwLock::new(ptr)))
     }
@@ -272,12 +272,19 @@ impl Color {
         Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "appkit")]
             {
-                Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedHue:h saturation:s brightness:b alpha:a])
+                msg_send_id![
+                    class!(NSColor),
+                    colorWithCalibratedHue: h,
+                    saturation: s,
+                    brightness: b,
+                    alpha: a
+                ]
+                .unwrap()
             }
 
             #[cfg(all(feature = "uikit", not(feature = "appkit")))]
             {
-                Id::from_ptr(msg_send![class!(UIColor), colorWithHue:h saturation:s brightness:b alpha:a])
+                msg_send_id![class!(UIColor), colorWithHue: h, saturation: s, brightness: b, alpha: a].unwrap()
             }
         })))
     }
@@ -294,12 +301,12 @@ impl Color {
         Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "appkit")]
             {
-                Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedWhite:level alpha:alpha])
+                msg_send_id![class!(NSColor), colorWithCalibratedWhite: level, alpha: alpha].unwrap()
             }
 
             #[cfg(all(feature = "uikit", not(feature = "appkit")))]
             {
-                Id::from_ptr(msg_send![class!(UIColor), colorWithWhite:level alpha:alpha])
+                msg_send_id![class!(UIColor), colorWithWhite: level, alpha: alpha].unwrap()
             }
         })))
     }
@@ -346,9 +353,9 @@ impl Color {
         // am happy to do this for now and let someone who needs true dynamic allocation look into
         // it and PR it.
         Color::Custom(Arc::new(RwLock::new(unsafe {
-            let color: id = msg_send![appkit_dynamic_color::register_class(), new];
+            let mut color: Id<Object, Owned> = msg_send_id![appkit_dynamic_color::register_class(), new].unwrap();
 
-            (&mut *color).set_ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST, {
+            color.set_ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST, {
                 let color: id = handler(Style {
                     theme: Theme::Light,
                     contrast: Contrast::Normal
@@ -358,7 +365,7 @@ impl Color {
                 color
             });
 
-            (&mut *color).set_ivar(AQUA_LIGHT_COLOR_HIGH_CONTRAST, {
+            color.set_ivar(AQUA_LIGHT_COLOR_HIGH_CONTRAST, {
                 let color: id = handler(Style {
                     theme: Theme::Light,
                     contrast: Contrast::High
@@ -368,7 +375,7 @@ impl Color {
                 color
             });
 
-            (&mut *color).set_ivar(AQUA_DARK_COLOR_NORMAL_CONTRAST, {
+            color.set_ivar(AQUA_DARK_COLOR_NORMAL_CONTRAST, {
                 let color: id = handler(Style {
                     theme: Theme::Dark,
                     contrast: Contrast::Normal
@@ -378,7 +385,7 @@ impl Color {
                 color
             });
 
-            (&mut *color).set_ivar(AQUA_DARK_COLOR_HIGH_CONTRAST, {
+            color.set_ivar(AQUA_DARK_COLOR_HIGH_CONTRAST, {
                 let color: id = handler(Style {
                     theme: Theme::Light,
                     contrast: Contrast::Normal
@@ -388,7 +395,7 @@ impl Color {
                 color
             });
 
-            Id::from_ptr(color)
+            color
         })))
     }
 

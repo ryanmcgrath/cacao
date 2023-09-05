@@ -1,8 +1,8 @@
 use core_graphics::base::CGFloat;
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, nil, NSInteger};
 use crate::layout::constraint::LayoutConstraint;
@@ -12,7 +12,7 @@ use super::attributes::{LayoutAttribute, LayoutRelation};
 /// A wrapper for `NSLayoutAnchor`. You should never be creating this yourself - it's more of a
 /// factory/helper for creating `LayoutConstraint` objects based on your views.
 #[derive(Clone, Debug, Default)]
-pub struct LayoutAnchorDimension2(pub Option<ShareId<Object>>);
+pub struct LayoutAnchorDimension2(pub Option<Id<Object, Shared>>);
 
 /// A wrapper for `NSLayoutAnchorDimension`, which is typically used to handle `width` and `height`
 /// values for how a given view should layout.
@@ -22,10 +22,10 @@ pub enum LayoutAnchorDimension {
     Uninitialized,
 
     /// Represents a Width anchor.
-    Width(ShareId<Object>),
+    Width(Id<Object, Shared>),
 
     /// Represents a Height anchor.
-    Height(ShareId<Object>)
+    Height(Id<Object, Shared>)
 }
 
 impl Default for LayoutAnchorDimension {
@@ -38,12 +38,12 @@ impl Default for LayoutAnchorDimension {
 impl LayoutAnchorDimension {
     /// Given a view, returns an anchor for the width anchor.
     pub(crate) fn width(view: id) -> Self {
-        Self::Width(unsafe { ShareId::from_ptr(msg_send![view, widthAnchor]) })
+        Self::Width(unsafe { msg_send_id![view, widthAnchor].unwrap() })
     }
 
     /// Given a view, returns an anchor for the height anchor.
     pub(crate) fn height(view: id) -> Self {
-        Self::Height(unsafe { ShareId::from_ptr(msg_send![view, heightAnchor]) })
+        Self::Height(unsafe { msg_send_id![view, heightAnchor].unwrap() })
     }
 
     /// Return a constraint equal to a constant value.
@@ -87,7 +87,7 @@ impl LayoutAnchorDimension {
     /// wrong.
     fn constraint_with<F>(&self, anchor_to: &LayoutAnchorDimension, handler: F) -> LayoutConstraint
     where
-        F: Fn(&ShareId<Object>, &ShareId<Object>) -> id
+        F: Fn(&Id<Object, Shared>, &Id<Object, Shared>) -> id
     {
         match (self, anchor_to) {
             (Self::Width(from), Self::Width(to))

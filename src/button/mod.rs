@@ -21,9 +21,9 @@
 //! my_view.add_subview(&button);
 //! ```
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel};
+use objc::{msg_send, msg_send_id, sel};
 
 pub use enums::*;
 
@@ -214,7 +214,7 @@ impl Button {
     /// best just to message pass or something.
     pub fn set_action<F: Fn(*const Object) + Send + Sync + 'static>(&mut self, action: F) {
         // @TODO: This probably isn't ideal but gets the job done for now; needs revisiting.
-        let this = self.objc.get(|obj| unsafe { ShareId::from_ptr(msg_send![obj, self]) });
+        let this: Id<Object, Shared> = self.objc.get(|obj| unsafe { msg_send_id![obj, self].unwrap() });
         let handler = TargetActionHandler::new(&*this, action);
         self.handler = Some(handler);
     }

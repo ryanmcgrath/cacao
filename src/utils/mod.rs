@@ -7,7 +7,7 @@ use core_graphics::base::CGFloat;
 
 use objc::{class, msg_send, sel};
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{Encode, Encoding};
 
@@ -23,7 +23,7 @@ pub mod properties;
 /// a guard for whether something is a (View|Window|etc)Controller.
 pub trait Controller {
     /// Returns the underlying Objective-C object.
-    fn get_backing_node(&self) -> ShareId<Object>;
+    fn get_backing_node(&self) -> Id<Object, Shared>;
 }
 
 /// Utility method for taking a pointer and grabbing the corresponding delegate in Rust. This is

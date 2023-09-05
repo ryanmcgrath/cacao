@@ -4,9 +4,9 @@
 
 use std::fmt;
 
-use crate::id_shim::Id;
+use objc::rc::{Id, Owned};
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::events::EventModifierFlag;
 use crate::foundation::{id, load_or_register_class, NSString, NSUInteger};
@@ -37,7 +37,7 @@ fn make_menu_item<S: AsRef<str>>(
     key: Option<&str>,
     action: Option<Sel>,
     modifiers: Option<&[EventModifierFlag]>
-) -> Id<Object> {
+) -> Id<Object, Owned> {
     unsafe {
         let title = NSString::new(title.as_ref());
 
@@ -50,14 +50,22 @@ fn make_menu_item<S: AsRef<str>>(
         // Stock menu items that use selectors targeted at system pieces are just standard
         // `NSMenuItem`s. If there's no custom ones, we use our subclass that has a slot to store a
         // handler pointer.
-        let alloc: id = msg_send![register_menu_item_class(), alloc];
-        let item = Id::from_retained_ptr(match action {
-            Some(a) => msg_send![alloc, initWithTitle:&*title action:a keyEquivalent:&*key],
-
-            None => msg_send![alloc, initWithTitle:&*title
-                action:sel!(fireBlockAction:)
-                keyEquivalent:&*key]
-        });
+        let alloc = msg_send_id![register_menu_item_class(), alloc];
+        let item = match action {
+            Some(a) => msg_send_id![
+                alloc,
+                initWithTitle: &*title,
+                action: a,
+                keyEquivalent: &*key,
+            ],
+            None => msg_send_id![
+                alloc,
+                initWithTitle: &*title,
+                action: sel!(fireBlockAction:),
+                keyEquivalent: &*key,
+            ]
+        }
+        .unwrap();
 
         if let Some(modifiers) = modifiers {
             let mut key_mask: NSUInteger = 0;
@@ -83,7 +91,7 @@ pub enum MenuItem {
     /// You can (and should) create this variant via the `new(title)` method, but if you need to do
     /// something crazier, then wrap it in this and you can hook into the Cacao menu system
     /// accordingly.
-    Custom(Id<Object>),
+    Custom(Id<Object, Owned>),
 
     /// Shows a standard "About" item,  which will bring up the necessary window when clicked
     /// (include a `credits.html` in your App to make use of here). The argument baked in here
@@ -150,7 +158,7 @@ pub enum MenuItem {
 impl MenuItem {
     /// Consumes and returns a handle for the underlying MenuItem. This is internal as we make a few assumptions
     /// for how it interacts with our `Menu` setup, but this could be made public in the future.
-    pub(crate) unsafe fn to_objc(self) -> Id<Object> {
+    pub(crate) unsafe fn to_objc(self) -> Id<Object, Owned> {
         match self {
             Self::Custom(objc) => objc,
 
@@ -211,8 +219,7 @@ impl MenuItem {
 
             Self::Separator => {
                 let cls = class!(NSMenuItem);
-                let separator: id = msg_send![cls, separatorItem];
-                Id::from_ptr(separator)
+                msg_send_id![cls, separatorItem].unwrap()
             }
         }
     }

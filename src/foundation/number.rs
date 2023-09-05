@@ -1,9 +1,9 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
-use crate::id_shim::Id;
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, to_bool, NSInteger, BOOL, NO, YES};
 
@@ -12,39 +12,40 @@ use crate::foundation::{id, to_bool, NSInteger, BOOL, NO, YES};
 /// In general we strive to avoid using this in the codebase, but it's a requirement for moving
 /// objects in and out of certain situations (e.g, `UserDefaults`).
 #[derive(Debug)]
-pub struct NSNumber(pub Id<Object>);
+pub struct NSNumber(pub Id<Object, Owned>);
 
 impl NSNumber {
     /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
     /// wrap (and retain) it while we figure out what to do with it. This does that.
     pub fn retain(data: id) -> Self {
-        NSNumber(unsafe { Id::from_ptr(data) })
+        NSNumber(unsafe { Id::retain(data).unwrap() })
     }
 
     /// If we're vended an NSNumber from a method (e.g, `NSUserDefaults` querying) we might want to
     /// wrap it while we figure out what to do with it. This does that.
     pub fn wrap(data: id) -> Self {
-        NSNumber(unsafe { Id::from_retained_ptr(data) })
+        NSNumber(unsafe { Id::new(data).unwrap() })
     }
 
     /// Constructs a `numberWithBool` instance of `NSNumber` and retains it.
     pub fn bool(value: bool) -> Self {
         NSNumber(unsafe {
-            Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithBool:match value {
+            msg_send_id![class!(NSNumber), numberWithBool:match value {
                 true => YES,
                 false => NO
-            }])
+            }]
+            .unwrap()
         })
     }
 
     /// Constructs a `numberWithInteger` instance of `NSNumber` and retains it.
     pub fn integer(value: i64) -> Self {
-        NSNumber(unsafe { Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithInteger: value as NSInteger]) })
+        NSNumber(unsafe { msg_send_id![class!(NSNumber), numberWithInteger: value as NSInteger].unwrap() })
     }
 
     /// Constructs a `numberWithDouble` instance of `NSNumber` and retains it.
     pub fn float(value: f64) -> Self {
-        NSNumber(unsafe { Id::from_retained_ptr(msg_send![class!(NSNumber), numberWithDouble: value]) })
+        NSNumber(unsafe { msg_send_id![class!(NSNumber), numberWithDouble: value].unwrap() })
     }
 
     /// Returns the `objCType` of the underlying `NSNumber` as a Rust `&str`. This flag can be used

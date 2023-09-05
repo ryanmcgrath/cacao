@@ -3,9 +3,9 @@ use std::ops::{Deref, DerefMut, Range};
 use std::os::raw::c_char;
 use std::{fmt, slice, str};
 
-use crate::id_shim::Id;
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, to_bool, NSString, BOOL, NO, YES};
@@ -21,7 +21,7 @@ extern "C" {
 /// A wrapper around `NSMutableAttributedString`, which can be used for more complex text
 /// rendering.
 ///
-pub struct AttributedString(pub Id<Object>);
+pub struct AttributedString(pub Id<Object, Owned>);
 
 impl AttributedString {
     /// Creates a blank AttributedString. Internally, this allocates an
@@ -30,8 +30,8 @@ impl AttributedString {
         let text = NSString::no_copy(value);
 
         Self(unsafe {
-            let alloc: id = msg_send![class!(NSMutableAttributedString), alloc];
-            Id::from_ptr(msg_send![alloc, initWithString:&*text])
+            let alloc = msg_send_id![class!(NSMutableAttributedString), alloc];
+            msg_send_id![alloc, initWithString:&*text].unwrap()
         })
     }
 
@@ -39,7 +39,7 @@ impl AttributedString {
     /// internal use, but kept available as part of the public API for the more adventurous types
     /// who might need it.
     pub fn wrap(value: id) -> Self {
-        Self(unsafe { Id::from_ptr(msg_send![value, mutableCopy]) })
+        Self(unsafe { msg_send_id![value, mutableCopy].unwrap() })
     }
 
     /// Sets the text (foreground) color for the specified range.

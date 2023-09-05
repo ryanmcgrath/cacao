@@ -16,9 +16,9 @@
 //use std::collections::HashMap;
 
 //use lazy_static::lazy_static;
-//use objc::{class, msg_send, sel};
+//use objc::{class, msg_send, msg_send_id, sel};
 //use objc::runtime::Object;
-//use crate::id_shim::ShareId;
+//use objc::rc::{Id, Shared};
 
 mod name;
 pub use name::NotificationName;
@@ -30,7 +30,7 @@ pub use traits::Dispatcher;
     pub static ref DefaultNotificationCenter: NotificationCenter = {
         NotificationCenter {
             objc: unsafe {
-                ShareId::from_ptr(msg_send![class!(NSNotificationCenter), defaultCenter])
+                msg_send_id![class!(NSNotificationCenter), defaultCenter].unwrap()
             },
 
             subscribers: Mutex::new(HashMap::new())
@@ -42,7 +42,7 @@ pub use traits::Dispatcher;
 // default center; in the future it should aim to support custom variants.
 //#[derive(Debug)]
 //pub struct NotificationCenter {
-//    pub objc: ShareId<Object>,
+//    pub objc: Id<Object, Shared>,
 //pub subscribers: Mutex<HashMap<String, Vec<Dispatcher>>>
 //}
 
@@ -52,7 +52,7 @@ pub use traits::Dispatcher;
     fn default() -> Self {
         NotificationCenter {
             objc: unsafe {
-                ShareId::from_ptr(msg_send![class!(NSNotificationCenter), defaultCenter])
+                msg_send_id![class!(NSNotificationCenter), defaultCenter].unwrap()
             }
         }
     }

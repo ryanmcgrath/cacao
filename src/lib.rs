@@ -98,65 +98,6 @@ pub use lazy_static;
 pub use objc;
 pub use url;
 
-// Temporary!
-//
-// Requires patched `objc2` with unsealed `MessageReceiver` trait
-mod id_shim {
-    use core::ops::{Deref, DerefMut};
-    use objc::rc::{self, Owned, Ownership, Shared};
-    use objc::runtime::Object;
-    use objc::{Message, MessageReceiver};
-
-    #[repr(transparent)]
-    #[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-    pub struct Id<T, O: Ownership = Owned>(rc::Id<T, O>);
-
-    unsafe impl<'a, T: Message, O: Ownership> MessageReceiver for &'a Id<T, O> {
-        fn __as_raw_receiver(self) -> *mut Object {
-            self.0.__as_raw_receiver()
-        }
-    }
-
-    unsafe impl<'a, T: Message> MessageReceiver for &'a mut Id<T, Owned> {
-        fn __as_raw_receiver(self) -> *mut Object {
-            self.0.__as_raw_receiver()
-        }
-    }
-
-    impl<T: Message, O: Ownership> Id<T, O> {
-        pub unsafe fn from_ptr(ptr: *mut T) -> Id<T, O> {
-            Self(rc::Id::retain(ptr).unwrap())
-        }
-
-        pub unsafe fn from_retained_ptr(ptr: *mut T) -> Id<T, O> {
-            Self(rc::Id::new(ptr).unwrap())
-        }
-    }
-
-    impl<T: Message> Clone for Id<T, Shared> {
-        fn clone(&self) -> Id<T, Shared> {
-            Self(self.0.clone())
-        }
-    }
-
-    impl<T: Message, O: Ownership> Deref for Id<T, O> {
-        type Target = T;
-
-        fn deref(&self) -> &T {
-            &*self.0
-        }
-    }
-
-    impl<T: Message> DerefMut for Id<T, Owned> {
-        fn deref_mut(&mut self) -> &mut T {
-            &mut *self.0
-        }
-    }
-
-    pub type ShareId<T> = Id<T, Shared>;
-}
-pub use id_shim::*;
-
 //#[cfg(all(feature = "appkit", feature = "uikit", not(feature = "doc_cfg")))]
 //compile_error!("The \"appkit\" and \"uikit\" features cannot be enabled together. Pick one. :)");
 

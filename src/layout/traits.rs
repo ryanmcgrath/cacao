@@ -4,7 +4,7 @@
 use core_graphics::base::CGFloat;
 use core_graphics::geometry::{CGPoint, CGRect, CGSize};
 
-use crate::id_shim::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{msg_send, sel};
 
