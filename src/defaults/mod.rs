@@ -130,7 +130,7 @@ impl UserDefaults {
     /// ```
     pub fn insert<K: AsRef<str>>(&mut self, key: K, value: Value) {
         let key = NSString::new(key.as_ref());
-        let value: id = value.into();
+        let value: id = &mut *value.into_id();
 
         unsafe {
             let _: () = msg_send![&*self.0, setObject: value, forKey: &*key];

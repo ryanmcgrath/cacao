@@ -134,13 +134,6 @@ impl NSData {
     }
 }
 
-impl From<NSData> for id {
-    /// Consumes and returns the underlying `NSData`.
-    fn from(mut data: NSData) -> Self {
-        &mut *data.0
-    }
-}
-
 impl Deref for NSData {
     type Target = Object;
 

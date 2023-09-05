@@ -112,7 +112,8 @@ pub trait Layout: ObjcAccess {
             .into_iter()
             .map(|t| {
                 let x: NSString = (*t).into();
-                x.into()
+                // FIXME: We shouldn't use autorelease here
+                Id::autorelease_return(x.objc)
             })
             .collect::<Vec<id>>()
             .into();

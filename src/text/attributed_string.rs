@@ -88,13 +88,6 @@ impl fmt::Debug for AttributedString {
     }
 }
 
-impl From<AttributedString> for id {
-    /// Consumes and returns the pointer to the underlying NSMutableAttributedString instance.
-    fn from(mut string: AttributedString) -> Self {
-        &mut *string.0
-    }
-}
-
 impl Deref for AttributedString {
     type Target = Object;
 

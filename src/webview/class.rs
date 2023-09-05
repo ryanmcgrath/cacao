@@ -125,7 +125,7 @@ extern "C" fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, p
 
         match urls {
             Some(u) => {
-                let nsurls: NSArray = u
+                let mut nsurls: NSArray = u
                     .iter()
                     .map(|s| {
                         let s = NSString::new(s);
@@ -134,7 +134,7 @@ extern "C" fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, p
                     .collect::<Vec<id>>()
                     .into();
 
-                (*handler).call((nsurls.into(),));
+                (*handler).call((&mut *nsurls.0,));
             },
 
             None => {
@@ -159,9 +159,9 @@ extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, downloa
             let _: () = msg_send![download, cancel];
         }
 
-        let path = NSString::new(&path.unwrap());
+        let mut path = NSString::new(&path.unwrap());
 
-        (*handler).call((Bool::new(can_overwrite), path.into()));
+        (*handler).call((Bool::new(can_overwrite), &mut *path.objc));
     });
 }
 

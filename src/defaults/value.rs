@@ -1,5 +1,10 @@
 use std::collections::HashMap;
 
+use objc::{
+    rc::{Id, Owned, Shared},
+    runtime::Object
+};
+
 use crate::foundation::{id, NSData, NSMutableDictionary, NSNumber, NSString};
 
 /// Represents a Value that can be stored or queried with `UserDefaults`.
@@ -128,19 +133,17 @@ impl Value {
             _ => None
         }
     }
-}
 
-impl From<Value> for id {
     /// Shepherds `Value` types into `NSObject`s that can be stored in `NSUserDefaults`.
     // These currently work, but may not be exhaustive and should be looked over past the preview
     // period.
-    fn from(value: Value) -> Self {
-        match value {
-            Value::Bool(b) => NSNumber::bool(b).into(),
-            Value::String(s) => NSString::new(&s).into(),
-            Value::Float(f) => NSNumber::float(f).into(),
-            Value::Integer(i) => NSNumber::integer(i).into(),
-            Value::Data(data) => NSData::new(data).into()
+    pub fn into_id(self) -> Id<Object, Owned> {
+        match self {
+            Value::Bool(b) => NSNumber::bool(b).0,
+            Value::String(s) => NSString::new(&s).objc,
+            Value::Float(f) => NSNumber::float(f).0,
+            Value::Integer(i) => NSNumber::integer(i).0,
+            Value::Data(data) => NSData::new(data).0
         }
     }
 }
@@ -155,7 +158,7 @@ where
 
         for (key, value) in map.into_iter() {
             let k = NSString::new(key.as_ref());
-            dictionary.insert(k, value.into());
+            dictionary.insert(k, &mut *value.into_id());
         }
 
         dictionary

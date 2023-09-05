@@ -106,13 +106,6 @@ impl From<Vec<id>> for NSArray {
     }
 }
 
-impl From<NSArray> for id {
-    /// Consumes and returns the pointer to the underlying NSArray.
-    fn from(mut array: NSArray) -> Self {
-        &mut *array
-    }
-}
-
 impl Deref for NSArray {
     type Target = Object;
 

@@ -3,6 +3,7 @@
 use std::sync::Once;
 
 use objc::declare::ClassDecl;
+use objc::rc::Id;
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, sel};
 
@@ -21,7 +22,7 @@ extern "C" fn allowed_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel
         .collect::<Vec<id>>()
         .into();
 
-    identifiers.into()
+    Id::autorelease_return(identifiers.0)
 }
 
 /// Retrieves and passes the default item identifiers for this toolbar.
@@ -35,7 +36,7 @@ extern "C" fn default_item_identifiers<T: ToolbarDelegate>(this: &Object, _: Sel
         .collect::<Vec<id>>()
         .into();
 
-    identifiers.into()
+    Id::autorelease_return(identifiers.0)
 }
 
 /// Retrieves and passes the default item identifiers for this toolbar.
@@ -49,7 +50,7 @@ extern "C" fn selectable_item_identifiers<T: ToolbarDelegate>(this: &Object, _: 
         .collect::<Vec<id>>()
         .into();
 
-    identifiers.into()
+    Id::autorelease_return(identifiers.0)
 }
 
 /// Loads the controller, grabs whatever item is for this identifier, and returns what the

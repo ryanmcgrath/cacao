@@ -96,10 +96,3 @@ impl NSNumber {
         to_bool(result)
     }
 }
-
-impl From<NSNumber> for id {
-    /// Consumes and returns the underlying `NSNumber`.
-    fn from(mut number: NSNumber) -> Self {
-        &mut *number.0
-    }
-}

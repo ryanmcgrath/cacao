@@ -355,43 +355,31 @@ impl Color {
             let mut color: Id<Object, Owned> = msg_send_id![appkit_dynamic_color::register_class(), new];
 
             color.set_ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST, {
-                let color: id = handler(Style {
+                to_objc(&handler(Style {
                     theme: Theme::Light,
                     contrast: Contrast::Normal
-                })
-                .into();
-
-                color
+                }))
             });
 
             color.set_ivar(AQUA_LIGHT_COLOR_HIGH_CONTRAST, {
-                let color: id = handler(Style {
+                to_objc(&handler(Style {
                     theme: Theme::Light,
                     contrast: Contrast::High
-                })
-                .into();
-
-                color
+                }))
             });
 
             color.set_ivar(AQUA_DARK_COLOR_NORMAL_CONTRAST, {
-                let color: id = handler(Style {
+                to_objc(&handler(Style {
                     theme: Theme::Dark,
                     contrast: Contrast::Normal
-                })
-                .into();
-
-                color
+                }))
             });
 
             color.set_ivar(AQUA_DARK_COLOR_HIGH_CONTRAST, {
-                let color: id = handler(Style {
+                to_objc(&handler(Style {
                     theme: Theme::Light,
                     contrast: Contrast::Normal
-                })
-                .into();
-
-                color
+                }))
             });
 
             color
@@ -420,15 +408,8 @@ impl AsRef<Color> for Color {
     }
 }
 
-impl From<Color> for id {
-    /// Consumes and returns the pointer to the underlying Color.
-    fn from(color: Color) -> Self {
-        unsafe { to_objc(&color) }
-    }
-}
-
 impl From<&Color> for id {
-    /// Consumes and returns the pointer to the underlying Color.
+    /// Returns the pointer to the underlying Color.
     fn from(color: &Color) -> Self {
         unsafe { to_objc(color) }
     }

@@ -162,13 +162,6 @@ impl<'a> NSURL<'a> {
     }
 }
 
-/*impl From<NSString<'_>> for id {
-    /// Consumes and returns the pointer to the underlying NSString instance.
-    fn from(mut string: NSString) -> Self {
-        &mut *string.objc
-    }
-}*/
-
 impl Deref for NSURL<'_> {
     type Target = Object;
 

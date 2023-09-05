@@ -116,13 +116,6 @@ impl fmt::Display for NSString<'_> {
     }
 }
 
-impl From<NSString<'_>> for id {
-    /// Consumes and returns the pointer to the underlying NSString instance.
-    fn from(mut string: NSString) -> Self {
-        &mut *string.objc
-    }
-}
-
 impl Deref for NSString<'_> {
     type Target = Object;
 
