@@ -145,7 +145,7 @@ extern "C" fn continue_user_activity<T: AppDelegate>(this: &Object, _: Sel, _: i
     let activity = UserActivity::with_inner(activity);
 
     match app::<T>(this).continue_user_activity(activity, || unsafe {
-        let handler = handler as *const Block<(id,), c_void>;
+        let handler = handler as *const Block<(id,), ()>;
         (*handler).call((nil,));
     }) {
         true => YES,

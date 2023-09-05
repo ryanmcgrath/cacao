@@ -47,10 +47,15 @@ impl WebViewConfig {
 
         unsafe {
             let alloc: id = msg_send![class!(WKUserScript), alloc];
-            let user_script: id = msg_send![alloc, initWithSource:source injectionTime:at forMainFrameOnly:match main_frame_only {
-                true => YES,
-                false => NO
-            }];
+            let user_script: id = msg_send![
+                alloc,
+                initWithSource: &*source,
+                injectionTime: at,
+                forMainFrameOnly: match main_frame_only {
+                    true => YES,
+                    false => NO
+                },
+            ];
 
             let content_controller: id = msg_send![&*self.objc, userContentController];
             let _: () = msg_send![content_controller, addUserScript: user_script];
@@ -70,7 +75,7 @@ impl WebViewConfig {
         unsafe {
             let yes: id = msg_send![class!(NSNumber), numberWithBool: YES];
             let preferences: id = msg_send![&*self.objc, preferences];
-            let _: () = msg_send![preferences, setValue:yes forKey:key];
+            let _: () = msg_send![preferences, setValue: yes, forKey: &*key];
         }
     }
 

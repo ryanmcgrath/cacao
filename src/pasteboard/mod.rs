@@ -63,7 +63,7 @@ impl Pasteboard {
         let ptype: NSString = PasteboardType::String.into();
 
         unsafe {
-            let _: () = msg_send![&*self.0, setString:&*contents forType:ptype];
+            let _: () = msg_send![&*self.0, setString: &*contents, forType: &*ptype];
         }
     }
 
@@ -91,7 +91,7 @@ impl Pasteboard {
         unsafe {
             let class: id = msg_send![class!(NSURL), class];
             let classes = NSArray::new(&[class]);
-            let contents: id = msg_send![&*self.0, readObjectsForClasses:classes options:nil];
+            let contents: id = msg_send![&*self.0, readObjectsForClasses: &*classes, options: nil];
 
             // This can happen if the Pasteboard server has an error in returning items.
             // In our case, we'll bubble up an error by checking the pasteboard.

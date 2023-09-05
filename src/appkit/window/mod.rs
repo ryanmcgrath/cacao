@@ -201,7 +201,7 @@ impl<T> Window<T> {
     pub fn set_title(&self, title: &str) {
         unsafe {
             let title = NSString::new(title);
-            let _: () = msg_send![&*self.objc, setTitle: title];
+            let _: () = msg_send![&*self.objc, setTitle: &*title];
         }
     }
 
@@ -216,7 +216,7 @@ impl<T> Window<T> {
 
         unsafe {
             let subtitle = NSString::new(subtitle);
-            let _: () = msg_send![&*self.objc, setSubtitle: subtitle];
+            let _: () = msg_send![&*self.objc, setSubtitle: &*subtitle];
         }
     }
 
@@ -252,7 +252,7 @@ impl<T> Window<T> {
     pub fn set_autosave_name(&self, name: &str) {
         unsafe {
             let autosave = NSString::new(name);
-            let _: () = msg_send![&*self.objc, setFrameAutosaveName: autosave];
+            let _: () = msg_send![&*self.objc, setFrameAutosaveName: &*autosave];
         }
     }
 
@@ -514,7 +514,7 @@ impl<T> Window<T> {
         let block = block.copy();
 
         unsafe {
-            let _: () = msg_send![&*self.objc, beginSheet:&*window.objc completionHandler:block];
+            let _: () = msg_send![&*self.objc, beginSheet: &*window.objc, completionHandler: &*block];
         }
     }
 

@@ -55,7 +55,7 @@ where
         let (objc, objc_delegate) = unsafe {
             let alloc: id = msg_send![class!(NSToolbar), alloc];
             let identifier = NSString::new(&identifier);
-            let toolbar: id = msg_send![alloc, initWithIdentifier: identifier];
+            let toolbar: id = msg_send![alloc, initWithIdentifier: &*identifier];
             let objc_delegate: id = msg_send![cls, new]; //WithIdentifier:identifier];
 
             let ptr: *const T = &*delegate;

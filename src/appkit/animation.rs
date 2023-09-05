@@ -39,7 +39,7 @@ impl AnimationContext {
 
         unsafe {
             //let context: id = msg_send![class!(NSAnimationContext), currentContext];
-            let _: () = msg_send![class!(NSAnimationContext), runAnimationGroup: block];
+            let _: () = msg_send![class!(NSAnimationContext), runAnimationGroup: &*block];
         }
     }
 
@@ -66,8 +66,11 @@ impl AnimationContext {
 
         unsafe {
             //let context: id = msg_send![class!(NSAnimationContext), currentContext];
-            let _: () = msg_send![class!(NSAnimationContext), runAnimationGroup:block
-                completionHandler:completion_block];
+            let _: () = msg_send![
+                class!(NSAnimationContext),
+                runAnimationGroup: &*block,
+                completionHandler: &*completion_block,
+            ];
         }
     }
 }

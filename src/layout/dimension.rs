@@ -51,7 +51,7 @@ impl LayoutAnchorDimension {
         if let Self::Width(obj) | Self::Height(obj) = self {
             return LayoutConstraint::new(unsafe {
                 let value = constant as CGFloat;
-                msg_send![*obj, constraintEqualToConstant: value]
+                msg_send![obj, constraintEqualToConstant: value]
             });
         }
 
@@ -63,7 +63,7 @@ impl LayoutAnchorDimension {
         if let Self::Width(obj) | Self::Height(obj) = self {
             return LayoutConstraint::new(unsafe {
                 let value = constant as CGFloat;
-                msg_send![*obj, constraintGreaterThanOrEqualToConstant: value]
+                msg_send![obj, constraintGreaterThanOrEqualToConstant: value]
             });
         }
 
@@ -75,7 +75,7 @@ impl LayoutAnchorDimension {
         if let Self::Width(obj) | Self::Height(obj) = self {
             return LayoutConstraint::new(unsafe {
                 let value = constant as CGFloat;
-                msg_send![*obj, constraintLessThanOrEqualToConstant: value]
+                msg_send![obj, constraintLessThanOrEqualToConstant: value]
             });
         }
 
@@ -112,21 +112,21 @@ impl LayoutAnchorDimension {
     /// Return a constraint equal to another dimension anchor.
     pub fn constraint_equal_to(&self, anchor_to: &LayoutAnchorDimension) -> LayoutConstraint {
         self.constraint_with(anchor_to, |from, to| unsafe {
-            msg_send![*from, constraintEqualToAnchor:&**to]
+            msg_send![from, constraintEqualToAnchor:&**to]
         })
     }
 
     /// Return a constraint greater than or equal to another dimension anchor.
     pub fn constraint_greater_than_or_equal_to(&self, anchor_to: &LayoutAnchorDimension) -> LayoutConstraint {
         self.constraint_with(anchor_to, |from, to| unsafe {
-            msg_send![*from, constraintGreaterThanOrEqualToAnchor:&**to]
+            msg_send![from, constraintGreaterThanOrEqualToAnchor:&**to]
         })
     }
 
     /// Return a constraint less than or equal to another dimension anchor.
     pub fn constraint_less_than_or_equal_to(&self, anchor_to: &LayoutAnchorDimension) -> LayoutConstraint {
         self.constraint_with(anchor_to, |from, to| unsafe {
-            msg_send![*from, constraintLessThanOrEqualToAnchor:&**to]
+            msg_send![from, constraintLessThanOrEqualToAnchor:&**to]
         })
     }
 }

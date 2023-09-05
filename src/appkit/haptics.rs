@@ -11,7 +11,7 @@ pub struct HapticFeedbackPerformer(pub ShareId<Object>);
 impl HapticFeedbackPerformer {
     pub fn perform(&self, pattern: FeedbackPattern, performance_time: PerformanceTime) {
         unsafe {
-            let _: () = msg_send![&*self.0, performFeedbackPattern: pattern performanceTime: performance_time];
+            let _: () = msg_send![&*self.0, performFeedbackPattern: pattern as isize performanceTime: performance_time as usize];
         }
     }
 }

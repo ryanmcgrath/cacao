@@ -95,7 +95,7 @@ impl FileSavePanel {
             let _: () = msg_send![&*self.panel, runModal];
             completion.call((1,));
             //beginWithCompletionHandler:completion.copy()];
-            //let _: () = msg_send![&*self.panel, beginWithCompletionHandler:completion.copy()];
+            //let _: () = msg_send![&*self.panel, beginWithCompletionHandler: &*completion.copy()];
         }
     }
 }

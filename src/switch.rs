@@ -69,7 +69,7 @@ impl Switch {
         let title = NSString::new(text);
 
         let view: id = unsafe {
-            let button: id = msg_send![register_class(), buttonWithTitle:title target:nil action:nil];
+            let button: id = msg_send![register_class(), buttonWithTitle: &*title, target: nil, action: nil];
 
             #[cfg(feature = "autolayout")]
             let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints: NO];

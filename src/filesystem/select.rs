@@ -148,7 +148,7 @@ impl FileSelectPanel {
         });
 
         unsafe {
-            let _: () = msg_send![&*self.panel, beginWithCompletionHandler:completion.copy()];
+            let _: () = msg_send![&*self.panel, beginWithCompletionHandler: &*completion.copy()];
         }
     }
 
@@ -184,7 +184,11 @@ impl FileSelectPanel {
         });
 
         unsafe {
-            let _: () = msg_send![&*self.panel, beginSheetModalForWindow:&*window.objc completionHandler:completion.copy()];
+            let _: () = msg_send![
+                &*self.panel,
+                beginSheetModalForWindow: &*window.objc,
+                completionHandler: &*completion.copy(),
+            ];
         }
     }
 }

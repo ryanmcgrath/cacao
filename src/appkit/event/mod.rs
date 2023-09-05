@@ -137,8 +137,11 @@ impl Event {
         let block = block.copy();
 
         EventMonitor(unsafe {
-            msg_send![class!(NSEvent), addLocalMonitorForEventsMatchingMask:mask.bits
-                handler:block]
+            Id::from_ptr(msg_send![
+                class!(NSEvent),
+                addLocalMonitorForEventsMatchingMask: mask.bits,
+                handler: &*block,
+            ])
         })
     }
 
@@ -163,8 +166,11 @@ impl Event {
         let block = block.copy();
 
         EventMonitor(unsafe {
-            msg_send![class!(NSEvent), addGlobalMonitorForEventsMatchingMask:mask.bits
-                handler:block]
+            Id::from_ptr(msg_send![
+                class!(NSEvent),
+                addGlobalMonitorForEventsMatchingMask: mask.bits,
+                handler: &*block,
+            ])
         })
     }
 }

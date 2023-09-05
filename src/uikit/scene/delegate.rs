@@ -9,9 +9,9 @@ use crate::utils::load;
 pub(crate) static WINDOW_SCENE_PTR: &str = "rstWindowSceneDelegatePtr";
 
 ///
-extern "C" fn init<T: WindowSceneDelegate, F: Fn() -> Box<T>>(this: &mut Object, _: Sel) -> id {
+extern "C" fn init<T: WindowSceneDelegate, F: Fn() -> Box<T>>(mut this: &mut Object, _: Sel) -> id {
     let x = unsafe {
-        *this = msg_send![super(this, class!(UIResponder)), init];
+        this = msg_send![super(this, class!(UIResponder)), init];
 
         let scene_delegate_vendor = SCENE_DELEGATE_VENDOR as *const F;
         let factory: &F = &*scene_delegate_vendor;

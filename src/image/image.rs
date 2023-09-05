@@ -142,7 +142,7 @@ impl Image {
 
         Image(unsafe {
             let alloc: id = msg_send![Self::class(), alloc];
-            ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile: file_path])
+            ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile: &*file_path])
         })
     }
 
@@ -161,7 +161,7 @@ impl Image {
 
         Image(unsafe {
             let alloc: id = msg_send![Self::class(), alloc];
-            ShareId::from_ptr(msg_send![alloc, initWithData: data])
+            ShareId::from_ptr(msg_send![alloc, initWithData: &*data])
         })
     }
 
@@ -196,8 +196,11 @@ impl Image {
                 true => {
                     let icon = NSString::new(icon.to_sfsymbol_str());
                     let desc = NSString::new(accessibility_description);
-                    msg_send![Self::class(), imageWithSystemSymbolName:&*icon
-                        accessibilityDescription:&*desc]
+                    msg_send![
+                        Self::class(),
+                        imageWithSystemSymbolName: &*icon,
+                        accessibilityDescription: &*desc,
+                    ]
                 },
 
                 false => {
@@ -284,9 +287,11 @@ impl Image {
         let block = block.copy();
 
         Image(unsafe {
-            let img: id = msg_send![Self::class(), imageWithSize:target_frame.size
-                flipped:YES
-                drawingHandler:block
+            let img: id = msg_send![
+                Self::class(),
+                imageWithSize: target_frame.size,
+                flipped: YES,
+                drawingHandler: &*block,
             ];
 
             ShareId::from_ptr(img)

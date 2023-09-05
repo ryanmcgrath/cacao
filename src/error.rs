@@ -58,7 +58,7 @@ impl Error {
         unsafe {
             let domain = NSString::new(&self.domain);
             let code = self.code as NSInteger;
-            msg_send![class!(NSError), errorWithDomain:domain code:code userInfo:nil]
+            msg_send![class!(NSError), errorWithDomain: &*domain, code: code, userInfo: nil]
         }
     }
 }

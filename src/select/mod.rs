@@ -161,7 +161,7 @@ impl Select {
     pub fn add_item(&self, title: &str) {
         self.objc.with_mut(|obj| unsafe {
             let s = NSString::new(title);
-            let _: () = msg_send![obj, addItemWithTitle: s];
+            let _: () = msg_send![obj, addItemWithTitle: &*s];
         });
     }
 

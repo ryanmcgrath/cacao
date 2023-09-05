@@ -160,21 +160,21 @@ impl LayoutAnchorX {
     /// Return a constraint equal to another horizontal anchor.
     pub fn constraint_equal_to(&self, anchor_to: &LayoutAnchorX) -> LayoutConstraint {
         self.constraint_with(anchor_to, |from, to| unsafe {
-            msg_send![*from, constraintEqualToAnchor:&**to]
+            msg_send![from, constraintEqualToAnchor:&**to]
         })
     }
 
     /// Return a constraint greater than or equal to another horizontal anchor.
     pub fn constraint_greater_than_or_equal_to(&self, anchor_to: &LayoutAnchorX) -> LayoutConstraint {
         self.constraint_with(anchor_to, |from, to| unsafe {
-            msg_send![*from, constraintGreaterThanOrEqualToAnchor:&**to]
+            msg_send![from, constraintGreaterThanOrEqualToAnchor:&**to]
         })
     }
 
     /// Return a constraint less than or equal to another horizontal anchor.
     pub fn constraint_less_than_or_equal_to(&self, anchor_to: &LayoutAnchorX) -> LayoutConstraint {
         self.constraint_with(anchor_to, |from, to| unsafe {
-            msg_send![*from, constraintLessThanOrEqualToAnchor:&**to]
+            msg_send![from, constraintLessThanOrEqualToAnchor:&**to]
         })
     }
 }

@@ -27,7 +27,7 @@ impl NotificationCenter {
         unsafe {
             // @TODO: Revisit.
             let block = ConcreteBlock::new(|_: id, error: id| {
-                let localized_description = NSString::new(msg_send![error, localizedDescription]);
+                let localized_description = NSString::retain(msg_send![error, localizedDescription]);
                 let e = localized_description.to_str();
                 if e != "" {
                     println!("{:?}", e);
@@ -41,7 +41,11 @@ impl NotificationCenter {
             }
 
             let center: id = msg_send![class!(UNUserNotificationCenter), currentNotificationCenter];
-            let _: () = msg_send![center, requestAuthorizationWithOptions:opts completionHandler:block.copy()];
+            let _: () = msg_send![
+                center,
+                requestAuthorizationWithOptions:opts,
+                completionHandler: &*block.copy(),
+            ];
         }
     }
 
@@ -51,8 +55,12 @@ impl NotificationCenter {
 
         unsafe {
             let identifier = NSString::new(&uuidentifier);
-            let request: id =
-                msg_send![class!(UNNotificationRequest), requestWithIdentifier:identifier content:&*notification.0 trigger:nil];
+            let request: id = msg_send![
+                class!(UNNotificationRequest),
+                requestWithIdentifier: &*identifier,
+                content: &*notification.0,
+                trigger: nil,
+            ];
             let center: id = msg_send![class!(UNUserNotificationCenter), currentNotificationCenter];
             let _: () = msg_send![center, addNotificationRequest: request];
         }

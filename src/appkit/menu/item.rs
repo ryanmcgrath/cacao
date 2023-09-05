@@ -229,7 +229,7 @@ impl MenuItem {
         if let MenuItem::Custom(objc) = self {
             unsafe {
                 let key = NSString::new(key);
-                let _: () = msg_send![&*objc, setKeyEquivalent: key];
+                let _: () = msg_send![&*objc, setKeyEquivalent: &*key];
             }
 
             return MenuItem::Custom(objc);

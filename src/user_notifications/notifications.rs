@@ -21,8 +21,8 @@ impl Notification {
 
         Notification(unsafe {
             let content: id = msg_send![class!(UNMutableNotificationContent), new];
-            let _: () = msg_send![content, setTitle: title];
-            let _: () = msg_send![content, setBody: body];
+            let _: () = msg_send![content, setTitle: &*title];
+            let _: () = msg_send![content, setBody: &*body];
             Id::from_ptr(content)
         })
     }

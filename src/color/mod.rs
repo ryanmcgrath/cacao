@@ -15,6 +15,7 @@
 /// @TODO: bundle iOS/tvOS support.
 use std::sync::{Arc, RwLock};
 
+use core_foundation::base::TCFType;
 use core_graphics::base::CGFloat;
 use core_graphics::color::CGColor;
 
@@ -247,9 +248,9 @@ impl Color {
         let b = blue as CGFloat / 255.0;
         let a = alpha as CGFloat / 255.0;
         #[cfg(feature = "appkit")]
-        let ptr = unsafe { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed:r green:g blue:b alpha:a]) };
+        let ptr = unsafe { Id::from_ptr(msg_send![class!(NSColor), colorWithCalibratedRed: r, green: g, blue: b, alpha: a]) };
         #[cfg(all(feature = "uikit", not(feature = "appkit")))]
-        let ptr = unsafe { Id::from_ptr(msg_send![class!(UIColor), colorWithRed:r green:g blue:b alpha:a]) };
+        let ptr = unsafe { Id::from_ptr(msg_send![class!(UIColor), colorWithRed: r, green: g, blue: b, alpha: a]) };
 
         Color::Custom(Arc::new(RwLock::new(ptr)))
     }
@@ -398,10 +399,9 @@ impl Color {
     /// you're not using a cached version of this unless you explicitly want the _same_ color
     /// in every context it's used in.
     pub fn cg_color(&self) -> CGColor {
-        // @TODO: This should probably return a CGColorRef...
         unsafe {
             let objc: id = self.into();
-            msg_send![objc, CGColor]
+            CGColor::wrap_under_get_rule(msg_send![objc, CGColor])
         }
     }
 }

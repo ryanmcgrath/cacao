@@ -68,8 +68,13 @@ extern "C" fn start_url_scheme_task<T: WebViewDelegate>(this: &Object, _: Sel, _
         if let Some(content) = delegate.on_custom_protocol_request(uri_str) {
             let mime = MimeType::parse(&content, uri_str);
             let nsurlresponse: id = msg_send![class!(NSURLResponse), alloc];
-            let response: id = msg_send![nsurlresponse, initWithURL:url MIMEType:NSString::new(&mime)
-                expectedContentLength:content.len() textEncodingName:null::<c_void>()];
+            let response: id = msg_send![
+                nsurlresponse,
+                initWithURL: url,
+                MIMEType: &*NSString::new(&mime),
+                expectedContentLength: content.len(),
+                textEncodingName: null::<c_void>(),
+            ];
             let _: () = msg_send![task, didReceiveResponse: response];
 
             // Send data
@@ -94,7 +99,7 @@ extern "C" fn decide_policy_for_action<T: WebViewDelegate>(this: &Object, _: Sel
     let action = NavigationAction::new(action);
 
     delegate.policy_for_navigation_action(action, |policy| unsafe {
-        let handler = handler as *const Block<(NSInteger,), c_void>;
+        let handler = handler as *const Block<(NSInteger,), ()>;
         (*handler).call((policy.into(),));
     });
 }
@@ -106,7 +111,7 @@ extern "C" fn decide_policy_for_response<T: WebViewDelegate>(this: &Object, _: S
     let response = NavigationResponse::new(response);
 
     delegate.policy_for_navigation_response(response, |policy| unsafe {
-        let handler = handler as *const Block<(NSInteger,), c_void>;
+        let handler = handler as *const Block<(NSInteger,), ()>;
         (*handler).call((policy.into(),));
     });
 }
@@ -116,7 +121,7 @@ extern "C" fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, p
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     delegate.run_open_panel(params.into(), move |urls| unsafe {
-        let handler = handler as *const Block<(id,), c_void>;
+        let handler = handler as *const Block<(id,), ()>;
 
         match urls {
             Some(u) => {
@@ -146,7 +151,7 @@ extern "C" fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, p
 extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
-    let handler = handler as *const Block<(objc::runtime::BOOL, id), c_void>;
+    let handler = handler as *const Block<(objc::runtime::BOOL, id), ()>;
     let filename = NSString::from_retained(suggested_filename);
 
     delegate.run_save_panel(filename.to_str(), move |can_overwrite, path| unsafe {

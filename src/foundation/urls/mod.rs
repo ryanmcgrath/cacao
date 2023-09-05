@@ -105,18 +105,22 @@ impl<'a> NSURL<'a> {
         // Mutability woes mean we just go through a match here to satisfy message passing needs.
         let bookmark_data = NSData::retain(match relative_to_url {
             Some(relative_url) => unsafe {
-                msg_send![&*self.objc, bookmarkDataWithOptions:opts
-                    includingResourceValuesForKeys:resource_keys
-                    relativeToURL:relative_url
-                    error:nil
+                msg_send![
+                    &*self.objc,
+                    bookmarkDataWithOptions: opts,
+                    includingResourceValuesForKeys: resource_keys,
+                    relativeToURL: &*relative_url,
+                    error: nil,
                 ]
             },
 
             None => unsafe {
-                msg_send![&*self.objc, bookmarkDataWithOptions:opts
-                    includingResourceValuesForKeys:resource_keys
-                    relativeToURL:nil
-                    error:nil
+                msg_send![
+                    &*self.objc,
+                    bookmarkDataWithOptions: opts,
+                    includingResourceValuesForKeys: resource_keys,
+                    relativeToURL: nil,
+                    error: nil,
                 ]
             }
         });

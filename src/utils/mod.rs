@@ -2,6 +2,7 @@
 //! belong to. These are typically internal, and if you rely on them... well, don't be surprised if
 //! they go away one day.
 
+use core_foundation::base::CFIndex;
 use core_graphics::base::CGFloat;
 
 use objc::{class, msg_send, sel};
@@ -93,6 +94,26 @@ impl CGSize {
 
 unsafe impl Encode for CGSize {
     const ENCODING: Encoding<'static> = Encoding::Struct("CGSize", &[CGFloat::ENCODING, CGFloat::ENCODING]);
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct CFRange {
+    pub location: CFIndex,
+    pub length: CFIndex
+}
+
+impl CFRange {
+    pub fn init(location: CFIndex, length: CFIndex) -> CFRange {
+        CFRange {
+            location: location,
+            length: length
+        }
+    }
+}
+
+unsafe impl Encode for CFRange {
+    const ENCODING: Encoding<'static> = Encoding::Struct("CFRange", &[CFIndex::ENCODING, CFIndex::ENCODING]);
 }
 
 /// A helper method for ensuring that Cocoa is running in multi-threaded mode.

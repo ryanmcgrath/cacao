@@ -133,7 +133,7 @@ impl UserDefaults {
         let value: id = value.into();
 
         unsafe {
-            let _: () = msg_send![&*self.0, setObject:value forKey:key];
+            let _: () = msg_send![&*self.0, setObject: value, forKey: &*key];
         }
     }
 

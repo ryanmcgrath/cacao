@@ -65,9 +65,11 @@ impl RowAction {
 
         RowAction(unsafe {
             let cls = class!(NSTableViewRowAction);
-            Id::from_ptr(msg_send![cls, rowActionWithStyle:style
-                title:&*title
-                handler:block
+            Id::from_ptr(msg_send![
+                cls,
+                rowActionWithStyle: style,
+                title: &*title,
+                handler: &*block,
             ])
         })
     }

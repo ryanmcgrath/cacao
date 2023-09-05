@@ -3,14 +3,13 @@ use std::ops::{Deref, DerefMut, Range};
 use std::os::raw::c_char;
 use std::{fmt, slice, str};
 
-use core_foundation::base::CFRange;
-
 use crate::id_shim::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, to_bool, NSString, BOOL, NO, YES};
+use crate::utils::CFRange;
 
 use super::Font;
 
@@ -49,19 +48,25 @@ impl AttributedString {
         let range = CFRange::init(range.start, range.end);
 
         unsafe {
-            let _: () = msg_send![&*self.0, addAttribute:NSForegroundColorAttributeName
-                value:color
-                range:range
+            let _: () = msg_send![
+                &*self.0,
+                addAttribute: NSForegroundColorAttributeName,
+                value: color,
+                range: range,
             ];
         }
     }
 
     /// Set the font for the specified range.
     pub fn set_font(&mut self, font: Font, range: Range<isize>) {
+        let range = CFRange::init(range.start, range.end);
+
         unsafe {
-            let _: () = msg_send![&*self.0, addAttribute:NSFontAttributeName
-                value:&*font
-                range:range
+            let _: () = msg_send![
+                &*self.0,
+                addAttribute: NSFontAttributeName,
+                value: &*font,
+                range: range,
             ];
         }
     }

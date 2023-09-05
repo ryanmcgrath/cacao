@@ -35,12 +35,12 @@ impl BrowserToolbar {
         let back_button = Button::new("Back");
         let mut back_item = ToolbarItem::new(BACK_BUTTON);
         back_item.set_button(back_button);
-        back_item.set_action(|| Action::Back.dispatch());
+        back_item.set_action(|_| Action::Back.dispatch());
 
         let forwards_button = Button::new("Forwards");
         let mut forwards_item = ToolbarItem::new(FWDS_BUTTON);
         forwards_item.set_button(forwards_button);
-        forwards_item.set_action(|| Action::Forwards.dispatch());
+        forwards_item.set_action(|_| Action::Forwards.dispatch());
 
         let url_bar = TextField::with(URLBar);
         let url_bar_item = ToolbarItem::new(URL_BAR);

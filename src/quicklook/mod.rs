@@ -48,8 +48,11 @@ impl ThumbnailGenerator {
         let request = config.to_request(path);
 
         unsafe {
-            let _: () = msg_send![&*self.0, generateRepresentationsForRequest:request
-                updateHandler:block];
+            let _: () = msg_send![
+                &*self.0,
+                generateRepresentationsForRequest: request,
+                updateHandler: &*block,
+            ];
         }
     }
 }

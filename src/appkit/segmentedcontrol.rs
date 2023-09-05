@@ -171,7 +171,7 @@ impl SegmentedControl {
     pub fn set_tooltip_segment(&mut self, index: NSUInteger, tooltip: &str) {
         self.objc.with_mut(|obj| unsafe {
             let converted = NSString::new(tooltip);
-            let _: () = msg_send![obj, setToolTip: converted forSegment: index];
+            let _: () = msg_send![obj, setToolTip: &*converted.objc, forSegment: index];
         })
     }
 
