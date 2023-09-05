@@ -1,9 +1,9 @@
 //! A wrapper for NSSwitch. Currently the epitome of jank - if you're poking around here, expect
 //! that this will change at some point.
 
+use crate::id_shim::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::foundation::{id, load_or_register_class, nil, NSString, NO};
 use crate::invoker::TargetActionHandler;

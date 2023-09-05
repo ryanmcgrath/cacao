@@ -18,7 +18,7 @@
 //use lazy_static::lazy_static;
 //use objc::{class, msg_send, sel, sel_impl};
 //use objc::runtime::Object;
-//use objc_id::ShareId;
+//use crate::id_shim::ShareId;
 
 mod name;
 pub use name::NotificationName;

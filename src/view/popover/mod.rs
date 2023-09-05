@@ -1,7 +1,7 @@
+use crate::id_shim::ShareId;
 use core_graphics::geometry::CGRect;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 #[cfg(feature = "appkit")]
 use crate::appkit::toolbar::ToolbarItem;

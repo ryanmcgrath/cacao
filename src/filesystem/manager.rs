@@ -4,9 +4,9 @@
 use std::error::Error;
 use std::sync::{Arc, RwLock};
 
+use crate::id_shim::Id;
 use objc::runtime::{Object, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
 use url::Url;
 
 use crate::error::Error as AppKitError;

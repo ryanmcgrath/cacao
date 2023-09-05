@@ -42,9 +42,9 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
+use crate::id_shim::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSString, NO, YES};

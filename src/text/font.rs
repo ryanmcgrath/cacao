@@ -4,9 +4,9 @@ use std::ops::Deref;
 
 use core_graphics::base::CGFloat;
 
+use crate::id_shim::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
 use crate::utils::os;

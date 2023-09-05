@@ -4,9 +4,9 @@
 
 use block::ConcreteBlock;
 
+use crate::id_shim::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::foundation::{id, nil, NSInteger, NSString, NO, YES};
 

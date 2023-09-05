@@ -1,9 +1,9 @@
 use std::sync::Once;
 
+use crate::id_shim::Id;
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
 
 use crate::foundation::{id, load_or_register_class, NSString, NSUInteger, NO, YES};
 use crate::input::{TextFieldDelegate, TEXTFIELD_DELEGATE_PTR};

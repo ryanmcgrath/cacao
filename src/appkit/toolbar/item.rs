@@ -6,9 +6,9 @@
 use core_graphics::geometry::CGSize;
 use std::fmt;
 
+use crate::id_shim::{Id, ShareId};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::{Id, ShareId};
 
 use crate::appkit::segmentedcontrol::SegmentedControl;
 use crate::button::{BezelStyle, Button};

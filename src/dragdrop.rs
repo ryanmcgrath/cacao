@@ -2,9 +2,9 @@
 //! across the codebase, hence why they're here - they're not currently exhaustive, so feel free to
 //! tinker and pull request.
 
+use crate::id_shim::ShareId;
 use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::foundation::NSUInteger;
 use crate::pasteboard::Pasteboard;

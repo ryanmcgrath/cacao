@@ -13,9 +13,9 @@ use block::ConcreteBlock;
 use core_graphics::base::CGFloat;
 use core_graphics::geometry::{CGRect, CGSize};
 
+use crate::id_shim::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::appkit::toolbar::{Toolbar, ToolbarDelegate};
 use crate::color::Color;

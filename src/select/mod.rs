@@ -1,9 +1,9 @@
 //! Implements a Select-style dropdown. By default this uses NSPopupSelect on macOS.
 
+use crate::id_shim::ShareId;
 use core_graphics::geometry::CGRect;
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::control::Control;
 use crate::foundation::{id, load_or_register_class, nil, NSInteger, NSString, NO, YES};

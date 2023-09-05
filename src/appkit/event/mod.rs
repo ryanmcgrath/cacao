@@ -1,9 +1,9 @@
 use bitmask_enum::bitmask;
 use block::ConcreteBlock;
 
+use crate::id_shim::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
 
 use crate::events::EventType;
 use crate::foundation::{id, nil, NSInteger, NSPoint, NSString};

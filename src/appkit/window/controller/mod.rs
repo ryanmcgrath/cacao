@@ -30,9 +30,9 @@
 
 use std::fmt;
 
+use crate::id_shim::Id;
 use objc::runtime::Object;
 use objc::{msg_send, sel, sel_impl};
-use objc_id::Id;
 
 use crate::appkit::window::{Window, WindowConfig, WindowDelegate, WINDOW_DELEGATE_PTR};
 use crate::foundation::{id, nil};

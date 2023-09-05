@@ -4,9 +4,9 @@
 
 use core_graphics::base::CGFloat;
 
+use crate::id_shim::ShareId;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::foundation::{id, NO, YES};
 
@@ -94,7 +94,7 @@ impl LayoutConstraint {
 
     /// Call this with your batch of constraints to activate them.
     // If you're astute, you'll note that, yes... this is kind of hacking around some
-    // borrowing rules with how objc_id::Id/objc_id::ShareId works. In this case, to
+    // borrowing rules with how crate::id_shim::Id/crate::id_shim::ShareId works. In this case, to
     // support the way autolayout constraints work over in the cocoa runtime, we need to be
     // able to clone these and pass them around... while also getting certain references to
     // them.

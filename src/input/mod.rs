@@ -43,9 +43,9 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
+use crate::id_shim::ShareId;
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::color::Color;
 use crate::control::Control;

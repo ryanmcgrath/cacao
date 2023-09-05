@@ -18,9 +18,9 @@ use std::sync::{Arc, RwLock};
 use core_graphics::base::CGFloat;
 use core_graphics::color::CGColor;
 
+use crate::id_shim::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
 
 use crate::foundation::id;
 use crate::utils::os;

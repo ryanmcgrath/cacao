@@ -34,9 +34,9 @@
 
 use std::collections::HashMap;
 
+use crate::id_shim::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
 
 use crate::foundation::{id, nil, to_bool, NSData, NSMutableDictionary, NSNumber, NSString, BOOL, NO, YES};
 

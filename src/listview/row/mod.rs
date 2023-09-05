@@ -45,9 +45,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::id_shim::{Id, ShareId};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::{Id, ShareId};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSString, NO, YES};

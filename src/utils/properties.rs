@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::id_shim::Id;
 use objc::runtime::Object;
-use objc_id::Id;
 
 use crate::foundation::id;
 

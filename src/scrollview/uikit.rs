@@ -9,10 +9,10 @@
 
 use std::sync::Once;
 
+use crate::id_shim::Id;
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
 use objc::{class, sel, sel_impl};
-use objc_id::Id;
 
 use crate::foundation::{id, NSUInteger, NO, YES};
 use crate::scrollview::{ScrollViewDelegate, SCROLLVIEW_DELEGATE_PTR};

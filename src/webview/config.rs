@@ -1,9 +1,9 @@
 //! A wrapper for `WKWebViewConfiguration`. It aims to (mostly) cover
 //! the important pieces of configuring and updating a WebView configuration.
 
+use crate::id_shim::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
 
 use crate::foundation::{id, NSInteger, NSString, NO, YES};
 use crate::webview::enums::InjectAt;

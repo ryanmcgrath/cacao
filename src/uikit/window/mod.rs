@@ -1,8 +1,8 @@
 use core_graphics::geometry::CGRect;
 
+use crate::id_shim::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
 
 use crate::foundation::id;
 use crate::geometry::Rect;

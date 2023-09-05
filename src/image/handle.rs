@@ -1,5 +1,5 @@
 
-use objc_id::ShareId;
+use crate::id_shim::ShareId;
 use objc::runtime::Object;
 
 /// Views get passed these, and can

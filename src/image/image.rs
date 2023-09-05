@@ -1,5 +1,5 @@
+use crate::id_shim::ShareId;
 use objc::runtime::{Class, Object};
-use objc_id::ShareId;
 
 use objc::{class, msg_send, sel, sel_impl};
 

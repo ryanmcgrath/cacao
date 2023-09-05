@@ -1,8 +1,8 @@
 //! Represents settings for printing items. Backed by an `NSDictionary` in Objective-C, this struct
 //! aims to make it easier to query/process printing operations.
 
+use crate::id_shim::ShareId;
 use objc::runtime::Object;
-use objc_id::ShareId;
 
 use crate::foundation::id;
 

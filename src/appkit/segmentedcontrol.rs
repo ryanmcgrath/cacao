@@ -6,10 +6,10 @@ use std::sync::Once;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::id_shim::ShareId;
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
 
 use crate::color::Color;
 use crate::control::Control;

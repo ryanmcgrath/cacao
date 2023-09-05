@@ -39,9 +39,9 @@ use std::sync::{Arc, Mutex};
 
 use lazy_static::lazy_static;
 
+use crate::id_shim::Id;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
 
 use crate::appkit::menu::Menu;
 use crate::foundation::{id, nil, AutoReleasePool, NSUInteger, NO, YES};
