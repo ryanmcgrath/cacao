@@ -48,8 +48,4 @@ impl Scene {
         }
         .into()
     }
-
-    pub fn into_inner(mut self) -> id {
-        &mut *self.0
-    }
 }

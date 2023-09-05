@@ -75,9 +75,4 @@ impl WebViewConfig {
             let _: () = msg_send![preferences, setValue: yes, forKey: &*key];
         }
     }
-
-    /// Consumes and returns the underlying `WKWebViewConfiguration`.
-    pub fn into_inner(mut self) -> id {
-        &mut *self.objc
-    }
 }

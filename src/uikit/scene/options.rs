@@ -14,9 +14,4 @@ impl SceneConnectionOptions {
     pub fn with(opts: id) -> Self {
         SceneConnectionOptions(unsafe { Id::retain(opts).unwrap() })
     }
-
-    /// Consumes and returns the underlying `UISceneConfiguration`.
-    pub fn into_inner(mut self) -> id {
-        &mut *self.0
-    }
 }

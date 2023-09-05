@@ -2,6 +2,7 @@
 //! creates a custom `UIApplication` subclass that currently does nothing; this is meant as a hook
 //! for potential future use.
 
+use objc::rc::Id;
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::sel;
 
@@ -33,9 +34,11 @@ extern "C" fn did_finish_launching<T: AppDelegate>(this: &Object, _: Sel, _: id,
 }
 
 extern "C" fn configuration_for_scene_session<T: AppDelegate>(this: &Object, _: Sel, _: id, session: id, opts: id) -> id {
-    app::<T>(this)
-        .config_for_scene_session(SceneSession::with(session), SceneConnectionOptions::with(opts))
-        .into_inner()
+    Id::autorelease_return(
+        app::<T>(this)
+            .config_for_scene_session(SceneSession::with(session), SceneConnectionOptions::with(opts))
+            .0
+    )
 }
 
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and

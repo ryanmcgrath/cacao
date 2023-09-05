@@ -37,11 +37,6 @@ impl NSMutableDictionary {
             let _: () = msg_send![&*self.0, setObject:object forKey:&*key];
         }
     }
-
-    /// Consumes and returns the underlying `NSMutableDictionary`.
-    pub fn into_inner(mut self) -> id {
-        &mut *self.0
-    }
 }
 
 impl Deref for NSMutableDictionary {

@@ -23,7 +23,7 @@ impl Window {
 
     pub fn set_window_scene(&mut self, scene: Scene) {
         unsafe {
-            let _: () = msg_send![&*self.0, setWindowScene:scene.into_inner()];
+            let _: () = msg_send![&*self.0, setWindowScene: &*scene.0];
         }
     }
 

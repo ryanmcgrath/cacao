@@ -10,7 +10,7 @@ use crate::uikit::scene::SessionRole;
 ///
 /// Due to the way we have to implement this, you likely never need to touch this.
 #[derive(Debug)]
-pub struct SceneConfig(Id<Object, Owned>);
+pub struct SceneConfig(pub Id<Object, Owned>);
 
 impl SceneConfig {
     /// Creates a new `UISceneConfiguration` with the specified name and session role, retains it,
@@ -34,10 +34,5 @@ impl SceneConfig {
 
             config
         })
-    }
-
-    /// Consumes and returns the underlying `UISceneConfiguration`.
-    pub fn into_inner(mut self) -> id {
-        &mut *self.0
     }
 }
