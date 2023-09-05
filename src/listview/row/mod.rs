@@ -442,7 +442,8 @@ impl<T> ListViewRow<T> {
         let color: id = color.as_ref().into();
 
         self.objc.with_mut(|obj| unsafe {
-            (&mut *obj).set_ivar(BACKGROUND_COLOR, color);
+            // TODO: Fix this unnecessary retain!
+            (&mut *obj).set_ivar::<id>(BACKGROUND_COLOR, msg_send![color, retain]);
         });
     }
 }

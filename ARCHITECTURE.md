@@ -293,7 +293,8 @@ impl<T> View<T> {
 
         #[cfg(target_os = "macos")]
         self.objc.with_mut(|obj| unsafe {
-            (&mut *obj).set_ivar(BACKGROUND_COLOR, color);
+            // TODO: Fix this unnecessary retain!
+            (&mut *obj).set_ivar::<id>(BACKGROUND_COLOR, msg_send![color, retain]);
         });
 
         #[cfg(target_os = "ios")]
