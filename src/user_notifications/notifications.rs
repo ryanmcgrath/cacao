@@ -20,7 +20,7 @@ impl Notification {
         let body = NSString::new(body);
 
         Notification(unsafe {
-            let mut content = msg_send_id![class!(UNMutableNotificationContent), new].unwrap();
+            let mut content = msg_send_id![class!(UNMutableNotificationContent), new];
             let _: () = msg_send![&mut content, setTitle: &*title];
             let _: () = msg_send![&mut content, setBody: &*body];
             content

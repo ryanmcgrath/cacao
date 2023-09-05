@@ -27,7 +27,7 @@ impl Default for FileManager {
     /// and simple tasks, with no callbacks, you might want this.
     fn default() -> Self {
         FileManager(Arc::new(RwLock::new(unsafe {
-            msg_send_id![class!(NSFileManager), defaultManager].unwrap()
+            msg_send_id![class!(NSFileManager), defaultManager]
         })))
     }
 }
@@ -35,9 +35,7 @@ impl Default for FileManager {
 impl FileManager {
     /// Returns a new FileManager that opts in to delegate methods.
     pub fn new() -> Self {
-        FileManager(Arc::new(RwLock::new(unsafe {
-            msg_send_id![class!(NSFileManager), new].unwrap()
-        })))
+        FileManager(Arc::new(RwLock::new(unsafe { msg_send_id![class!(NSFileManager), new] })))
     }
 
     /// Given a directory/domain combination, will attempt to get the directory that matches.

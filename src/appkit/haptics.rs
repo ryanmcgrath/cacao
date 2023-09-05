@@ -19,7 +19,7 @@ impl HapticFeedbackPerformer {
 impl Default for HapticFeedbackPerformer {
     /// Returns the default haptic feedback performer.
     fn default() -> Self {
-        HapticFeedbackPerformer(unsafe { msg_send_id![class!(NSHapticFeedbackManager), defaultPerformer].unwrap() })
+        HapticFeedbackPerformer(unsafe { msg_send_id![class!(NSHapticFeedbackManager), defaultPerformer] })
     }
 }
 

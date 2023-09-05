@@ -144,13 +144,13 @@ where
 
         let pool = AutoReleasePool::new();
 
-        let objc = unsafe { msg_send_id![register_app_class(), sharedApplication].unwrap() };
+        let objc: Id<_, _> = unsafe { msg_send_id![register_app_class(), sharedApplication] };
 
         let app_delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
             let delegate_class = register_app_delegate_class::<T>();
-            let mut delegate: Id<Object, Owned> = msg_send_id![delegate_class, new].unwrap();
+            let mut delegate: Id<Object, Owned> = msg_send_id![delegate_class, new];
             let delegate_ptr: *const T = &*app_delegate;
             delegate.set_ivar(APP_PTR, delegate_ptr as usize);
             let _: () = msg_send![&*objc, setDelegate: &*delegate];

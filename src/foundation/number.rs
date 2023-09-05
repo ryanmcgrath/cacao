@@ -34,18 +34,17 @@ impl NSNumber {
                 true => YES,
                 false => NO
             }]
-            .unwrap()
         })
     }
 
     /// Constructs a `numberWithInteger` instance of `NSNumber` and retains it.
     pub fn integer(value: i64) -> Self {
-        NSNumber(unsafe { msg_send_id![class!(NSNumber), numberWithInteger: value as NSInteger].unwrap() })
+        NSNumber(unsafe { msg_send_id![class!(NSNumber), numberWithInteger: value as NSInteger] })
     }
 
     /// Constructs a `numberWithDouble` instance of `NSNumber` and retains it.
     pub fn float(value: f64) -> Self {
-        NSNumber(unsafe { msg_send_id![class!(NSNumber), numberWithDouble: value].unwrap() })
+        NSNumber(unsafe { msg_send_id![class!(NSNumber), numberWithDouble: value] })
     }
 
     /// Returns the `objCType` of the underlying `NSNumber` as a Rust `&str`. This flag can be used

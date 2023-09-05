@@ -142,7 +142,7 @@ impl Image {
 
         Image(unsafe {
             let alloc = msg_send_id![Self::class(), alloc];
-            msg_send_id![alloc, initWithContentsOfFile: &*file_path].unwrap()
+            msg_send_id![alloc, initWithContentsOfFile: &*file_path]
         })
     }
 
@@ -150,7 +150,7 @@ impl Image {
     pub fn with_contents_of_url(url: NSURL) -> Self {
         Image(unsafe {
             let alloc = msg_send_id![Self::class(), alloc];
-            msg_send_id![alloc, initWithContentsOfURL: &*url.objc].unwrap()
+            msg_send_id![alloc, initWithContentsOfURL: &*url.objc]
         })
     }
 
@@ -161,7 +161,7 @@ impl Image {
 
         Image(unsafe {
             let alloc = msg_send_id![Self::class(), alloc];
-            msg_send_id![alloc, initWithData: &*data].unwrap()
+            msg_send_id![alloc, initWithData: &*data]
         })
     }
 
@@ -173,7 +173,7 @@ impl Image {
     pub fn system_icon(icon: MacSystemIcon) -> Self {
         Image(unsafe {
             let icon = icon.to_id();
-            msg_send_id![Self::class(), imageNamed: icon].unwrap()
+            msg_send_id![Self::class(), imageNamed: icon]
         })
     }
 
@@ -199,12 +199,11 @@ impl Image {
                         imageWithSystemSymbolName: &*icon,
                         accessibilityDescription: &*desc,
                     ]
-                    .unwrap()
                 },
 
                 false => {
                     let icon = icon.to_id();
-                    msg_send_id![Self::class(), imageNamed: icon].unwrap()
+                    msg_send_id![Self::class(), imageNamed: icon]
                 }
             }
         })
@@ -237,7 +236,6 @@ impl Image {
                         imageWithSystemSymbolName:&*icon,
                         accessibilityDescription:&*desc,
                     ]
-                    .unwrap()
                 },
 
                 false => {
@@ -296,7 +294,6 @@ impl Image {
                 flipped: YES,
                 drawingHandler: &*block,
             ]
-            .unwrap()
         })
     }
 }

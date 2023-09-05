@@ -53,7 +53,7 @@ where
         let view = View::with(delegate);
 
         let objc = unsafe {
-            let mut vc: Id<Object, Owned> = msg_send_id![class, new].unwrap();
+            let mut vc: Id<Object, Owned> = msg_send_id![class, new];
 
             if let Some(delegate) = &view.delegate {
                 let ptr: *const T = &**delegate;

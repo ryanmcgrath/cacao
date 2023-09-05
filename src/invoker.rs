@@ -57,7 +57,7 @@ impl TargetActionHandler {
 
         let invoker = unsafe {
             let invoker = msg_send_id![register_invoker_class::<F>(), alloc];
-            let mut invoker: Id<Object, Owned> = msg_send_id![invoker, init].unwrap();
+            let mut invoker: Id<Object, Owned> = msg_send_id![invoker, init];
             invoker.set_ivar(ACTION_CALLBACK_PTR, ptr as usize);
             let _: () = msg_send![control, setAction: sel!(perform:)];
             let _: () = msg_send![control, setTarget: &*invoker];

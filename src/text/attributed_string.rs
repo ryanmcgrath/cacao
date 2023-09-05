@@ -31,7 +31,7 @@ impl AttributedString {
 
         Self(unsafe {
             let alloc = msg_send_id![class!(NSMutableAttributedString), alloc];
-            msg_send_id![alloc, initWithString:&*text].unwrap()
+            msg_send_id![alloc, initWithString:&*text]
         })
     }
 
@@ -39,7 +39,7 @@ impl AttributedString {
     /// internal use, but kept available as part of the public API for the more adventurous types
     /// who might need it.
     pub fn wrap(value: id) -> Self {
-        Self(unsafe { msg_send_id![value, mutableCopy].unwrap() })
+        Self(unsafe { msg_send_id![value, mutableCopy] })
     }
 
     /// Sets the text (foreground) color for the specified range.

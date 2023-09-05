@@ -19,7 +19,7 @@ pub struct ThumbnailGenerator(pub Id<Object, Shared>);
 impl ThumbnailGenerator {
     /// Returns the global shared, wrapped, QLThumbnailGenerator.
     pub fn shared() -> Self {
-        ThumbnailGenerator(unsafe { msg_send_id![class!(QLThumbnailGenerator), sharedGenerator].unwrap() })
+        ThumbnailGenerator(unsafe { msg_send_id![class!(QLThumbnailGenerator), sharedGenerator] })
     }
 
     /// Given a path and config, will generate a preview image, calling back on the provided

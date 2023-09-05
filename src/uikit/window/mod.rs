@@ -17,7 +17,7 @@ impl Window {
         Window(unsafe {
             let rect: CGRect = frame.into();
             let alloc = msg_send_id![class!(UIWindow), alloc];
-            msg_send_id![alloc, initWithFrame: rect].unwrap()
+            msg_send_id![alloc, initWithFrame: rect]
         })
     }
 

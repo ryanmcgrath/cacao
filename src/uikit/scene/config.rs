@@ -24,7 +24,7 @@ impl SceneConfig {
             let role = NSString::from(role);
 
             let cls = class!(UISceneConfiguration);
-            let mut config = msg_send_id![cls, configurationWithName: &*name, sessionRole: &*role].unwrap();
+            let mut config = msg_send_id![cls, configurationWithName: &*name, sessionRole: &*role];
 
             let _: () = msg_send![&mut config, setSceneClass: class!(UIWindowScene)];
 

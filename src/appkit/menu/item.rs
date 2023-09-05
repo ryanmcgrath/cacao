@@ -51,7 +51,7 @@ fn make_menu_item<S: AsRef<str>>(
         // `NSMenuItem`s. If there's no custom ones, we use our subclass that has a slot to store a
         // handler pointer.
         let alloc = msg_send_id![register_menu_item_class(), alloc];
-        let item = match action {
+        let item: Id<_, _> = match action {
             Some(a) => msg_send_id![
                 alloc,
                 initWithTitle: &*title,
@@ -64,8 +64,7 @@ fn make_menu_item<S: AsRef<str>>(
                 action: sel!(fireBlockAction:),
                 keyEquivalent: &*key,
             ]
-        }
-        .unwrap();
+        };
 
         if let Some(modifiers) = modifiers {
             let mut key_mask: NSUInteger = 0;
@@ -219,7 +218,7 @@ impl MenuItem {
 
             Self::Separator => {
                 let cls = class!(NSMenuItem);
-                msg_send_id![cls, separatorItem].unwrap()
+                msg_send_id![cls, separatorItem]
             }
         }
     }

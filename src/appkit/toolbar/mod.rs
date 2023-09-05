@@ -55,16 +55,16 @@ where
         let (objc, objc_delegate) = unsafe {
             let alloc = msg_send_id![class!(NSToolbar), alloc];
             let identifier = NSString::new(&identifier);
-            let mut toolbar: Id<Object, Owned> = msg_send_id![alloc, initWithIdentifier: &*identifier].unwrap();
-            let mut objc_delegate: Id<Object, Owned> = msg_send_id![cls, new].unwrap(); //WithIdentifier:identifier];
+            let mut toolbar: Id<Object, Owned> = msg_send_id![alloc, initWithIdentifier: &*identifier];
+            let mut objc_delegate: Id<Object, Owned> = msg_send_id![cls, new]; //WithIdentifier:identifier];
 
             let ptr: *const T = &*delegate;
             objc_delegate.set_ivar(TOOLBAR_PTR, ptr as usize);
 
-            let objc_delegate: Id<Object, Shared> = Id::from_owned(objc_delegate);
+            let objc_delegate: Id<Object, Shared> = Id::into_shared(objc_delegate);
             let _: () = msg_send![&mut toolbar, setDelegate: &*objc_delegate];
 
-            (Id::from_owned(toolbar), objc_delegate)
+            (Id::into_shared(toolbar), objc_delegate)
         };
 
         let _ret = &mut delegate.did_load(Toolbar {

@@ -71,7 +71,7 @@ impl UserDefaults {
     /// let _ = defaults.get("test");
     /// ```
     pub fn standard() -> Self {
-        UserDefaults(unsafe { msg_send_id![class!(NSUserDefaults), standardUserDefaults].unwrap() })
+        UserDefaults(unsafe { msg_send_id![class!(NSUserDefaults), standardUserDefaults] })
     }
 
     /// Returns a user defaults instance for the given suite name. You typically use this to share
@@ -90,7 +90,7 @@ impl UserDefaults {
 
         UserDefaults(unsafe {
             let alloc = msg_send_id![class!(NSUserDefaults), alloc];
-            msg_send_id![alloc, initWithSuiteName:&*name].unwrap()
+            msg_send_id![alloc, initWithSuiteName:&*name]
         })
     }
 

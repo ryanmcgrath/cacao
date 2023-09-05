@@ -38,12 +38,12 @@ impl Default for LayoutAnchorDimension {
 impl LayoutAnchorDimension {
     /// Given a view, returns an anchor for the width anchor.
     pub(crate) fn width(view: id) -> Self {
-        Self::Width(unsafe { msg_send_id![view, widthAnchor].unwrap() })
+        Self::Width(unsafe { msg_send_id![view, widthAnchor] })
     }
 
     /// Given a view, returns an anchor for the height anchor.
     pub(crate) fn height(view: id) -> Self {
-        Self::Height(unsafe { msg_send_id![view, heightAnchor].unwrap() })
+        Self::Height(unsafe { msg_send_id![view, heightAnchor] })
     }
 
     /// Return a constraint equal to a constant value.

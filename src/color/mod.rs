@@ -248,9 +248,9 @@ impl Color {
         let b = blue as CGFloat / 255.0;
         let a = alpha as CGFloat / 255.0;
         #[cfg(feature = "appkit")]
-        let ptr = unsafe { msg_send_id![class!(NSColor), colorWithCalibratedRed: r, green: g, blue: b, alpha: a].unwrap() };
+        let ptr = unsafe { msg_send_id![class!(NSColor), colorWithCalibratedRed: r, green: g, blue: b, alpha: a] };
         #[cfg(all(feature = "uikit", not(feature = "appkit")))]
-        let ptr = unsafe { msg_send_id![class!(UIColor), colorWithRed: r, green: g, blue: b, alpha: a].unwrap() };
+        let ptr = unsafe { msg_send_id![class!(UIColor), colorWithRed: r, green: g, blue: b, alpha: a] };
 
         Color::Custom(Arc::new(RwLock::new(ptr)))
     }
@@ -279,12 +279,11 @@ impl Color {
                     brightness: b,
                     alpha: a
                 ]
-                .unwrap()
             }
 
             #[cfg(all(feature = "uikit", not(feature = "appkit")))]
             {
-                msg_send_id![class!(UIColor), colorWithHue: h, saturation: s, brightness: b, alpha: a].unwrap()
+                msg_send_id![class!(UIColor), colorWithHue: h, saturation: s, brightness: b, alpha: a]
             }
         })))
     }
@@ -301,12 +300,12 @@ impl Color {
         Color::Custom(Arc::new(RwLock::new(unsafe {
             #[cfg(feature = "appkit")]
             {
-                msg_send_id![class!(NSColor), colorWithCalibratedWhite: level, alpha: alpha].unwrap()
+                msg_send_id![class!(NSColor), colorWithCalibratedWhite: level, alpha: alpha]
             }
 
             #[cfg(all(feature = "uikit", not(feature = "appkit")))]
             {
-                msg_send_id![class!(UIColor), colorWithWhite: level, alpha: alpha].unwrap()
+                msg_send_id![class!(UIColor), colorWithWhite: level, alpha: alpha]
             }
         })))
     }
@@ -353,7 +352,7 @@ impl Color {
         // am happy to do this for now and let someone who needs true dynamic allocation look into
         // it and PR it.
         Color::Custom(Arc::new(RwLock::new(unsafe {
-            let mut color: Id<Object, Owned> = msg_send_id![appkit_dynamic_color::register_class(), new].unwrap();
+            let mut color: Id<Object, Owned> = msg_send_id![appkit_dynamic_color::register_class(), new];
 
             color.set_ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST, {
                 let color: id = handler(Style {

@@ -30,7 +30,7 @@ pub use traits::Dispatcher;
     pub static ref DefaultNotificationCenter: NotificationCenter = {
         NotificationCenter {
             objc: unsafe {
-                msg_send_id![class!(NSNotificationCenter), defaultCenter].unwrap()
+                msg_send_id![class!(NSNotificationCenter), defaultCenter]
             },
 
             subscribers: Mutex::new(HashMap::new())
@@ -52,7 +52,7 @@ pub use traits::Dispatcher;
     fn default() -> Self {
         NotificationCenter {
             objc: unsafe {
-                msg_send_id![class!(NSNotificationCenter), defaultCenter].unwrap()
+                msg_send_id![class!(NSNotificationCenter), defaultCenter]
             }
         }
     }

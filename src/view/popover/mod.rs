@@ -63,7 +63,7 @@ where
     pub fn new(content: Content, config: PopoverConfig) -> Self {
         let view_controller = ViewController::new(content);
         let objc = unsafe {
-            let pop: Id<Object, Shared> = msg_send_id![class!(NSPopover), new].unwrap();
+            let pop: Id<Object, Shared> = msg_send_id![class!(NSPopover), new];
             let _: () = msg_send![&pop, setContentSize: config.content_size];
             let _: () = msg_send![&pop, setBehavior: config.behaviour as i64];
             let _: () = msg_send![&pop, setAnimates: config.animates];

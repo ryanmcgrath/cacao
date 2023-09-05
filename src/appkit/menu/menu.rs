@@ -29,7 +29,7 @@ impl Menu {
             let cls = class!(NSMenu);
             let alloc = msg_send_id![cls, alloc];
             let title = NSString::new(title);
-            let mut menu = msg_send_id![alloc, initWithTitle: &*title].unwrap();
+            let mut menu = msg_send_id![alloc, initWithTitle: &*title];
 
             for item in items.into_iter() {
                 let objc = item.to_objc();

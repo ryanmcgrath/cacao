@@ -33,7 +33,6 @@ impl<'a> NSString<'a> {
                     length: s.len(),
                     encoding: UTF8_ENCODING,
                 ]
-                .unwrap()
             },
 
             phantom: PhantomData
@@ -52,7 +51,6 @@ impl<'a> NSString<'a> {
                     encoding: UTF8_ENCODING,
                     freeWhenDone: NO,
                 ]
-                .unwrap()
             },
 
             phantom: PhantomData

@@ -71,7 +71,6 @@ impl RowAction {
                 title: &*title,
                 handler: &*block,
             ]
-            .unwrap()
         })
     }
 

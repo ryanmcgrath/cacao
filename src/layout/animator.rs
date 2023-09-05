@@ -13,7 +13,7 @@ pub struct LayoutConstraintAnimatorProxy(pub Id<Object, Shared>);
 impl LayoutConstraintAnimatorProxy {
     /// Wraps and returns a proxy for animation of layout constraint values.
     pub fn new(proxy: id) -> Self {
-        Self(unsafe { msg_send_id![proxy, animator].unwrap() })
+        Self(unsafe { msg_send_id![proxy, animator] })
     }
 
     /// Sets the constant (usually referred to as `offset` in Cacao) value for the constraint being animated.

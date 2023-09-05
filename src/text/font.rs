@@ -23,10 +23,10 @@ impl Default for Font {
         let default_size: id = unsafe { msg_send![cls, labelFontSize] };
 
         #[cfg(feature = "appkit")]
-        let font = Font(unsafe { msg_send_id![cls, labelFontOfSize: default_size].unwrap() });
+        let font = Font(unsafe { msg_send_id![cls, labelFontOfSize: default_size] });
 
         #[cfg(all(feature = "uikit", not(feature = "appkit")))]
-        let font = Font(unsafe { msg_send_id![cls, systemFontOfSize: default_size].unwrap() });
+        let font = Font(unsafe { msg_send_id![cls, systemFontOfSize: default_size] });
         font
     }
 }
@@ -44,14 +44,14 @@ impl Font {
     pub fn system(size: f64) -> Self {
         let size = size as CGFloat;
 
-        Font(unsafe { msg_send_id![Self::class(), systemFontOfSize: size].unwrap() })
+        Font(unsafe { msg_send_id![Self::class(), systemFontOfSize: size] })
     }
 
     /// Creates and returns a default bold system font at the specified size.
     pub fn bold_system(size: f64) -> Self {
         let size = size as CGFloat;
 
-        Font(unsafe { msg_send_id![Self::class(), boldSystemFontOfSize: size].unwrap() })
+        Font(unsafe { msg_send_id![Self::class(), boldSystemFontOfSize: size] })
     }
 
     /// Creates and returns a monospace system font at the specified size and weight
@@ -67,9 +67,9 @@ impl Font {
         let weight = weight as CGFloat;
 
         if os::is_minimum_semversion(10, 15, 0) {
-            Font(unsafe { msg_send_id![class!(NSFont), monospacedSystemFontOfSize: size, weight: weight].unwrap() })
+            Font(unsafe { msg_send_id![class!(NSFont), monospacedSystemFontOfSize: size, weight: weight] })
         } else {
-            Font(unsafe { msg_send_id![class!(NSFont), systemFontOfSize: size, weight: weight].unwrap() })
+            Font(unsafe { msg_send_id![class!(NSFont), systemFontOfSize: size, weight: weight] })
         }
     }
 }

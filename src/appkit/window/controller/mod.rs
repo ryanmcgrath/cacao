@@ -63,7 +63,7 @@ where
         let objc = unsafe {
             let window_controller_class = register_window_controller_class::<T>();
             let controller_alloc = msg_send_id![window_controller_class, alloc];
-            let mut controller: Id<Object, Owned> = msg_send_id![controller_alloc, initWithWindow: &*window.objc].unwrap();
+            let mut controller: Id<Object, Owned> = msg_send_id![controller_alloc, initWithWindow: &*window.objc];
 
             if let Some(delegate) = &window.delegate {
                 let ptr: *const T = &**delegate;

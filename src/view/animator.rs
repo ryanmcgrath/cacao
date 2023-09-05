@@ -12,7 +12,7 @@ pub struct ViewAnimatorProxy(pub Id<Object, Shared>);
 
 impl ViewAnimatorProxy {
     pub fn new(proxy: id) -> Self {
-        Self(unsafe { msg_send_id![proxy, animator].unwrap() })
+        Self(unsafe { msg_send_id![proxy, animator] })
     }
 
     /// Sets the alpha value for the view being animated.

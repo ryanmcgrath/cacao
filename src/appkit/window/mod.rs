@@ -76,7 +76,7 @@ impl Window {
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
             let buffered: NSUInteger = 2;
             let dimensions: CGRect = config.initial_dimensions.into();
-            let window = msg_send_id![
+            let window: Id<_, _> = msg_send_id![
                 msg_send_id![class!(NSWindow), alloc],
                 initWithContentRect: dimensions,
                 styleMask: config.style,
@@ -85,8 +85,7 @@ impl Window {
                     true => YES,
                     false => NO
                 },
-            ]
-            .unwrap();
+            ];
 
             let _: () = msg_send![&*window, autorelease];
 
@@ -153,8 +152,7 @@ where
                     true => YES,
                     false => NO
                 },
-            ]
-            .unwrap();
+            ];
 
             let delegate_ptr: *const T = &*delegate;
             window.set_ivar(WINDOW_DELEGATE_PTR, delegate_ptr as usize);
@@ -299,7 +297,7 @@ impl<T> Window<T> {
 
     /// Used for setting a toolbar on this window.
     pub fn toolbar(&self) -> Id<Object, Shared> {
-        unsafe { msg_send_id![&self.objc, toolbar] }.unwrap()
+        unsafe { msg_send_id![&self.objc, toolbar] }
     }
 
     /// Toggles whether the toolbar is shown for this window. Has no effect if no toolbar exists on

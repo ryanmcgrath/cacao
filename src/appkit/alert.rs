@@ -44,7 +44,7 @@ impl Alert {
         let ok = NSString::new("OK");
 
         Alert(unsafe {
-            let mut alert = msg_send_id![class!(NSAlert), new].unwrap();
+            let mut alert = msg_send_id![class!(NSAlert), new];
             let _: () = msg_send![&mut alert, setMessageText: &*title];
             let _: () = msg_send![&mut alert, setInformativeText: &*message];
             let _: () = msg_send![&mut alert, addButtonWithTitle: &*ok];

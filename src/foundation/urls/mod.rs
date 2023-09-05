@@ -58,7 +58,7 @@ impl<'a> NSURL<'a> {
         let url = NSString::new(url);
 
         Self {
-            objc: unsafe { msg_send_id![class!(NSURL), URLWithString:&*url].unwrap() },
+            objc: unsafe { msg_send_id![class!(NSURL), URLWithString:&*url] },
 
             phantom: PhantomData
         }

@@ -31,17 +31,17 @@ impl Default for LayoutAnchorY {
 impl LayoutAnchorY {
     /// Given a view, returns an anchor for the top anchor.
     pub(crate) fn top(view: id) -> Self {
-        Self::Top(unsafe { msg_send_id![view, topAnchor].unwrap() })
+        Self::Top(unsafe { msg_send_id![view, topAnchor] })
     }
 
     /// Given a view, returns an anchor for the bottom anchor.
     pub(crate) fn bottom(view: id) -> Self {
-        Self::Bottom(unsafe { msg_send_id![view, bottomAnchor].unwrap() })
+        Self::Bottom(unsafe { msg_send_id![view, bottomAnchor] })
     }
 
     /// Given a view, returns an anchor for the center Y anchor.
     pub(crate) fn center(view: id) -> Self {
-        Self::Center(unsafe { msg_send_id![view, centerYAnchor].unwrap() })
+        Self::Center(unsafe { msg_send_id![view, centerYAnchor] })
     }
 
     /// Boilerplate for handling constraint construction and panic'ing with some more helpful

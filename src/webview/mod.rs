@@ -234,7 +234,7 @@ where
         let mut delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
-            let mut objc_delegate: Id<Object, Owned> = msg_send_id![delegate_class, new].unwrap();
+            let mut objc_delegate: Id<Object, Owned> = msg_send_id![delegate_class, new];
             let ptr: *const T = &*delegate;
             objc_delegate.set_ivar(WEBVIEW_DELEGATE_PTR, ptr as usize);
             objc_delegate

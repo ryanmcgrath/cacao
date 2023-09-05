@@ -26,7 +26,7 @@ impl NSMutableDictionary {
     /// object model. You can, of course, bypass it and `msg_send![]` yourself, but it'd require an
     /// `unsafe {}` block... so you'll know you're in special territory then.
     pub fn new() -> Self {
-        NSMutableDictionary(unsafe { msg_send_id![class!(NSMutableDictionary), new].unwrap() })
+        NSMutableDictionary(unsafe { msg_send_id![class!(NSMutableDictionary), new] })
     }
 
     /// Inserts an object into the backing NSMutablyDictionary.

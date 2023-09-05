@@ -35,10 +35,10 @@ impl FileSavePanel {
         FileSavePanel {
             panel: unsafe {
                 let cls = class!(NSSavePanel);
-                msg_send_id![cls, savePanel].unwrap()
+                msg_send_id![cls, savePanel]
             },
 
-            delegate: unsafe { msg_send_id![class!(NSObject), new].unwrap() },
+            delegate: unsafe { msg_send_id![class!(NSObject), new] },
 
             can_create_directories: true
         }

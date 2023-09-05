@@ -20,7 +20,7 @@ pub struct WebViewConfig {
 impl Default for WebViewConfig {
     /// Initializes a default `WebViewConfig`.
     fn default() -> Self {
-        let config = unsafe { msg_send_id![class!(WKWebViewConfiguration), new].unwrap() };
+        let config = unsafe { msg_send_id![class!(WKWebViewConfiguration), new] };
 
         WebViewConfig {
             objc: config,

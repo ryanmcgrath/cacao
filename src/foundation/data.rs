@@ -49,7 +49,7 @@ impl NSData {
                 deallocator: dealloc,
             ];
             mem::forget(bytes);
-            NSData(obj.unwrap())
+            NSData(obj)
         }
     }
 
@@ -68,7 +68,7 @@ impl NSData {
                 dataWithBytes: bytes_ptr,
                 length: bytes.len(),
             ];
-            NSData(obj.unwrap())
+            NSData(obj)
         }
     }
 

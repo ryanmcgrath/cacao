@@ -93,7 +93,7 @@ impl CGSize {
 }
 
 unsafe impl Encode for CGSize {
-    const ENCODING: Encoding<'static> = Encoding::Struct("CGSize", &[CGFloat::ENCODING, CGFloat::ENCODING]);
+    const ENCODING: Encoding = Encoding::Struct("CGSize", &[CGFloat::ENCODING, CGFloat::ENCODING]);
 }
 
 #[repr(C)]
@@ -113,7 +113,7 @@ impl CFRange {
 }
 
 unsafe impl Encode for CFRange {
-    const ENCODING: Encoding<'static> = Encoding::Struct("CFRange", &[CFIndex::ENCODING, CFIndex::ENCODING]);
+    const ENCODING: Encoding = Encoding::Struct("CFRange", &[CFIndex::ENCODING, CFIndex::ENCODING]);
 }
 
 /// A helper method for ensuring that Cocoa is running in multi-threaded mode.

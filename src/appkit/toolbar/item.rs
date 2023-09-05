@@ -36,7 +36,7 @@ impl ToolbarItem {
         let objc = unsafe {
             let identifer = NSString::new(&identifier);
             let alloc = msg_send_id![class!(NSToolbarItem), alloc];
-            msg_send_id![alloc, initWithItemIdentifier: &*identifer].unwrap()
+            msg_send_id![alloc, initWithItemIdentifier: &*identifer]
         };
 
         ToolbarItem {

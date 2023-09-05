@@ -36,7 +36,6 @@ where
                 msg_send_id![class!(NSSplitViewItem),
                     splitViewItemWithViewController:&*view_controller.objc
                 ]
-                .unwrap()
             },
 
             view_controller
@@ -63,7 +62,6 @@ where
                     msg_send_id![class!(NSSplitViewItem),
                         sidebarWithViewController:&*view_controller.objc
                     ]
-                    .unwrap()
                 },
 
                 view_controller
@@ -143,7 +141,7 @@ where
         };
 
         let objc = unsafe {
-            let vc = msg_send_id![class!(NSSplitViewController), new].unwrap();
+            let vc = msg_send_id![class!(NSSplitViewController), new];
             let _: () = msg_send![&vc, addSplitViewItem:&*sidebar.objc];
             let _: () = msg_send![&vc, addSplitViewItem:&*content.objc];
 

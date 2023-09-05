@@ -54,10 +54,10 @@ impl FileSelectPanel {
         FileSelectPanel {
             panel: unsafe {
                 let cls = class!(NSOpenPanel);
-                msg_send_id![cls, openPanel].unwrap()
+                msg_send_id![cls, openPanel]
             },
 
-            delegate: unsafe { msg_send_id![class!(NSObject), new].unwrap() },
+            delegate: unsafe { msg_send_id![class!(NSObject), new] },
 
             can_choose_files: true,
             can_choose_directories: false,

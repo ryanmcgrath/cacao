@@ -486,7 +486,7 @@ impl<T> ListView<T> {
     /// Select the rows at the specified indexes, optionally adding to any existing selections.
     pub fn select_row_indexes(&self, indexes: &[usize], extends_existing: bool) {
         unsafe {
-            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new].unwrap();
+            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new];
 
             for index in indexes {
                 let _: () = msg_send![&mut index_set, addIndex: index];
@@ -569,7 +569,7 @@ impl<T> ListView<T> {
     pub fn insert_rows(&self, indexes: &[usize], animation: RowAnimation) {
         #[cfg(feature = "appkit")]
         unsafe {
-            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new].unwrap();
+            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new];
 
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
@@ -595,7 +595,7 @@ impl<T> ListView<T> {
     pub fn reload_rows(&self, indexes: &[usize]) {
         #[cfg(feature = "appkit")]
         unsafe {
-            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new].unwrap();
+            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new];
 
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
@@ -605,7 +605,7 @@ impl<T> ListView<T> {
             let index_set: Id<Object, Shared> = index_set.into();
             let x = index_set.clone();
 
-            let y: Id<Object, Shared> = msg_send_id![class!(NSIndexSet), indexSetWithIndex:0].unwrap();
+            let y: Id<Object, Shared> = msg_send_id![class!(NSIndexSet), indexSetWithIndex:0];
 
             // Must use `get` to avoid a double lock.
             self.objc.get(|obj| {
@@ -622,7 +622,7 @@ impl<T> ListView<T> {
     pub fn remove_rows(&self, indexes: &[usize], animations: RowAnimation) {
         #[cfg(feature = "appkit")]
         unsafe {
-            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new].unwrap();
+            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new];
 
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;

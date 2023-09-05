@@ -33,7 +33,7 @@ pub struct Pasteboard(pub Id<Object, Shared>);
 impl Default for Pasteboard {
     /// Returns the default system pasteboard (the "general" pasteboard).
     fn default() -> Self {
-        Pasteboard(unsafe { msg_send_id![class!(NSPasteboard), generalPasteboard].unwrap() })
+        Pasteboard(unsafe { msg_send_id![class!(NSPasteboard), generalPasteboard] })
     }
 }
 
@@ -47,14 +47,14 @@ impl Pasteboard {
     pub fn named(name: PasteboardName) -> Self {
         Pasteboard(unsafe {
             let name: NSString = name.into();
-            msg_send_id![class!(NSPasteboard), pasteboardWithName:&*name].unwrap()
+            msg_send_id![class!(NSPasteboard), pasteboardWithName:&*name]
         })
     }
 
     /// Creates and returns a new pasteboard with a name that is guaranteed to be unique with
     /// respect to other pasteboards in the system.
     pub fn unique() -> Self {
-        Pasteboard(unsafe { msg_send_id![class!(NSPasteboard), pasteboardWithUniqueName].unwrap() })
+        Pasteboard(unsafe { msg_send_id![class!(NSPasteboard), pasteboardWithUniqueName] })
     }
 
     /// A shorthand helper method for copying some text to the clipboard.

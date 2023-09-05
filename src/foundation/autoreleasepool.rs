@@ -14,7 +14,7 @@ impl AutoReleasePool {
     /// Creates and returns a new `AutoReleasePool`. You need to take care to keep this alive for
     /// as long as you need it.
     pub fn new() -> Self {
-        AutoReleasePool(unsafe { msg_send_id![class!(NSAutoreleasePool), new].unwrap() })
+        AutoReleasePool(unsafe { msg_send_id![class!(NSAutoreleasePool), new] })
     }
 
     /// Drains the underlying AutoreleasePool.

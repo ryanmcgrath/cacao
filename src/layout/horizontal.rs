@@ -41,27 +41,27 @@ impl Default for LayoutAnchorX {
 impl LayoutAnchorX {
     /// Given a view, returns an anchor for the leading anchor.
     pub(crate) fn leading(view: id) -> Self {
-        Self::Leading(unsafe { msg_send_id![view, leadingAnchor].unwrap() })
+        Self::Leading(unsafe { msg_send_id![view, leadingAnchor] })
     }
 
     /// Given a view, returns an anchor for the left anchor.
     pub(crate) fn left(view: id) -> Self {
-        Self::Left(unsafe { msg_send_id![view, leftAnchor].unwrap() })
+        Self::Left(unsafe { msg_send_id![view, leftAnchor] })
     }
 
     /// Given a view, returns an anchor for the trailing anchor.
     pub(crate) fn trailing(view: id) -> Self {
-        Self::Trailing(unsafe { msg_send_id![view, trailingAnchor].unwrap() })
+        Self::Trailing(unsafe { msg_send_id![view, trailingAnchor] })
     }
 
     /// Given a view, returns an anchor for the right anchor.
     pub(crate) fn right(view: id) -> Self {
-        Self::Right(unsafe { msg_send_id![view, rightAnchor].unwrap() })
+        Self::Right(unsafe { msg_send_id![view, rightAnchor] })
     }
 
     /// Given a view, returns an anchor for the right anchor.
     pub(crate) fn center(view: id) -> Self {
-        Self::Center(unsafe { msg_send_id![view, centerXAnchor].unwrap() })
+        Self::Center(unsafe { msg_send_id![view, centerXAnchor] })
     }
 
     /// Boilerplate for handling constraint construction and panic'ing with some more helpful

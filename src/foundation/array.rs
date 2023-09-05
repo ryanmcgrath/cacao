@@ -22,7 +22,6 @@ impl NSArray {
                 arrayWithObjects: objects.as_ptr(),
                 count: objects.len()
             ]
-            .unwrap()
         })
     }
 
@@ -90,7 +89,6 @@ impl From<Vec<&Object>> for NSArray {
                 arrayWithObjects: objects.as_ptr(),
                 count: objects.len(),
             ]
-            .unwrap()
         })
     }
 }
@@ -104,7 +102,6 @@ impl From<Vec<id>> for NSArray {
                 arrayWithObjects: objects.as_ptr(),
                 count: objects.len()
             ]
-            .unwrap()
         })
     }
 }

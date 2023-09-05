@@ -142,7 +142,6 @@ impl Event {
                 addLocalMonitorForEventsMatchingMask: mask.bits,
                 handler: &*block,
             ]
-            .unwrap()
         })
     }
 
@@ -172,7 +171,6 @@ impl Event {
                 addGlobalMonitorForEventsMatchingMask: mask.bits,
                 handler: &*block,
             ]
-            .unwrap()
         })
     }
 }
