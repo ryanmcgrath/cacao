@@ -87,8 +87,6 @@ impl Window {
                 },
             ];
 
-            let _: () = msg_send![&*window, autorelease];
-
             // This is very important! NSWindow is an old class and has some behavior that we need
             // to disable, like... this. If we don't set this, we'll segfault entirely because the
             // Objective-C runtime gets out of sync by releasing the window out from underneath of
@@ -156,8 +154,6 @@ where
 
             let delegate_ptr: *const T = &*delegate;
             window.set_ivar(WINDOW_DELEGATE_PTR, delegate_ptr as usize);
-
-            let _: () = msg_send![&*window, autorelease];
 
             // This is very important! NSWindow is an old class and has some behavior that we need
             // to disable, like... this. If we don't set this, we'll segfault entirely because the
