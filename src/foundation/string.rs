@@ -66,10 +66,9 @@ impl<'a> NSString<'a> {
         }
     }
 
-    /// In some cases, we want to wrap a system-provided NSString without retaining it.
-    pub fn from_retained(object: id) -> Self {
-        NSString {
-            objc: unsafe { Id::new(object).unwrap() },
+    pub fn from_id(objc: Id<Object, Owned>) -> Self {
+        Self {
+            objc,
             phantom: PhantomData
         }
     }

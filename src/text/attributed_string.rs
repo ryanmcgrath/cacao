@@ -74,7 +74,7 @@ impl AttributedString {
 
 impl fmt::Display for AttributedString {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let string = NSString::from_retained(unsafe { msg_send![&*self.0, string] });
+        let string = NSString::from_id(unsafe { msg_send_id![&*self.0, string] });
 
         write!(f, "{}", string.to_str())
     }
@@ -82,7 +82,7 @@ impl fmt::Display for AttributedString {
 
 impl fmt::Debug for AttributedString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let string = NSString::from_retained(unsafe { msg_send![&*self.0, string] });
+        let string = NSString::from_id(unsafe { msg_send_id![&*self.0, string] });
 
         f.debug_struct("AttributedString").field("text", &string.to_str()).finish()
     }

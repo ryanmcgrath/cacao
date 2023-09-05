@@ -45,14 +45,6 @@ impl<'a> NSURL<'a> {
         }
     }
 
-    /// In some cases, we want to wrap a system-provided NSURL without retaining it.
-    pub fn from_retained(object: id) -> Self {
-        NSURL {
-            objc: unsafe { Id::new(object).unwrap() },
-            phantom: PhantomData
-        }
-    }
-
     /// Creates and returns a URL object by calling through to `[NSURL URLWithString]`.
     pub fn with_str(url: &str) -> Self {
         let url = NSString::new(url);

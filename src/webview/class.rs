@@ -10,7 +10,7 @@ use block::Block;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Bool, Class, Object, Sel};
-use objc::{class, msg_send, sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString};
 use crate::webview::actions::{NavigationAction, NavigationResponse};
@@ -48,8 +48,8 @@ extern "C" fn on_message<T: WebViewDelegate>(this: &Object, _: Sel, _: id, scrip
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     unsafe {
-        let name = NSString::from_retained(msg_send![script_message, name]);
-        let body = NSString::retain(msg_send![script_message, body]);
+        let name = NSString::from_id(msg_send_id![script_message, name]);
+        let body = NSString::from_id(msg_send_id![script_message, body]);
         delegate.on_message(name.to_str(), body.to_str());
     }
 }
@@ -62,7 +62,7 @@ extern "C" fn start_url_scheme_task<T: WebViewDelegate>(this: &Object, _: Sel, _
         let request: id = msg_send![task, request];
         let url: id = msg_send![request, URL];
 
-        let uri = NSString::from_retained(msg_send![url, absoluteString]);
+        let uri = NSString::from_id(msg_send_id![url, absoluteString]);
         let uri_str = uri.to_str();
 
         if let Some(content) = delegate.on_custom_protocol_request(uri_str) {
@@ -152,7 +152,7 @@ extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, downloa
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     let handler = handler as *const Block<(objc::runtime::Bool, id), ()>;
-    let filename = NSString::from_retained(suggested_filename);
+    let filename = NSString::retain(suggested_filename);
 
     delegate.run_save_panel(filename.to_str(), move |can_overwrite, path| unsafe {
         if path.is_none() {

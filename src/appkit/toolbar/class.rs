@@ -57,7 +57,7 @@ extern "C" fn selectable_item_identifiers<T: ToolbarDelegate>(this: &Object, _: 
 /// Objective-C runtime needs.
 extern "C" fn item_for_identifier<T: ToolbarDelegate>(this: &Object, _: Sel, _: id, identifier: id, _: Bool) -> id {
     let toolbar = load::<T>(this, TOOLBAR_PTR);
-    let identifier = NSString::from_retained(identifier);
+    let identifier = NSString::retain(identifier);
 
     let item = toolbar.item_for(identifier.to_str());
     unsafe { msg_send![&*item.objc, self] }

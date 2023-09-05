@@ -77,12 +77,6 @@ impl NSData {
         NSData(unsafe { Id::retain(data).unwrap() })
     }
 
-    /// If we're vended an NSData from a method (e.g, a push notification token) we might want to
-    /// wrap it while we figure out what to do with it. This does that.
-    pub fn from_retained(data: id) -> Self {
-        NSData(unsafe { Id::new(data).unwrap() })
-    }
-
     /// A helper method for determining if a given `NSObject` is an `NSData`.
     pub fn is(obj: id) -> bool {
         let result: BOOL = unsafe { msg_send![obj, isKindOfClass: class!(NSData)] };

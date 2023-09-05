@@ -1,6 +1,6 @@
 use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{msg_send, sel};
+use objc::{msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, NSString};
 use crate::uikit::scene::enums::SessionRole;
@@ -14,6 +14,6 @@ impl SceneSession {
     }
 
     pub fn role(&self) -> SessionRole {
-        NSString::from_retained(unsafe { msg_send![&*self.0, role] }).into()
+        NSString::from_id(unsafe { msg_send_id![&*self.0, role] }).into()
     }
 }

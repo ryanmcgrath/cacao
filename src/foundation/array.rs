@@ -31,12 +31,6 @@ impl NSArray {
         NSArray(unsafe { Id::retain(array).unwrap() })
     }
 
-    /// In some cases, we're vended an `NSArray` by the system, and it's ideal to not retain that.
-    /// This handles that edge case.
-    pub fn from_retained(array: id) -> Self {
-        NSArray(unsafe { Id::new(array).unwrap() })
-    }
-
     /// Returns the `count` (`len()` equivalent) for the backing `NSArray`.
     pub fn count(&self) -> usize {
         unsafe { msg_send![&*self.0, count] }
