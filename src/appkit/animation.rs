@@ -1,5 +1,5 @@
 use block::ConcreteBlock;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::id;
 

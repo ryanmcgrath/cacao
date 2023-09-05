@@ -1,6 +1,6 @@
 //! Implements wrappers around `WKNavigationAction` and `WKNavigationActionPolicy`.
 
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::foundation::{id, NSInteger, BOOL, NO, YES};
 use crate::networking::URLRequest;

@@ -5,7 +5,7 @@ use std::{fmt, slice, str};
 
 use crate::id_shim::Id;
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, to_bool, BOOL, NO, YES};
 

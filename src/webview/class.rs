@@ -10,7 +10,7 @@ use block::Block;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString, NO, YES};
 use crate::webview::actions::{NavigationAction, NavigationResponse};

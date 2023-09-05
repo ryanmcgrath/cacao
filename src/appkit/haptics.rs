@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use crate::id_shim::ShareId;
-use objc::{class, msg_send, runtime::Object, sel, sel_impl};
+use objc::{class, msg_send, runtime::Object, sel};
 
 use crate::foundation::NSUInteger;
 

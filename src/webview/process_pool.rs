@@ -8,7 +8,7 @@ use block::Block;
 use cocoa::foundation::{NSArray, NSInteger, NSPoint, NSRect, NSSize, NSString};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, nil, NO, YES};
 use crate::webview::traits::WebViewController;

@@ -8,7 +8,7 @@ use std::fmt;
 
 use crate::id_shim::{Id, ShareId};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::appkit::segmentedcontrol::SegmentedControl;
 use crate::button::{BezelStyle, Button};

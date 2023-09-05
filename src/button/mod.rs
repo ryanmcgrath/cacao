@@ -23,7 +23,7 @@
 
 use crate::id_shim::ShareId;
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 pub use enums::*;
 

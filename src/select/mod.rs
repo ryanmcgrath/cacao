@@ -3,7 +3,7 @@
 use crate::id_shim::ShareId;
 use core_graphics::geometry::CGRect;
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::control::Control;
 use crate::foundation::{id, load_or_register_class, nil, NSInteger, NSString, NO, YES};

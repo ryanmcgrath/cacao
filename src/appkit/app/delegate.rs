@@ -6,7 +6,7 @@ use std::ffi::c_void;
 
 use block::Block;
 use objc::runtime::{Class, Object, Sel};
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 use url::Url;
 
 use crate::appkit::app::{AppDelegate, APP_PTR};

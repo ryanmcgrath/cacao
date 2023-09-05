@@ -3,7 +3,7 @@ use std::path::Path;
 use crate::id_shim::ShareId;
 use core_graphics::base::CGFloat;
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, NSString, NSUInteger, YES};
 use crate::utils::CGSize;

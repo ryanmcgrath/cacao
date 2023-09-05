@@ -1,4 +1,4 @@
-use cacao::objc::{msg_send, sel, sel_impl};
+use cacao::objc::{msg_send, sel};
 
 use cacao::button::Button;
 use cacao::input::{TextField, TextFieldDelegate};

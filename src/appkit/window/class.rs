@@ -7,7 +7,7 @@ use core_graphics::base::CGFloat;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, sel, sel_impl};
+use objc::{class, sel};
 
 use crate::appkit::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
 use crate::foundation::{id, load_or_register_class, NSUInteger, BOOL, NO, YES};

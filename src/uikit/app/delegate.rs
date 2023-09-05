@@ -3,7 +3,7 @@
 //! for potential future use.
 
 use objc::runtime::{Class, Object, Sel};
-use objc::{sel, sel_impl};
+use objc::sel;
 
 //use crate::error::Error;
 use crate::foundation::{id, load_or_register_class_with_optional_generated_suffix, BOOL, YES};

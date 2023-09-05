@@ -6,7 +6,7 @@
 
 use block::ConcreteBlock;
 
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 use uuid::Uuid;
 
 use crate::foundation::{id, nil, NSString, NSUInteger};

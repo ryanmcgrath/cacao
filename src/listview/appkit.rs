@@ -9,7 +9,7 @@
 
 use crate::id_shim::Id;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::appkit::menu::Menu;
 use crate::dragdrop::DragInfo;

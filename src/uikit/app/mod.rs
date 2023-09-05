@@ -38,7 +38,7 @@ use libc::{c_char, c_int};
 use std::ffi::CString;
 
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, nil, AutoReleasePool, NSString, NSUInteger, NO, YES};
 use crate::notification_center::Dispatcher;

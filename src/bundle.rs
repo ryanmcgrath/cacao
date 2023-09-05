@@ -11,7 +11,7 @@
 use std::ffi::CString;
 use std::mem;
 
-use objc::{class, msg_send, sel, sel_impl, Encode, Encoding, EncodeArguments, Message};
+use objc::{class, msg_send, sel, Encode, Encoding, EncodeArguments, Message};
 use objc::runtime::{Class, Sel, Method, Object, Imp};
 use objc::runtime::{
     objc_getClass,

@@ -20,7 +20,7 @@ use core_graphics::color::CGColor;
 
 use crate::id_shim::Id;
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::id;
 use crate::utils::os;

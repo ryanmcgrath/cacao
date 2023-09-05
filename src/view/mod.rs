@@ -43,7 +43,7 @@
 //! For more information on Autolayout, view the module or check out the examples folder.
 
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};

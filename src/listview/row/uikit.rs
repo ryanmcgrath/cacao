@@ -1,6 +1,6 @@
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, sel, sel_impl};
+use objc::{class, sel};
 use crate::id_shim::Id;
 
 use crate::dragdrop::DragInfo;

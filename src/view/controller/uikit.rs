@@ -3,7 +3,7 @@ use std::unreachable;
 
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::load_or_register_class;
 use crate::foundation::{to_bool, BOOL};

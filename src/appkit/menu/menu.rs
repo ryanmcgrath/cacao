@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::id_shim::{Id, ShareId};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::appkit::menu::item::MenuItem;
 use crate::foundation::{id, NSInteger, NSString};

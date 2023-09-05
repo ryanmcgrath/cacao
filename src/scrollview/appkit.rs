@@ -9,7 +9,7 @@
 
 use crate::id_shim::Id;
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{sel, sel_impl};
+use objc::sel;
 
 use crate::dragdrop::DragInfo;
 use crate::foundation::{id, load_or_register_class, NSUInteger, NO, YES};

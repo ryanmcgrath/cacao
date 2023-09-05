@@ -4,7 +4,7 @@
 
 use crate::id_shim::ShareId;
 use objc::runtime::Object;
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::foundation::NSUInteger;
 use crate::pasteboard::Pasteboard;

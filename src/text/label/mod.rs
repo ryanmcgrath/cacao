@@ -45,7 +45,7 @@
 
 use crate::id_shim::ShareId;
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};

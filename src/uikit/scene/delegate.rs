@@ -1,5 +1,5 @@
 use objc::runtime::{Class, Object, Protocol, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, load_or_register_class_with_optional_generated_suffix};
 use crate::uikit::app::SCENE_DELEGATE_VENDOR;

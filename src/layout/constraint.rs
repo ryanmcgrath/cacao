@@ -6,7 +6,7 @@ use core_graphics::base::CGFloat;
 
 use crate::id_shim::ShareId;
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, NO, YES};
 

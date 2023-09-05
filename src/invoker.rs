@@ -12,7 +12,7 @@ use std::fmt;
 
 use crate::id_shim::ShareId;
 use objc::runtime::{Class, Object, Sel};
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::foundation::{id, load_or_register_class};
 use crate::utils::load;

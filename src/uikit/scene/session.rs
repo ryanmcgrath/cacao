@@ -1,6 +1,6 @@
 use crate::id_shim::Id;
 use objc::runtime::Object;
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::foundation::{id, NSString};
 use crate::uikit::scene::enums::SessionRole;

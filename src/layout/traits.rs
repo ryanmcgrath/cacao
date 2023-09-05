@@ -6,7 +6,7 @@ use core_graphics::geometry::{CGPoint, CGRect, CGSize};
 
 use crate::id_shim::ShareId;
 use objc::runtime::Object;
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::foundation::{id, nil, to_bool, NSArray, NSString, NO, YES};
 use crate::geometry::Rect;

@@ -6,7 +6,7 @@ use objc::runtime::Object;
 /// calls, as `NSURL` is pervasive in some filesystem references. Over time this may grow to
 /// include a proper networking stack, but the expectation for v0.1 is that most apps will want to
 /// use their standard Rust networking libraries (however... odd... the async story may be).
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::foundation::{id, NSString};
 
@@ -32,7 +32,7 @@ impl URLRequest {
 
 #[cfg(test)]
 mod tests {
-    use objc::{class, msg_send, sel, sel_impl};
+    use objc::{class, msg_send, sel};
 
     use crate::foundation::{id, NSString};
     use crate::networking::URLRequest;

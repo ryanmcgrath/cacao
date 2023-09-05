@@ -1,6 +1,6 @@
 use crate::id_shim::Id;
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 /// A wrapper around `NSAutoReleasePool`. The core `App` structures create and manage one of these,
 /// but it's conceivable that users might need to create their own.

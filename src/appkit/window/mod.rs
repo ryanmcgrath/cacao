@@ -15,7 +15,7 @@ use core_graphics::geometry::{CGRect, CGSize};
 
 use crate::id_shim::ShareId;
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::appkit::toolbar::{Toolbar, ToolbarDelegate};
 use crate::color::Color;

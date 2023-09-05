@@ -12,7 +12,7 @@
 
 use core_graphics::base::CGFloat;
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger};
 use crate::utils::os;

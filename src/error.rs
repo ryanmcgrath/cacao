@@ -7,7 +7,7 @@
 use std::error;
 use std::fmt;
 
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, nil, NSInteger, NSString};
 
