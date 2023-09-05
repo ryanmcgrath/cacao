@@ -91,7 +91,7 @@ extern "C" fn perform<F: Fn(*const Object) + 'static>(this: &mut Object, _: Sel,
 /// The `NSButton` owns this object on instantiation, and will release it
 /// on drop. We handle the heap copy on the Rust side, so setting the block
 /// is just an ivar.
-pub(crate) fn register_invoker_class<F: Fn(*const Object) + 'static>() -> *const Class {
+pub(crate) fn register_invoker_class<F: Fn(*const Object) + 'static>() -> &'static Class {
     load_or_register_class("NSObject", "RSTTargetActionHandler", |decl| unsafe {
         decl.add_ivar::<usize>(ACTION_CALLBACK_PTR);
         decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(_, _, _));

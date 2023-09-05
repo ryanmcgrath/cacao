@@ -73,13 +73,13 @@ extern "C" fn dragging_exited<T: ScrollViewDelegate>(this: &mut Object, _: Sel, 
 }
 
 /// Injects an `NSScrollView` subclass.
-pub(crate) fn register_scrollview_class() -> *const Class {
+pub(crate) fn register_scrollview_class() -> &'static Class {
     load_or_register_class("NSScrollView", "RSTScrollView", |decl| unsafe {})
 }
 
 /// Injects an `NSView` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_scrollview_class_with_delegate<T: ScrollViewDelegate>() -> *const Class {
+pub(crate) fn register_scrollview_class_with_delegate<T: ScrollViewDelegate>() -> &'static Class {
     load_or_register_class("NSScrollView", "RSTScrollViewWithDelegate", |decl| unsafe {
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.

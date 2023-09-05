@@ -103,7 +103,7 @@ extern "C" fn dealloc<T: ViewDelegate>(this: &Object, _: Sel) {
 /// Injects an `NSView` subclass. This is used for the default views that don't use delegates - we
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
-pub(crate) fn register_listview_row_class() -> *const Class {
+pub(crate) fn register_listview_row_class() -> &'static Class {
     load_or_register_class("NSView", "RSTTableViewRow", |decl| unsafe {
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
     })
@@ -111,7 +111,7 @@ pub(crate) fn register_listview_row_class() -> *const Class {
 
 /// Injects an `NSView` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_listview_row_class_with_delegate<T: ViewDelegate>() -> *const Class {
+pub(crate) fn register_listview_row_class_with_delegate<T: ViewDelegate>() -> &'static Class {
     load_or_register_class("NSView", "RSTableViewRowWithDelegate", |decl| unsafe {
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.

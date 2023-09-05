@@ -51,7 +51,7 @@ extern "C" fn did_disappear<T: ViewDelegate>(this: &Object, _: Sel, animated: BO
 }
 
 /// Registers an `NSViewDelegate`.
-pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>(instance: &T) -> *const Class {
+pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>(instance: &T) -> &'static Class {
     load_or_register_class("UIViewController", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
 

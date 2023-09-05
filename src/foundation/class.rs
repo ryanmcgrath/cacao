@@ -60,7 +60,7 @@ impl ClassMap {
     }
 
     /// A publicly accessible load method that just passes through our global singleton.
-    pub fn static_load(class_name: &'static str, superclass_name: Option<&'static str>) -> Option<*const Class> {
+    pub fn static_load(class_name: &'static str, superclass_name: Option<&'static str>) -> Option<&'static Class> {
         CLASSES.load(class_name, superclass_name)
     }
 
@@ -68,12 +68,12 @@ impl ClassMap {
     ///
     /// This checks our internal map first, and then calls out to the Objective-C runtime to ensure
     /// we're not missing anything.
-    pub fn load(&self, class_name: &'static str, superclass_name: Option<&'static str>) -> Option<*const Class> {
+    pub fn load(&self, class_name: &'static str, superclass_name: Option<&'static str>) -> Option<&'static Class> {
         {
             let reader = self.0.read().unwrap();
             if let Some(entry) = (*reader).get(&(class_name, superclass_name)) {
                 let ptr = &entry.ptr;
-                return Some(*ptr as *const Class);
+                return Some(unsafe { &*(*ptr as *const Class) });
             }
         }
 
@@ -102,7 +102,7 @@ impl ClassMap {
             });
         }
 
-        Some(class.cast())
+        Some(unsafe { class.cast::<Class>().as_ref() }.unwrap())
     }
 
     /// Store a newly created subclass type.
@@ -130,7 +130,7 @@ impl ClassMap {
 /// > class name - but most cases do not need this and it would be a larger change to orchestrate at
 /// > the moment.
 #[inline(always)]
-pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> *const Class
+pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> &'static Class
 where
     F: Fn(&mut ClassDecl) + 'static
 {
@@ -156,7 +156,7 @@ pub fn load_or_register_class_with_optional_generated_suffix<F>(
     subclass_name: &'static str,
     should_append_random_subclass_name_suffix: bool,
     config: F
-) -> *const Class
+) -> &'static Class
 where
     F: Fn(&mut ClassDecl) + 'static
 {
@@ -189,7 +189,7 @@ where
             false => format!("{}_{}", subclass_name, superclass_name)
         };
 
-        match ClassDecl::new(&objc_subclass_name, unsafe { &*superclass }) {
+        match ClassDecl::new(&objc_subclass_name, superclass) {
             Some(mut decl) => {
                 config(&mut decl);
 

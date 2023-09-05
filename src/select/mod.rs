@@ -262,6 +262,6 @@ impl Drop for Select {
 
 /// Registers an `NSSelect` subclass, and configures it to hold some ivars
 /// for various things we need to store.
-fn register_class() -> *const Class {
+fn register_class() -> &'static Class {
     load_or_register_class("NSPopUpButton", "CacaoSelect", |decl| unsafe {})
 }

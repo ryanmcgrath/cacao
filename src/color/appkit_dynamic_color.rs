@@ -253,7 +253,7 @@ extern "C" fn color_with_system_effect(this: &Object, _: Sel, effect: NSInteger)
     unsafe { msg_send![color, colorWithSystemEffect: effect] }
 }
 
-pub(crate) fn register_class() -> *const Class {
+pub(crate) fn register_class() -> &'static Class {
     load_or_register_class("NSColor", "CacaoDynamicColor", |decl| unsafe {
         // These methods all need to be forwarded, so let's hook them up.
         decl.add_method(sel!(colorSpace), color_space as extern "C" fn(_, _) -> _);

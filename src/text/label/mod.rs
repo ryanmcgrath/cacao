@@ -78,7 +78,7 @@ pub use traits::LabelDelegate;
 pub(crate) static LABEL_DELEGATE_PTR: &str = "rstLabelDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id {
+fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
     unsafe {
         #[cfg(feature = "appkit")]
         let view: id = {

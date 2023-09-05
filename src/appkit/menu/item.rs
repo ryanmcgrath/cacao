@@ -314,7 +314,7 @@ extern "C" fn fire_block_action(this: &Object, _: Sel, _item: id) {
 ///
 /// In general, we do not want to do more than we need to here - menus are one of the last areas
 /// where Carbon still lurks, and subclassing things can get weird.
-pub(crate) fn register_menu_item_class() -> *const Class {
+pub(crate) fn register_menu_item_class() -> &'static Class {
     load_or_register_class("NSMenuItem", "CacaoMenuItem", |decl| unsafe {
         decl.add_ivar::<usize>(BLOCK_PTR);
 

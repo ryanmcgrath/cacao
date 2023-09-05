@@ -181,7 +181,7 @@ extern "C" fn dragging_exited<T: ListViewDelegate>(this: &mut Object, _: Sel, in
 /// need to do. Note that we treat and constrain this as a one-column "list" view to match
 /// `UITableView` semantics; if `NSTableView`'s multi column behavior is needed, then it can
 /// be added in.
-pub(crate) fn register_listview_class() -> *const Class {
+pub(crate) fn register_listview_class() -> &'static Class {
     load_or_register_class("NSTableView", "RSTListView", |decl| unsafe {})
 }
 
@@ -189,7 +189,7 @@ pub(crate) fn register_listview_class() -> *const Class {
 /// need to do. Note that we treat and constrain this as a one-column "list" view to match
 /// `UITableView` semantics; if `NSTableView`'s multi column behavior is needed, then it can
 /// be added in.
-pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instance: &T) -> *const Class {
+pub(crate) fn register_listview_class_with_delegate<T: ListViewDelegate>(instance: &T) -> &'static Class {
     load_or_register_class("NSTableView", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(LISTVIEW_DELEGATE_PTR);
 

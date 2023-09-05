@@ -179,7 +179,7 @@ extern "C" fn accepts_first_mouse(_: &mut Object, _: Sel, _: id) -> BOOL {
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
-pub fn register_webview_class() -> *const Class {
+pub fn register_webview_class() -> &'static Class {
     load_or_register_class("WKWebView", "CacaoWebView", |decl| unsafe {
         decl.add_method(sel!(acceptsFirstMouse:), accepts_first_mouse as extern "C" fn(_, _, _) -> _);
     })
@@ -188,7 +188,7 @@ pub fn register_webview_class() -> *const Class {
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
-pub fn register_webview_delegate_class<T: WebViewDelegate>(instance: &T) -> *const Class {
+pub fn register_webview_delegate_class<T: WebViewDelegate>(instance: &T) -> &'static Class {
     load_or_register_class("NSObject", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(WEBVIEW_DELEGATE_PTR);
 

@@ -78,23 +78,23 @@ extern "C" fn dragging_exited<T: ScrollViewDelegate>(this: &mut Object, _: Sel, 
 */
 
 /// Injects an `UIScrollView` subclass.
-pub(crate) fn register_scrollview_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
+pub(crate) fn register_scrollview_class() -> &'static Class {
+    static mut VIEW_CLASS: Option<&'static Class> = None;
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
         let superclass = class!(UIScrollView);
         let decl = ClassDecl::new("RSTScrollView", superclass).unwrap();
-        VIEW_CLASS = decl.register();
+        VIEW_CLASS = Some(decl.register());
     });
 
-    unsafe { VIEW_CLASS }
+    unsafe { VIEW_CLASS.unwrap() }
 }
 
 /// Injects an `NSView` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_scrollview_class_with_delegate<T: ScrollViewDelegate>() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
+pub(crate) fn register_scrollview_class_with_delegate<T: ScrollViewDelegate>() -> &'static Class {
+    static mut VIEW_CLASS: Option<&'static Class> = None;
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
@@ -131,8 +131,8 @@ pub(crate) fn register_scrollview_class_with_delegate<T: ScrollViewDelegate>() -
         );
         */
 
-        VIEW_CLASS = decl.register();
+        VIEW_CLASS = Some(decl.register());
     });
 
-    unsafe { VIEW_CLASS }
+    unsafe { VIEW_CLASS.unwrap() }
 }

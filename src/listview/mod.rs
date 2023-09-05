@@ -100,7 +100,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn common_init(class: *const Class) -> id {
+fn common_init(class: &Class) -> id {
     unsafe {
         // Note: we do *not* enable AutoLayout here as we're by default placing this in a scroll
         // view, and we want it to just do its thing.

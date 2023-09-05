@@ -352,8 +352,8 @@ We'll step through an example (abridged) `View` bridge below, for macOS. You sho
 For our basic `View` type, we want to just map to the corresponding class on the Objective-C side (in this case, `NSView`), and maybe do a bit of tweaking for sanity reasons.
 
 ``` rust
-pub(crate) fn register_view_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
+pub(crate) fn register_view_class() -> &'static Class {
+    static mut VIEW_CLASS: Option<'static Class> = None;
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
@@ -364,10 +364,10 @@ pub(crate) fn register_view_class() -> *const Class {
 
         decl.add_ivar::<id>(BACKGROUND_COLOR);
 
-        VIEW_CLASS = decl.register();
+        VIEW_CLASS = Some(decl.register());
     });
 
-    unsafe { VIEW_CLASS }
+    unsafe { VIEW_CLASS.unwrap() }
 }
 ```
 
@@ -377,7 +377,7 @@ Objective-C method signatures, as well as provision space for variable storage (
 For our _delegate_ types, we need a different class creation method - one that creates a subclass per-unique-type:
 
 ``` rust
-pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> *const Class {
+pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> &'static Class {
     load_or_register_class("NSView", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
         decl.add_ivar::<id>(BACKGROUND_COLOR);

@@ -77,7 +77,7 @@ pub(crate) static BACKGROUND_COLOR: &str = "cacaoBackgroundColor";
 pub(crate) static LISTVIEW_ROW_DELEGATE_PTR: &str = "cacaoListViewRowDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id {
+fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
     unsafe {
         let view: id = msg_send![registration_fn(), new];
 

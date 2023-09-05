@@ -352,7 +352,7 @@ impl Drop for Button {
 
 /// Registers an `NSButton` subclass, and configures it to hold some ivars
 /// for various things we need to store.
-fn register_class() -> *const Class {
+fn register_class() -> &'static Class {
     #[cfg(feature = "appkit")]
     let super_class = "NSButton";
     #[cfg(all(feature = "uikit", not(feature = "appkit")))]

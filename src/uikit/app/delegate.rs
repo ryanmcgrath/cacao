@@ -40,7 +40,7 @@ extern "C" fn configuration_for_scene_session<T: AppDelegate>(this: &Object, _: 
 
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and
 /// pointers we need to have.
-pub(crate) fn register_app_delegate_class<T: AppDelegate>() -> *const Class {
+pub(crate) fn register_app_delegate_class<T: AppDelegate>() -> &'static Class {
     let should_generate_suffix = false;
 
     load_or_register_class_with_optional_generated_suffix("NSObject", "RSTAppDelegate", should_generate_suffix, |decl| unsafe {

@@ -78,7 +78,7 @@ pub use traits::TextFieldDelegate;
 pub(crate) static TEXTFIELD_DELEGATE_PTR: &str = "rstTextFieldDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn common_init(class: *const Class) -> id {
+fn common_init(class: &Class) -> id {
     unsafe {
         let view: id = msg_send![class, new];
 

@@ -89,7 +89,7 @@ extern "C" fn update_layer(this: &Object, _: Sel) {
 /// Injects an `NSView` subclass. This is used for the default views that don't use delegates - we
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
-pub(crate) fn register_view_class() -> *const Class {
+pub(crate) fn register_view_class() -> &'static Class {
     load_or_register_class("NSView", "RSTView", |decl| unsafe {
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
         decl.add_method(sel!(updateLayer), update_layer as extern "C" fn(_, _));
@@ -101,7 +101,7 @@ pub(crate) fn register_view_class() -> *const Class {
 
 /// Injects an `NSView` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> *const Class {
+pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> &'static Class {
     load_or_register_class("NSView", instance.subclass_name(), |decl| unsafe {
         // A pointer to the ViewDelegate instance on the Rust side.
         // It's expected that this doesn't move.

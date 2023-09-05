@@ -50,22 +50,22 @@ extern "C" fn text_should_end_editing<T: TextFieldDelegate>(this: &Object, _: Se
 /// Injects an `UITextField` subclass. This is used for the default views that don't use delegates - we
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
-pub(crate) fn register_view_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
+pub(crate) fn register_view_class() -> &'static Class {
+    static mut VIEW_CLASS: Option<&'static Class> = None;
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
         let superclass = class!(UITextField);
         let decl = ClassDecl::new("RSTTextInputField", superclass).unwrap();
-        VIEW_CLASS = decl.register();
+        VIEW_CLASS = Some(decl.register());
     });
 
-    unsafe { VIEW_CLASS }
+    unsafe { VIEW_CLASS.unwrap() }
 }
 
 /// Injects an `UITextField` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>(instance: &T) -> *const Class {
+pub(crate) fn register_view_class_with_delegate<T: TextFieldDelegate>(instance: &T) -> &'static Class {
     load_or_register_class("UITextField", instance.subclass_name(), |decl| unsafe {
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.

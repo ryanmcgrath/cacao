@@ -65,7 +65,7 @@ extern "C" fn item_for_identifier<T: ToolbarDelegate>(this: &Object, _: Sel, _: 
 
 /// Registers a `NSToolbar` subclass, and configures it to hold some ivars for various things we need
 /// to store. We use it as our delegate as well, just to cut down on moving pieces.
-pub(crate) fn register_toolbar_class<T: ToolbarDelegate>(instance: &T) -> *const Class {
+pub(crate) fn register_toolbar_class<T: ToolbarDelegate>(instance: &T) -> &'static Class {
     load_or_register_class("NSObject", instance.subclass_name(), |decl| unsafe {
         // For callbacks
         decl.add_ivar::<usize>(TOOLBAR_PTR);

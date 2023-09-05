@@ -44,7 +44,7 @@ extern "C" fn scene_will_connect_to_session_with_options<T: WindowSceneDelegate>
 
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and
 /// pointers we need to have.
-pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn() -> Box<T>>() -> *const Class {
+pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn() -> Box<T>>() -> &'static Class {
     let should_generate_suffix = false;
 
     load_or_register_class_with_optional_generated_suffix("UIResponder", "RSTWindowSceneDelegate", false, |decl| unsafe {

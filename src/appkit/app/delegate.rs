@@ -291,7 +291,7 @@ extern "C" fn delegate_handles_key<T: AppDelegate>(this: &Object, _: Sel, _: id,
 
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and
 /// pointers we need to have.
-pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> *const Class {
+pub(crate) fn register_app_delegate_class<T: AppDelegate + AppDelegate>() -> &'static Class {
     load_or_register_class("NSObject", "RSTAppDelegate", |decl| unsafe {
         decl.add_ivar::<usize>(APP_PTR);
 

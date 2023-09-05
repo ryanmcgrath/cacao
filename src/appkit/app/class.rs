@@ -7,6 +7,6 @@ use objc::runtime::Class;
 use crate::foundation::load_or_register_class;
 
 /// Used for injecting a custom NSApplication. Currently does nothing.
-pub(crate) fn register_app_class() -> *const Class {
+pub(crate) fn register_app_class() -> &'static Class {
     load_or_register_class("NSApplication", "RSTApplication", |decl| unsafe {})
 }
