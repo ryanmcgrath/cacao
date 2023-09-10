@@ -15,6 +15,8 @@ use crate::objc_access::ObjcAccess;
 #[cfg(feature = "appkit")]
 use crate::pasteboard::PasteboardType;
 
+use super::{LayoutAnchorX, LayoutAnchorY};
+
 /// A trait that view wrappers must conform to. Enables managing the subview tree.
 #[allow(unused_variables)]
 pub trait Layout: ObjcAccess {
@@ -172,4 +174,12 @@ pub trait Layout: ObjcAccess {
             let _: () = msg_send![obj, setAlphaValue: value];
         });
     }
+}
+
+/// A trait to access a views layout anchors
+pub trait HasLayout {
+    fn get_top(&self) -> &LayoutAnchorY;
+    fn get_bottom(&self) -> &LayoutAnchorY;
+    fn get_leading(&self) -> &LayoutAnchorX;
+    fn get_trailing(&self) -> &LayoutAnchorX;
 }

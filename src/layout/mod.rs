@@ -47,3 +47,5 @@ mod safe_guide;
 
 #[cfg(feature = "autolayout")]
 pub use safe_guide::SafeAreaLayoutGuide;
+#[cfg(feature = "autolayout")]
+mod has_layout_impl;
