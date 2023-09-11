@@ -1,9 +1,9 @@
 //! A wrapper for `WKWebViewConfiguration`. It aims to (mostly) cover
 //! the important pieces of configuring and updating a WebView configuration.
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, NSInteger, NSString, NO, YES};
 use crate::webview::enums::InjectAt;
@@ -12,7 +12,7 @@ use crate::webview::enums::InjectAt;
 /// where everything lives.
 #[derive(Debug)]
 pub struct WebViewConfig {
-    pub objc: Id<Object>,
+    pub objc: Id<Object, Owned>,
     pub handlers: Vec<String>,
     pub protocols: Vec<String>
 }
@@ -20,10 +20,7 @@ pub struct WebViewConfig {
 impl Default for WebViewConfig {
     /// Initializes a default `WebViewConfig`.
     fn default() -> Self {
-        let config = unsafe {
-            let config: id = msg_send![class!(WKWebViewConfiguration), new];
-            Id::from_ptr(config)
-        };
+        let config = unsafe { msg_send_id![class!(WKWebViewConfiguration), new] };
 
         WebViewConfig {
             objc: config,
@@ -47,10 +44,15 @@ impl WebViewConfig {
 
         unsafe {
             let alloc: id = msg_send![class!(WKUserScript), alloc];
-            let user_script: id = msg_send![alloc, initWithSource:source injectionTime:at forMainFrameOnly:match main_frame_only {
-                true => YES,
-                false => NO
-            }];
+            let user_script: id = msg_send![
+                alloc,
+                initWithSource: &*source,
+                injectionTime: at,
+                forMainFrameOnly: match main_frame_only {
+                    true => YES,
+                    false => NO
+                },
+            ];
 
             let content_controller: id = msg_send![&*self.objc, userContentController];
             let _: () = msg_send![content_controller, addUserScript: user_script];
@@ -70,12 +72,7 @@ impl WebViewConfig {
         unsafe {
             let yes: id = msg_send![class!(NSNumber), numberWithBool: YES];
             let preferences: id = msg_send![&*self.objc, preferences];
-            let _: () = msg_send![preferences, setValue:yes forKey:key];
+            let _: () = msg_send![preferences, setValue: yes, forKey: &*key];
         }
-    }
-
-    /// Consumes and returns the underlying `WKWebViewConfiguration`.
-    pub fn into_inner(mut self) -> id {
-        &mut *self.objc
     }
 }

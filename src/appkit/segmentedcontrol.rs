@@ -7,9 +7,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use objc::declare::ClassDecl;
+use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::color::Color;
 use crate::control::Control;
@@ -171,7 +171,7 @@ impl SegmentedControl {
     pub fn set_tooltip_segment(&mut self, index: NSUInteger, tooltip: &str) {
         self.objc.with_mut(|obj| unsafe {
             let converted = NSString::new(tooltip);
-            let _: () = msg_send![obj, setToolTip: converted forSegment: index];
+            let _: () = msg_send![obj, setToolTip: &*converted.objc, forSegment: index];
         })
     }
 
@@ -193,7 +193,7 @@ impl SegmentedControl {
     /// best just to message pass or something.
     pub fn set_action<F: Fn(i32) + Send + Sync + 'static>(&mut self, action: F) {
         // @TODO: This probably isn't ideal but gets the job done for now; needs revisiting.
-        let this = self.objc.get(|obj| unsafe { ShareId::from_ptr(msg_send![obj, self]) });
+        let this: Id<_, Shared> = self.objc.get(|obj| unsafe { msg_send_id![obj, self] });
         let handler = TargetActionHandler::new(&*this, move |obj: *const Object| unsafe {
             let selected: i32 = msg_send![obj, selectedSegment];
             action(selected)

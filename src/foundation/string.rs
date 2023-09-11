@@ -3,9 +3,9 @@ use std::ops::{Deref, DerefMut};
 use std::os::raw::c_char;
 use std::{fmt, slice, str};
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, to_bool, BOOL, NO, YES};
 
@@ -18,7 +18,7 @@ const UTF8_ENCODING: usize = 4;
 #[derive(Debug)]
 pub struct NSString<'a> {
     /// A reference to the backing `NSString`.
-    pub objc: Id<Object>,
+    pub objc: Id<Object, Owned>,
     phantom: PhantomData<&'a ()>
 }
 
@@ -27,11 +27,12 @@ impl<'a> NSString<'a> {
     pub fn new(s: &str) -> Self {
         NSString {
             objc: unsafe {
-                let nsstring: *mut Object = msg_send![class!(NSString), alloc];
-                Id::from_ptr(msg_send![nsstring, initWithBytes:s.as_ptr()
-                    length:s.len()
-                    encoding:UTF8_ENCODING
-                ])
+                msg_send_id![
+                    msg_send_id![class!(NSString), alloc],
+                    initWithBytes: s.as_ptr(),
+                    length: s.len(),
+                    encoding: UTF8_ENCODING,
+                ]
             },
 
             phantom: PhantomData
@@ -42,12 +43,14 @@ impl<'a> NSString<'a> {
     pub fn no_copy(s: &'a str) -> Self {
         NSString {
             objc: unsafe {
-                let nsstring: id = msg_send![class!(NSString), alloc];
-                Id::from_ptr(msg_send![nsstring, initWithBytesNoCopy:s.as_ptr()
-                    length:s.len()
-                    encoding:UTF8_ENCODING
-                    freeWhenDone:NO
-                ])
+                let nsstring = msg_send_id![class!(NSString), alloc];
+                msg_send_id![
+                    nsstring,
+                    initWithBytesNoCopy: s.as_ptr(),
+                    length: s.len(),
+                    encoding: UTF8_ENCODING,
+                    freeWhenDone: NO,
+                ]
             },
 
             phantom: PhantomData
@@ -58,15 +61,14 @@ impl<'a> NSString<'a> {
     /// retain it.
     pub fn retain(object: id) -> Self {
         NSString {
-            objc: unsafe { Id::from_ptr(object) },
+            objc: unsafe { Id::retain(object).unwrap() },
             phantom: PhantomData
         }
     }
 
-    /// In some cases, we want to wrap a system-provided NSString without retaining it.
-    pub fn from_retained(object: id) -> Self {
-        NSString {
-            objc: unsafe { Id::from_retained_ptr(object) },
+    pub fn from_id(objc: Id<Object, Owned>) -> Self {
+        Self {
+            objc,
             phantom: PhantomData
         }
     }
@@ -110,13 +112,6 @@ impl<'a> NSString<'a> {
 impl fmt::Display for NSString<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.to_str())
-    }
-}
-
-impl From<NSString<'_>> for id {
-    /// Consumes and returns the pointer to the underlying NSString instance.
-    fn from(mut string: NSString) -> Self {
-        &mut *string.objc
     }
 }
 

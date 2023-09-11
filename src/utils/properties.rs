@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc_id::Id;
 
 use crate::foundation::id;
 
@@ -15,17 +15,12 @@ use crate::foundation::id;
 /// It is possible we could remove the `Id` wrapper in here if we're just doing this ourselves, and
 /// is probably worth investigating at some point.
 #[derive(Clone, Debug)]
-pub struct ObjcProperty(Rc<RefCell<Id<Object>>>);
+pub struct ObjcProperty(Rc<RefCell<Id<Object, Owned>>>);
 
 impl ObjcProperty {
     /// Given an Objective-C object, retains it and wraps it as a `Property`.
     pub fn retain(obj: id) -> Self {
-        ObjcProperty(Rc::new(RefCell::new(unsafe { Id::from_ptr(obj) })))
-    }
-
-    /// Given an Objective-C object, retains it and wraps it as a `Property`.
-    pub fn from_retained(obj: id) -> Self {
-        ObjcProperty(Rc::new(RefCell::new(unsafe { Id::from_retained_ptr(obj) })))
+        ObjcProperty(Rc::new(RefCell::new(unsafe { Id::retain(obj).unwrap() })))
     }
 
     /// Runs a handler with mutable access for the underlying Objective-C object.

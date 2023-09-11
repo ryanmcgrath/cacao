@@ -4,9 +4,9 @@
 use core_graphics::base::CGFloat;
 use core_graphics::geometry::{CGPoint, CGRect, CGSize};
 
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{msg_send, sel};
 
 use crate::foundation::{id, nil, to_bool, NSArray, NSString, NO, YES};
 use crate::geometry::Rect;
@@ -112,7 +112,8 @@ pub trait Layout: ObjcAccess {
             .into_iter()
             .map(|t| {
                 let x: NSString = (*t).into();
-                x.into()
+                // FIXME: We shouldn't use autorelease here
+                Id::autorelease_return(x.objc)
             })
             .collect::<Vec<id>>()
             .into();

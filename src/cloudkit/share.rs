@@ -1,7 +1,7 @@
 //! This module includes wrappers for `CKShare` and `CKShareMetaData`.
 
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc_id::ShareId;
 
 use crate::foundation::id;
 
@@ -9,14 +9,14 @@ use crate::foundation::id;
 /// to, say, handle accepting an invite for a share.
 #[derive(Clone, Debug)]
 pub struct CKShareMetaData {
-    pub inner: ShareId<Object>
+    pub inner: Id<Object, Shared>
 }
 
 impl CKShareMetaData {
     /// Internal method for wrapping a system-provided `CKShareMetaData` object.
     pub(crate) fn with_inner(object: id) -> Self {
         CKShareMetaData {
-            inner: unsafe { ShareId::from_ptr(object) }
+            inner: unsafe { Id::retain(object).unwrap() }
         }
     }
 }

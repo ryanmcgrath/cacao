@@ -6,9 +6,9 @@ use std::path::PathBuf;
 
 use block::ConcreteBlock;
 
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::filesystem::enums::ModalResponse;
 use crate::foundation::{id, nil, NSInteger, NSString, NO, NSURL, YES};
@@ -19,10 +19,10 @@ use crate::appkit::window::{Window, WindowDelegate};
 #[derive(Debug)]
 pub struct FileSelectPanel {
     /// The internal Objective C `NSOpenPanel` instance.
-    pub panel: ShareId<Object>,
+    pub panel: Id<Object, Shared>,
 
     /// The internal `NSObject` that routes delegate callbacks around.
-    pub delegate: ShareId<Object>,
+    pub delegate: Id<Object, Shared>,
 
     /// Whether the user can choose files. Defaults to `true`.
     pub can_choose_files: bool,
@@ -54,11 +54,10 @@ impl FileSelectPanel {
         FileSelectPanel {
             panel: unsafe {
                 let cls = class!(NSOpenPanel);
-                let x: id = msg_send![cls, openPanel];
-                ShareId::from_ptr(x)
+                msg_send_id![cls, openPanel]
             },
 
-            delegate: unsafe { ShareId::from_ptr(msg_send![class!(NSObject), new]) },
+            delegate: unsafe { msg_send_id![class!(NSObject), new] },
 
             can_choose_files: true,
             can_choose_directories: false,
@@ -148,7 +147,7 @@ impl FileSelectPanel {
         });
 
         unsafe {
-            let _: () = msg_send![&*self.panel, beginWithCompletionHandler:completion.copy()];
+            let _: () = msg_send![&*self.panel, beginWithCompletionHandler: &*completion.copy()];
         }
     }
 
@@ -184,7 +183,11 @@ impl FileSelectPanel {
         });
 
         unsafe {
-            let _: () = msg_send![&*self.panel, beginSheetModalForWindow:&*window.objc completionHandler:completion.copy()];
+            let _: () = msg_send![
+                &*self.panel,
+                beginSheetModalForWindow: &*window.objc,
+                completionHandler: &*completion.copy(),
+            ];
         }
     }
 }

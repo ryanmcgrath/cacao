@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, NSString};
 
 /// A wrapper for `NSMutableDictionary`.
 #[derive(Debug)]
-pub struct NSMutableDictionary(pub Id<Object>);
+pub struct NSMutableDictionary(pub Id<Object, Owned>);
 
 impl Default for NSMutableDictionary {
     /// Returns a blank NSMutableDictionary.
@@ -26,7 +26,7 @@ impl NSMutableDictionary {
     /// object model. You can, of course, bypass it and `msg_send![]` yourself, but it'd require an
     /// `unsafe {}` block... so you'll know you're in special territory then.
     pub fn new() -> Self {
-        NSMutableDictionary(unsafe { Id::from_ptr(msg_send![class!(NSMutableDictionary), new]) })
+        NSMutableDictionary(unsafe { msg_send_id![class!(NSMutableDictionary), new] })
     }
 
     /// Inserts an object into the backing NSMutablyDictionary.
@@ -36,11 +36,6 @@ impl NSMutableDictionary {
         unsafe {
             let _: () = msg_send![&*self.0, setObject:object forKey:&*key];
         }
-    }
-
-    /// Consumes and returns the underlying `NSMutableDictionary`.
-    pub fn into_inner(mut self) -> id {
-        &mut *self.0
     }
 }
 

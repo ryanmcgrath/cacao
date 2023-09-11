@@ -44,10 +44,12 @@
 
 use std::collections::HashMap;
 
+use core_foundation::base::TCFType;
+
 use core_graphics::base::CGFloat;
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object};
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
@@ -98,7 +100,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn common_init(class: *const Class) -> id {
+fn common_init(class: &Class) -> id {
     unsafe {
         // Note: we do *not* enable AutoLayout here as we're by default placing this in a scroll
         // view, and we want it to just do its thing.
@@ -439,7 +441,7 @@ impl<T> ListView<T> {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         // @TODO: This is wrong.
         self.objc.with_mut(|obj| unsafe {
-            let color = color.as_ref().cg_color();
+            let color = color.as_ref().cg_color().as_concrete_TypeRef();
             let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: color];
         });
@@ -484,14 +486,14 @@ impl<T> ListView<T> {
     /// Select the rows at the specified indexes, optionally adding to any existing selections.
     pub fn select_row_indexes(&self, indexes: &[usize], extends_existing: bool) {
         unsafe {
-            let index_set: id = msg_send![class!(NSMutableIndexSet), new];
+            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new];
 
             for index in indexes {
-                let _: () = msg_send![index_set, addIndex: index];
+                let _: () = msg_send![&mut index_set, addIndex: index];
             }
 
             self.objc.with_mut(|obj| {
-                let _: () = msg_send![obj, selectRowIndexes:index_set byExtendingSelection:match extends_existing {
+                let _: () = msg_send![obj, selectRowIndexes: &*index_set, byExtendingSelection: match extends_existing {
                     true => YES,
                     false => NO
                 }];
@@ -567,23 +569,24 @@ impl<T> ListView<T> {
     pub fn insert_rows(&self, indexes: &[usize], animation: RowAnimation) {
         #[cfg(feature = "appkit")]
         unsafe {
-            let index_set: id = msg_send![class!(NSMutableIndexSet), new];
+            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new];
 
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
-                let _: () = msg_send![index_set, addIndex: x];
+                let _: () = msg_send![&mut index_set, addIndex: x];
             }
 
             let animation_options: NSUInteger = animation.into();
 
             // We need to temporarily retain this; it can drop after the underlying NSTableView
             // has also retained it.
-            let x = ShareId::from_ptr(index_set);
+            let index_set: Id<Object, Shared> = index_set.into();
+            let x = index_set.clone();
 
             // This is done for a very explicit reason; see the comments on the method itself for
             // an explanation.
             self.hack_avoid_dequeue_loop(|obj| {
-                let _: () = msg_send![obj, insertRowsAtIndexes:&*x withAnimation:animation_options];
+                let _: () = msg_send![obj, insertRowsAtIndexes: &*x, withAnimation: animation_options];
             });
         }
     }
@@ -592,21 +595,21 @@ impl<T> ListView<T> {
     pub fn reload_rows(&self, indexes: &[usize]) {
         #[cfg(feature = "appkit")]
         unsafe {
-            let index_set: id = msg_send![class!(NSMutableIndexSet), new];
+            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new];
 
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
-                let _: () = msg_send![index_set, addIndex: x];
+                let _: () = msg_send![&mut index_set, addIndex: x];
             }
 
-            let x = ShareId::from_ptr(index_set);
+            let index_set: Id<Object, Shared> = index_set.into();
+            let x = index_set.clone();
 
-            let ye: id = msg_send![class!(NSIndexSet), indexSetWithIndex:0];
-            let y = ShareId::from_ptr(ye);
+            let y: Id<Object, Shared> = msg_send_id![class!(NSIndexSet), indexSetWithIndex:0];
 
             // Must use `get` to avoid a double lock.
             self.objc.get(|obj| {
-                let _: () = msg_send![obj, reloadDataForRowIndexes:&*x columnIndexes:&*y];
+                let _: () = msg_send![obj, reloadDataForRowIndexes: &*x, columnIndexes: &*y];
             });
         }
     }
@@ -619,20 +622,22 @@ impl<T> ListView<T> {
     pub fn remove_rows(&self, indexes: &[usize], animations: RowAnimation) {
         #[cfg(feature = "appkit")]
         unsafe {
-            let index_set: id = msg_send![class!(NSMutableIndexSet), new];
+            let mut index_set: Id<Object, Owned> = msg_send_id![class!(NSMutableIndexSet), new];
 
             for index in indexes {
                 let x: NSUInteger = *index as NSUInteger;
-                let _: () = msg_send![index_set, addIndex: x];
+                let _: () = msg_send![&mut index_set, addIndex: x];
             }
 
             let animation_options: NSUInteger = animations.into();
 
             // We need to temporarily retain this; it can drop after the underlying NSTableView
             // has also retained it.
-            let x = ShareId::from_ptr(index_set);
+            let index_set: Id<Object, Shared> = index_set.into();
+            let x = index_set.clone();
+
             self.objc.with_mut(|obj| {
-                let _: () = msg_send![obj, removeRowsAtIndexes:&*x withAnimation:animation_options];
+                let _: () = msg_send![obj, removeRowsAtIndexes: &*x, withAnimation: animation_options];
             });
         }
     }

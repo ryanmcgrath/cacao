@@ -1,8 +1,8 @@
 use std::ops::{Deref, DerefMut};
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::id;
 
@@ -11,29 +11,24 @@ use crate::foundation::id;
 /// ever deemed necessary (unlikely, given how much Apple has optimized the Foundation classes, but
 /// still...).
 #[derive(Debug)]
-pub struct NSArray(pub Id<Object>);
+pub struct NSArray(pub Id<Object, Owned>);
 
 impl NSArray {
     /// Given a set of `Object`s, creates and retains an `NSArray` that holds them.
     pub fn new(objects: &[id]) -> Self {
         NSArray(unsafe {
-            Id::from_ptr(msg_send![class!(NSArray),
-                arrayWithObjects:objects.as_ptr()
-                count:objects.len()
-            ])
+            msg_send_id![
+                class!(NSArray),
+                arrayWithObjects: objects.as_ptr(),
+                count: objects.len()
+            ]
         })
     }
 
     /// In some cases, we're vended an `NSArray` by the system that we need to call retain on.
     /// This handles that case.
     pub fn retain(array: id) -> Self {
-        NSArray(unsafe { Id::from_ptr(array) })
-    }
-
-    /// In some cases, we're vended an `NSArray` by the system, and it's ideal to not retain that.
-    /// This handles that edge case.
-    pub fn from_retained(array: id) -> Self {
-        NSArray(unsafe { Id::from_retained_ptr(array) })
+        NSArray(unsafe { Id::retain(array).unwrap() })
     }
 
     /// Returns the `count` (`len()` equivalent) for the backing `NSArray`.
@@ -83,10 +78,11 @@ impl From<Vec<&Object>> for NSArray {
     /// Given a set of `Object`s, creates an `NSArray` that holds them.
     fn from(objects: Vec<&Object>) -> Self {
         NSArray(unsafe {
-            Id::from_ptr(msg_send![class!(NSArray),
-                arrayWithObjects:objects.as_ptr()
-                count:objects.len()
-            ])
+            msg_send_id![
+                class!(NSArray),
+                arrayWithObjects: objects.as_ptr(),
+                count: objects.len(),
+            ]
         })
     }
 }
@@ -95,18 +91,12 @@ impl From<Vec<id>> for NSArray {
     /// Given a set of `*mut Object`s, creates an `NSArray` that holds them.
     fn from(objects: Vec<id>) -> Self {
         NSArray(unsafe {
-            Id::from_ptr(msg_send![class!(NSArray),
-                arrayWithObjects:objects.as_ptr()
-                count:objects.len()
-            ])
+            msg_send_id![
+                class!(NSArray),
+                arrayWithObjects: objects.as_ptr(),
+                count: objects.len()
+            ]
         })
-    }
-}
-
-impl From<NSArray> for id {
-    /// Consumes and returns the pointer to the underlying NSArray.
-    fn from(mut array: NSArray) -> Self {
-        &mut *array
     }
 }
 

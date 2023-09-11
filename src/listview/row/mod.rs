@@ -45,9 +45,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object};
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::{Id, ShareId};
+use objc::{class, msg_send, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
@@ -77,7 +77,7 @@ pub(crate) static BACKGROUND_COLOR: &str = "cacaoBackgroundColor";
 pub(crate) static LISTVIEW_ROW_DELEGATE_PTR: &str = "cacaoListViewRowDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id {
+fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
     unsafe {
         let view: id = msg_send![registration_fn(), new];
 
@@ -442,7 +442,8 @@ impl<T> ListViewRow<T> {
         let color: id = color.as_ref().into();
 
         self.objc.with_mut(|obj| unsafe {
-            (&mut *obj).set_ivar(BACKGROUND_COLOR, color);
+            // TODO: Fix this unnecessary retain!
+            (&mut *obj).set_ivar::<id>(BACKGROUND_COLOR, msg_send![color, retain]);
         });
     }
 }

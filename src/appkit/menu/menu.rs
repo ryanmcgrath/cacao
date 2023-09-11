@@ -2,9 +2,9 @@
 
 use std::sync::{Arc, Mutex};
 
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::{Id, ShareId};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::appkit::menu::item::MenuItem;
 use crate::foundation::{id, NSInteger, NSString};
@@ -12,7 +12,7 @@ use crate::foundation::{id, NSInteger, NSString};
 /// A struct that represents an `NSMenu`. It takes ownership of items, and handles instrumenting
 /// them throughout the application lifecycle.
 #[derive(Debug)]
-pub struct Menu(pub Id<Object>);
+pub struct Menu(pub Id<Object, Owned>);
 
 impl Menu {
     /// Creates a new `Menu` with the given title, and uses the passed items as submenu items.
@@ -27,16 +27,16 @@ impl Menu {
     pub fn new(title: &str, items: Vec<MenuItem>) -> Self {
         Menu(unsafe {
             let cls = class!(NSMenu);
-            let alloc: id = msg_send![cls, alloc];
+            let alloc = msg_send_id![cls, alloc];
             let title = NSString::new(title);
-            let menu: id = msg_send![alloc, initWithTitle:&*title];
+            let mut menu = msg_send_id![alloc, initWithTitle: &*title];
 
             for item in items.into_iter() {
                 let objc = item.to_objc();
-                let _: () = msg_send![menu, addItem:&*objc];
+                let _: () = msg_send![&mut menu, addItem:&*objc];
             }
 
-            Id::from_retained_ptr(menu)
+            menu
         })
     }
 

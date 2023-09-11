@@ -1,6 +1,6 @@
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
-use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{msg_send, msg_send_id, sel};
 
 use crate::foundation::id;
 use crate::layout::Layout;
@@ -37,7 +37,7 @@ mod native_interface;
 #[derive(Debug)]
 pub struct ViewController<T> {
     /// The underlying Objective-C pointer.
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object, Shared>,
 
     /// The underlying View that we manage.
     pub view: View<T>
@@ -53,18 +53,18 @@ where
         let view = View::with(delegate);
 
         let objc = unsafe {
-            let vc: id = msg_send![class, new];
+            let mut vc: Id<Object, Owned> = msg_send_id![class, new];
 
             if let Some(delegate) = &view.delegate {
                 let ptr: *const T = &**delegate;
-                (&mut *vc).set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
+                vc.set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
             }
 
             view.with_backing_obj_mut(|backing_node| {
-                let _: () = msg_send![vc, setView: backing_node];
+                let _: () = msg_send![&vc, setView: backing_node];
             });
 
-            ShareId::from_ptr(vc)
+            vc.into()
         };
 
         ViewController { objc, view }
@@ -72,7 +72,7 @@ where
 }
 
 impl<T> Controller for ViewController<T> {
-    fn get_backing_node(&self) -> ShareId<Object> {
+    fn get_backing_node(&self) -> Id<Object, Shared> {
         self.objc.clone()
     }
 }

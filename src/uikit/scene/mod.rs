@@ -5,9 +5,9 @@
 
 use core_graphics::geometry::CGRect;
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, sel};
 
 use crate::foundation::id;
 use crate::geometry::Rect;
@@ -31,11 +31,11 @@ mod session;
 pub use session::*;
 
 #[derive(Debug)]
-pub struct Scene(pub Id<Object>);
+pub struct Scene(pub Id<Object, Owned>);
 
 impl Scene {
     pub fn with(scene: id) -> Self {
-        Scene(unsafe { Id::from_ptr(scene) })
+        Scene(unsafe { Id::retain(scene).unwrap() })
     }
 
     // This is temporary - I'm not wrapping `coordinateSpace` until I'm happy with the ergonomics
@@ -47,9 +47,5 @@ impl Scene {
             rect
         }
         .into()
-    }
-
-    pub fn into_inner(mut self) -> id {
-        &mut *self.0
     }
 }

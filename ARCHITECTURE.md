@@ -209,9 +209,7 @@ impl View {
             center_x: LayoutAnchorX::center(view),
             center_y: LayoutAnchorY::center(view),
 
-            layer: Layer::wrap(unsafe {
-                msg_send![view, layer]
-            }),
+            layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
             objc: ObjcProperty::retain(view),
         }
@@ -293,7 +291,8 @@ impl<T> View<T> {
 
         #[cfg(target_os = "macos")]
         self.objc.with_mut(|obj| unsafe {
-            (&mut *obj).set_ivar(BACKGROUND_COLOR, color);
+            // TODO: Fix this unnecessary retain!
+            (&mut *obj).set_ivar::<id>(BACKGROUND_COLOR, msg_send![color, retain]);
         });
 
         #[cfg(target_os = "ios")]
@@ -352,22 +351,22 @@ We'll step through an example (abridged) `View` bridge below, for macOS. You sho
 For our basic `View` type, we want to just map to the corresponding class on the Objective-C side (in this case, `NSView`), and maybe do a bit of tweaking for sanity reasons.
 
 ``` rust
-pub(crate) fn register_view_class() -> *const Class {
-    static mut VIEW_CLASS: *const Class = 0 as *const Class;
+pub(crate) fn register_view_class() -> &'static Class {
+    static mut VIEW_CLASS: Option<'static Class> = None;
     static INIT: Once = Once::new();
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSView);
         let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
 
-        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(&Object, _) -> BOOL);
+        decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
 
         decl.add_ivar::<id>(BACKGROUND_COLOR);
 
-        VIEW_CLASS = decl.register();
+        VIEW_CLASS = Some(decl.register());
     });
 
-    unsafe { VIEW_CLASS }
+    unsafe { VIEW_CLASS.unwrap() }
 }
 ```
 
@@ -377,19 +376,19 @@ Objective-C method signatures, as well as provision space for variable storage (
 For our _delegate_ types, we need a different class creation method - one that creates a subclass per-unique-type:
 
 ``` rust
-pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> *const Class {
+pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> &'static Class {
     load_or_register_class("NSView", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
         decl.add_ivar::<id>(BACKGROUND_COLOR);
 
         decl.add_method(
             sel!(isFlipped),
-            enforce_normalcy as extern "C" fn(&Object, _) -> BOOL
+            enforce_normalcy as extern "C" fn(_, _) -> _,
         );
 
         decl.add_method(
             sel!(draggingEntered:),
-            dragging_entered::<T> as extern "C" fn (&mut Object, _, _) -> NSUInteger
+            dragging_entered::<T> as extern "C" fn (_, _, _) -> _,
         );
     })
 }
@@ -401,18 +400,18 @@ to the Rust `ViewDelegate` implementation.
 The methods we're setting up can range from simple to complex - take `isFlipped`:
 
 ``` rust
-extern "C" fn is_flipped(_: &Object, _: Sel) -> BOOL {
-    return YES;
+extern "C" fn is_flipped(_: &Object, _: Sel) -> Bool {
+    return Bool::YES;
 }
 ```
 
-Here, we just want to tell `NSView` to use top,left as the origin point, so we need to respond `YES` in this subclass method.
+Here, we just want to tell `NSView` to use top,left as the origin point, so we need to respond `Bool::YES` in this subclass method.
 
 ``` rust
 extern "C" fn dragging_entered<T: ViewDelegate>(this: &mut Object, _: Sel, info: id) -> NSUInteger {
     let view = utils::load::<T>(this, VIEW_DELEGATE_PTR);
     view.dragging_entered(DragInfo {
-        info: unsafe { Id::from_ptr(info) }
+        info: unsafe { Id::retain(info).unwrap() }
     }).into()
 }
 ```

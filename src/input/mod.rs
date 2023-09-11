@@ -43,9 +43,11 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
+use core_foundation::base::TCFType;
+
+use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, sel};
 
 use crate::color::Color;
 use crate::control::Control;
@@ -76,7 +78,7 @@ pub use traits::TextFieldDelegate;
 pub(crate) static TEXTFIELD_DELEGATE_PTR: &str = "rstTextFieldDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn common_init(class: *const Class) -> id {
+fn common_init(class: &Class) -> id {
     unsafe {
         let view: id = msg_send![class, new];
 
@@ -306,7 +308,7 @@ impl<T> TextField<T> {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         self.objc.with_mut(|obj| unsafe {
-            let cg = color.as_ref().cg_color();
+            let cg = color.as_ref().cg_color().as_concrete_TypeRef();
             let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: cg];
         });

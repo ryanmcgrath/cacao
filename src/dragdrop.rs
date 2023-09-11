@@ -2,9 +2,9 @@
 //! across the codebase, hence why they're here - they're not currently exhaustive, so feel free to
 //! tinker and pull request.
 
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{msg_send, sel};
 
 use crate::foundation::NSUInteger;
 use crate::pasteboard::Pasteboard;
@@ -54,7 +54,7 @@ impl From<DragOperation> for NSUInteger {
 /// this only provides getters - merely a Rust-y way to grab what you need.
 #[derive(Clone, Debug)]
 pub struct DragInfo {
-    pub info: ShareId<Object>
+    pub info: Id<Object, Shared>
 }
 
 impl DragInfo {

@@ -43,9 +43,11 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
+use core_foundation::base::TCFType;
+
+use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{msg_send, msg_send_id, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
@@ -76,7 +78,7 @@ pub use traits::LabelDelegate;
 pub(crate) static LABEL_DELEGATE_PTR: &str = "rstLabelDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id {
+fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
     unsafe {
         #[cfg(feature = "appkit")]
         let view: id = {
@@ -249,7 +251,7 @@ impl Label {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
+            layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
             objc: ObjcProperty::retain(view)
         }
@@ -324,7 +326,7 @@ impl<T> Label<T> {
         // @TODO: This is wrong.
         // Needs to set ivar and such, akin to View.
         self.objc.with_mut(|obj| unsafe {
-            let color = color.as_ref().cg_color();
+            let color = color.as_ref().cg_color().as_concrete_TypeRef();
             let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: color];
         });

@@ -43,7 +43,7 @@
 //! For more information on Autolayout, view the module or check out the examples folder.
 
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, msg_send_id, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
@@ -217,7 +217,7 @@ impl View {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
+            layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
             #[cfg(all(feature = "appkit", target_os = "macos"))]
             animator: ViewAnimatorProxy::new(view),
@@ -312,7 +312,8 @@ impl<T> View<T> {
 
         #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
-            (&mut *obj).set_ivar(BACKGROUND_COLOR, color);
+            // TODO: Fix this unnecessary retain!
+            (&mut *obj).set_ivar::<id>(BACKGROUND_COLOR, msg_send![color, retain]);
         });
 
         #[cfg(feature = "uikit")]

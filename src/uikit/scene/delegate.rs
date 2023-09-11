@@ -1,5 +1,5 @@
 use objc::runtime::{Class, Object, Protocol, Sel};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, load_or_register_class_with_optional_generated_suffix};
 use crate::uikit::app::SCENE_DELEGATE_VENDOR;
@@ -9,9 +9,9 @@ use crate::utils::load;
 pub(crate) static WINDOW_SCENE_PTR: &str = "rstWindowSceneDelegatePtr";
 
 ///
-extern "C" fn init<T: WindowSceneDelegate, F: Fn() -> Box<T>>(this: &mut Object, _: Sel) -> id {
+extern "C" fn init<T: WindowSceneDelegate, F: Fn() -> Box<T>>(mut this: &mut Object, _: Sel) -> id {
     let x = unsafe {
-        *this = msg_send![super(this, class!(UIResponder)), init];
+        this = msg_send![super(this, class!(UIResponder)), init];
 
         let scene_delegate_vendor = SCENE_DELEGATE_VENDOR as *const F;
         let factory: &F = &*scene_delegate_vendor;
@@ -44,7 +44,7 @@ extern "C" fn scene_will_connect_to_session_with_options<T: WindowSceneDelegate>
 
 /// Registers an `NSObject` application delegate, and configures it for the various callbacks and
 /// pointers we need to have.
-pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn() -> Box<T>>() -> *const Class {
+pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn() -> Box<T>>() -> &'static Class {
     let should_generate_suffix = false;
 
     load_or_register_class_with_optional_generated_suffix("UIResponder", "RSTWindowSceneDelegate", false, |decl| unsafe {
@@ -55,12 +55,12 @@ pub(crate) fn register_window_scene_delegate_class<T: WindowSceneDelegate, F: Fn
         decl.add_protocol(p);
 
         // Override the `init` call to handle creating and attaching a WindowSceneDelegate.
-        decl.add_method(sel!(init), init::<T, F> as extern "C" fn(&mut Object, _) -> id);
+        decl.add_method(sel!(init), init::<T, F> as extern "C" fn(_, _) -> _);
 
         // UIWindowSceneDelegate API
         decl.add_method(
             sel!(scene:willConnectToSession:options:),
-            scene_will_connect_to_session_with_options::<T> as extern "C" fn(&Object, _, _, _, _)
+            scene_will_connect_to_session_with_options::<T> as extern "C" fn(_, _, _, _, _)
         );
     })
 }

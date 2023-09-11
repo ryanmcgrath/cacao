@@ -7,7 +7,7 @@
 use std::error;
 use std::fmt;
 
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, nil, NSInteger, NSString};
 
@@ -58,7 +58,7 @@ impl Error {
         unsafe {
             let domain = NSString::new(&self.domain);
             let code = self.code as NSInteger;
-            msg_send![class!(NSError), errorWithDomain:domain code:code userInfo:nil]
+            msg_send![class!(NSError), errorWithDomain: &*domain, code: code, userInfo: nil]
         }
     }
 }

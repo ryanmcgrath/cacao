@@ -8,7 +8,7 @@ use crate::foundation::load_or_register_class;
 
 /// Injects an `NSWindowController` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_window_controller_class<T: WindowDelegate>() -> *const Class {
+pub(crate) fn register_window_controller_class<T: WindowDelegate>() -> &'static Class {
     load_or_register_class("NSWindowController", "RSTWindowController", |decl| unsafe {
         decl.add_ivar::<usize>(WINDOW_DELEGATE_PTR);
     })

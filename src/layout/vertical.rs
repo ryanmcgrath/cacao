@@ -1,6 +1,6 @@
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{msg_send, msg_send_id, sel};
 
 use crate::foundation::id;
 use crate::layout::constraint::LayoutConstraint;
@@ -13,13 +13,13 @@ pub enum LayoutAnchorY {
     Uninitialized,
 
     /// Represents a top anchor.
-    Top(ShareId<Object>),
+    Top(Id<Object, Shared>),
 
     /// Represents a bottom anchor.
-    Bottom(ShareId<Object>),
+    Bottom(Id<Object, Shared>),
 
     /// Represents a center anchor for the Y axis.
-    Center(ShareId<Object>)
+    Center(Id<Object, Shared>)
 }
 
 impl Default for LayoutAnchorY {
@@ -31,17 +31,17 @@ impl Default for LayoutAnchorY {
 impl LayoutAnchorY {
     /// Given a view, returns an anchor for the top anchor.
     pub(crate) fn top(view: id) -> Self {
-        Self::Top(unsafe { ShareId::from_ptr(msg_send![view, topAnchor]) })
+        Self::Top(unsafe { msg_send_id![view, topAnchor] })
     }
 
     /// Given a view, returns an anchor for the bottom anchor.
     pub(crate) fn bottom(view: id) -> Self {
-        Self::Bottom(unsafe { ShareId::from_ptr(msg_send![view, bottomAnchor]) })
+        Self::Bottom(unsafe { msg_send_id![view, bottomAnchor] })
     }
 
     /// Given a view, returns an anchor for the center Y anchor.
     pub(crate) fn center(view: id) -> Self {
-        Self::Center(unsafe { ShareId::from_ptr(msg_send![view, centerYAnchor]) })
+        Self::Center(unsafe { msg_send_id![view, centerYAnchor] })
     }
 
     /// Boilerplate for handling constraint construction and panic'ing with some more helpful
@@ -49,7 +49,7 @@ impl LayoutAnchorY {
     /// wrong.
     fn constraint_with<F>(&self, anchor_to: &LayoutAnchorY, handler: F) -> LayoutConstraint
     where
-        F: Fn(&ShareId<Object>, &ShareId<Object>) -> id
+        F: Fn(&Id<Object, Shared>, &Id<Object, Shared>) -> id
     {
         match (self, anchor_to) {
             (Self::Top(from), Self::Top(to))
@@ -79,21 +79,21 @@ impl LayoutAnchorY {
     /// Return a constraint equal to another vertical anchor.
     pub fn constraint_equal_to(&self, anchor_to: &LayoutAnchorY) -> LayoutConstraint {
         self.constraint_with(anchor_to, |from, to| unsafe {
-            msg_send![*from, constraintEqualToAnchor:&**to]
+            msg_send![from, constraintEqualToAnchor:&**to]
         })
     }
 
     /// Return a constraint greater than or equal to another vertical anchor.
     pub fn constraint_greater_than_or_equal_to(&self, anchor_to: &LayoutAnchorY) -> LayoutConstraint {
         self.constraint_with(anchor_to, |from, to| unsafe {
-            msg_send![*from, constraintGreaterThanOrEqualToAnchor:&**to]
+            msg_send![from, constraintGreaterThanOrEqualToAnchor:&**to]
         })
     }
 
     /// Return a constraint less than or equal to another vertical anchor.
     pub fn constraint_less_than_or_equal_to(&self, anchor_to: &LayoutAnchorY) -> LayoutConstraint {
         self.constraint_with(anchor_to, |from, to| unsafe {
-            msg_send![*from, constraintLessThanOrEqualToAnchor:&**to]
+            msg_send![from, constraintLessThanOrEqualToAnchor:&**to]
         })
     }
 }

@@ -20,15 +20,16 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 bitmask-enum = "2.2.1"
-block = "0.1.6"
-core-foundation = "0.9"
-core-graphics = "0.23"
+objc = { version = "=0.3.0-beta.2", package = "objc2" }
+block = { version = "=0.2.0-alpha.6", package = "block2" }
+# Temporary: Patched versions that implement `Encode` for common types
+# Branch: `objc2`
+core-foundation = { git = "https://github.com/madsmtm/core-foundation-rs.git", rev = "7d593d016175755e492a92ef89edca68ac3bd5cd" }
+core-graphics = { git = "https://github.com/madsmtm/core-foundation-rs.git", rev = "7d593d016175755e492a92ef89edca68ac3bd5cd" }
 dispatch = "0.2.0"
 infer = { version = "0.15", optional = true }
 lazy_static = "1.4.0"
 libc = "0.2"
-objc = "0.2.7"
-objc_id = "0.1.1"
 os_info = "3.0.1"
 url = "2.1.1"
 uuid = { version = "1.1", features = ["v4"], optional = true }

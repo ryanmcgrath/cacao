@@ -1,9 +1,9 @@
 use bitmask_enum::bitmask;
 use block::ConcreteBlock;
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::events::EventType;
 use crate::foundation::{id, nil, NSInteger, NSPoint, NSString};
@@ -53,15 +53,15 @@ pub enum EventMask {
 
 /// A wrapper over an `NSEvent`.
 #[derive(Debug)]
-pub struct EventMonitor(pub Id<Object>);
+pub struct EventMonitor(pub Id<Object, Owned>);
 
 /// A wrapper over an `NSEvent`.
 #[derive(Debug)]
-pub struct Event(pub Id<Object>);
+pub struct Event(pub Id<Object, Owned>);
 
 impl Event {
     pub(crate) fn new(objc: id) -> Self {
-        Event(unsafe { Id::from_ptr(objc) })
+        Event(unsafe { Id::retain(objc).unwrap() })
     }
 
     /// The event's type.
@@ -137,8 +137,11 @@ impl Event {
         let block = block.copy();
 
         EventMonitor(unsafe {
-            msg_send![class!(NSEvent), addLocalMonitorForEventsMatchingMask:mask.bits
-                handler:block]
+            msg_send_id![
+                class!(NSEvent),
+                addLocalMonitorForEventsMatchingMask: mask.bits,
+                handler: &*block,
+            ]
         })
     }
 
@@ -163,8 +166,11 @@ impl Event {
         let block = block.copy();
 
         EventMonitor(unsafe {
-            msg_send![class!(NSEvent), addGlobalMonitorForEventsMatchingMask:mask.bits
-                handler:block]
+            msg_send_id![
+                class!(NSEvent),
+                addGlobalMonitorForEventsMatchingMask: mask.bits,
+                handler: &*block,
+            ]
         })
     }
 }

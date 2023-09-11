@@ -1,9 +1,9 @@
 use std::path::Path;
 
 use core_graphics::base::CGFloat;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, sel};
 
 use crate::foundation::{id, NSString, NSUInteger, YES};
 use crate::utils::CGSize;

@@ -10,9 +10,9 @@
 
 use std::fmt;
 
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object, Sel};
-use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, load_or_register_class};
 use crate::utils::load;
@@ -46,7 +46,7 @@ impl fmt::Debug for Action {
 #[derive(Debug)]
 pub struct TargetActionHandler {
     action: Box<Action>,
-    invoker: ShareId<Object>
+    invoker: Id<Object, Shared>
 }
 
 impl TargetActionHandler {
@@ -56,18 +56,16 @@ impl TargetActionHandler {
         let ptr = Box::into_raw(block);
 
         let invoker = unsafe {
-            ShareId::from_ptr({
-                let invoker: id = msg_send![register_invoker_class::<F>(), alloc];
-                let invoker: id = msg_send![invoker, init];
-                (&mut *invoker).set_ivar(ACTION_CALLBACK_PTR, ptr as usize);
-                let _: () = msg_send![control, setAction: sel!(perform:)];
-                let _: () = msg_send![control, setTarget: invoker];
-                invoker
-            })
+            let invoker = msg_send_id![register_invoker_class::<F>(), alloc];
+            let mut invoker: Id<Object, Owned> = msg_send_id![invoker, init];
+            invoker.set_ivar(ACTION_CALLBACK_PTR, ptr as usize);
+            let _: () = msg_send![control, setAction: sel!(perform:)];
+            let _: () = msg_send![control, setTarget: &*invoker];
+            invoker.into()
         };
 
         TargetActionHandler {
-            invoker: invoker,
+            invoker,
             action: unsafe { Box::from_raw(ptr) }
         }
     }
@@ -91,9 +89,9 @@ extern "C" fn perform<F: Fn(*const Object) + 'static>(this: &mut Object, _: Sel,
 /// The `NSButton` owns this object on instantiation, and will release it
 /// on drop. We handle the heap copy on the Rust side, so setting the block
 /// is just an ivar.
-pub(crate) fn register_invoker_class<F: Fn(*const Object) + 'static>() -> *const Class {
+pub(crate) fn register_invoker_class<F: Fn(*const Object) + 'static>() -> &'static Class {
     load_or_register_class("NSObject", "RSTTargetActionHandler", |decl| unsafe {
         decl.add_ivar::<usize>(ACTION_CALLBACK_PTR);
-        decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(&mut Object, _, id));
+        decl.add_method(sel!(perform:), perform::<F> as extern "C" fn(_, _, _));
     })
 }

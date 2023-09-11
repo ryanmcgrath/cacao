@@ -15,9 +15,9 @@
 
 use std::path::PathBuf;
 
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 use url::Url;
 
 use crate::error::Error;
@@ -28,33 +28,33 @@ pub use types::{PasteboardName, PasteboardType};
 
 /// Represents an `NSPasteboard`, enabling you to handle copy/paste/drag and drop.
 #[derive(Debug)]
-pub struct Pasteboard(pub ShareId<Object>);
+pub struct Pasteboard(pub Id<Object, Shared>);
 
 impl Default for Pasteboard {
     /// Returns the default system pasteboard (the "general" pasteboard).
     fn default() -> Self {
-        Pasteboard(unsafe { ShareId::from_ptr(msg_send![class!(NSPasteboard), generalPasteboard]) })
+        Pasteboard(unsafe { msg_send_id![class!(NSPasteboard), generalPasteboard] })
     }
 }
 
 impl Pasteboard {
     /// Used internally for wrapping a Pasteboard returned from operations (say, drag and drop).
     pub(crate) fn with(existing: id) -> Self {
-        Pasteboard(unsafe { ShareId::from_ptr(existing) })
+        Pasteboard(unsafe { Id::retain(existing).unwrap() })
     }
 
     /// Retrieves the system Pasteboard for the given name/type.
     pub fn named(name: PasteboardName) -> Self {
         Pasteboard(unsafe {
             let name: NSString = name.into();
-            ShareId::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithName:&*name])
+            msg_send_id![class!(NSPasteboard), pasteboardWithName:&*name]
         })
     }
 
     /// Creates and returns a new pasteboard with a name that is guaranteed to be unique with
     /// respect to other pasteboards in the system.
     pub fn unique() -> Self {
-        Pasteboard(unsafe { ShareId::from_ptr(msg_send![class!(NSPasteboard), pasteboardWithUniqueName]) })
+        Pasteboard(unsafe { msg_send_id![class!(NSPasteboard), pasteboardWithUniqueName] })
     }
 
     /// A shorthand helper method for copying some text to the clipboard.
@@ -63,7 +63,7 @@ impl Pasteboard {
         let ptype: NSString = PasteboardType::String.into();
 
         unsafe {
-            let _: () = msg_send![&*self.0, setString:&*contents forType:ptype];
+            let _: () = msg_send![&*self.0, setString: &*contents, forType: &*ptype];
         }
     }
 
@@ -91,7 +91,7 @@ impl Pasteboard {
         unsafe {
             let class: id = msg_send![class!(NSURL), class];
             let classes = NSArray::new(&[class]);
-            let contents: id = msg_send![&*self.0, readObjectsForClasses:classes options:nil];
+            let contents: id = msg_send![&*self.0, readObjectsForClasses: &*classes, options: nil];
 
             // This can happen if the Pasteboard server has an error in returning items.
             // In our case, we'll bubble up an error by checking the pasteboard.

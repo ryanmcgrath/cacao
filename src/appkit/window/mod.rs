@@ -13,9 +13,9 @@ use block::ConcreteBlock;
 use core_graphics::base::CGFloat;
 use core_graphics::geometry::{CGRect, CGSize};
 
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::appkit::toolbar::{Toolbar, ToolbarDelegate};
 use crate::color::Color;
@@ -47,7 +47,7 @@ pub(crate) static WINDOW_DELEGATE_PTR: &str = "rstWindowDelegate";
 #[derive(Debug)]
 pub struct Window<T = ()> {
     /// Represents an `NS/UIWindow` in the Objective-C runtime.
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object, Shared>,
 
     /// A delegate for this window.
     pub delegate: Option<Box<T>>
@@ -72,40 +72,38 @@ impl Window {
             // apps that would use this toolkit wouldn't be tab-oriented...
             let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing: NO];
 
-            let alloc: id = msg_send![class!(NSWindow), alloc];
-
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
             let buffered: NSUInteger = 2;
             let dimensions: CGRect = config.initial_dimensions.into();
-            let window: id = msg_send![alloc, initWithContentRect:dimensions
-                styleMask:config.style
-                backing:buffered
-                defer:match config.defer {
+            let window: Id<_, _> = msg_send_id![
+                msg_send_id![class!(NSWindow), alloc],
+                initWithContentRect: dimensions,
+                styleMask: config.style,
+                backing: buffered,
+                defer: match config.defer {
                     true => YES,
                     false => NO
-                }
+                },
             ];
-
-            let _: () = msg_send![window, autorelease];
 
             // This is very important! NSWindow is an old class and has some behavior that we need
             // to disable, like... this. If we don't set this, we'll segfault entirely because the
             // Objective-C runtime gets out of sync by releasing the window out from underneath of
             // us.
-            let _: () = msg_send![window, setReleasedWhenClosed: NO];
+            let _: () = msg_send![&*window, setReleasedWhenClosed: NO];
 
-            let _: () = msg_send![window, setRestorable: NO];
+            let _: () = msg_send![&*window, setRestorable: NO];
 
             // This doesn't exist prior to Big Sur, but is important to support for Big Sur.
             //
             // Why this isn't a setting on the Toolbar itself I'll never know.
             if os::is_minimum_version(11) {
                 let toolbar_style: NSUInteger = config.toolbar_style.into();
-                let _: () = msg_send![window, setToolbarStyle: toolbar_style];
+                let _: () = msg_send![&*window, setToolbarStyle: toolbar_style];
             }
 
-            ShareId::from_ptr(window)
+            window
         };
 
         Window {
@@ -116,7 +114,7 @@ impl Window {
 
     pub(crate) unsafe fn existing(window: *mut Object) -> Window {
         Window {
-            objc: ShareId::from_ptr(window),
+            objc: Id::retain(window).unwrap(),
             delegate: None
         }
     }
@@ -134,51 +132,49 @@ where
         let class = register_window_class_with_delegate::<T>(&delegate);
         let mut delegate = Box::new(delegate);
 
-        let objc = unsafe {
+        let objc: Id<Object, Shared> = unsafe {
             // This behavior might make sense to keep as default (YES), but I think the majority of
             // apps that would use this toolkit wouldn't be tab-oriented...
             let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing: NO];
-
-            let alloc: id = msg_send![class, alloc];
 
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
             let buffered: NSUInteger = 2;
             let dimensions: CGRect = config.initial_dimensions.into();
-            let window: id = msg_send![alloc, initWithContentRect:dimensions
-                styleMask:config.style
-                backing:buffered
-                defer:match config.defer {
+            let mut window: Id<Object, Owned> = msg_send_id![
+                msg_send_id![class, alloc],
+                initWithContentRect: dimensions,
+                styleMask: config.style,
+                backing: buffered,
+                defer: match config.defer {
                     true => YES,
                     false => NO
-                }
+                },
             ];
 
             let delegate_ptr: *const T = &*delegate;
-            (&mut *window).set_ivar(WINDOW_DELEGATE_PTR, delegate_ptr as usize);
-
-            let _: () = msg_send![window, autorelease];
+            window.set_ivar(WINDOW_DELEGATE_PTR, delegate_ptr as usize);
 
             // This is very important! NSWindow is an old class and has some behavior that we need
             // to disable, like... this. If we don't set this, we'll segfault entirely because the
             // Objective-C runtime gets out of sync by releasing the window out from underneath of
             // us.
-            let _: () = msg_send![window, setReleasedWhenClosed: NO];
+            let _: () = msg_send![&*window, setReleasedWhenClosed: NO];
 
             // We set the window to be its own delegate - this is cleaned up inside `Drop`.
-            let _: () = msg_send![window, setDelegate: window];
+            let _: () = msg_send![&*window, setDelegate: &*window];
 
-            let _: () = msg_send![window, setRestorable: NO];
+            let _: () = msg_send![&*window, setRestorable: NO];
 
             // This doesn't exist prior to Big Sur, but is important to support for Big Sur.
             //
             // Why this isn't a setting on the Toolbar itself I'll never know.
             if os::is_minimum_version(11) {
                 let toolbar_style: NSUInteger = config.toolbar_style.into();
-                let _: () = msg_send![window, setToolbarStyle: toolbar_style];
+                let _: () = msg_send![&*window, setToolbarStyle: toolbar_style];
             }
 
-            ShareId::from_ptr(window)
+            window.into()
         };
 
         {
@@ -201,7 +197,7 @@ impl<T> Window<T> {
     pub fn set_title(&self, title: &str) {
         unsafe {
             let title = NSString::new(title);
-            let _: () = msg_send![&*self.objc, setTitle: title];
+            let _: () = msg_send![&*self.objc, setTitle: &*title];
         }
     }
 
@@ -216,7 +212,7 @@ impl<T> Window<T> {
 
         unsafe {
             let subtitle = NSString::new(subtitle);
-            let _: () = msg_send![&*self.objc, setSubtitle: subtitle];
+            let _: () = msg_send![&*self.objc, setSubtitle: &*subtitle];
         }
     }
 
@@ -252,7 +248,7 @@ impl<T> Window<T> {
     pub fn set_autosave_name(&self, name: &str) {
         unsafe {
             let autosave = NSString::new(name);
-            let _: () = msg_send![&*self.objc, setFrameAutosaveName: autosave];
+            let _: () = msg_send![&*self.objc, setFrameAutosaveName: &*autosave];
         }
     }
 
@@ -296,11 +292,8 @@ impl<T> Window<T> {
     }
 
     /// Used for setting a toolbar on this window.
-    pub fn toolbar(&self) -> ShareId<Object> {
-        unsafe {
-            let o: *mut Object = msg_send![&*self.objc, toolbar];
-            ShareId::from_ptr(o)
-        }
+    pub fn toolbar(&self) -> Id<Object, Shared> {
+        unsafe { msg_send_id![&self.objc, toolbar] }
     }
 
     /// Toggles whether the toolbar is shown for this window. Has no effect if no toolbar exists on
@@ -514,7 +507,7 @@ impl<T> Window<T> {
         let block = block.copy();
 
         unsafe {
-            let _: () = msg_send![&*self.objc, beginSheet:&*window.objc completionHandler:block];
+            let _: () = msg_send![&*self.objc, beginSheet: &*window.objc, completionHandler: &*block];
         }
     }
 

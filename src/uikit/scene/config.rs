@@ -1,6 +1,6 @@
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, load_or_register_class, ClassMap, NSString};
 
@@ -10,7 +10,7 @@ use crate::uikit::scene::SessionRole;
 ///
 /// Due to the way we have to implement this, you likely never need to touch this.
 #[derive(Debug)]
-pub struct SceneConfig(Id<Object>);
+pub struct SceneConfig(pub Id<Object, Owned>);
 
 impl SceneConfig {
     /// Creates a new `UISceneConfiguration` with the specified name and session role, retains it,
@@ -24,20 +24,15 @@ impl SceneConfig {
             let role = NSString::from(role);
 
             let cls = class!(UISceneConfiguration);
-            let config: id = msg_send![cls, configurationWithName:name sessionRole:role];
+            let mut config = msg_send_id![cls, configurationWithName: &*name, sessionRole: &*role];
 
-            let _: () = msg_send![config, setSceneClass: class!(UIWindowScene)];
+            let _: () = msg_send![&mut config, setSceneClass: class!(UIWindowScene)];
 
             // TODO: use register_window_scene_delegate_class rather than load_or_register_class.
             let window_delegate = load_or_register_class("UIResponder", "RSTWindowSceneDelegate", |decl| unsafe {});
-            let _: () = msg_send![config, setDelegateClass: window_delegate];
+            let _: () = msg_send![&mut config, setDelegateClass: window_delegate];
 
-            Id::from_ptr(config)
+            config
         })
-    }
-
-    /// Consumes and returns the underlying `UISceneConfiguration`.
-    pub fn into_inner(mut self) -> id {
-        &mut *self.0
     }
 }

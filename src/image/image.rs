@@ -1,7 +1,7 @@
-use objc::runtime::{Class, Object};
-use objc_id::ShareId;
+use objc::rc::{Id, Shared};
+use objc::runtime::{Bool, Class, Object};
 
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use block::ConcreteBlock;
 
@@ -12,7 +12,7 @@ use core_graphics::{
 };
 
 use super::icons::*;
-use crate::foundation::{id, NSData, NSString, NO, NSURL, YES};
+use crate::foundation::{id, NSData, NSString, NSURL};
 use crate::utils::os;
 
 /// Specifies resizing behavior for image drawing.
@@ -119,7 +119,7 @@ pub struct DrawConfig {
 /// Wraps `NSImage` under AppKit, and `UIImage` on under UIKit (iOS and tvOS). Can be used to display images, icons,
 /// and so on.
 #[derive(Clone, Debug)]
-pub struct Image(pub ShareId<Object>);
+pub struct Image(pub Id<Object, Shared>);
 
 impl Image {
     fn class() -> &'static Class {
@@ -133,7 +133,7 @@ impl Image {
 
     /// Wraps a system-returned image, e.g from QuickLook previews.
     pub fn with(image: id) -> Self {
-        Image(unsafe { ShareId::from_ptr(image) })
+        Image(unsafe { Id::retain(image).unwrap() })
     }
 
     /// Loads an image from the specified path.
@@ -141,16 +141,16 @@ impl Image {
         let file_path = NSString::new(path);
 
         Image(unsafe {
-            let alloc: id = msg_send![Self::class(), alloc];
-            ShareId::from_ptr(msg_send![alloc, initWithContentsOfFile: file_path])
+            let alloc = msg_send_id![Self::class(), alloc];
+            msg_send_id![alloc, initWithContentsOfFile: &*file_path]
         })
     }
 
     #[cfg(target_os = "macos")]
     pub fn with_contents_of_url(url: NSURL) -> Self {
         Image(unsafe {
-            let alloc: id = msg_send![Self::class(), alloc];
-            ShareId::from_ptr(msg_send![alloc, initWithContentsOfURL: url.objc])
+            let alloc = msg_send_id![Self::class(), alloc];
+            msg_send_id![alloc, initWithContentsOfURL: &*url.objc]
         })
     }
 
@@ -160,8 +160,8 @@ impl Image {
         let data = NSData::with_slice(data);
 
         Image(unsafe {
-            let alloc: id = msg_send![Self::class(), alloc];
-            ShareId::from_ptr(msg_send![alloc, initWithData: data])
+            let alloc = msg_send_id![Self::class(), alloc];
+            msg_send_id![alloc, initWithData: &*data]
         })
     }
 
@@ -172,10 +172,8 @@ impl Image {
     #[cfg(target_os = "macos")]
     pub fn system_icon(icon: MacSystemIcon) -> Self {
         Image(unsafe {
-            ShareId::from_ptr({
-                let icon = icon.to_id();
-                msg_send![Self::class(), imageNamed: icon]
-            })
+            let icon = icon.to_id();
+            msg_send_id![Self::class(), imageNamed: icon]
         })
     }
 
@@ -192,19 +190,22 @@ impl Image {
     #[cfg(target_os = "macos")]
     pub fn toolbar_icon(icon: MacSystemIcon, accessibility_description: &str) -> Self {
         Image(unsafe {
-            ShareId::from_ptr(match os::is_minimum_version(11) {
+            match os::is_minimum_version(11) {
                 true => {
                     let icon = NSString::new(icon.to_sfsymbol_str());
                     let desc = NSString::new(accessibility_description);
-                    msg_send![Self::class(), imageWithSystemSymbolName:&*icon
-                        accessibilityDescription:&*desc]
+                    msg_send_id![
+                        Self::class(),
+                        imageWithSystemSymbolName: &*icon,
+                        accessibilityDescription: &*desc,
+                    ]
                 },
 
                 false => {
                     let icon = icon.to_id();
-                    msg_send![Self::class(), imageNamed: icon]
+                    msg_send_id![Self::class(), imageNamed: icon]
                 }
-            })
+            }
         })
     }
 
@@ -226,12 +227,15 @@ impl Image {
         let min_version = 13;
 
         Image(unsafe {
-            ShareId::from_ptr(match os::is_minimum_version(min_version) {
+            match os::is_minimum_version(min_version) {
                 true => {
                     let icon = NSString::new(symbol.to_str());
                     let desc = NSString::new(accessibility_description);
-                    msg_send![Self::class(), imageWithSystemSymbolName:&*icon
-                        accessibilityDescription:&*desc]
+                    msg_send_id![
+                        Self::class(),
+                        imageWithSystemSymbolName:&*icon,
+                        accessibilityDescription:&*desc,
+                    ]
                 },
 
                 false => {
@@ -241,7 +245,7 @@ impl Image {
                     #[cfg(all(feature = "uikit", not(feature = "appkit")))]
                     panic!("SFSymbols are only supported on macOS 11.0 and up.");
                 }
-            })
+            }
         })
     }
 
@@ -276,20 +280,17 @@ impl Image {
 
             let _: () = msg_send![class!(NSGraphicsContext), restoreGraphicsState];
 
-            match result {
-                true => YES,
-                false => NO
-            }
+            Bool::new(result)
         });
         let block = block.copy();
 
         Image(unsafe {
-            let img: id = msg_send![Self::class(), imageWithSize:target_frame.size
-                flipped:YES
-                drawingHandler:block
-            ];
-
-            ShareId::from_ptr(img)
+            msg_send_id![
+                Self::class(),
+                imageWithSize: target_frame.size,
+                flipped: Bool::YES,
+                drawingHandler: &*block,
+            ]
         })
     }
 }

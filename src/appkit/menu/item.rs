@@ -4,9 +4,9 @@
 
 use std::fmt;
 
+use objc::rc::{Id, Owned};
 use objc::runtime::{Class, Object, Sel};
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::events::EventModifierFlag;
 use crate::foundation::{id, load_or_register_class, NSString, NSUInteger};
@@ -37,7 +37,7 @@ fn make_menu_item<S: AsRef<str>>(
     key: Option<&str>,
     action: Option<Sel>,
     modifiers: Option<&[EventModifierFlag]>
-) -> Id<Object> {
+) -> Id<Object, Owned> {
     unsafe {
         let title = NSString::new(title.as_ref());
 
@@ -50,14 +50,21 @@ fn make_menu_item<S: AsRef<str>>(
         // Stock menu items that use selectors targeted at system pieces are just standard
         // `NSMenuItem`s. If there's no custom ones, we use our subclass that has a slot to store a
         // handler pointer.
-        let alloc: id = msg_send![register_menu_item_class(), alloc];
-        let item = Id::from_retained_ptr(match action {
-            Some(a) => msg_send![alloc, initWithTitle:&*title action:a keyEquivalent:&*key],
-
-            None => msg_send![alloc, initWithTitle:&*title
-                action:sel!(fireBlockAction:)
-                keyEquivalent:&*key]
-        });
+        let alloc = msg_send_id![register_menu_item_class(), alloc];
+        let item: Id<_, _> = match action {
+            Some(a) => msg_send_id![
+                alloc,
+                initWithTitle: &*title,
+                action: a,
+                keyEquivalent: &*key,
+            ],
+            None => msg_send_id![
+                alloc,
+                initWithTitle: &*title,
+                action: sel!(fireBlockAction:),
+                keyEquivalent: &*key,
+            ]
+        };
 
         if let Some(modifiers) = modifiers {
             let mut key_mask: NSUInteger = 0;
@@ -83,7 +90,7 @@ pub enum MenuItem {
     /// You can (and should) create this variant via the `new(title)` method, but if you need to do
     /// something crazier, then wrap it in this and you can hook into the Cacao menu system
     /// accordingly.
-    Custom(Id<Object>),
+    Custom(Id<Object, Owned>),
 
     /// Shows a standard "About" item,  which will bring up the necessary window when clicked
     /// (include a `credits.html` in your App to make use of here). The argument baked in here
@@ -150,7 +157,7 @@ pub enum MenuItem {
 impl MenuItem {
     /// Consumes and returns a handle for the underlying MenuItem. This is internal as we make a few assumptions
     /// for how it interacts with our `Menu` setup, but this could be made public in the future.
-    pub(crate) unsafe fn to_objc(self) -> Id<Object> {
+    pub(crate) unsafe fn to_objc(self) -> Id<Object, Owned> {
         match self {
             Self::Custom(objc) => objc,
 
@@ -211,8 +218,7 @@ impl MenuItem {
 
             Self::Separator => {
                 let cls = class!(NSMenuItem);
-                let separator: id = msg_send![cls, separatorItem];
-                Id::from_ptr(separator)
+                msg_send_id![cls, separatorItem]
             }
         }
     }
@@ -229,7 +235,7 @@ impl MenuItem {
         if let MenuItem::Custom(objc) = self {
             unsafe {
                 let key = NSString::new(key);
-                let _: () = msg_send![&*objc, setKeyEquivalent: key];
+                let _: () = msg_send![&*objc, setKeyEquivalent: &*key];
             }
 
             return MenuItem::Custom(objc);
@@ -314,11 +320,11 @@ extern "C" fn fire_block_action(this: &Object, _: Sel, _item: id) {
 ///
 /// In general, we do not want to do more than we need to here - menus are one of the last areas
 /// where Carbon still lurks, and subclassing things can get weird.
-pub(crate) fn register_menu_item_class() -> *const Class {
+pub(crate) fn register_menu_item_class() -> &'static Class {
     load_or_register_class("NSMenuItem", "CacaoMenuItem", |decl| unsafe {
         decl.add_ivar::<usize>(BLOCK_PTR);
 
-        decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern "C" fn(&Object, _));
-        decl.add_method(sel!(fireBlockAction:), fire_block_action as extern "C" fn(&Object, _, id));
+        decl.add_method(sel!(dealloc), dealloc_cacao_menuitem as extern "C" fn(_, _));
+        decl.add_method(sel!(fireBlockAction:), fire_block_action as extern "C" fn(_, _, _));
     })
 }

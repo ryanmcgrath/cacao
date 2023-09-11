@@ -1,5 +1,7 @@
 //! Various types used for Toolbar configuration.
 
+use objc::rc::Id;
+
 use crate::foundation::{id, NSString, NSUInteger};
 
 /// Represents the display mode(s) a Toolbar can render in.
@@ -95,7 +97,8 @@ impl ItemIdentifier {
     pub(crate) fn to_nsstring(&self) -> id {
         unsafe {
             match self {
-                Self::Custom(s) => NSString::new(s).into(),
+                // FIXME: We shouldn't use autorelease here
+                Self::Custom(s) => Id::autorelease_return(NSString::new(s).objc),
                 Self::CloudSharing => NSToolbarCloudSharingItemIdentifier,
                 Self::FlexibleSpace => NSToolbarFlexibleSpaceItemIdentifier,
                 Self::Print => NSToolbarPrintItemIdentifier,
@@ -106,7 +109,10 @@ impl ItemIdentifier {
 
                 // This ensures that the framework compiles and runs on 10.15.7 and lower; it will
                 // not actually work on anything except 11.0+. Use a runtime check to be safe.
-                Self::SidebarTracker => NSString::no_copy("NSToolbarSidebarTrackingSeparatorItemIdentifier").into()
+                // FIXME: We shouldn't use autorelease here
+                Self::SidebarTracker => {
+                    Id::autorelease_return(NSString::no_copy("NSToolbarSidebarTrackingSeparatorItemIdentifier").objc)
+                },
             }
         }
     }

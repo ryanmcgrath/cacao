@@ -1,7 +1,7 @@
 use objc::declare::ClassDecl;
+use objc::rc::{Id, Owned};
 use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, sel};
 
 use crate::foundation::load_or_register_class;
 use crate::foundation::{id, NSUInteger, NO, YES};
@@ -11,13 +11,13 @@ use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};
 /// Injects an `NSView` subclass. This is used for the default views that don't use delegates - we
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
-pub(crate) fn register_view_class() -> *const Class {
+pub(crate) fn register_view_class() -> &'static Class {
     load_or_register_class("UIView", "RSTView", |decl| unsafe {})
 }
 
 /// Injects a `UIView` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> *const Class {
+pub(crate) fn register_view_class_with_delegate<T: ViewDelegate>(instance: &T) -> &'static Class {
     load_or_register_class("UIView", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(VIEW_DELEGATE_PTR);
     })

@@ -4,9 +4,9 @@ use std::ops::Deref;
 
 use core_graphics::base::CGFloat;
 
+use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
 use crate::utils::os;
@@ -14,7 +14,7 @@ use crate::utils::os;
 /// A `Font` can be constructed and applied to supported controls to control things like text
 /// appearance and size.
 #[derive(Clone, Debug)]
-pub struct Font(pub ShareId<Object>);
+pub struct Font(pub Id<Object, Shared>);
 
 impl Default for Font {
     /// Returns the default `labelFont` on macOS.
@@ -23,10 +23,10 @@ impl Default for Font {
         let default_size: id = unsafe { msg_send![cls, labelFontSize] };
 
         #[cfg(feature = "appkit")]
-        let font = Font(unsafe { ShareId::from_ptr(msg_send![cls, labelFontOfSize: default_size]) });
+        let font = Font(unsafe { msg_send_id![cls, labelFontOfSize: default_size] });
 
         #[cfg(all(feature = "uikit", not(feature = "appkit")))]
-        let font = Font(unsafe { ShareId::from_ptr(msg_send![cls, systemFontOfSize: default_size]) });
+        let font = Font(unsafe { msg_send_id![cls, systemFontOfSize: default_size] });
         font
     }
 }
@@ -44,14 +44,14 @@ impl Font {
     pub fn system(size: f64) -> Self {
         let size = size as CGFloat;
 
-        Font(unsafe { ShareId::from_ptr(msg_send![Self::class(), systemFontOfSize: size]) })
+        Font(unsafe { msg_send_id![Self::class(), systemFontOfSize: size] })
     }
 
     /// Creates and returns a default bold system font at the specified size.
     pub fn bold_system(size: f64) -> Self {
         let size = size as CGFloat;
 
-        Font(unsafe { ShareId::from_ptr(msg_send![Self::class(), boldSystemFontOfSize: size]) })
+        Font(unsafe { msg_send_id![Self::class(), boldSystemFontOfSize: size] })
     }
 
     /// Creates and returns a monospace system font at the specified size and weight
@@ -67,9 +67,9 @@ impl Font {
         let weight = weight as CGFloat;
 
         if os::is_minimum_semversion(10, 15, 0) {
-            Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), monospacedSystemFontOfSize: size weight: weight]) })
+            Font(unsafe { msg_send_id![class!(NSFont), monospacedSystemFontOfSize: size, weight: weight] })
         } else {
-            Font(unsafe { ShareId::from_ptr(msg_send![class!(NSFont), systemFontOfSize: size weight: weight ]) })
+            Font(unsafe { msg_send_id![class!(NSFont), systemFontOfSize: size, weight: weight] })
         }
     }
 }

@@ -1,5 +1,5 @@
 use block::ConcreteBlock;
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
 use crate::foundation::id;
 
@@ -39,7 +39,7 @@ impl AnimationContext {
 
         unsafe {
             //let context: id = msg_send![class!(NSAnimationContext), currentContext];
-            let _: () = msg_send![class!(NSAnimationContext), runAnimationGroup: block];
+            let _: () = msg_send![class!(NSAnimationContext), runAnimationGroup: &*block];
         }
     }
 
@@ -66,8 +66,11 @@ impl AnimationContext {
 
         unsafe {
             //let context: id = msg_send![class!(NSAnimationContext), currentContext];
-            let _: () = msg_send![class!(NSAnimationContext), runAnimationGroup:block
-                completionHandler:completion_block];
+            let _: () = msg_send![
+                class!(NSAnimationContext),
+                runAnimationGroup: &*block,
+                completionHandler: &*completion_block,
+            ];
         }
     }
 }

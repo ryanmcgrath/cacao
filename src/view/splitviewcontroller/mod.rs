@@ -1,6 +1,6 @@
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::appkit::toolbar::ToolbarItem;
 use crate::foundation::{id, nil, NSString};
@@ -16,7 +16,7 @@ use crate::view::{View, ViewController, ViewDelegate};
 #[derive(Debug)]
 pub struct SplitViewItem<T> {
     /// The underlying Objective-C Object.
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object, Shared>,
 
     /// The wrapped ViewController.
     pub view_controller: ViewController<T>
@@ -33,9 +33,9 @@ where
 
         SplitViewItem {
             objc: unsafe {
-                ShareId::from_ptr(msg_send![class!(NSSplitViewItem),
+                msg_send_id![class!(NSSplitViewItem),
                     splitViewItemWithViewController:&*view_controller.objc
-                ])
+                ]
             },
 
             view_controller
@@ -59,9 +59,9 @@ where
 
             SplitViewItem {
                 objc: unsafe {
-                    ShareId::from_ptr(msg_send![class!(NSSplitViewItem),
+                    msg_send_id![class!(NSSplitViewItem),
                         sidebarWithViewController:&*view_controller.objc
-                    ])
+                    ]
                 },
 
                 view_controller
@@ -112,7 +112,7 @@ where
 #[derive(Debug)]
 pub struct SplitViewController<Sidebar, Content, Details> {
     /// A reference to the underlying Objective-C split view controller.
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object, Shared>,
 
     /// A reference to the sidebar `SplitViewItem`.
     pub sidebar: SplitViewItem<Sidebar>,
@@ -141,15 +141,15 @@ where
         };
 
         let objc = unsafe {
-            let vc: id = msg_send![class!(NSSplitViewController), new];
-            let _: () = msg_send![vc, addSplitViewItem:&*sidebar.objc];
-            let _: () = msg_send![vc, addSplitViewItem:&*content.objc];
+            let vc = msg_send_id![class!(NSSplitViewController), new];
+            let _: () = msg_send![&vc, addSplitViewItem:&*sidebar.objc];
+            let _: () = msg_send![&vc, addSplitViewItem:&*content.objc];
 
             if let Some(details) = &details {
-                let _: () = msg_send![vc, addSplitViewItem:&*details.objc];
+                let _: () = msg_send![&vc, addSplitViewItem:&*details.objc];
             }
 
-            ShareId::from_ptr(vc)
+            vc
         };
 
         SplitViewController {
@@ -186,7 +186,7 @@ impl<Sidebar, Content, Details> SplitViewController<Sidebar, Content, Details> {
 }
 
 impl<Sidebar, Content, Details> Controller for SplitViewController<Sidebar, Content, Details> {
-    fn get_backing_node(&self) -> ShareId<Object> {
+    fn get_backing_node(&self) -> Id<Object, Shared> {
         self.objc.clone()
     }
 }

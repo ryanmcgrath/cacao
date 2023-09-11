@@ -1,8 +1,8 @@
 use core_graphics::geometry::CGRect;
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::id;
 use crate::geometry::Rect;
@@ -10,20 +10,20 @@ use crate::uikit::Scene;
 use crate::utils::Controller;
 
 #[derive(Debug)]
-pub struct Window(pub Id<Object>);
+pub struct Window(pub Id<Object, Owned>);
 
 impl Window {
     pub fn new(frame: Rect) -> Self {
         Window(unsafe {
             let rect: CGRect = frame.into();
-            let alloc: id = msg_send![class!(UIWindow), alloc];
-            Id::from_ptr(msg_send![alloc, initWithFrame: rect])
+            let alloc = msg_send_id![class!(UIWindow), alloc];
+            msg_send_id![alloc, initWithFrame: rect]
         })
     }
 
     pub fn set_window_scene(&mut self, scene: Scene) {
         unsafe {
-            let _: () = msg_send![&*self.0, setWindowScene:scene.into_inner()];
+            let _: () = msg_send![&*self.0, setWindowScene: &*scene.0];
         }
     }
 

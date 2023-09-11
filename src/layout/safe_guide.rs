@@ -1,4 +1,4 @@
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, sel};
 
 use crate::foundation::id;
 use crate::layout::{LayoutAnchorDimension, LayoutAnchorX, LayoutAnchorY};

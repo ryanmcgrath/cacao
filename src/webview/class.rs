@@ -9,10 +9,10 @@ use std::sync::Once;
 use block::Block;
 
 use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel, BOOL};
-use objc::{class, msg_send, sel, sel_impl};
+use objc::runtime::{Bool, Class, Object, Sel};
+use objc::{class, msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSArray, NSInteger, NSString};
 use crate::webview::actions::{NavigationAction, NavigationResponse};
 use crate::webview::{mimetype::MimeType, WebViewDelegate, WEBVIEW_DELEGATE_PTR}; //, OpenPanelParameters};
                                                                                  //use crate::webview::enums::{NavigationPolicy, NavigationResponsePolicy};
@@ -21,7 +21,7 @@ use crate::utils::load;
 /// Called when an `alert()` from the underlying `WKWebView` is fired. Will call over to your
 /// `WebViewController`, where you should handle the event.
 extern "C" fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, _: id, _: id, complete: id) {
-    //let alert = NSString::wrap(s).to_str();
+    //let alert = NSString::retain(s).to_str();
 
     // @TODO: This is technically (I think?) a private method, and there's some other dance that
     // needs to be done here involving taking the pointer/invoke/casting... but this is fine for
@@ -48,8 +48,8 @@ extern "C" fn on_message<T: WebViewDelegate>(this: &Object, _: Sel, _: id, scrip
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     unsafe {
-        let name = NSString::from_retained(msg_send![script_message, name]);
-        let body = NSString::retain(msg_send![script_message, body]);
+        let name = NSString::from_id(msg_send_id![script_message, name]);
+        let body = NSString::from_id(msg_send_id![script_message, body]);
         delegate.on_message(name.to_str(), body.to_str());
     }
 }
@@ -62,14 +62,19 @@ extern "C" fn start_url_scheme_task<T: WebViewDelegate>(this: &Object, _: Sel, _
         let request: id = msg_send![task, request];
         let url: id = msg_send![request, URL];
 
-        let uri = NSString::from_retained(msg_send![url, absoluteString]);
+        let uri = NSString::from_id(msg_send_id![url, absoluteString]);
         let uri_str = uri.to_str();
 
         if let Some(content) = delegate.on_custom_protocol_request(uri_str) {
             let mime = MimeType::parse(&content, uri_str);
             let nsurlresponse: id = msg_send![class!(NSURLResponse), alloc];
-            let response: id = msg_send![nsurlresponse, initWithURL:url MIMEType:NSString::new(&mime)
-                expectedContentLength:content.len() textEncodingName:null::<c_void>()];
+            let response: id = msg_send![
+                nsurlresponse,
+                initWithURL: url,
+                MIMEType: &*NSString::new(&mime),
+                expectedContentLength: content.len(),
+                textEncodingName: null::<c_void>(),
+            ];
             let _: () = msg_send![task, didReceiveResponse: response];
 
             // Send data
@@ -94,7 +99,7 @@ extern "C" fn decide_policy_for_action<T: WebViewDelegate>(this: &Object, _: Sel
     let action = NavigationAction::new(action);
 
     delegate.policy_for_navigation_action(action, |policy| unsafe {
-        let handler = handler as *const Block<(NSInteger,), c_void>;
+        let handler = handler as *const Block<(NSInteger,), ()>;
         (*handler).call((policy.into(),));
     });
 }
@@ -106,7 +111,7 @@ extern "C" fn decide_policy_for_response<T: WebViewDelegate>(this: &Object, _: S
     let response = NavigationResponse::new(response);
 
     delegate.policy_for_navigation_response(response, |policy| unsafe {
-        let handler = handler as *const Block<(NSInteger,), c_void>;
+        let handler = handler as *const Block<(NSInteger,), ()>;
         (*handler).call((policy.into(),));
     });
 }
@@ -116,11 +121,11 @@ extern "C" fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, p
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
     delegate.run_open_panel(params.into(), move |urls| unsafe {
-        let handler = handler as *const Block<(id,), c_void>;
+        let handler = handler as *const Block<(id,), ()>;
 
         match urls {
             Some(u) => {
-                let nsurls: NSArray = u
+                let mut nsurls: NSArray = u
                     .iter()
                     .map(|s| {
                         let s = NSString::new(s);
@@ -129,7 +134,7 @@ extern "C" fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, p
                     .collect::<Vec<id>>()
                     .into();
 
-                (*handler).call((nsurls.into(),));
+                (*handler).call((&mut *nsurls.0,));
             },
 
             None => {
@@ -146,84 +151,75 @@ extern "C" fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, p
 extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
-    let handler = handler as *const Block<(objc::runtime::BOOL, id), c_void>;
-    let filename = NSString::from_retained(suggested_filename);
+    let handler = handler as *const Block<(objc::runtime::Bool, id), ()>;
+    let filename = NSString::retain(suggested_filename);
 
     delegate.run_save_panel(filename.to_str(), move |can_overwrite, path| unsafe {
         if path.is_none() {
             let _: () = msg_send![download, cancel];
         }
 
-        let path = NSString::new(&path.unwrap());
+        let mut path = NSString::new(&path.unwrap());
 
-        (*handler).call((
-            match can_overwrite {
-                true => YES,
-                false => NO
-            },
-            path.into()
-        ));
+        (*handler).call((Bool::new(can_overwrite), &mut *path.objc));
     });
 }
 
 /// Whether the view should be sent a mouseDown event for the first click when not focused.
-extern "C" fn accepts_first_mouse(_: &mut Object, _: Sel, _: id) -> BOOL {
-    YES
+extern "C" fn accepts_first_mouse(_: &mut Object, _: Sel, _: id) -> Bool {
+    Bool::YES
 }
 
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
-pub fn register_webview_class() -> *const Class {
+pub fn register_webview_class() -> &'static Class {
     load_or_register_class("WKWebView", "CacaoWebView", |decl| unsafe {
-        decl.add_method(
-            sel!(acceptsFirstMouse:),
-            accepts_first_mouse as extern "C" fn(&mut Object, Sel, id) -> BOOL
-        );
+        decl.add_method(sel!(acceptsFirstMouse:), accepts_first_mouse as extern "C" fn(_, _, _) -> _);
     })
 }
 
 /// Registers an `NSViewController` that we effectively turn into a `WebViewController`. Acts as
 /// both a subclass of `NSViewController` and a delegate of the held `WKWebView` (for the various
 /// varieties of delegates needed there).
-pub fn register_webview_delegate_class<T: WebViewDelegate>(instance: &T) -> *const Class {
+pub fn register_webview_delegate_class<T: WebViewDelegate>(instance: &T) -> &'static Class {
     load_or_register_class("NSObject", instance.subclass_name(), |decl| unsafe {
         decl.add_ivar::<usize>(WEBVIEW_DELEGATE_PTR);
 
         // WKNavigationDelegate
         decl.add_method(
             sel!(webView:decidePolicyForNavigationAction:decisionHandler:),
-            decide_policy_for_action::<T> as extern "C" fn(&Object, _, _, id, usize)
+            decide_policy_for_action::<T> as extern "C" fn(_, _, _, _, _)
         );
         decl.add_method(
             sel!(webView:decidePolicyForNavigationResponse:decisionHandler:),
-            decide_policy_for_response::<T> as extern "C" fn(&Object, _, _, id, usize)
+            decide_policy_for_response::<T> as extern "C" fn(_, _, _, _, _)
         );
 
         // WKScriptMessageHandler
         decl.add_method(
             sel!(userContentController:didReceiveScriptMessage:),
-            on_message::<T> as extern "C" fn(&Object, _, _, id)
+            on_message::<T> as extern "C" fn(_, _, _, _)
         );
 
         // Custom protocol handler
         decl.add_method(
             sel!(webView:startURLSchemeTask:),
-            start_url_scheme_task::<T> as extern "C" fn(&Object, Sel, id, id)
+            start_url_scheme_task::<T> as extern "C" fn(_, _, _, _)
         );
         decl.add_method(
             sel!(webView:stopURLSchemeTask:),
-            stop_url_scheme_task::<T> as extern "C" fn(&Object, Sel, id, id)
+            stop_url_scheme_task::<T> as extern "C" fn(_, _, _, _)
         );
 
         // WKUIDelegate
         decl.add_method(
             sel!(webView:runJavaScriptAlertPanelWithMessage:initiatedByFrame:completionHandler:),
-            alert::<T> as extern "C" fn(&Object, _, _, id, _, _)
+            alert::<T> as extern "C" fn(_, _, _, _, _, _)
         );
         decl.add_method(
             sel!(webView:runOpenPanelWithParameters:initiatedByFrame:completionHandler:),
-            run_open_panel::<T> as extern "C" fn(&Object, _, _, id, _, usize)
+            run_open_panel::<T> as extern "C" fn(_, _, _, _, _, _)
         );
 
         // WKDownloadDelegate is a private class on macOS that handles downloading (saving) files.
@@ -232,7 +228,7 @@ pub fn register_webview_delegate_class<T: WebViewDelegate>(instance: &T) -> *con
         #[cfg(feature = "webview-downloading-macos")]
         decl.add_method(
             sel!(_download:decideDestinationWithSuggestedFilename:completionHandler:),
-            handle_download::<T> as extern "C" fn(&Object, _, id, id, usize)
+            handle_download::<T> as extern "C" fn(_, _, _, _, _)
         );
     })
 }

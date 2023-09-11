@@ -42,9 +42,11 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
+use core_foundation::base::TCFType;
+
+use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
-use objc::{msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{msg_send, sel};
 
 use crate::color::Color;
 use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
@@ -73,7 +75,7 @@ pub use traits::ScrollViewDelegate;
 pub(crate) static SCROLLVIEW_DELEGATE_PTR: &str = "rstScrollViewDelegatePtr";
 
 /// A helper method for instantiating view classes and applying default settings to them.
-fn allocate_view(registration_fn: fn() -> *const Class) -> id {
+fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
     unsafe {
         let view: id = msg_send![registration_fn(), new];
 
@@ -296,7 +298,7 @@ impl<T> ScrollView<T> {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         // @TODO: This is wrong.
         self.objc.with_mut(|obj| unsafe {
-            let color = color.as_ref().cg_color();
+            let color = color.as_ref().cg_color().as_concrete_TypeRef();
             let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: color];
         });

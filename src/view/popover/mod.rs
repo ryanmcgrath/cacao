@@ -1,7 +1,7 @@
 use core_graphics::geometry::CGRect;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 
 #[cfg(feature = "appkit")]
 use crate::appkit::toolbar::ToolbarItem;
@@ -50,7 +50,7 @@ impl Default for PopoverConfig {
 #[derive(Debug)]
 pub struct Popover<Content> {
     /// A reference to the underlying Objective-C NSPopover
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object, Shared>,
 
     /// The wrapped ViewController.
     pub view_controller: ViewController<Content>
@@ -63,13 +63,13 @@ where
     pub fn new(content: Content, config: PopoverConfig) -> Self {
         let view_controller = ViewController::new(content);
         let objc = unsafe {
-            let pop: id = msg_send![class!(NSPopover), new];
-            let _: () = msg_send![pop, setContentSize: config.content_size];
-            let _: () = msg_send![pop, setBehavior: config.behaviour as i64];
-            let _: () = msg_send![pop, setAnimates: config.animates];
-            let _: () = msg_send![pop, setContentViewController: &*view_controller.objc];
+            let pop: Id<Object, Shared> = msg_send_id![class!(NSPopover), new];
+            let _: () = msg_send![&pop, setContentSize: config.content_size];
+            let _: () = msg_send![&pop, setBehavior: config.behaviour as i64];
+            let _: () = msg_send![&pop, setAnimates: config.animates];
+            let _: () = msg_send![&pop, setContentViewController: &*view_controller.objc];
 
-            ShareId::from_ptr(pop)
+            pop
         };
 
         Popover { objc, view_controller }

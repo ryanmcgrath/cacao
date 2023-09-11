@@ -15,13 +15,13 @@ use crate::text::label::{LabelDelegate, LABEL_DELEGATE_PTR};
 /// Injects an `NSTextField` subclass. This is used for the default views that don't use delegates - we
 /// have separate classes here since we don't want to waste cycles on methods that will never be
 /// used if there's no delegates.
-pub(crate) fn register_view_class() -> *const Class {
+pub(crate) fn register_view_class() -> &'static Class {
     load_or_register_class("NSTextField", "RSTTextField", |decl| unsafe {})
 }
 
 /// Injects an `NSTextField` subclass, with some callback and pointer ivars for what we
 /// need to do.
-pub(crate) fn register_view_class_with_delegate<T: LabelDelegate>() -> *const Class {
+pub(crate) fn register_view_class_with_delegate<T: LabelDelegate>() -> &'static Class {
     load_or_register_class("NSView", "RSTTextFieldWithDelegate", |decl| unsafe {
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.

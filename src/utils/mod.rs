@@ -2,13 +2,14 @@
 //! belong to. These are typically internal, and if you rely on them... well, don't be surprised if
 //! they go away one day.
 
+use core_foundation::base::CFIndex;
 use core_graphics::base::CGFloat;
 
-use objc::{class, msg_send, sel, sel_impl};
+use objc::{class, msg_send, sel};
 
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{Encode, Encoding};
-use objc_id::ShareId;
 
 use crate::foundation::{id, BOOL, NO, YES};
 
@@ -22,7 +23,7 @@ pub mod properties;
 /// a guard for whether something is a (View|Window|etc)Controller.
 pub trait Controller {
     /// Returns the underlying Objective-C object.
-    fn get_backing_node(&self) -> ShareId<Object>;
+    fn get_backing_node(&self) -> Id<Object, Shared>;
 }
 
 /// Utility method for taking a pointer and grabbing the corresponding delegate in Rust. This is
@@ -92,12 +93,27 @@ impl CGSize {
 }
 
 unsafe impl Encode for CGSize {
-    /// Adds support for CGSize Objective-C encoding.
-    fn encode() -> Encoding {
-        let encoding = format!("{{CGSize={}{}}}", CGFloat::encode().as_str(), CGFloat::encode().as_str());
+    const ENCODING: Encoding = Encoding::Struct("CGSize", &[CGFloat::ENCODING, CGFloat::ENCODING]);
+}
 
-        unsafe { Encoding::from_str(&encoding) }
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct CFRange {
+    pub location: CFIndex,
+    pub length: CFIndex
+}
+
+impl CFRange {
+    pub fn init(location: CFIndex, length: CFIndex) -> CFRange {
+        CFRange {
+            location: location,
+            length: length
+        }
     }
+}
+
+unsafe impl Encode for CFRange {
+    const ENCODING: Encoding = Encoding::Struct("CFRange", &[CFIndex::ENCODING, CFIndex::ENCODING]);
 }
 
 /// A helper method for ensuring that Cocoa is running in multi-threaded mode.

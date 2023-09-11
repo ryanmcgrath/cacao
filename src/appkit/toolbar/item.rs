@@ -6,9 +6,9 @@
 use core_graphics::geometry::CGSize;
 use std::fmt;
 
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::{Id, ShareId};
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::appkit::segmentedcontrol::SegmentedControl;
 use crate::button::{BezelStyle, Button};
@@ -20,7 +20,7 @@ use crate::invoker::TargetActionHandler;
 #[derive(Debug)]
 pub struct ToolbarItem {
     pub identifier: String,
-    pub objc: Id<Object>,
+    pub objc: Id<Object, Owned>,
     pub button: Option<Button>,
     pub segmented_control: Option<SegmentedControl>,
     pub image: Option<Image>,
@@ -34,26 +34,14 @@ impl ToolbarItem {
         let identifier = identifier.into();
 
         let objc = unsafe {
-            let identifr = NSString::new(&identifier);
-            let alloc: id = msg_send![class!(NSToolbarItem), alloc];
-            let item: id = msg_send![alloc, initWithItemIdentifier: identifr];
-            Id::from_ptr(item)
+            let identifer = NSString::new(&identifier);
+            let alloc = msg_send_id![class!(NSToolbarItem), alloc];
+            msg_send_id![alloc, initWithItemIdentifier: &*identifer]
         };
 
         ToolbarItem {
             identifier,
             objc,
-            button: None,
-            segmented_control: None,
-            image: None,
-            handler: None
-        }
-    }
-
-    pub(crate) fn wrap(item: id) -> Self {
-        ToolbarItem {
-            identifier: "".to_string(),
-            objc: unsafe { Id::from_retained_ptr(item) },
             button: None,
             segmented_control: None,
             image: None,

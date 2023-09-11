@@ -15,9 +15,9 @@
 
 use core_graphics::geometry::CGRect;
 
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, nil, NSString, NO, YES};
 use crate::geometry::Rect;
@@ -53,18 +53,17 @@ fn allocate_webview(mut config: WebViewConfig, objc_delegate: Option<&Object>) -
         // Not a fan of this, but we own it anyway, so... meh.
         let handlers = std::mem::take(&mut config.handlers);
         let protocols = std::mem::take(&mut config.protocols);
-        let configuration = config.into_inner();
 
         if let Some(delegate) = &objc_delegate {
             // Technically private!
             #[cfg(feature = "webview-downloading-macos")]
-            let process_pool: id = msg_send![configuration, processPool];
+            let process_pool: id = msg_send![&config.objc, processPool];
 
             // Technically private!
             #[cfg(feature = "webview-downloading-macos")]
             let _: () = msg_send![process_pool, _setDownloadDelegate:*delegate];
 
-            let content_controller: id = msg_send![configuration, userContentController];
+            let content_controller: id = msg_send![&config.objc, userContentController];
             for handler in handlers {
                 let name = NSString::new(&handler);
                 let _: () = msg_send![content_controller, addScriptMessageHandler:*delegate name:&*name];
@@ -72,13 +71,13 @@ fn allocate_webview(mut config: WebViewConfig, objc_delegate: Option<&Object>) -
 
             for protocol in protocols {
                 let name = NSString::new(&protocol);
-                let _: () = msg_send![configuration, setURLSchemeHandler:*delegate forURLScheme:&*name];
+                let _: () = msg_send![&config.objc, setURLSchemeHandler:*delegate forURLScheme:&*name];
             }
         }
 
         let zero: CGRect = Rect::zero().into();
         let webview_alloc: id = msg_send![register_webview_class(), alloc];
-        let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration:configuration];
+        let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration: &*config.objc];
 
         #[cfg(feature = "appkit")]
         let _: () = msg_send![webview, setWantsLayer: YES];
@@ -109,7 +108,7 @@ pub struct WebView<T = ()> {
 
     /// We need to store the underlying delegate separately from the `WKWebView` - this is a where
     /// we do so.
-    pub objc_delegate: Option<ShareId<Object>>,
+    pub objc_delegate: Option<Id<Object, Shared>>,
 
     /// A pointer to the delegate for this view.
     pub delegate: Option<Box<T>>,
@@ -210,7 +209,7 @@ impl WebView {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            layer: Layer::wrap(unsafe { msg_send![view, layer] }),
+            layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
             objc: ObjcProperty::retain(view)
         }
@@ -234,10 +233,10 @@ where
         let mut delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
-            let objc_delegate: id = msg_send![delegate_class, new];
+            let mut objc_delegate: Id<Object, Owned> = msg_send_id![delegate_class, new];
             let ptr: *const T = &*delegate;
-            (&mut *objc_delegate).set_ivar(WEBVIEW_DELEGATE_PTR, ptr as usize);
-            ShareId::from_ptr(objc_delegate)
+            objc_delegate.set_ivar(WEBVIEW_DELEGATE_PTR, ptr as usize);
+            objc_delegate
         };
 
         let view = allocate_webview(config, Some(&objc_delegate));

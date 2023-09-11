@@ -3,6 +3,8 @@
 #![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 #![cfg_attr(docsrs, deny(rustdoc::broken_intra_doc_links))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+// Temporary!
+#![allow(deprecated)]
 // Copyright 2019+, the Cacao developers.
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Dual-licensed under an MIT/MPL-2.0 license, see the LICENSE files in this repository.

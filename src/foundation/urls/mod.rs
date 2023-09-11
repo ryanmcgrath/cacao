@@ -3,9 +3,9 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::ShareId;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, nil, NSData, NSString, NSUInteger};
 
@@ -31,7 +31,7 @@ pub use resource_keys::{NSURLFileResource, NSURLResourceKey, NSUbiquitousItemDow
 #[derive(Clone, Debug)]
 pub struct NSURL<'a> {
     /// A reference to the backing `NSURL`.
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object, Shared>,
     phantom: PhantomData<&'a ()>
 }
 
@@ -40,15 +40,7 @@ impl<'a> NSURL<'a> {
     /// retain it.
     pub fn retain(object: id) -> Self {
         NSURL {
-            objc: unsafe { ShareId::from_ptr(object) },
-            phantom: PhantomData
-        }
-    }
-
-    /// In some cases, we want to wrap a system-provided NSURL without retaining it.
-    pub fn from_retained(object: id) -> Self {
-        NSURL {
-            objc: unsafe { ShareId::from_retained_ptr(object) },
+            objc: unsafe { Id::retain(object).unwrap() },
             phantom: PhantomData
         }
     }
@@ -58,7 +50,7 @@ impl<'a> NSURL<'a> {
         let url = NSString::new(url);
 
         Self {
-            objc: unsafe { ShareId::from_ptr(msg_send![class!(NSURL), URLWithString:&*url]) },
+            objc: unsafe { msg_send_id![class!(NSURL), URLWithString:&*url] },
 
             phantom: PhantomData
         }
@@ -105,18 +97,22 @@ impl<'a> NSURL<'a> {
         // Mutability woes mean we just go through a match here to satisfy message passing needs.
         let bookmark_data = NSData::retain(match relative_to_url {
             Some(relative_url) => unsafe {
-                msg_send![&*self.objc, bookmarkDataWithOptions:opts
-                    includingResourceValuesForKeys:resource_keys
-                    relativeToURL:relative_url
-                    error:nil
+                msg_send![
+                    &*self.objc,
+                    bookmarkDataWithOptions: opts,
+                    includingResourceValuesForKeys: resource_keys,
+                    relativeToURL: &*relative_url,
+                    error: nil,
                 ]
             },
 
             None => unsafe {
-                msg_send![&*self.objc, bookmarkDataWithOptions:opts
-                    includingResourceValuesForKeys:resource_keys
-                    relativeToURL:nil
-                    error:nil
+                msg_send![
+                    &*self.objc,
+                    bookmarkDataWithOptions: opts,
+                    includingResourceValuesForKeys: resource_keys,
+                    relativeToURL: nil,
+                    error: nil,
                 ]
             }
         });
@@ -157,13 +153,6 @@ impl<'a> NSURL<'a> {
         }
     }
 }
-
-/*impl From<NSString<'_>> for id {
-    /// Consumes and returns the pointer to the underlying NSString instance.
-    fn from(mut string: NSString) -> Self {
-        &mut *string.objc
-    }
-}*/
 
 impl Deref for NSURL<'_> {
     type Target = Object;

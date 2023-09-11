@@ -5,9 +5,9 @@ use std::slice;
 
 use block::{Block, ConcreteBlock};
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::foundation::{id, to_bool, NSUInteger, BOOL, NO, YES};
 
@@ -18,7 +18,7 @@ use crate::foundation::{id, to_bool, NSUInteger, BOOL, NO, YES};
 ///
 /// This is an intentionally limited API.
 #[derive(Debug)]
-pub struct NSData(pub Id<Object>);
+pub struct NSData(pub Id<Object, Owned>);
 
 impl NSData {
     /// Given a vector of bytes, creates, retains, and returns a wrapped `NSData`.
@@ -41,12 +41,15 @@ impl NSData {
         let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
 
         unsafe {
-            let obj: id = msg_send![class!(NSData), alloc];
-            let obj: id = msg_send![obj, initWithBytesNoCopy:bytes_ptr
-                                                             length:bytes.len()
-                                                        deallocator:dealloc];
+            let obj = msg_send_id![class!(NSData), alloc];
+            let obj = msg_send_id![
+                obj,
+                initWithBytesNoCopy: bytes_ptr,
+                length: bytes.len(),
+                deallocator: dealloc,
+            ];
             mem::forget(bytes);
-            NSData(Id::from_ptr(obj))
+            NSData(obj)
         }
     }
 
@@ -60,20 +63,18 @@ impl NSData {
         let bytes_ptr = bytes.as_ptr() as *mut c_void;
 
         unsafe {
-            let obj: id = msg_send![class!(NSData), dataWithBytes:bytes_ptr length:bytes.len()];
-            NSData(Id::from_ptr(obj))
+            let obj = msg_send_id![
+                class!(NSData),
+                dataWithBytes: bytes_ptr,
+                length: bytes.len(),
+            ];
+            NSData(obj)
         }
     }
 
     /// Given a (presumably) `NSData`, wraps and retains it.
     pub fn retain(data: id) -> Self {
-        NSData(unsafe { Id::from_ptr(data) })
-    }
-
-    /// If we're vended an NSData from a method (e.g, a push notification token) we might want to
-    /// wrap it while we figure out what to do with it. This does that.
-    pub fn from_retained(data: id) -> Self {
-        NSData(unsafe { Id::from_retained_ptr(data) })
+        NSData(unsafe { Id::retain(data).unwrap() })
     }
 
     /// A helper method for determining if a given `NSObject` is an `NSData`.
@@ -124,13 +125,6 @@ impl NSData {
         data.copy_from_slice(bytes);
 
         data
-    }
-}
-
-impl From<NSData> for id {
-    /// Consumes and returns the underlying `NSData`.
-    fn from(mut data: NSData) -> Self {
-        &mut *data.0
     }
 }
 

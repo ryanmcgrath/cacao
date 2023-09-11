@@ -1,12 +1,12 @@
 
-use objc_id::ShareId;
+use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 
 /// Views get passed these, and can
 #[derive(Debug)]
 pub struct ViewHandle<T> {
     /// A pointer to the Objective-C runtime view controller.
-    pub objc: ShareId<Object>,
+    pub objc: Id<Object, Shared>,
 
     _t: std::marker::PhantomData<T>
 
@@ -40,7 +40,7 @@ where
     T:
 
 impl<T> Layout for ViewHandle<T> {
-    fn get_backing_node(&self) -> ShareId<Object> {
+    fn get_backing_node(&self) -> Id<Object, Shared> {
         self.objc.clone()
     }
 

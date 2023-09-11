@@ -39,9 +39,9 @@ use std::sync::{Arc, Mutex};
 
 use lazy_static::lazy_static;
 
+use objc::rc::{Id, Owned};
 use objc::runtime::Object;
-use objc::{class, msg_send, sel, sel_impl};
-use objc_id::Id;
+use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::appkit::menu::Menu;
 use crate::foundation::{id, nil, AutoReleasePool, NSUInteger, NO, YES};
@@ -88,11 +88,11 @@ pub(crate) fn shared_application<T, F: Fn(id) -> T>(handler: F) -> T {
 /// application.
 pub struct App<T = (), M = ()> {
     /// The underlying Objective-C Object.
-    pub objc: Id<Object>,
+    pub objc: Id<Object, Owned>,
 
     /// The underlying Objective-C Object, which in this case is a delegate that forwards to the
     /// app delegate.
-    pub objc_delegate: Id<Object>,
+    pub objc_delegate: Id<Object, Owned>,
 
     /// The stored `AppDelegate`.
     pub delegate: Box<T>,
@@ -144,20 +144,17 @@ where
 
         let pool = AutoReleasePool::new();
 
-        let objc = unsafe {
-            let app: id = msg_send![register_app_class(), sharedApplication];
-            Id::from_ptr(app)
-        };
+        let objc: Id<_, _> = unsafe { msg_send_id![register_app_class(), sharedApplication] };
 
         let app_delegate = Box::new(delegate);
 
         let objc_delegate = unsafe {
             let delegate_class = register_app_delegate_class::<T>();
-            let delegate: id = msg_send![delegate_class, new];
+            let mut delegate: Id<Object, Owned> = msg_send_id![delegate_class, new];
             let delegate_ptr: *const T = &*app_delegate;
-            (&mut *delegate).set_ivar(APP_PTR, delegate_ptr as usize);
-            let _: () = msg_send![&*objc, setDelegate: delegate];
-            Id::from_ptr(delegate)
+            delegate.set_ivar(APP_PTR, delegate_ptr as usize);
+            let _: () = msg_send![&*objc, setDelegate: &*delegate];
+            delegate
         };
 
         App {
