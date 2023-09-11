@@ -93,7 +93,6 @@
 //! [cargo-features]: https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section
 
 pub use core_foundation;
-pub use core_graphics;
 pub use lazy_static;
 pub use objc;
 pub use url;

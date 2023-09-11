@@ -25,7 +25,6 @@ block = { version = "=0.2.0-alpha.6", package = "block2" }
 # Temporary: Patched versions that implement `Encode` for common types
 # Branch: `objc2`
 core-foundation = { git = "https://github.com/madsmtm/core-foundation-rs.git", rev = "7d593d016175755e492a92ef89edca68ac3bd5cd" }
-core-graphics = { git = "https://github.com/madsmtm/core-foundation-rs.git", rev = "7d593d016175755e492a92ef89edca68ac3bd5cd" }
 dispatch = "0.2.0"
 infer = { version = "0.15", optional = true }
 lazy_static = "1.4.0"
@@ -36,6 +35,8 @@ uuid = { version = "1.1", features = ["v4"], optional = true }
 
 [dev-dependencies]
 eval = "0.4"
+core-graphics = "0.23"
+foreign-types = "0.5"
 
 [features]
 appkit = ["core-foundation/mac_os_10_8_features"]

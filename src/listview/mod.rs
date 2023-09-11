@@ -44,9 +44,7 @@
 
 use std::collections::HashMap;
 
-use core_foundation::base::TCFType;
-
-use objc::foundation::{CGFloat, NSSize};
+use objc::foundation::CGFloat;
 use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, msg_send_id, sel};
@@ -441,7 +439,7 @@ impl<T> ListView<T> {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         // @TODO: This is wrong.
         self.objc.with_mut(|obj| unsafe {
-            let color = color.as_ref().cg_color().as_concrete_TypeRef();
+            let color = color.as_ref().cg_color();
             let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: color];
         });

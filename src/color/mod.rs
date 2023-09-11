@@ -15,9 +15,6 @@
 /// @TODO: bundle iOS/tvOS support.
 use std::sync::{Arc, RwLock};
 
-use core_foundation::base::TCFType;
-use core_graphics::color::CGColor;
-
 use objc::foundation::CGFloat;
 use objc::rc::{Id, Owned};
 use objc::runtime::Object;
@@ -392,10 +389,11 @@ impl Color {
     /// objects. If you're painting in a context that requires dark mode support, make sure
     /// you're not using a cached version of this unless you explicitly want the _same_ color
     /// in every context it's used in.
-    pub fn cg_color(&self) -> CGColor {
+    pub fn cg_color(&self) -> id {
+        // TODO: Better return type
         unsafe {
             let objc: id = self.into();
-            CGColor::wrap_under_get_rule(msg_send![objc, CGColor])
+            msg_send![objc, CGColor]
         }
     }
 }

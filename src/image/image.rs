@@ -1,15 +1,16 @@
+use std::ffi::c_void;
+
 use objc::foundation::{CGFloat, NSPoint, NSRect, NSSize};
 use objc::rc::{Id, Shared};
 use objc::runtime::{Bool, Class, Object};
-
 use objc::{class, msg_send, msg_send_id, sel};
 
 use block::ConcreteBlock;
 
-use core_graphics::context::{CGContext, CGContextRef};
-
+use super::graphics_context::GraphicsContext;
 use super::icons::*;
 use crate::foundation::{id, NSData, NSString, NSURL};
+use crate::geometry::Rect;
 use crate::utils::os;
 
 /// Specifies resizing behavior for image drawing.
@@ -251,29 +252,34 @@ impl Image {
     #[cfg(feature = "appkit")]
     pub fn draw<F>(config: DrawConfig, handler: F) -> Self
     where
-        F: Fn(NSRect, &CGContextRef) -> bool + 'static
+        F: Fn(Rect, (f64, f64), *mut c_void) -> bool + 'static
     {
         let source_frame = NSRect::new(NSPoint::new(0., 0.), NSSize::new(config.source.0, config.source.1));
 
         let target_frame = NSRect::new(NSPoint::new(0., 0.), NSSize::new(config.target.0, config.target.1));
 
-        let resized_frame = config.resize.apply(source_frame, target_frame);
+        let resized_frame: Rect = config.resize.apply(source_frame, target_frame).into();
 
-        let block = ConcreteBlock::new(move |_destination: NSRect| unsafe {
-            let current_context: id = msg_send![class!(NSGraphicsContext), currentContext];
-            let context_ptr: core_graphics::sys::CGContextRef = msg_send![current_context, CGContext];
-            let context = CGContext::from_existing_context_ptr(context_ptr);
-            let _: () = msg_send![class!(NSGraphicsContext), saveGraphicsState];
+        let block = ConcreteBlock::new(move |_destination: NSRect| {
+            let context = GraphicsContext::current();
+            context.save();
 
-            context.translate(resized_frame.origin.x, resized_frame.origin.y);
-            context.scale(
-                resized_frame.size.width() / config.source.0,
-                resized_frame.size.height() / config.source.1
+            let cg_context_ptr: *mut c_void = context.cg_context();
+
+            // TODO: Automatically scale for the user
+            // cg_context_ptr.translate(resized_frame.origin.x, resized_frame.origin.y);
+            // cg_context_ptr.scale(
+            //     resized_frame.size.width() / config.source.0,
+            //     resized_frame.size.height() / config.source.1
+            // );
+
+            let result = handler(
+                resized_frame,
+                (config.source.0 as f64, config.source.1 as f64),
+                cg_context_ptr
             );
 
-            let result = handler(resized_frame, &context);
-
-            let _: () = msg_send![class!(NSGraphicsContext), restoreGraphicsState];
+            context.restore();
 
             Bool::new(result)
         });
