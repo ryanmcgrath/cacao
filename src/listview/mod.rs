@@ -50,7 +50,7 @@ use objc::runtime::{Class, Object};
 use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::color::Color;
-use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger};
 use crate::layout::Layout;
 
 #[cfg(feature = "autolayout")]
@@ -112,13 +112,13 @@ fn common_init(class: &Class) -> id {
             let _: () = msg_send![menu, setDelegate: tableview];
             let _: () = msg_send![tableview, setMenu: menu];
 
-            let _: () = msg_send![tableview, setWantsLayer: YES];
-            let _: () = msg_send![tableview, setUsesAutomaticRowHeights: YES];
-            let _: () = msg_send![tableview, setFloatsGroupRows: YES];
+            let _: () = msg_send![tableview, setWantsLayer: true];
+            let _: () = msg_send![tableview, setUsesAutomaticRowHeights: true];
+            let _: () = msg_send![tableview, setFloatsGroupRows: true];
             //let _: () = msg_send![tableview, setIntercellSpacing: NSSize::new(0., 0.)];
             let _: () = msg_send![tableview, setColumnAutoresizingStyle:1];
             //msg_send![tableview, setSelectionHighlightStyle:-1];
-            //let _: () = msg_send![tableview, setAllowsMultipleSelection:NO];
+            //let _: () = msg_send![tableview, setAllowsMultipleSelection: false];
             let _: () = msg_send![tableview, setHeaderView: nil];
 
             // NSTableView requires at least one column to be manually added if doing so by code.
@@ -467,10 +467,7 @@ impl<T> ListView<T> {
     #[cfg(feature = "appkit")]
     pub fn set_allows_empty_selection(&self, allows: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setAllowsEmptySelection:match allows {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setAllowsEmptySelection: allows];
         });
     }
 
@@ -491,10 +488,7 @@ impl<T> ListView<T> {
             }
 
             self.objc.with_mut(|obj| {
-                let _: () = msg_send![obj, selectRowIndexes: &*index_set, byExtendingSelection: match extends_existing {
-                    true => YES,
-                    false => NO
-                }];
+                let _: () = msg_send![obj, selectRowIndexes: &*index_set, byExtendingSelection: extends_existing];
             });
         }
     }
@@ -656,10 +650,7 @@ impl<T> ListView<T> {
     pub fn set_uses_automatic_row_heights(&self, uses: bool) {
         #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setUsesAutomaticRowHeights:match uses {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setUsesAutomaticRowHeights: uses];
         });
     }
 
@@ -669,10 +660,7 @@ impl<T> ListView<T> {
     pub fn set_uses_alternating_backgrounds(&self, uses: bool) {
         #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setUsesAlternatingRowBackgroundColors:match uses {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setUsesAlternatingRowBackgroundColors: uses];
         });
     }
 
@@ -680,10 +668,7 @@ impl<T> ListView<T> {
     pub fn set_row_actions_visible(&self, visible: bool) {
         #[cfg(feature = "appkit")]
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setRowActionsVisible:match visible {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setRowActionsVisible: visible];
         });
     }
 

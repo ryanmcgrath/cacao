@@ -5,7 +5,7 @@ use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};
 
-use crate::foundation::{id, NSString, NSUInteger, YES};
+use crate::foundation::{id, NSString, NSUInteger};
 
 /// Describes the quality of the thumbnail you expect back from the
 /// generator service.
@@ -117,7 +117,7 @@ impl ThumbnailConfig {
                 representationTypes:types];
 
             if self.icon_mode {
-                let _: () = msg_send![request, setIconMode: YES];
+                let _: () = msg_send![request, setIconMode: true];
             }
 
             if self.minimum_dimension != 0. {

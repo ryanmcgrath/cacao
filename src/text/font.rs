@@ -7,7 +7,7 @@ use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSString};
 use crate::utils::os;
 
 /// A `Font` can be constructed and applied to supported controls to control things like text

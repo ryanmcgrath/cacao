@@ -18,7 +18,7 @@ use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, nil, NSString, NO, YES};
+use crate::foundation::{id, nil, NSString};
 use crate::geometry::Rect;
 use crate::layer::Layer;
 use crate::layout::Layout;
@@ -79,10 +79,10 @@ fn allocate_webview(mut config: WebViewConfig, objc_delegate: Option<&Object>) -
         let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration: &*config.objc];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![webview, setWantsLayer: YES];
+        let _: () = msg_send![webview, setWantsLayer: true];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints: NO];
+        let _: () = msg_send![webview, setTranslatesAutoresizingMaskIntoConstraints: false];
 
         if let Some(delegate) = &objc_delegate {
             let _: () = msg_send![webview, setNavigationDelegate:*delegate];
@@ -167,10 +167,10 @@ impl WebView {
     /// so on. It returns a generic `WebView<T>`, which the caller can then customize as needed.
     pub(crate) fn init<T>(view: id) -> WebView<T> {
         unsafe {
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: false];
 
             #[cfg(feature = "appkit")]
-            let _: () = msg_send![view, setWantsLayer: YES];
+            let _: () = msg_send![view, setWantsLayer: true];
         }
 
         WebView {

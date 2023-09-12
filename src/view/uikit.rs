@@ -1,10 +1,10 @@
 use objc::declare::ClassDecl;
 use objc::rc::{Id, Owned};
-use objc::runtime::{Class, Object, Sel, BOOL};
+use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel};
 
 use crate::foundation::load_or_register_class;
-use crate::foundation::{id, NSUInteger, NO, YES};
+use crate::foundation::{id, NSUInteger};
 use crate::utils::load;
 use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};
 

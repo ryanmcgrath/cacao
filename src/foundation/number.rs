@@ -5,7 +5,7 @@ use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, to_bool, NSInteger, BOOL, NO, YES};
+use crate::foundation::{id, NSInteger};
 
 /// Wrapper for a `NSNumber` object.
 ///
@@ -23,12 +23,7 @@ impl NSNumber {
 
     /// Constructs a `numberWithBool` instance of `NSNumber` and retains it.
     pub fn bool(value: bool) -> Self {
-        NSNumber(unsafe {
-            msg_send_id![class!(NSNumber), numberWithBool:match value {
-                true => YES,
-                false => NO
-            }]
-        })
+        NSNumber(unsafe { msg_send_id![class!(NSNumber), numberWithBool: value] })
     }
 
     /// Constructs a `numberWithInteger` instance of `NSNumber` and retains it.
@@ -73,20 +68,16 @@ impl NSNumber {
         unsafe { msg_send![&*self.0, doubleValue] }
     }
 
-    /// Pulls the underlying `BOOL` value out and passes it back as a `bool`.
+    /// Pulls the underlying `Bool` value out and passes it back as a `bool`.
     ///
     /// Note that this _does not check_ if the underlying type is actually this. You are
     /// responsible for doing so via the `objc_type()` method.
     pub fn as_bool(&self) -> bool {
-        let result: BOOL = unsafe { msg_send![&*self.0, boolValue] };
-
-        to_bool(result)
+        unsafe { msg_send![&*self.0, boolValue] }
     }
 
     /// A helper method for determining if a given `NSObject` is an `NSNumber`.
     pub fn is(obj: id) -> bool {
-        let result: BOOL = unsafe { msg_send![obj, isKindOfClass: class!(NSNumber)] };
-
-        to_bool(result)
+        unsafe { msg_send![obj, isKindOfClass: class!(NSNumber)] }
     }
 }

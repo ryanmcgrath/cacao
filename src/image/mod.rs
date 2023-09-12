@@ -3,7 +3,7 @@ use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
 use crate::color::Color;
-use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSString};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
@@ -38,10 +38,10 @@ fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
         let view: id = msg_send![registration_fn(), new];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: false];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![view, setWantsLayer: YES];
+        let _: () = msg_send![view, setWantsLayer: true];
 
         view
     }

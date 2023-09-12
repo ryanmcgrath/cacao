@@ -48,7 +48,7 @@ use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
 use crate::color::Color;
-use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NSUInteger};
 use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
@@ -85,7 +85,7 @@ fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
             let label: id = msg_send![registration_fn(), wrappingLabelWithString:&*blank];
 
             // We sub this in to get the general expected behavior for 202*.
-            let _: () = msg_send![label, setSelectable: NO];
+            let _: () = msg_send![label, setSelectable: false];
 
             label
         };
@@ -94,10 +94,10 @@ fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
         let view: id = msg_send![registration_fn(), new];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: false];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![view, setWantsLayer: YES];
+        let _: () = msg_send![view, setWantsLayer: true];
 
         view
     }
@@ -407,10 +407,7 @@ impl<T> Label<T> {
     /// Set whether this is hidden or not.
     pub fn set_hidden(&self, hidden: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setHidden:match hidden {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setHidden: hidden];
         });
     }
 
@@ -430,7 +427,7 @@ impl<T> Label<T> {
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
             let mode = mode as NSUInteger;
-            let _: () = msg_send![cell, setTruncatesLastVisibleLine: YES];
+            let _: () = msg_send![cell, setTruncatesLastVisibleLine: true];
             let _: () = msg_send![cell, setLineBreakMode: mode];
         });
     }

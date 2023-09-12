@@ -17,7 +17,7 @@ use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::appkit::toolbar::{Toolbar, ToolbarDelegate};
 use crate::color::Color;
-use crate::foundation::{id, nil, to_bool, NSInteger, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, NSInteger, NSString, NSUInteger};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::{os, Controller};
@@ -66,9 +66,9 @@ impl Window {
     /// after we initialize the backing `NSWindow`.
     pub fn new(config: WindowConfig) -> Window {
         let objc = unsafe {
-            // This behavior might make sense to keep as default (YES), but I think the majority of
+            // This behavior might make sense to keep as default (true), but I think the majority of
             // apps that would use this toolkit wouldn't be tab-oriented...
-            let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing: NO];
+            let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing: false];
 
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
@@ -79,19 +79,16 @@ impl Window {
                 initWithContentRect: dimensions,
                 styleMask: config.style,
                 backing: buffered,
-                defer: match config.defer {
-                    true => YES,
-                    false => NO
-                },
+                defer: config.defer,
             ];
 
             // This is very important! NSWindow is an old class and has some behavior that we need
             // to disable, like... this. If we don't set this, we'll segfault entirely because the
             // Objective-C runtime gets out of sync by releasing the window out from underneath of
             // us.
-            let _: () = msg_send![&*window, setReleasedWhenClosed: NO];
+            let _: () = msg_send![&*window, setReleasedWhenClosed: false];
 
-            let _: () = msg_send![&*window, setRestorable: NO];
+            let _: () = msg_send![&*window, setRestorable: false];
 
             // This doesn't exist prior to Big Sur, but is important to support for Big Sur.
             //
@@ -131,9 +128,9 @@ where
         let mut delegate = Box::new(delegate);
 
         let objc: Id<Object, Shared> = unsafe {
-            // This behavior might make sense to keep as default (YES), but I think the majority of
+            // This behavior might make sense to keep as default (true), but I think the majority of
             // apps that would use this toolkit wouldn't be tab-oriented...
-            let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing: NO];
+            let _: () = msg_send![class!(NSWindow), setAllowsAutomaticWindowTabbing: false];
 
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
@@ -144,10 +141,7 @@ where
                 initWithContentRect: dimensions,
                 styleMask: config.style,
                 backing: buffered,
-                defer: match config.defer {
-                    true => YES,
-                    false => NO
-                },
+                defer: config.defer,
             ];
 
             let delegate_ptr: *const T = &*delegate;
@@ -157,12 +151,12 @@ where
             // to disable, like... this. If we don't set this, we'll segfault entirely because the
             // Objective-C runtime gets out of sync by releasing the window out from underneath of
             // us.
-            let _: () = msg_send![&*window, setReleasedWhenClosed: NO];
+            let _: () = msg_send![&*window, setReleasedWhenClosed: false];
 
             // We set the window to be its own delegate - this is cleaned up inside `Drop`.
             let _: () = msg_send![&*window, setDelegate: &*window];
 
-            let _: () = msg_send![&*window, setRestorable: NO];
+            let _: () = msg_send![&*window, setRestorable: false];
 
             // This doesn't exist prior to Big Sur, but is important to support for Big Sur.
             //
@@ -225,20 +219,14 @@ impl<T> Window<T> {
     /// Used for configuring whether the window is movable via the background.
     pub fn set_movable_by_background(&self, movable: bool) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setMovableByWindowBackground:match movable {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.objc, setMovableByWindowBackground: movable];
         }
     }
 
     /// Used for setting whether this titlebar appears transparent.
     pub fn set_titlebar_appears_transparent(&self, transparent: bool) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setTitlebarAppearsTransparent:match transparent {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.objc, setTitlebarAppearsTransparent: transparent];
         }
     }
 
@@ -314,10 +302,7 @@ impl<T> Window<T> {
     /// window.
     pub fn set_shows_toolbar_button(&self, shows: bool) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setShowsToolbarButton:match shows {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.objc, setShowsToolbarButton: shows];
         }
     }
 
@@ -377,12 +362,12 @@ impl<T> Window<T> {
 
     /// Returns whether this window is opaque or not.
     pub fn is_opaque(&self) -> bool {
-        to_bool(unsafe { msg_send![&*self.objc, isOpaque] })
+        unsafe { msg_send![&*self.objc, isOpaque] }
     }
 
     /// Returns whether this window is miniaturized or not.
     pub fn is_miniaturized(&self) -> bool {
-        to_bool(unsafe { msg_send![&*self.objc, isMiniaturized] })
+        unsafe { msg_send![&*self.objc, isMiniaturized] }
     }
 
     /// Miniaturize this window.
@@ -411,27 +396,27 @@ impl<T> Window<T> {
     ///
     /// From Apple's documentation:
     ///
-    /// _The value of this property is YES if the window is on the currently active space; otherwise, NO.
+    /// _The value of this property is `true` if the window is on the currently active space; otherwise, `false`.
     /// For visible windows, this property indicates whether the window is currently visible on the active
     /// space. For nonvisible windows, it indicates whether ordering the window onscreen would cause it to
     /// be on the active space._
     pub fn is_on_active_space(&self) -> bool {
-        to_bool(unsafe { msg_send![&*self.objc, isOnActiveSpace] })
+        unsafe { msg_send![&*self.objc, isOnActiveSpace] }
     }
 
     /// Returns whether this window is visible or not.
     pub fn is_visible(&self) -> bool {
-        to_bool(unsafe { msg_send![&*self.objc, isVisible] })
+        unsafe { msg_send![&*self.objc, isVisible] }
     }
 
     /// Returns whether this window is the key or not.
     pub fn is_key(&self) -> bool {
-        to_bool(unsafe { msg_send![&*self.objc, isKeyWindow] })
+        unsafe { msg_send![&*self.objc, isKeyWindow] }
     }
 
     /// Returns whether this window can become the key window.
     pub fn can_become_key(&self) -> bool {
-        to_bool(unsafe { msg_send![&*self.objc, canBecomeKeyWindow] })
+        unsafe { msg_send![&*self.objc, canBecomeKeyWindow] }
     }
 
     /// Make this window the key window.
@@ -451,21 +436,18 @@ impl<T> Window<T> {
 
     /// Returns if this is the main window or not.
     pub fn is_main_window(&self) -> bool {
-        to_bool(unsafe { msg_send![&*self.objc, isMainWindow] })
+        unsafe { msg_send![&*self.objc, isMainWindow] }
     }
 
     /// Returns if this can become the main window.
     pub fn can_become_main_window(&self) -> bool {
-        to_bool(unsafe { msg_send![&*self.objc, canBecomeMainWindow] })
+        unsafe { msg_send![&*self.objc, canBecomeMainWindow] }
     }
 
     /// Set whether this window should be excluded from the top-level "Windows" menu.
     pub fn set_excluded_from_windows_menu(&self, excluded: bool) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setExcludedFromWindowsMenu:match excluded {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.objc, setExcludedFromWindowsMenu: excluded];
         }
     }
 

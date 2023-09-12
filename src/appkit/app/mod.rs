@@ -44,7 +44,7 @@ use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::appkit::menu::Menu;
-use crate::foundation::{id, nil, AutoReleasePool, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, AutoReleasePool, NSUInteger};
 use crate::invoker::TargetActionHandler;
 use crate::notification_center::Dispatcher;
 use crate::utils::activate_cocoa_multithreading;
@@ -246,10 +246,7 @@ impl App {
     /// from your trait implementation of `should_terminate()`.
     pub fn reply_to_termination_request(should_terminate: bool) {
         shared_application(|app| unsafe {
-            let _: () = msg_send![app, replyToApplicationShouldTerminate:match should_terminate {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![app, replyToApplicationShouldTerminate: should_terminate];
         });
     }
 

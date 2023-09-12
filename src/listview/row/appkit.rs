@@ -18,7 +18,7 @@ use crate::utils::load;
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
 extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> Bool {
-    return Bool::YES;
+    Bool::YES
 }
 
 /// Called when a drag/drop operation has entered this view.

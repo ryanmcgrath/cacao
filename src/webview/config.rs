@@ -5,7 +5,7 @@ use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, NSInteger, NSString};
 use crate::webview::enums::InjectAt;
 
 /// A wrapper for `WKWebViewConfiguration`. Holds (retains) pointers for the Objective-C runtime
@@ -48,10 +48,7 @@ impl WebViewConfig {
                 alloc,
                 initWithSource: &*source,
                 injectionTime: at,
-                forMainFrameOnly: match main_frame_only {
-                    true => YES,
-                    false => NO
-                },
+                forMainFrameOnly: main_frame_only,
             ];
 
             let content_controller: id = msg_send![&*self.objc, userContentController];
@@ -70,7 +67,7 @@ impl WebViewConfig {
         let key = NSString::new("developerExtrasEnabled");
 
         unsafe {
-            let yes: id = msg_send![class!(NSNumber), numberWithBool: YES];
+            let yes: id = msg_send![class!(NSNumber), numberWithBool: true];
             let preferences: id = msg_send![&*self.objc, preferences];
             let _: () = msg_send![preferences, setValue: yes, forKey: &*key];
         }

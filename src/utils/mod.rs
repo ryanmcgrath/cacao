@@ -7,7 +7,7 @@ use objc::runtime::Object;
 use objc::{class, msg_send, sel};
 use objc::{Encode, Encoding};
 
-use crate::foundation::{id, BOOL, NO, YES};
+use crate::foundation::id;
 
 mod cell_factory;
 pub use cell_factory::CellFactory;

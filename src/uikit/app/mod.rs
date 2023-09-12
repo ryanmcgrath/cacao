@@ -40,7 +40,7 @@ use std::ffi::CString;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};
 
-use crate::foundation::{id, nil, AutoReleasePool, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, AutoReleasePool, NSString, NSUInteger};
 use crate::notification_center::Dispatcher;
 use crate::uikit::scene::{register_window_scene_delegate_class, WindowSceneDelegate};
 use crate::utils::activate_cocoa_multithreading;

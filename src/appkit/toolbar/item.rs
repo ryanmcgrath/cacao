@@ -12,7 +12,7 @@ use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::appkit::segmentedcontrol::SegmentedControl;
 use crate::button::{BezelStyle, Button};
-use crate::foundation::{id, NSString, NO, YES};
+use crate::foundation::{id, NSString};
 use crate::image::Image;
 use crate::invoker::TargetActionHandler;
 
@@ -110,10 +110,7 @@ impl ToolbarItem {
 
     pub fn set_bordered(&self, bordered: bool) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setBordered:match bordered {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.objc, setBordered: bordered];
         }
     }
 }

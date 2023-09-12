@@ -46,7 +46,7 @@ use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
 use crate::color::Color;
-use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString};
 use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
@@ -174,10 +174,10 @@ impl View {
     pub(crate) fn init<T>(view: id) -> View<T> {
         unsafe {
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: false];
 
             #[cfg(feature = "appkit")]
-            let _: () = msg_send![view, setWantsLayer: YES];
+            let _: () = msg_send![view, setWantsLayer: true];
         }
 
         View {
@@ -341,10 +341,7 @@ impl<T> View<T> {
     #[cfg(feature = "appkit")]
     pub fn set_can_draw_subviews_into_layer(&self, can: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![&*obj, setCanDrawSubviewsIntoLayer:match can {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*obj, setCanDrawSubviewsIntoLayer: can];
         });
     }
 }

@@ -7,7 +7,7 @@ use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};
 
-use crate::foundation::{id, NO, YES};
+use crate::foundation::id;
 
 #[cfg(all(feature = "appkit", target_os = "macos"))]
 use super::LayoutConstraintAnimatorProxy;
@@ -83,10 +83,7 @@ impl LayoutConstraint {
     /// `LayoutConstraint::deactivate()`.
     pub fn set_active(&self, active: bool) {
         unsafe {
-            let _: () = msg_send![&*self.constraint, setActive:match active {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.constraint, setActive: active];
         }
     }
 

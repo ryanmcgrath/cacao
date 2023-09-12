@@ -1,10 +1,10 @@
 use std::sync::Once;
 
 use objc::declare::ClassDecl;
-use objc::runtime::{Class, Object, Sel, BOOL};
+use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel};
 
-use crate::foundation::{id, NSUInteger, NO, YES};
+use crate::foundation::{id, NSUInteger};
 use crate::text::label::{LabelDelegate, LABEL_DELEGATE_PTR};
 
 /// Injects an `UILabel` subclass. This is used for the default views that don't use delegates - we
