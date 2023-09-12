@@ -43,8 +43,6 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use core_foundation::base::TCFType;
-
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel};
@@ -308,7 +306,7 @@ impl<T> TextField<T> {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         self.objc.with_mut(|obj| unsafe {
-            let cg = color.as_ref().cg_color().as_concrete_TypeRef();
+            let cg = color.as_ref().cg_color();
             let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: cg];
         });

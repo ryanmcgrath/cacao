@@ -43,8 +43,6 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use core_foundation::base::TCFType;
-
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
@@ -326,7 +324,7 @@ impl<T> Label<T> {
         // @TODO: This is wrong.
         // Needs to set ivar and such, akin to View.
         self.objc.with_mut(|obj| unsafe {
-            let color = color.as_ref().cg_color().as_concrete_TypeRef();
+            let color = color.as_ref().cg_color();
             let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: color];
         });
