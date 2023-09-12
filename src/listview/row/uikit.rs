@@ -1,7 +1,6 @@
-use objc::declare::ClassDecl;
+use objc::rc::{Id, Owned};
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel};
-use objc::rc::{Id, Owned};
 
 use crate::dragdrop::DragInfo;
 use crate::foundation::{id, NSUInteger};

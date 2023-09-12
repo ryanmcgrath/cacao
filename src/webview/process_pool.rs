@@ -6,7 +6,6 @@
 
 use block::Block;
 use cocoa::foundation::{NSArray, NSInteger, NSPoint, NSRect, NSSize, NSString};
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel};
 

@@ -1,6 +1,6 @@
 use std::sync::Once;
 
-use objc::declare::ClassDecl;
+use objc::declare::ClassBuilder;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, sel};
 
@@ -16,7 +16,7 @@ pub(crate) fn register_view_class() -> &'static Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(UILabel);
-        let decl = ClassDecl::new("RSTTextField", superclass).unwrap();
+        let decl = ClassBuilder::new("RSTTextField", superclass).unwrap();
         VIEW_CLASS = Some(decl.register());
     });
 
@@ -31,7 +31,7 @@ pub(crate) fn register_view_class_with_delegate<T: LabelDelegate>() -> &'static 
 
     INIT.call_once(|| unsafe {
         let superclass = class!(UIView);
-        let mut decl = ClassDecl::new("RSTTextFieldWithDelegate", superclass).unwrap();
+        let mut decl = ClassBuilder::new("RSTTextFieldWithDelegate", superclass).unwrap();
 
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.

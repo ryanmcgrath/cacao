@@ -3,7 +3,6 @@
 
 use std::sync::Once;
 
-use objc::declare::ClassDecl;
 use objc::foundation::{CGFloat, NSSize};
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, sel};

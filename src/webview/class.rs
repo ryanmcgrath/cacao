@@ -8,7 +8,6 @@ use std::sync::Once;
 
 use block::Block;
 
-use objc::declare::ClassDecl;
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, msg_send_id, sel};
 

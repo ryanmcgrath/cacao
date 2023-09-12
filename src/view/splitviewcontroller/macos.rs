@@ -2,13 +2,12 @@
 
 use std::sync::Once;
 
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel};
 
 use crate::foundation::load_or_register_class;
-use crate::view::{VIEW_DELEGATE_PTR, ViewDelegate};
 use crate::utils::load;
+use crate::view::{ViewDelegate, VIEW_DELEGATE_PTR};
 
 /// Called when the view controller receives a `viewWillAppear` message.
 extern "C" fn will_appear<T: ViewDelegate>(this: &mut Object, _: Sel) {

@@ -360,7 +360,7 @@ pub(crate) fn register_view_class() -> &'static Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSView);
-        let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
+        let mut decl = ClassBuilder::new("RSTView", superclass).unwrap();
 
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
 

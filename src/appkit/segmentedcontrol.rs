@@ -6,7 +6,7 @@ use std::sync::Once;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use objc::declare::ClassDecl;
+use objc::declare::ClassBuilder;
 use objc::rc::{Id, Shared};
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, msg_send_id, sel};
@@ -332,7 +332,7 @@ fn register_class() -> *const Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSSegmentedControl);
-        let decl = ClassDecl::new("RSTSegmentedControl", superclass).unwrap();
+        let decl = ClassBuilder::new("RSTSegmentedControl", superclass).unwrap();
         VIEW_CLASS = decl.register();
     });
 
