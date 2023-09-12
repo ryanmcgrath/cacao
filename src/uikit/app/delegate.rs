@@ -21,7 +21,7 @@ use crate::uikit::scene::{SceneConnectionOptions, SceneSession};
 /// standard `utils` version as this doesn't require `RefCell` backing.
 fn app<T>(this: &Object) -> &T {
     unsafe {
-        //let app_ptr: usize = *this.get_ivar(APP_DELEGATE);
+        //let app_ptr: usize = *this.ivar(APP_DELEGATE);
         let app = APP_DELEGATE as *const T;
         &*app
     }

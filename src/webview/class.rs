@@ -30,7 +30,7 @@ extern "C" fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, _: id, _: id,
     }
 
     /*unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
+        let ptr: usize = *this.ivar(WEBVIEW_DELEGATE_PTR);
         let delegate = ptr as *const T;
         (*webview).alert(alert);
     }*/

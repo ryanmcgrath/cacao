@@ -221,7 +221,7 @@ where
     pub(crate) fn from_cached(view: id) -> ListViewRow<T> {
         // @TODO: Make this better.
         let delegate = unsafe {
-            let ptr: usize = *(&*view).get_ivar(LISTVIEW_ROW_DELEGATE_PTR);
+            let ptr: usize = *(&*view).ivar(LISTVIEW_ROW_DELEGATE_PTR);
             let obj = ptr as *mut T;
             Box::from_raw(obj)
             //&*obj

@@ -195,7 +195,7 @@ where
         queue.exec_async(move || unsafe {
             let app: id = msg_send![register_app_class(), sharedApplication];
             let app_delegate: id = msg_send![app, delegate];
-            let delegate_ptr: usize = *(*app_delegate).get_ivar(APP_PTR);
+            let delegate_ptr: usize = *(*app_delegate).ivar(APP_PTR);
             let delegate = delegate_ptr as *const T;
             (&*delegate).on_ui_message(message);
         });
@@ -209,7 +209,7 @@ where
         queue.exec_async(move || unsafe {
             let app: id = msg_send![register_app_class(), sharedApplication];
             let app_delegate: id = msg_send![app, delegate];
-            let delegate_ptr: usize = *(*app_delegate).get_ivar(APP_PTR);
+            let delegate_ptr: usize = *(*app_delegate).ivar(APP_PTR);
             let delegate = delegate_ptr as *const T;
             (&*delegate).on_background_message(message);
         });

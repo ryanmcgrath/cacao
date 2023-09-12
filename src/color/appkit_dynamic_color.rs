@@ -59,21 +59,21 @@ fn get_effective_color(this: &Object) -> id {
             let style: id = msg_send![appearance, bestMatchFromAppearancesWithNames:&*names];
 
             if style == NSAppearanceNameDarkAqua {
-                return *this.get_ivar(AQUA_DARK_COLOR_NORMAL_CONTRAST);
+                return *this.ivar(AQUA_DARK_COLOR_NORMAL_CONTRAST);
             }
 
             if style == NSAppearanceNameAccessibilityHighContrastAqua {
-                return *this.get_ivar(AQUA_LIGHT_COLOR_HIGH_CONTRAST);
+                return *this.ivar(AQUA_LIGHT_COLOR_HIGH_CONTRAST);
             }
 
             if style == NSAppearanceNameAccessibilityHighContrastDarkAqua {
-                return *this.get_ivar(AQUA_DARK_COLOR_HIGH_CONTRAST);
+                return *this.ivar(AQUA_DARK_COLOR_HIGH_CONTRAST);
             }
         }
     }
 
     unsafe {
-        return *this.get_ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST);
+        return *this.ivar(AQUA_LIGHT_COLOR_NORMAL_CONTRAST);
     }
 }
 

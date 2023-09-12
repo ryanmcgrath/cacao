@@ -69,7 +69,7 @@ extern "C" fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: 
 /// Called for layer updates.
 extern "C" fn update_layer(this: &Object, _: Sel) {
     unsafe {
-        let background_color: id = *this.get_ivar(BACKGROUND_COLOR);
+        let background_color: id = *this.ivar(BACKGROUND_COLOR);
 
         if background_color != nil {
             let layer: id = msg_send![this, layer];

@@ -40,7 +40,7 @@ pub trait Controller {
 /// checking.
 pub fn load<'a, T>(this: &'a Object, ptr_name: &str) -> &'a T {
     unsafe {
-        let ptr: usize = *this.get_ivar(ptr_name);
+        let ptr: usize = *this.ivar(ptr_name);
         let obj = ptr as *const T;
         &*obj
     }
