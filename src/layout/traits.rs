@@ -1,6 +1,8 @@
 //! Various traits related to controllers opting in to autolayout routines and support for view
 //! heirarchies.
 
+use objc::msg_send_id;
+
 use core_graphics::base::CGFloat;
 use core_graphics::geometry::{CGPoint, CGRect, CGSize};
 
@@ -174,12 +176,21 @@ pub trait Layout: ObjcAccess {
             let _: () = msg_send![obj, setAlphaValue: value];
         });
     }
-}
 
-/// A trait to access a views layout anchors
-pub trait HasLayout {
-    fn get_top(&self) -> &LayoutAnchorY;
-    fn get_bottom(&self) -> &LayoutAnchorY;
-    fn get_leading(&self) -> &LayoutAnchorX;
-    fn get_trailing(&self) -> &LayoutAnchorX;
+    #[cfg(feature = "appkit")]
+    fn get_top(&self) -> LayoutAnchorY {
+        self.get_from_backing_obj(|id| LayoutAnchorY::Top(unsafe { msg_send_id![id, topAnchor] }))
+    }
+    #[cfg(feature = "appkit")]
+    fn get_bottom(&self) -> LayoutAnchorY {
+        self.get_from_backing_obj(|id| LayoutAnchorY::Bottom(unsafe { msg_send_id![id, bottomAnchor] }))
+    }
+    #[cfg(feature = "appkit")]
+    fn get_leading(&self) -> LayoutAnchorX {
+        self.get_from_backing_obj(|id| LayoutAnchorX::Leading(unsafe { msg_send_id![id, leadingAnchor] }))
+    }
+    #[cfg(feature = "appkit")]
+    fn get_trailing(&self) -> LayoutAnchorX {
+        self.get_from_backing_obj(|id| LayoutAnchorX::Trailing(unsafe { msg_send_id![id, trailingAnchor] }))
+    }
 }
