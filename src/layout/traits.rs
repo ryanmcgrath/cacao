@@ -37,7 +37,7 @@ pub trait Layout: ObjcAccess {
     }
 
     /// Adds another Layout-backed control or view as a subview of this view.
-    fn add_subview<V: Layout>(&self, view: &V) {
+    fn add_subview(&self, view: &dyn Layout) {
         self.with_backing_obj_mut(&|backing_node| {
             view.with_backing_obj_mut(&|subview_node| unsafe {
                 let _: () = msg_send![backing_node, addSubview: subview_node];
@@ -49,19 +49,6 @@ pub trait Layout: ObjcAccess {
     fn remove_from_superview(&self) {
         self.with_backing_obj_mut(&|backing_node| unsafe {
             let _: () = msg_send![backing_node, removeFromSuperview];
-        });
-    }
-
-    /// Sets the `frame` for the view this trait is applied to.
-    ///
-    /// Note that Cacao, by default, opts into autolayout - you need to call
-    /// `set_translates_autoresizing_mask_into_constraints` to enable frame-based layout calls (or
-    /// use an appropriate initializer for a given view type).
-    fn set_frame<R: Into<CGRect>>(&self, rect: R) {
-        let frame: CGRect = rect.into();
-
-        self.with_backing_obj_mut(&move |backing_node| unsafe {
-            let _: () = msg_send![backing_node, setFrame: frame];
         });
     }
 
@@ -200,3 +187,20 @@ pub trait Layout: ObjcAccess {
         LayoutAnchorX::Trailing(unsafe { msg_send_id![&**id, trailingAnchor] })
     }
 }
+
+pub trait Frame: Layout {
+    /// Sets the `frame` for the view this trait is applied to.
+    ///
+    /// Note that Cacao, by default, opts into autolayout - you need to call
+    /// `set_translates_autoresizing_mask_into_constraints` to enable frame-based layout calls (or
+    /// use an appropriate initializer for a given view type).
+    fn set_frame<R: Into<CGRect>>(&self, rect: R) {
+        let frame: CGRect = rect.into();
+
+        self.with_backing_obj_mut(&move |backing_node| unsafe {
+            let _: () = msg_send![backing_node, setFrame: frame];
+        });
+    }
+}
+
+impl<T: Layout> Frame for T {}

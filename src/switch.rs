@@ -151,7 +151,7 @@ impl ObjcAccess for Switch {
 }
 
 impl Layout for Switch {
-    fn add_subview<V: Layout>(&self, _view: &V) {
+    fn add_subview(&self, _view: &dyn Layout) {
         panic!(
             r#"
             Tried to add a subview to a Switch. This is not allowed in Cacao. If you think this should be supported,

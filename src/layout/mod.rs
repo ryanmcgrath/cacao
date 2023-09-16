@@ -4,7 +4,7 @@
 //! more complicated views that need to deal with differing screen sizes.
 
 mod traits;
-pub use traits::Layout;
+pub use traits::{Frame, Layout};
 
 #[cfg(all(feature = "appkit", target_os = "macos"))]
 mod animator;

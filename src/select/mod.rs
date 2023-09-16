@@ -80,7 +80,7 @@ pub struct Select {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl Select {
@@ -132,7 +132,7 @@ impl Select {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 
@@ -215,7 +215,7 @@ impl ObjcAccess for Select {
 }
 
 impl Layout for Select {
-    fn add_subview<V: Layout>(&self, _view: &V) {
+    fn add_subview(&self, _view: &dyn Layout) {
         panic!(
             r#"
             Tried to add a subview to a Select. This is not allowed in Cacao. If you think this should be supported,
@@ -238,7 +238,7 @@ impl ObjcAccess for &Select {
 }
 
 impl Layout for &Select {
-    fn add_subview<V: Layout>(&self, _view: &V) {
+    fn add_subview(&self, _view: &dyn Layout) {
         panic!(
             r#"
             Tried to add a subview to a Select. This is not allowed in Cacao. If you think this should be supported,

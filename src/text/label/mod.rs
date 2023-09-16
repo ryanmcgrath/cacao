@@ -203,7 +203,7 @@ pub struct Label<T = ()> {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl Default for Label {
@@ -255,14 +255,14 @@ impl Label {
 
             layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 }
 
 impl<T> Label<T>
 where
-    T: LabelDelegate + 'static,
+    T: LabelDelegate + 'static
 {
     /// Initializes a new Label with a given `LabelDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
@@ -319,7 +319,7 @@ impl<T> Label<T> {
 
             layer: self.layer.clone(),
 
-            objc: self.objc.clone(),
+            objc: self.objc.clone()
         }
     }
 

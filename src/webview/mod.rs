@@ -151,7 +151,7 @@ pub struct WebView<T = ()> {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY,
+    pub center_y: LayoutAnchorY
 }
 
 impl Default for WebView {
@@ -211,7 +211,7 @@ impl WebView {
 
             layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
-            objc: ObjcProperty::retain(view),
+            objc: ObjcProperty::retain(view)
         }
     }
 
@@ -224,7 +224,7 @@ impl WebView {
 
 impl<T> WebView<T>
 where
-    T: WebViewDelegate + 'static,
+    T: WebViewDelegate + 'static
 {
     /// Initializes a new WebView with a given `WebViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
@@ -289,7 +289,7 @@ impl<T> WebView<T> {
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone(),
+            center_y: self.center_y.clone()
         }
     }
 
@@ -345,7 +345,7 @@ impl<T> ObjcAccess for WebView<T> {
 impl<T> Layout for WebView<T> {
     /// Currently, this is a noop. Theoretically there is reason to support this, but in practice
     /// I've never seen it needed... but am open to discussion.
-    fn add_subview<V: Layout>(&self, _: &V) {}
+    fn add_subview(&self, _: &dyn Layout) {}
 }
 
 impl<T> std::fmt::Debug for WebView<T> {
