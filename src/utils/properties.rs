@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 
 use objc::rc::{Id, Owned};
@@ -40,6 +40,10 @@ impl ObjcProperty {
         let obj = self.0.borrow();
         handler(&**obj)
     }
+
+    pub fn get_ref(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.0.borrow()
+    }
 }
 
 /// A wrapper for a single-threaded nullable `Property`.
@@ -57,7 +61,7 @@ impl<T> PropertyNullable<T> {
 
     pub fn with<F>(&self, handler: F)
     where
-        F: Fn(&T)
+        F: Fn(&T),
     {
         let borrow = self.0.borrow();
         if let Some(s) = &*borrow {
