@@ -439,7 +439,7 @@ impl<T> Label<T> {
 }
 
 impl<T> ObjcAccess for Label<T> {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 

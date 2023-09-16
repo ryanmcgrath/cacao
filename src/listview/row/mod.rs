@@ -449,7 +449,7 @@ impl<T> ListViewRow<T> {
 }
 
 impl<T> ObjcAccess for ListViewRow<T> {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 

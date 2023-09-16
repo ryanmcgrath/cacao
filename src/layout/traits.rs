@@ -28,7 +28,7 @@ pub trait Layout: ObjcAccess {
     /// pass from the system will redraw it accordingly, and set the underlying value back to
     /// `false`.
     fn set_needs_display(&self, needs_display: bool) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setNeedsDisplay:match needs_display {
                 true => YES,
                 false => NO
@@ -38,8 +38,8 @@ pub trait Layout: ObjcAccess {
 
     /// Adds another Layout-backed control or view as a subview of this view.
     fn add_subview<V: Layout>(&self, view: &V) {
-        self.with_backing_obj_mut(|backing_node| {
-            view.with_backing_obj_mut(|subview_node| unsafe {
+        self.with_backing_obj_mut(&|backing_node| {
+            view.with_backing_obj_mut(&|subview_node| unsafe {
                 let _: () = msg_send![backing_node, addSubview: subview_node];
             });
         });
@@ -47,7 +47,7 @@ pub trait Layout: ObjcAccess {
 
     /// Removes a control or view from the superview.
     fn remove_from_superview(&self) {
-        self.with_backing_obj_mut(|backing_node| unsafe {
+        self.with_backing_obj_mut(&|backing_node| unsafe {
             let _: () = msg_send![backing_node, removeFromSuperview];
         });
     }
@@ -60,7 +60,7 @@ pub trait Layout: ObjcAccess {
     fn set_frame<R: Into<CGRect>>(&self, rect: R) {
         let frame: CGRect = rect.into();
 
-        self.with_backing_obj_mut(move |backing_node| unsafe {
+        self.with_backing_obj_mut(&move |backing_node| unsafe {
             let _: () = msg_send![backing_node, setFrame: frame];
         });
     }
@@ -72,7 +72,7 @@ pub trait Layout: ObjcAccess {
     /// then you should set this to `true` (or use an appropriate initializer that does it for you).
     #[cfg(feature = "autolayout")]
     fn set_translates_autoresizing_mask_into_constraints(&self, translates: bool) {
-        self.with_backing_obj_mut(|backing_node| unsafe {
+        self.with_backing_obj_mut(&|backing_node| unsafe {
             let _: () = msg_send![backing_node, setTranslatesAutoresizingMaskIntoConstraints:match translates {
                 true => YES,
                 false => NO
@@ -84,7 +84,7 @@ pub trait Layout: ObjcAccess {
     ///
     /// When hidden, widgets don't receive events and is not visible.
     fn set_hidden(&self, hide: bool) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setHidden:match hide {
                 true => YES,
                 false => NO
@@ -122,7 +122,7 @@ pub trait Layout: ObjcAccess {
             .collect::<Vec<id>>()
             .into();
 
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, registerForDraggedTypes:&*types];
         });
     }
@@ -133,7 +133,7 @@ pub trait Layout: ObjcAccess {
     /// currently to avoid compile issues.
     #[cfg(feature = "appkit")]
     fn unregister_dragged_types(&self) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, unregisterDraggedTypes];
         });
     }
@@ -144,7 +144,7 @@ pub trait Layout: ObjcAccess {
     /// can be helpful - but always test!
     #[cfg(feature = "appkit")]
     fn set_posts_frame_change_notifications(&self, posts: bool) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setPostsFrameChangedNotifications:match posts {
                 true => YES,
                 false => NO
@@ -158,7 +158,7 @@ pub trait Layout: ObjcAccess {
     /// can be helpful - but always test!
     #[cfg(feature = "appkit")]
     fn set_posts_bounds_change_notifications(&self, posts: bool) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setPostsBoundsChangedNotifications:match posts {
                 true => YES,
                 false => NO
@@ -172,7 +172,7 @@ pub trait Layout: ObjcAccess {
     fn set_alpha(&self, value: f64) {
         let value: CGFloat = value.into();
 
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setAlphaValue: value];
         });
     }

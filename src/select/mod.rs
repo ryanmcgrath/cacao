@@ -203,7 +203,7 @@ impl Select {
 }
 
 impl ObjcAccess for Select {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
@@ -226,7 +226,7 @@ impl Layout for Select {
 impl Control for Select {}
 
 impl ObjcAccess for &Select {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 

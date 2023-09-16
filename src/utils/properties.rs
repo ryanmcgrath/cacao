@@ -61,7 +61,7 @@ impl<T> PropertyNullable<T> {
 
     pub fn with<F>(&self, handler: F)
     where
-        F: Fn(&T),
+        F: Fn(&T)
     {
         let borrow = self.0.borrow();
         if let Some(s) = &*borrow {

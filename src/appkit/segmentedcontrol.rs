@@ -293,7 +293,7 @@ impl SegmentedControl {
 }
 
 impl ObjcAccess for SegmentedControl {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
@@ -306,7 +306,7 @@ impl Layout for SegmentedControl {}
 impl Control for SegmentedControl {}
 
 impl ObjcAccess for &SegmentedControl {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 

@@ -350,7 +350,7 @@ impl<T> View<T> {
 }
 
 impl<T> ObjcAccess for View<T> {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 

@@ -13,7 +13,7 @@ use crate::foundation::id;
 pub trait ObjcAccess {
     /// Used for mutably interacting with the underlying Objective-C instance.
     /// Setters should use this.
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F);
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id));
 
     /// Used for checking backing properties of the underlying Objective-C instance, without
     /// needing a mutable borrow.

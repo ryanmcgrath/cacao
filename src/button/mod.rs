@@ -311,7 +311,7 @@ impl Button {
 }
 
 impl ObjcAccess for Button {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
@@ -325,7 +325,7 @@ impl Layout for Button {}
 impl Control for Button {}
 
 impl ObjcAccess for &Button {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
