@@ -21,7 +21,9 @@
 //! my_view.add_subview(&button);
 //! ```
 
-use objc::rc::{Id, Shared};
+use std::cell::Ref;
+
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
@@ -315,8 +317,8 @@ impl ObjcAccess for Button {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 
@@ -329,8 +331,8 @@ impl ObjcAccess for &Button {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 

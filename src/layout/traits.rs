@@ -97,13 +97,15 @@ pub trait Layout: ObjcAccess {
     /// Note that this can report `false` if an ancestor widget is hidden, thus hiding this - to check in
     /// that case, you may want `is_hidden_or_ancestor_is_hidden()`.
     fn is_hidden(&self) -> bool {
-        self.get_from_backing_obj(|obj| to_bool(unsafe { msg_send![obj, isHidden] }))
+        let obj = self.get_backing_obj();
+        to_bool(unsafe { msg_send![&**obj, isHidden] })
     }
 
     /// Returns whether this is hidden, *or* whether an ancestor view is hidden.
     #[cfg(feature = "appkit")]
     fn is_hidden_or_ancestor_is_hidden(&self) -> bool {
-        self.get_from_backing_obj(|obj| to_bool(unsafe { msg_send![obj, isHiddenOrHasHiddenAncestor] }))
+        let obj = self.get_backing_obj();
+        to_bool(unsafe { msg_send![&**obj, isHiddenOrHasHiddenAncestor] })
     }
 
     /// Register this view for drag and drop operations.
@@ -179,18 +181,22 @@ pub trait Layout: ObjcAccess {
 
     #[cfg(feature = "appkit")]
     fn get_top(&self) -> LayoutAnchorY {
-        self.get_from_backing_obj(|id| LayoutAnchorY::Top(unsafe { msg_send_id![id, topAnchor] }))
+        let id = self.get_backing_obj();
+        LayoutAnchorY::Top(unsafe { msg_send_id![&**id, topAnchor] })
     }
     #[cfg(feature = "appkit")]
     fn get_bottom(&self) -> LayoutAnchorY {
-        self.get_from_backing_obj(|id| LayoutAnchorY::Bottom(unsafe { msg_send_id![id, bottomAnchor] }))
+        let id = self.get_backing_obj();
+        LayoutAnchorY::Bottom(unsafe { msg_send_id![&**id, bottomAnchor] })
     }
     #[cfg(feature = "appkit")]
     fn get_leading(&self) -> LayoutAnchorX {
-        self.get_from_backing_obj(|id| LayoutAnchorX::Leading(unsafe { msg_send_id![id, leadingAnchor] }))
+        let id = self.get_backing_obj();
+        LayoutAnchorX::Leading(unsafe { msg_send_id![&**id, leadingAnchor] })
     }
     #[cfg(feature = "appkit")]
     fn get_trailing(&self) -> LayoutAnchorX {
-        self.get_from_backing_obj(|id| LayoutAnchorX::Trailing(unsafe { msg_send_id![id, trailingAnchor] }))
+        let id = self.get_backing_obj();
+        LayoutAnchorX::Trailing(unsafe { msg_send_id![&**id, trailingAnchor] })
     }
 }

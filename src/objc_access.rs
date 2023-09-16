@@ -2,7 +2,12 @@
 //! defined on here provide access handlers for common properties that the sub-traits need to
 //! enable modifying.
 
-use objc::runtime::Object;
+use std::cell::Ref;
+
+use objc::{
+    rc::{Id, Owned},
+    runtime::Object
+};
 
 use crate::foundation::id;
 
@@ -19,5 +24,5 @@ pub trait ObjcAccess {
     /// needing a mutable borrow.
     ///
     /// Getters should use this.
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R;
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>>;
 }

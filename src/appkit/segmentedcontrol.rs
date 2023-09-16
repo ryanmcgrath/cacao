@@ -3,11 +3,11 @@
 use std::fmt;
 use std::sync::Once;
 
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 
 use objc::declare::ClassDecl;
-use objc::rc::{Id, Shared};
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, msg_send_id, sel};
 
@@ -98,7 +98,7 @@ pub struct SegmentedControl {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY
+    pub center_y: LayoutAnchorY,
 }
 
 #[derive(Debug)]
@@ -106,7 +106,7 @@ pub struct SegmentedControl {
 pub enum TrackingMode {
     SelectOne = 0,
     SelectMany = 1,
-    SelectMomentary = 2
+    SelectMomentary = 2,
 }
 
 impl SegmentedControl {
@@ -163,7 +163,7 @@ impl SegmentedControl {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view)
+            objc: ObjcProperty::retain(view),
         }
     }
 
@@ -216,14 +216,14 @@ impl SegmentedControl {
     /// button will fire.
     pub fn set_key_equivalent<'a, K>(&self, key: K)
     where
-        K: Into<Key<'a>>
+        K: Into<Key<'a>>,
     {
         let key: Key<'a> = key.into();
 
         self.objc.with_mut(|obj| {
             let keychar = match key {
                 Key::Char(s) => NSString::new(s),
-                Key::Delete => NSString::new("\u{08}")
+                Key::Delete => NSString::new("\u{08}"),
             };
 
             unsafe {
@@ -297,8 +297,8 @@ impl ObjcAccess for SegmentedControl {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 
@@ -310,8 +310,8 @@ impl ObjcAccess for &SegmentedControl {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 

@@ -1,7 +1,9 @@
 //! Implements a Select-style dropdown. By default this uses NSPopupSelect on macOS.
 
+use std::cell::Ref;
+
 use core_graphics::geometry::CGRect;
-use objc::rc::{Id, Shared};
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
@@ -78,7 +80,7 @@ pub struct Select {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY
+    pub center_y: LayoutAnchorY,
 }
 
 impl Select {
@@ -130,7 +132,7 @@ impl Select {
             #[cfg(feature = "autolayout")]
             center_y: LayoutAnchorY::center(view),
 
-            objc: ObjcProperty::retain(view)
+            objc: ObjcProperty::retain(view),
         }
     }
 
@@ -207,8 +209,8 @@ impl ObjcAccess for Select {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 
@@ -230,8 +232,8 @@ impl ObjcAccess for &Select {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 

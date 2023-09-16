@@ -14,10 +14,10 @@
 //! platform.
 
 use core_graphics::geometry::CGRect;
-
 use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
+use std::cell::Ref;
 
 use crate::foundation::{id, nil, NSString, NO, YES};
 use crate::geometry::Rect;
@@ -151,7 +151,7 @@ pub struct WebView<T = ()> {
 
     /// A pointer to the Objective-C runtime center Y layout constraint.
     #[cfg(feature = "autolayout")]
-    pub center_y: LayoutAnchorY
+    pub center_y: LayoutAnchorY,
 }
 
 impl Default for WebView {
@@ -211,7 +211,7 @@ impl WebView {
 
             layer: Layer::from_id(unsafe { msg_send_id![view, layer] }),
 
-            objc: ObjcProperty::retain(view)
+            objc: ObjcProperty::retain(view),
         }
     }
 
@@ -224,7 +224,7 @@ impl WebView {
 
 impl<T> WebView<T>
 where
-    T: WebViewDelegate + 'static
+    T: WebViewDelegate + 'static,
 {
     /// Initializes a new WebView with a given `WebViewDelegate`. This enables you to respond to events
     /// and customize the view as a module, similar to class-based systems.
@@ -289,7 +289,7 @@ impl<T> WebView<T> {
             center_x: self.center_x.clone(),
 
             #[cfg(feature = "autolayout")]
-            center_y: self.center_y.clone()
+            center_y: self.center_y.clone(),
         }
     }
 
@@ -333,12 +333,12 @@ impl<T> WebView<T> {
 }
 
 impl<T> ObjcAccess for WebView<T> {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 
