@@ -111,4 +111,31 @@ impl Pasteboard {
             Ok(urls)
         }
     }
+
+    /// Write a list of path to the pasteboard
+    pub fn set_files(&self, paths: &[&Path]) -> Result<(), Box<dyn std::error::Error>> {
+        unsafe {
+            let urls: Vec<NSURL> = paths
+                .iter()
+                .map(|p| {
+                    let url = format!("file://{}", p.display());
+                    NSURL::with_str(&url)
+                })
+                .collect();
+            let url_arr = NSArray::new(&urls);
+
+            let _: id = msg_send![&*self.0, clearContents];
+            let succ: bool = msg_send![&*self.0, writeObjects: &*url_arr];
+
+            if succ {
+                Ok(())
+            } else {
+                return Err(Box::new(Error {
+                    code: 666,
+                    domain: "com.cacao-rs.pasteboard".to_string(),
+                    description: "Pasteboard server set urls fail.".to_string()
+                }));
+            }
+        }
+    }
 }
