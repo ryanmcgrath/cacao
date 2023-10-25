@@ -159,6 +159,5 @@ mod pasteboard_test {
         let urls = pb.get_file_urls().unwrap();
         let got: Vec<PathBuf> = urls.into_iter().map(|u| u.pathbuf()).collect();
         assert_eq!(got, paths);
-        println!("successful!");
     }
 }
