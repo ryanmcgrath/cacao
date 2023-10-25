@@ -11,6 +11,9 @@
 //!
 //! // Copy a piece of text to the clipboard
 //! pasteboard.copy_text("My message here");
+//!
+//! // Set file url to the clipboard
+//! pasteboard.set_files(vec!["/bin/ls".parse().unwrap(), "/bin/cat".parse().unwrap()]).unwrap();
 //! ```
 
 use std::path::PathBuf;
@@ -113,16 +116,17 @@ impl Pasteboard {
     }
 
     /// Write a list of path to the pasteboard
-    pub fn set_files(&self, paths: &[&Path]) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn set_files(&self, mut paths: Vec<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
         unsafe {
-            let urls: Vec<NSURL> = paths
-                .iter()
-                .map(|p| {
-                    let url = format!("file://{}", p.display());
-                    NSURL::with_str(&url)
+            let url_arr: NSArray = paths
+                .iter_mut()
+                .map(|path| {
+                    let url_str = format!("file://{}", path.display());
+                    let url = NSURL::with_str(&url_str);
+                    url.objc.autorelease_return()
                 })
-                .collect();
-            let url_arr = NSArray::new(&urls);
+                .collect::<Vec<id>>()
+                .into();
 
             let _: id = msg_send![&*self.0, clearContents];
             let succ: bool = msg_send![&*self.0, writeObjects: &*url_arr];
@@ -130,12 +134,31 @@ impl Pasteboard {
             if succ {
                 Ok(())
             } else {
-                return Err(Box::new(Error {
+                Err(Box::new(Error {
                     code: 666,
                     domain: "com.cacao-rs.pasteboard".to_string(),
                     description: "Pasteboard server set urls fail.".to_string()
-                }));
+                }))
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod pasteboard_test {
+    use std::path::PathBuf;
+
+    use super::Pasteboard;
+
+    #[test]
+    fn paste_files() {
+        let pb = Pasteboard::unique();
+        let paths: Vec<PathBuf> = vec!["/bin/ls", "/bin/cat"].into_iter().map(|s| s.parse().unwrap()).collect();
+
+        pb.set_files(paths.clone()).unwrap();
+        let urls = pb.get_file_urls().unwrap();
+        let got: Vec<PathBuf> = urls.into_iter().map(|u| u.pathbuf()).collect();
+        assert_eq!(got, paths);
+        println!("successful!");
     }
 }
