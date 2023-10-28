@@ -18,6 +18,7 @@ use std::path::PathBuf;
 use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
+use percent_encoding::{percent_encode, AsciiSet};
 use url::Url;
 
 use crate::error::Error;
@@ -25,6 +26,8 @@ use crate::foundation::{id, nil, NSArray, NSString, NSURL};
 
 mod types;
 pub use types::{PasteboardName, PasteboardType};
+
+const ENCODE_SET: AsciiSet = percent_encoding::CONTROLS.add(b' ').add(b'-').add(b'%');
 
 /// Represents an `NSPasteboard`, enabling you to handle copy/paste/drag and drop.
 #[derive(Debug)]
@@ -106,7 +109,7 @@ impl Pasteboard {
                 }));
             }
 
-            let urls = NSArray::retain(contents).iter().map(|url| NSURL::retain(url)).collect();
+            let urls = NSArray::retain(contents).iter().map(NSURL::retain).collect();
 
             Ok(urls)
         }
@@ -135,7 +138,9 @@ impl Pasteboard {
             let url_arr: NSArray = paths
                 .iter_mut()
                 .map(|path| {
-                    let url_str = format!("file://{}", path.display());
+                    let path = path.display().to_string();
+                    let encoded = percent_encode(path.as_bytes(), &ENCODE_SET).to_string();
+                    let url_str = format!("file://{}", encoded);
                     let url = NSURL::with_str(&url_str);
                     url.objc.autorelease_return()
                 })
@@ -177,7 +182,10 @@ mod pasteboard_test {
     #[test]
     fn paste_files() {
         let pb = Pasteboard::unique();
-        let paths: Vec<PathBuf> = vec!["/bin/ls", "/bin/cat"].into_iter().map(|s| s.parse().unwrap()).collect();
+        let paths: Vec<PathBuf> = vec!["/bin/ls", "/bin/cat", "/tmp/👋- 2023 10 29.txt"]
+            .into_iter()
+            .map(|s| s.parse().unwrap())
+            .collect();
 
         pb.set_files(paths.clone()).unwrap();
         let urls = pb.get_file_urls().unwrap();
