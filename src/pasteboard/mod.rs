@@ -11,9 +11,6 @@
 //!
 //! // Copy a piece of text to the clipboard
 //! pasteboard.copy_text("My message here");
-//!
-//! // Set file url to the clipboard
-//! pasteboard.set_files(vec!["/bin/ls".parse().unwrap(), "/bin/cat".parse().unwrap()]).unwrap();
 //! ```
 
 use std::path::PathBuf;
@@ -115,6 +112,23 @@ impl Pasteboard {
         }
     }
 
+    pub fn get_text(&self) -> Result<String, Box<dyn std::error::Error>> {
+        unsafe {
+            let pb_type: NSString = NSString::from(PasteboardType::String);
+            let opt_nsstr: id = msg_send![&*self.0, stringForType: &*pb_type];
+
+            if opt_nsstr == nil {
+                return Err(Box::new(Error {
+                    code: 666,
+                    domain: "com.cacao-rs.pasteboard".to_string(),
+                    description: "Pasteboard server returned no data.".to_string()
+                }));
+            }
+
+            Ok(NSString::retain(opt_nsstr).to_string())
+        }
+    }
+
     /// Write a list of path to the pasteboard
     pub fn set_files(&self, mut paths: Vec<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
         unsafe {
@@ -149,6 +163,16 @@ mod pasteboard_test {
     use std::path::PathBuf;
 
     use super::Pasteboard;
+
+    #[test]
+    fn paste_text() {
+        let pb = Pasteboard::unique();
+        let txt = "hello, world!";
+
+        pb.copy_text(txt);
+        let txt_got = pb.get_text().unwrap();
+        assert_eq!(txt, txt_got);
+    }
 
     #[test]
     fn paste_files() {
