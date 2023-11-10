@@ -54,6 +54,12 @@ impl Font {
         Font(unsafe { msg_send_id![Self::class(), boldSystemFontOfSize: size] })
     }
 
+    /// Creates and returns a font for the specified font name and size.
+    pub fn with_name(name: &str, size: f64) -> Self {
+        let font_name = NSString::new(name);
+        Font(unsafe { msg_send_id![Self::class(), fontWithName: &*font_name, size: size] })
+    }
+
     /// Creates and returns a monospace system font at the specified size and weight
     ///
     /// # Support
@@ -96,4 +102,5 @@ fn font_test() {
     let default_font = Font::default();
     let system_font = Font::system(100.0);
     let bold_system_font = Font::bold_system(100.0);
+    let named_font = Font::with_name("Times New Roman", 100.0);
 }
