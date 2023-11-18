@@ -312,6 +312,21 @@ impl<T> Window<T> {
         }
     }
 
+    /// Sets the window level, which determines the stacking order of windows on the screen.
+    pub fn set_level(&self, value: WindowLevel) {
+        let value: NSInteger = value.into();
+        unsafe {
+            let _: () = msg_send![&*self.objc, setLevel: value];
+        }
+    }
+
+    /// Removes window from the screen making it effectively hidden.
+    pub fn order_out(&self) {
+        unsafe {
+            let _: () = msg_send![&*self.objc, orderOut: nil];
+        }
+    }
+
     /// Set whether the toolbar toggle button is shown. Has no effect if no toolbar exists on this
     /// window.
     pub fn set_shows_toolbar_button(&self, shows: bool) {
