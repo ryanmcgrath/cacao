@@ -130,7 +130,7 @@ impl From<WindowToolbarStyle> for NSUInteger {
             WindowToolbarStyle::Expanded => 1,
             WindowToolbarStyle::Preferences => 2,
             WindowToolbarStyle::Unified => 3,
-            WindowToolbarStyle::UnifiedCompact => 4,
+            WindowToolbarStyle::UnifiedCompact => 4
         }
     }
 }
@@ -161,7 +161,7 @@ pub enum WindowLevel {
     PopUpMenu,
 
     /// The level for a screen saver.
-    ScreenSaver,
+    ScreenSaver
 }
 
 impl From<WindowLevel> for NSInteger {
@@ -174,7 +174,7 @@ impl From<WindowLevel> for NSInteger {
             WindowLevel::Status => 25,
             WindowLevel::DockWindow => 100,
             WindowLevel::PopUpMenu => 101,
-            WindowLevel::ScreenSaver => 1000,
+            WindowLevel::ScreenSaver => 1000
         }
     }
 }
