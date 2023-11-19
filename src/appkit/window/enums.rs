@@ -134,3 +134,47 @@ impl From<WindowToolbarStyle> for NSUInteger {
         }
     }
 }
+
+/// Describe the level of the window. Stacking of window levels take precedence over stacking
+/// of windows withing each level.
+#[derive(Clone, Copy, Debug)]
+pub enum WindowLevel {
+    /// The default level for NSWindow objects.
+    Normal,
+
+    /// Useful for floating palettes.
+    Floating,
+
+    /// The level for a modal panel.
+    ModalPanel,
+
+    /// Reserved for the application’s main menu.
+    MainMenu,
+
+    /// The level for a status window.
+    Status,
+
+    /// The level for the dock.
+    DockWindow,
+
+    /// The level for a pop-up menu.
+    PopUpMenu,
+
+    /// The level for a screen saver.
+    ScreenSaver
+}
+
+impl From<WindowLevel> for NSInteger {
+    fn from(mode: WindowLevel) -> Self {
+        match mode {
+            WindowLevel::Normal => 0,
+            WindowLevel::Floating => 3,
+            WindowLevel::ModalPanel => 8,
+            WindowLevel::MainMenu => 24,
+            WindowLevel::Status => 25,
+            WindowLevel::DockWindow => 100,
+            WindowLevel::PopUpMenu => 101,
+            WindowLevel::ScreenSaver => 1000
+        }
+    }
+}
