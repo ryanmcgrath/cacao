@@ -1,14 +1,12 @@
 //! Various traits related to controllers opting in to autolayout routines and support for view
 //! heirarchies.
 
-use core_graphics::base::CGFloat;
-use core_graphics::geometry::{CGPoint, CGRect, CGSize};
-
+use objc::foundation::{CGFloat, NSRect};
 use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{msg_send, sel};
 
-use crate::foundation::{id, nil, to_bool, NSArray, NSString, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSString};
 use crate::geometry::Rect;
 use crate::objc_access::ObjcAccess;
 
@@ -25,10 +23,7 @@ pub trait Layout: ObjcAccess {
     /// `false`.
     fn set_needs_display(&self, needs_display: bool) {
         self.with_backing_obj_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setNeedsDisplay:match needs_display {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setNeedsDisplay: needs_display];
         });
     }
 
@@ -53,8 +48,8 @@ pub trait Layout: ObjcAccess {
     /// Note that Cacao, by default, opts into autolayout - you need to call
     /// `set_translates_autoresizing_mask_into_constraints` to enable frame-based layout calls (or
     /// use an appropriate initializer for a given view type).
-    fn set_frame<R: Into<CGRect>>(&self, rect: R) {
-        let frame: CGRect = rect.into();
+    fn set_frame<R: Into<NSRect>>(&self, rect: R) {
+        let frame: NSRect = rect.into();
 
         self.with_backing_obj_mut(move |backing_node| unsafe {
             let _: () = msg_send![backing_node, setFrame: frame];
@@ -69,10 +64,7 @@ pub trait Layout: ObjcAccess {
     #[cfg(feature = "autolayout")]
     fn set_translates_autoresizing_mask_into_constraints(&self, translates: bool) {
         self.with_backing_obj_mut(|backing_node| unsafe {
-            let _: () = msg_send![backing_node, setTranslatesAutoresizingMaskIntoConstraints:match translates {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![backing_node, setTranslatesAutoresizingMaskIntoConstraints: translates];
         });
     }
 
@@ -81,10 +73,7 @@ pub trait Layout: ObjcAccess {
     /// When hidden, widgets don't receive events and is not visible.
     fn set_hidden(&self, hide: bool) {
         self.with_backing_obj_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setHidden:match hide {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setHidden: hide];
         });
     }
 
@@ -93,13 +82,13 @@ pub trait Layout: ObjcAccess {
     /// Note that this can report `false` if an ancestor widget is hidden, thus hiding this - to check in
     /// that case, you may want `is_hidden_or_ancestor_is_hidden()`.
     fn is_hidden(&self) -> bool {
-        self.get_from_backing_obj(|obj| to_bool(unsafe { msg_send![obj, isHidden] }))
+        self.get_from_backing_obj(|obj| unsafe { msg_send![obj, isHidden] })
     }
 
     /// Returns whether this is hidden, *or* whether an ancestor view is hidden.
     #[cfg(feature = "appkit")]
     fn is_hidden_or_ancestor_is_hidden(&self) -> bool {
-        self.get_from_backing_obj(|obj| to_bool(unsafe { msg_send![obj, isHiddenOrHasHiddenAncestor] }))
+        self.get_from_backing_obj(|obj| unsafe { msg_send![obj, isHiddenOrHasHiddenAncestor] })
     }
 
     /// Register this view for drag and drop operations.
@@ -141,10 +130,7 @@ pub trait Layout: ObjcAccess {
     #[cfg(feature = "appkit")]
     fn set_posts_frame_change_notifications(&self, posts: bool) {
         self.with_backing_obj_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setPostsFrameChangedNotifications:match posts {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setPostsFrameChangedNotifications: posts];
         });
     }
 
@@ -155,10 +141,7 @@ pub trait Layout: ObjcAccess {
     #[cfg(feature = "appkit")]
     fn set_posts_bounds_change_notifications(&self, posts: bool) {
         self.with_backing_obj_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setPostsBoundsChangedNotifications:match posts {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setPostsBoundsChangedNotifications: posts];
         });
     }
 

@@ -6,14 +6,14 @@ use std::sync::Once;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use objc::declare::ClassDecl;
+use objc::declare::ClassBuilder;
 use objc::rc::{Id, Shared};
-use objc::runtime::{Class, Object, Sel};
+use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::color::Color;
 use crate::control::Control;
-use crate::foundation::{id, nil, NSArray, NSString, NSUInteger, BOOL, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSString, NSUInteger};
 use crate::image::Image;
 use crate::invoker::TargetActionHandler;
 use crate::keys::Key;
@@ -120,10 +120,10 @@ impl SegmentedControl {
                 action:nil
             ];
 
-            let _: () = msg_send![control, setWantsLayer: YES];
+            let _: () = msg_send![control, setWantsLayer: true];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![control, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![control, setTranslatesAutoresizingMaskIntoConstraints: false];
 
             control
         };
@@ -239,7 +239,7 @@ impl SegmentedControl {
         #[cfg(feature = "appkit")]
         self.objc.with_mut(move |obj| unsafe {
             let text: id = msg_send![obj, attributedTitle];
-            let len: isize = msg_send![text, length];
+            let len: usize = msg_send![text, length];
 
             let mut attr_str = AttributedString::wrap(text);
             attr_str.set_text_color(color.as_ref(), 0..len);
@@ -253,10 +253,7 @@ impl SegmentedControl {
     #[cfg(feature = "appkit")]
     pub fn set_bordered(&self, is_bordered: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setBordered:match is_bordered {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setBordered: is_bordered];
         });
     }
 
@@ -284,10 +281,7 @@ impl SegmentedControl {
     /// Toggles the highlighted status of the button.
     pub fn set_highlighted(&self, highlight: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, highlight:match highlight {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, highlight: highlight];
         });
     }
 }
@@ -338,7 +332,7 @@ fn register_class() -> *const Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSSegmentedControl);
-        let decl = ClassDecl::new("RSTSegmentedControl", superclass).unwrap();
+        let decl = ClassBuilder::new("RSTSegmentedControl", superclass).unwrap();
         VIEW_CLASS = decl.register();
     });
 

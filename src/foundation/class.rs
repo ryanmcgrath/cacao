@@ -8,7 +8,7 @@ use std::thread;
 use std::time::Instant;
 
 use lazy_static::lazy_static;
-use objc::declare::ClassDecl;
+use objc::declare::ClassBuilder;
 use objc::ffi;
 use objc::runtime::Class;
 
@@ -132,7 +132,7 @@ impl ClassMap {
 #[inline(always)]
 pub fn load_or_register_class<F>(superclass_name: &'static str, subclass_name: &'static str, config: F) -> &'static Class
 where
-    F: Fn(&mut ClassDecl) + 'static
+    F: Fn(&mut ClassBuilder) + 'static
 {
     load_or_register_class_with_optional_generated_suffix(superclass_name, subclass_name, true, config)
 }
@@ -158,7 +158,7 @@ pub fn load_or_register_class_with_optional_generated_suffix<F>(
     config: F
 ) -> &'static Class
 where
-    F: Fn(&mut ClassDecl) + 'static
+    F: Fn(&mut ClassBuilder) + 'static
 {
     if let Some(subclass) = CLASSES.load(subclass_name, Some(superclass_name)) {
         return subclass;
@@ -189,7 +189,7 @@ where
             false => format!("{}_{}", subclass_name, superclass_name)
         };
 
-        match ClassDecl::new(&objc_subclass_name, superclass) {
+        match ClassBuilder::new(&objc_subclass_name, superclass) {
             Some(mut decl) => {
                 config(&mut decl);
 

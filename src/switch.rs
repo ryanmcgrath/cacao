@@ -5,7 +5,7 @@ use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, load_or_register_class, nil, NSString, NO};
+use crate::foundation::{id, load_or_register_class, nil, NSString};
 use crate::invoker::TargetActionHandler;
 use crate::layout::Layout;
 #[cfg(feature = "autolayout")]
@@ -72,7 +72,7 @@ impl Switch {
             let button: id = msg_send![register_class(), buttonWithTitle: &*title, target: nil, action: nil];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints: false];
 
             #[cfg(feature = "appkit")]
             let _: () = msg_send![button, setButtonType:3];

@@ -1,6 +1,6 @@
 use std::sync::Once;
 
-use objc::declare::ClassDecl;
+use objc::declare::ClassBuilder;
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, sel};
 
@@ -49,7 +49,7 @@ pub(crate) fn register_view_class() -> &'static Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(UITextField);
-        let decl = ClassDecl::new("RSTTextInputField", superclass).unwrap();
+        let decl = ClassBuilder::new("RSTTextInputField", superclass).unwrap();
         VIEW_CLASS = Some(decl.register());
     });
 

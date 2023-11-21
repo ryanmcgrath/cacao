@@ -9,7 +9,7 @@ use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, to_bool, NSUInteger, BOOL, NO, YES};
+use crate::foundation::{id, NSUInteger};
 
 /// Wrapper for a retained `NSData` object.
 ///
@@ -79,9 +79,7 @@ impl NSData {
 
     /// A helper method for determining if a given `NSObject` is an `NSData`.
     pub fn is(obj: id) -> bool {
-        let result: BOOL = unsafe { msg_send![obj, isKindOfClass: class!(NSData)] };
-
-        to_bool(result)
+        unsafe { msg_send![obj, isKindOfClass: class!(NSData)] }
     }
 
     /// Returns the length of the underlying `NSData` bytes.

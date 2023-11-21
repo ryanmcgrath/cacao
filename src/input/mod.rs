@@ -43,15 +43,13 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use core_foundation::base::TCFType;
-
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel};
 
 use crate::color::Color;
 use crate::control::Control;
-use crate::foundation::{id, nil, NSArray, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSInteger, NSString};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::text::{Font, TextAlign};
@@ -83,10 +81,10 @@ fn common_init(class: &Class) -> id {
         let view: id = msg_send![class, new];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: false];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![view, setWantsLayer: YES];
+        let _: () = msg_send![view, setWantsLayer: true];
 
         view
     }
@@ -308,7 +306,7 @@ impl<T> TextField<T> {
     /// Call this to set the background color for the backing layer.
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         self.objc.with_mut(|obj| unsafe {
-            let cg = color.as_ref().cg_color().as_concrete_TypeRef();
+            let cg = color.as_ref().cg_color();
             let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: cg];
         });
@@ -353,10 +351,7 @@ impl<T> TextField<T> {
     pub fn set_uses_single_line(&self, uses_single_line: bool) {
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
-            let _: () = msg_send![cell, setUsesSingleLineMode:match uses_single_line {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![cell, setUsesSingleLineMode: uses_single_line];
         });
     }
 
@@ -364,10 +359,7 @@ impl<T> TextField<T> {
     pub fn set_wraps(&self, uses_single_line: bool) {
         self.objc.with_mut(|obj| unsafe {
             let cell: id = msg_send![obj, cell];
-            let _: () = msg_send![cell, setWraps:match uses_single_line {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![cell, setWraps: uses_single_line];
         });
     }
 

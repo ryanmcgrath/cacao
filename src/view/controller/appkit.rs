@@ -2,7 +2,6 @@
 
 use std::sync::Once;
 
-use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel};
 

@@ -3,15 +3,13 @@
 
 use std::sync::Once;
 
-use core_graphics::base::CGFloat;
-
-use objc::declare::ClassDecl;
+use objc::foundation::{CGFloat, NSSize};
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, sel};
 
 use crate::appkit::window::{WindowDelegate, WINDOW_DELEGATE_PTR};
 use crate::foundation::{id, load_or_register_class, NSUInteger};
-use crate::utils::{load, CGSize};
+use crate::utils::load;
 
 /// Called when an `NSWindowDelegate` receives a `windowWillClose:` event.
 /// Good place to clean up memory and what not.
@@ -53,14 +51,11 @@ extern "C" fn did_change_screen_profile<T: WindowDelegate>(this: &Object, _: Sel
 }
 
 /// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
-extern "C" fn will_resize<T: WindowDelegate>(this: &Object, _: Sel, _: id, size: CGSize) -> CGSize {
+extern "C" fn will_resize<T: WindowDelegate>(this: &Object, _: Sel, _: id, size: NSSize) -> NSSize {
     let window = load::<T>(this, WINDOW_DELEGATE_PTR);
-    let s = window.will_resize(size.width as f64, size.height as f64);
+    let s = window.will_resize(size.width() as f64, size.height() as f64);
 
-    CGSize {
-        width: s.0 as CGFloat,
-        height: s.1 as CGFloat
-    }
+    NSSize::new(s.0 as CGFloat, s.1 as CGFloat)
 }
 
 /// Called when an `NSWindowDelegate` receives a `windowDidChangeScreen:` event.
@@ -112,15 +107,12 @@ extern "C" fn did_enter_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _:
 }
 
 /// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.
-extern "C" fn content_size_for_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id, size: CGSize) -> CGSize {
+extern "C" fn content_size_for_full_screen<T: WindowDelegate>(this: &Object, _: Sel, _: id, size: NSSize) -> NSSize {
     let window = load::<T>(this, WINDOW_DELEGATE_PTR);
 
-    let (width, height) = window.content_size_for_full_screen(size.width as f64, size.height as f64);
+    let (width, height) = window.content_size_for_full_screen(size.width() as f64, size.height() as f64);
 
-    CGSize {
-        width: width as CGFloat,
-        height: height as CGFloat
-    }
+    NSSize::new(width as CGFloat, height as CGFloat)
 }
 
 /// Called when an `NSWindowDelegate` receives a `windowDidChangeScreenProfile:` event.

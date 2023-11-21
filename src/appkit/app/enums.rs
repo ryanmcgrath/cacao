@@ -1,4 +1,5 @@
 //! Various types used at the AppController level.
+#![allow(unused_parens)]
 
 use crate::foundation::NSUInteger;
 

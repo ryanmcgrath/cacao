@@ -1,5 +1,4 @@
-use core_graphics::base::CGFloat;
-
+use objc::foundation::CGFloat;
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};

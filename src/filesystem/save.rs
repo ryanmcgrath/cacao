@@ -8,7 +8,7 @@ use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, nil, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, nil, NSInteger, NSString};
 
 #[derive(Debug)]
 pub struct FileSavePanel {
@@ -67,10 +67,7 @@ impl FileSavePanel {
     /// Sets whether directories can be created by the user.
     pub fn set_can_create_directories(&mut self, can_create: bool) {
         unsafe {
-            let _: () = msg_send![&*self.panel, setCanCreateDirectories:match can_create {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.panel, setCanCreateDirectories: can_create];
         }
 
         self.can_create_directories = can_create;

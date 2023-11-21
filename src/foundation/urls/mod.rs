@@ -82,7 +82,7 @@ impl<'a> NSURL<'a> {
     pub fn bookmark_data(
         &self,
         options: &[NSURLBookmarkCreationOption],
-        resource_value_keys: &[NSURLResourceKey],
+        _resource_value_keys: &[NSURLResourceKey],
         relative_to_url: Option<NSURL>
     ) -> Result<NSData, Box<dyn Error>> {
         let mut opts: NSUInteger = 0;
@@ -125,10 +125,10 @@ impl<'a> NSURL<'a> {
 
     /// Converts bookmark data into a URL.
     pub fn from_bookmark_data(
-        data: NSData,
-        options: &[NSURLBookmarkResolutionOption],
-        relative_to_url: Option<NSURL>,
-        data_is_stale: bool
+        _data: NSData,
+        _options: &[NSURLBookmarkResolutionOption],
+        _relative_to_url: Option<NSURL>,
+        _data_is_stale: bool
     ) -> Result<Self, Box<dyn Error>> {
         Err("LOL".into())
     }

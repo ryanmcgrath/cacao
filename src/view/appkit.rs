@@ -7,7 +7,6 @@
 //! for in the modern era. It also implements a few helpers for things like setting a background
 //! color, and enforcing layer backing by default.
 
-use objc::declare::ClassDecl;
 use objc::rc::{Id, Owned};
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, sel};
@@ -19,7 +18,7 @@ use crate::view::{ViewDelegate, BACKGROUND_COLOR, VIEW_DELEGATE_PTR};
 
 /// Enforces normalcy, or: a needlessly cruel method in terms of the name. You get the idea though.
 extern "C" fn enforce_normalcy(_: &Object, _: Sel) -> Bool {
-    return Bool::YES;
+    Bool::YES
 }
 
 /// Called when a drag/drop operation has entered this view.
@@ -70,7 +69,7 @@ extern "C" fn dragging_exited<T: ViewDelegate>(this: &mut Object, _: Sel, info: 
 /// Called for layer updates.
 extern "C" fn update_layer(this: &Object, _: Sel) {
     unsafe {
-        let background_color: id = *this.get_ivar(BACKGROUND_COLOR);
+        let background_color: id = *this.ivar(BACKGROUND_COLOR);
 
         if background_color != nil {
             let layer: id = msg_send![this, layer];

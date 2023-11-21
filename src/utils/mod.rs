@@ -2,16 +2,12 @@
 //! belong to. These are typically internal, and if you rely on them... well, don't be surprised if
 //! they go away one day.
 
-use core_foundation::base::CFIndex;
-use core_graphics::base::CGFloat;
-
-use objc::{class, msg_send, sel};
-
 use objc::rc::{Id, Shared};
 use objc::runtime::Object;
+use objc::{class, msg_send, sel};
 use objc::{Encode, Encoding};
 
-use crate::foundation::{id, BOOL, NO, YES};
+use crate::foundation::id;
 
 mod cell_factory;
 pub use cell_factory::CellFactory;
@@ -44,7 +40,7 @@ pub trait Controller {
 /// checking.
 pub fn load<'a, T>(this: &'a Object, ptr_name: &str) -> &'a T {
     unsafe {
-        let ptr: usize = *this.get_ivar(ptr_name);
+        let ptr: usize = *this.ivar(ptr_name);
         let obj = ptr as *const T;
         &*obj
     }
@@ -66,54 +62,6 @@ where
 {
     let queue = dispatch::Queue::main();
     queue.exec_sync(method);
-}
-
-/// Upstream core graphics does not implement Encode for certain things, so we wrap them here -
-/// these are only used in reading certain types passed to us from some delegate methods.
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct CGSize {
-    /// The width of this size.
-    pub width: CGFloat,
-
-    /// The height of this size.
-    pub height: CGFloat
-}
-
-impl CGSize {
-    /// Create and return a new `CGSize`.
-    pub fn new(width: CGFloat, height: CGFloat) -> Self {
-        CGSize { width, height }
-    }
-
-    /// Create and return a `CGSizeZero` equivalent.
-    pub fn zero() -> Self {
-        CGSize { width: 0., height: 0. }
-    }
-}
-
-unsafe impl Encode for CGSize {
-    const ENCODING: Encoding = Encoding::Struct("CGSize", &[CGFloat::ENCODING, CGFloat::ENCODING]);
-}
-
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct CFRange {
-    pub location: CFIndex,
-    pub length: CFIndex
-}
-
-impl CFRange {
-    pub fn init(location: CFIndex, length: CFIndex) -> CFRange {
-        CFRange {
-            location: location,
-            length: length
-        }
-    }
-}
-
-unsafe impl Encode for CFRange {
-    const ENCODING: Encoding = Encoding::Struct("CFRange", &[CFIndex::ENCODING, CFIndex::ENCODING]);
 }
 
 /// A helper method for ensuring that Cocoa is running in multi-threaded mode.

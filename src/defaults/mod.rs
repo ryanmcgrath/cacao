@@ -38,7 +38,7 @@ use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, nil, to_bool, NSData, NSMutableDictionary, NSNumber, NSString, BOOL, NO, YES};
+use crate::foundation::{id, nil, NSData, NSMutableDictionary, NSNumber, NSString};
 
 mod value;
 pub use value::Value;
@@ -195,7 +195,7 @@ impl UserDefaults {
         // `NSInteger` (platform specific) and `double` (f64) respectively, but conceivably we
         // might need others.
         //
-        // BOOL returns as "c", which... something makes me feel weird there, but testing it seems
+        // Bool returns as "c", which... something makes me feel weird there, but testing it seems
         // reliable.
         //
         // For context: https://nshipster.com/type-encodings/
@@ -236,12 +236,10 @@ impl UserDefaults {
     /// assert_eq!(value, false);
     /// ```
     pub fn is_forced_for_key<K: AsRef<str>>(&self, key: K) -> bool {
-        let result: BOOL = unsafe {
+        unsafe {
             let key = NSString::new(key.as_ref());
             msg_send![&*self.0, objectIsForcedForKey:&*key]
-        };
-
-        to_bool(result)
+        }
     }
 
     /// Blocks for any asynchronous updates to the defaults database and returns.
