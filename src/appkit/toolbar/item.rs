@@ -3,9 +3,9 @@
 //!
 //! UNFORTUNATELY, this is a very old and janky API. So... yeah.
 
-use core_graphics::geometry::CGSize;
 use std::fmt;
 
+use objc::foundation::NSSize;
 use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
@@ -89,7 +89,7 @@ impl ToolbarItem {
     /// Sets the minimum size for this button.
     pub fn set_min_size(&mut self, width: f64, height: f64) {
         unsafe {
-            let size = CGSize::new(width.into(), height.into());
+            let size = NSSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.objc, setMinSize: size];
         }
     }
@@ -97,7 +97,7 @@ impl ToolbarItem {
     /// Sets the maximum size for this button.
     pub fn set_max_size(&mut self, width: f64, height: f64) {
         unsafe {
-            let size = CGSize::new(width.into(), height.into());
+            let size = NSSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.objc, setMaxSize: size];
         }
     }

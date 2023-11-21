@@ -1,9 +1,7 @@
 //! Various traits related to controllers opting in to autolayout routines and support for view
 //! heirarchies.
 
-use core_graphics::base::CGFloat;
-use core_graphics::geometry::{CGPoint, CGRect, CGSize};
-
+use objc::foundation::{CGFloat, NSRect};
 use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{msg_send, sel};
@@ -53,8 +51,8 @@ pub trait Layout: ObjcAccess {
     /// Note that Cacao, by default, opts into autolayout - you need to call
     /// `set_translates_autoresizing_mask_into_constraints` to enable frame-based layout calls (or
     /// use an appropriate initializer for a given view type).
-    fn set_frame<R: Into<CGRect>>(&self, rect: R) {
-        let frame: CGRect = rect.into();
+    fn set_frame<R: Into<NSRect>>(&self, rect: R) {
+        let frame: NSRect = rect.into();
 
         self.with_backing_obj_mut(move |backing_node| unsafe {
             let _: () = msg_send![backing_node, setFrame: frame];

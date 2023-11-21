@@ -1,4 +1,4 @@
-use core_graphics::geometry::CGRect;
+use objc::foundation::{NSRect, NSSize};
 use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
@@ -13,7 +13,7 @@ use crate::appkit::App;
 use crate::foundation::{id, nil, NSString};
 use crate::geometry::{Edge, Rect};
 use crate::layout::Layout;
-use crate::utils::{os, CGSize, Controller};
+use crate::utils::{os, Controller};
 use crate::view::{View, ViewController, ViewDelegate};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -29,7 +29,7 @@ pub enum PopoverBehaviour {
 
 #[derive(Debug)]
 pub struct PopoverConfig {
-    pub content_size: CGSize,
+    pub content_size: NSSize,
     pub animates: bool,
     pub behaviour: PopoverBehaviour
 }
@@ -37,10 +37,7 @@ pub struct PopoverConfig {
 impl Default for PopoverConfig {
     fn default() -> Self {
         Self {
-            content_size: CGSize {
-                width: 320.0,
-                height: 320.0
-            },
+            content_size: NSSize::new(320.0, 320.0),
             animates: true,
             behaviour: PopoverBehaviour::Transient
         }
@@ -79,7 +76,7 @@ where
 impl<Content> Popover<Content> {
     /// Show a popover relative to a view
     pub fn show_popover<V: Layout>(&self, relative_to: Rect, view: &V, edge: Edge) {
-        let rect: CGRect = relative_to.into();
+        let rect: NSRect = relative_to.into();
         unsafe {
             view.with_backing_obj_mut(|obj| {
                 let _: () = msg_send![&*self.objc, showRelativeToRect:rect ofView: &*obj preferredEdge: edge as u32];
@@ -93,7 +90,7 @@ impl<Content> Popover<Content> {
         let window = App::main_window();
         unsafe {
             let content_view = window.content_view();
-            let rect: CGRect = rect.into();
+            let rect: NSRect = rect.into();
             let _: () = msg_send![&*self.objc, showRelativeToRect:rect ofView: content_view preferredEdge: edge as u32];
         }
     }

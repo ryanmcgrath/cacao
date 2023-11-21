@@ -4,21 +4,19 @@
 //! we expose some platform-specific methods for creating and working with these.
 //!
 //! We attempt to provide fallbacks for older versions of macOS/iOS, but this is not exhaustive,
-/// as the cross-section of people building for older platforms in Rust is likely very low. If you
-/// need these fallbacks to be better and/or correct, you're welcome to improve and pull-request
-/// this.
-///
-/// The goal here is to make sure that this can't reasonably break on OS's, as `Color` is kind of
-/// an important piece. It's not on the framework to make your app look good, though. To enable
-/// fallbacks, specify the `color_fallbacks` target_os in your `Cargo.toml`.
-///
-/// @TODO: bundle iOS/tvOS support.
+//! as the cross-section of people building for older platforms in Rust is likely very low. If you
+//! need these fallbacks to be better and/or correct, you're welcome to improve and pull-request
+//! this.
+//!
+//! The goal here is to make sure that this can't reasonably break on OS's, as `Color` is kind of
+//! an important piece. It's not on the framework to make your app look good, though. To enable
+//! fallbacks, specify the `color_fallbacks` target_os in your `Cargo.toml`.
+//!
+//! @TODO: bundle iOS/tvOS support.
+use std::ffi::c_void;
 use std::sync::{Arc, RwLock};
 
-use core_foundation::base::TCFType;
-use core_graphics::base::CGFloat;
-use core_graphics::color::CGColor;
-
+use objc::foundation::CGFloat;
 use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
@@ -392,10 +390,11 @@ impl Color {
     /// objects. If you're painting in a context that requires dark mode support, make sure
     /// you're not using a cached version of this unless you explicitly want the _same_ color
     /// in every context it's used in.
-    pub fn cg_color(&self) -> CGColor {
+    pub fn cg_color(&self) -> *mut c_void {
+        // TODO: Better return type
         unsafe {
             let objc: id = self.into();
-            CGColor::wrap_under_get_rule(msg_send![objc, CGColor])
+            msg_send![objc, CGColor]
         }
     }
 }

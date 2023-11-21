@@ -3,13 +3,13 @@ use std::ops::{Deref, DerefMut, Range};
 use std::os::raw::c_char;
 use std::{fmt, slice, str};
 
+use objc::foundation::NSRange;
 use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::color::Color;
-use crate::foundation::{id, to_bool, NSString, BOOL, NO, YES};
-use crate::utils::CFRange;
+use crate::foundation::{id, NSString};
 
 use super::Font;
 
@@ -43,9 +43,9 @@ impl AttributedString {
     }
 
     /// Sets the text (foreground) color for the specified range.
-    pub fn set_text_color<C: AsRef<Color>>(&mut self, color: C, range: Range<isize>) {
+    pub fn set_text_color<C: AsRef<Color>>(&mut self, color: C, range: Range<usize>) {
         let color: id = color.as_ref().into();
-        let range = CFRange::init(range.start, range.end);
+        let range = NSRange::from(range);
 
         unsafe {
             let _: () = msg_send![
@@ -58,8 +58,8 @@ impl AttributedString {
     }
 
     /// Set the font for the specified range.
-    pub fn set_font(&mut self, font: Font, range: Range<isize>) {
-        let range = CFRange::init(range.start, range.end);
+    pub fn set_font(&mut self, font: Font, range: Range<usize>) {
+        let range = NSRange::from(range);
 
         unsafe {
             let _: () = msg_send![

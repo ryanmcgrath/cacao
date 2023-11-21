@@ -10,9 +10,7 @@
 
 use block::ConcreteBlock;
 
-use core_graphics::base::CGFloat;
-use core_graphics::geometry::{CGRect, CGSize};
-
+use objc::foundation::{CGFloat, NSRect, NSSize};
 use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
@@ -75,7 +73,7 @@ impl Window {
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
             let buffered: NSUInteger = 2;
-            let dimensions: CGRect = config.initial_dimensions.into();
+            let dimensions: NSRect = config.initial_dimensions.into();
             let window: Id<_, _> = msg_send_id![
                 msg_send_id![class!(NSWindow), alloc],
                 initWithContentRect: dimensions,
@@ -140,7 +138,7 @@ where
             // Other types of backing (Retained/NonRetained) are archaic, dating back to the
             // NeXTSTEP era, and are outright deprecated... so we don't allow setting them.
             let buffered: NSUInteger = 2;
-            let dimensions: CGRect = config.initial_dimensions.into();
+            let dimensions: NSRect = config.initial_dimensions.into();
             let mut window: Id<Object, Owned> = msg_send_id![
                 msg_send_id![class, alloc],
                 initWithContentRect: dimensions,
@@ -255,7 +253,7 @@ impl<T> Window<T> {
     /// Sets the content size for this window.
     pub fn set_content_size<F: Into<f64>>(&self, width: F, height: F) {
         unsafe {
-            let size = CGSize::new(width.into(), height.into());
+            let size = NSSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.objc, setContentSize: size];
         }
     }
@@ -263,7 +261,7 @@ impl<T> Window<T> {
     /// Sets the minimum size this window can shrink to.
     pub fn set_minimum_content_size<F: Into<f64>>(&self, width: F, height: F) {
         unsafe {
-            let size = CGSize::new(width.into(), height.into());
+            let size = NSSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.objc, setContentMinSize: size];
         }
     }
@@ -271,7 +269,7 @@ impl<T> Window<T> {
     /// Sets the maximum size this window can shrink to.
     pub fn set_maximum_content_size<F: Into<f64>>(&self, width: F, height: F) {
         unsafe {
-            let size = CGSize::new(width.into(), height.into());
+            let size = NSSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.objc, setContentMaxSize: size];
         }
     }
@@ -279,7 +277,7 @@ impl<T> Window<T> {
     /// Sets the minimum size this window can shrink to.
     pub fn set_minimum_size<F: Into<f64>>(&self, width: F, height: F) {
         unsafe {
-            let size = CGSize::new(width.into(), height.into());
+            let size = NSSize::new(width.into(), height.into());
             let _: () = msg_send![&*self.objc, setMinSize: size];
         }
     }

@@ -1,5 +1,4 @@
-use core_graphics::geometry::CGRect;
-
+use objc::foundation::NSRect;
 use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
@@ -15,7 +14,7 @@ pub struct Window(pub Id<Object, Owned>);
 impl Window {
     pub fn new(frame: Rect) -> Self {
         Window(unsafe {
-            let rect: CGRect = frame.into();
+            let rect: NSRect = frame.into();
             let alloc = msg_send_id![class!(UIWindow), alloc];
             msg_send_id![alloc, initWithFrame: rect]
         })
