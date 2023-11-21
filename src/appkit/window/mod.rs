@@ -345,7 +345,7 @@ impl<T> Window<T> {
     }
     /// Given a view, sets it as the content view for this window.
     pub fn set_content_view<L: Layout + 'static>(&self, view: &L) {
-        view.with_backing_obj_mut(|backing_node| unsafe {
+        view.with_backing_obj_mut(&|backing_node| unsafe {
             let _: () = msg_send![&*self.objc, setContentView:&*backing_node];
         });
     }

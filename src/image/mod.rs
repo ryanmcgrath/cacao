@@ -1,6 +1,8 @@
+use std::cell::Ref;
+
 use core_foundation::base::TCFType;
 
-use objc::rc::{Id, Shared};
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
@@ -174,12 +176,12 @@ impl ImageView {
 }
 
 impl ObjcAccess for ImageView {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 

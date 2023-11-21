@@ -60,7 +60,7 @@ where
                 vc.set_ivar(VIEW_DELEGATE_PTR, ptr as usize);
             }
 
-            view.with_backing_obj_mut(|backing_node| {
+            view.with_backing_obj_mut(&|backing_node| {
                 let _: () = msg_send![&vc, setView: backing_node];
             });
 

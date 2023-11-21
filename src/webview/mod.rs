@@ -14,10 +14,10 @@
 //! platform.
 
 use core_graphics::geometry::CGRect;
-
 use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
+use std::cell::Ref;
 
 use crate::foundation::{id, nil, NSString, NO, YES};
 use crate::geometry::Rect;
@@ -333,19 +333,19 @@ impl<T> WebView<T> {
 }
 
 impl<T> ObjcAccess for WebView<T> {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 
 impl<T> Layout for WebView<T> {
     /// Currently, this is a noop. Theoretically there is reason to support this, but in practice
     /// I've never seen it needed... but am open to discussion.
-    fn add_subview<V: Layout>(&self, _: &V) {}
+    fn add_subview(&self, _: &dyn Layout) {}
 }
 
 impl<T> std::fmt::Debug for WebView<T> {

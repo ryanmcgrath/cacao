@@ -2,7 +2,12 @@
 //! defined on here provide access handlers for common properties that the sub-traits need to
 //! enable modifying.
 
-use objc::runtime::Object;
+use std::cell::Ref;
+
+use objc::{
+    rc::{Id, Owned},
+    runtime::Object
+};
 
 use crate::foundation::id;
 
@@ -13,11 +18,11 @@ use crate::foundation::id;
 pub trait ObjcAccess {
     /// Used for mutably interacting with the underlying Objective-C instance.
     /// Setters should use this.
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F);
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id));
 
     /// Used for checking backing properties of the underlying Objective-C instance, without
     /// needing a mutable borrow.
     ///
     /// Getters should use this.
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R;
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>>;
 }

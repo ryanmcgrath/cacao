@@ -42,6 +42,9 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
+use std::cell::Ref;
+
+use objc::rc::{Id, Owned};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
@@ -350,12 +353,12 @@ impl<T> View<T> {
 }
 
 impl<T> ObjcAccess for View<T> {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 
