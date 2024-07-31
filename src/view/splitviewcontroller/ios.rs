@@ -1,4 +1,3 @@
-use objc::declare::ClassDecl;
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, sel};
 
@@ -52,13 +51,7 @@ pub(crate) fn register_view_controller_class<T: ViewDelegate + 'static>() -> &'s
 
         decl.add_method(sel!(viewWillAppear:), will_appear::<T> as extern "C" fn(_, _, _));
         decl.add_method(sel!(viewDidAppear:), did_appear::<T> as extern "C" fn(_, _, _));
-        decl.add_method(
-            sel!(viewWillDisappear:),
-            will_disappear::<T> as extern "C" fn(_, _, _)
-        );
-        decl.add_method(
-            sel!(viewDidDisappear:),
-            did_disappear::<T> as extern "C" fn(_, _, _)
-        );
+        decl.add_method(sel!(viewWillDisappear:), will_disappear::<T> as extern "C" fn(_, _, _));
+        decl.add_method(sel!(viewDidDisappear:), did_disappear::<T> as extern "C" fn(_, _, _));
     })
 }

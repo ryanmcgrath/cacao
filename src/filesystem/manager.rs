@@ -5,13 +5,13 @@ use std::error::Error;
 use std::sync::{Arc, RwLock};
 
 use objc::rc::{Id, Owned};
-use objc::runtime::{Object, BOOL};
+use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 use url::Url;
 
 use crate::error::Error as AppKitError;
 use crate::filesystem::enums::{SearchPathDirectory, SearchPathDomainMask};
-use crate::foundation::{id, nil, NSString, NSUInteger, NO};
+use crate::foundation::{id, nil, NSString, NSUInteger};
 
 /// A FileManager can be used for file operations (moving files, etc).
 ///
@@ -47,11 +47,14 @@ impl FileManager {
 
         let directory = unsafe {
             let manager = self.0.read().unwrap();
-            let dir: id = msg_send![&**manager, URLForDirectory:dir
-                inDomain:mask
-                appropriateForURL:nil
-                create:NO
-                error:nil];
+            let dir: id = msg_send![
+                &**manager,
+                URLForDirectory: dir,
+                inDomain: mask,
+                appropriateForURL: nil,
+                create: false,
+                error: nil,
+            ];
 
             NSString::retain(msg_send![dir, absoluteString])
         };
@@ -75,8 +78,8 @@ impl FileManager {
             let manager = self.0.read().unwrap();
 
             let error: id = nil;
-            let result: BOOL = msg_send![&**manager, moveItemAtURL:from_url toURL:to_url error:&error];
-            if result == NO {
+            let result = msg_send![&**manager, moveItemAtURL:from_url toURL:to_url error:&error];
+            if result {
                 return Err(AppKitError::new(error).into());
             }
         }

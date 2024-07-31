@@ -15,14 +15,13 @@
 //! my_view.add_subview(&indicator);
 //! ```
 
-use core_graphics::base::CGFloat;
-
+use objc::foundation::CGFloat;
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel};
 
 use crate::color::Color;
-use crate::foundation::{id, nil, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, NSUInteger};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
@@ -95,10 +94,10 @@ impl ProgressIndicator {
             let view: id = msg_send![class!(NSProgressIndicator), new];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: false];
 
             #[cfg(feature = "appkit")]
-            let _: () = msg_send![view, setWantsLayer: YES];
+            let _: () = msg_send![view, setWantsLayer: true];
 
             view
         };
@@ -177,10 +176,7 @@ impl ProgressIndicator {
     /// Invert this to go back to a bar appearance.
     pub fn set_indeterminate(&self, is_indeterminate: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setIndeterminate:match is_indeterminate {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setIndeterminate: is_indeterminate];
         });
     }
 
@@ -198,10 +194,7 @@ impl ProgressIndicator {
     /// Set whether this control is hidden or not.
     pub fn set_hidden(&self, hidden: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setHidden:match hidden {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setHidden: hidden];
         });
     }
 }

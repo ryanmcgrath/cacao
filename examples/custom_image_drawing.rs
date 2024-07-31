@@ -1,6 +1,9 @@
 //! This example showcases how to do custom drawing on an ImageView
 //! with CoreGraphics. Feel free to modify it and play around!
 
+use core_graphics::context::CGContextRef;
+use foreign_types::ForeignTypeRef;
+
 use cacao::appkit::menu::{Menu, MenuItem};
 use cacao::appkit::window::Window;
 use cacao::appkit::{App, AppDelegate};
@@ -30,7 +33,12 @@ impl Default for BasicApp {
             window: Window::default(),
             content_view: View::new(),
             image_view: ImageView::new(),
-            image: Image::draw(config, |_cg_rect, context| {
+            image: Image::draw(config, |resized_frame, source, context| {
+                let context = unsafe { CGContextRef::from_ptr(context.cast()) };
+
+                context.translate(resized_frame.top, resized_frame.left);
+                context.scale(resized_frame.width / source.0, resized_frame.height / source.1);
+
                 context.move_to_point(11.25, 8.19);
                 context.add_line_to_point(11.25, 5.);
                 context.add_line_to_point(6.56, 5.);

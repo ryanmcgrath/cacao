@@ -9,7 +9,7 @@ use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
-use crate::foundation::{id, nil, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, NSString, NSUInteger};
 
 mod class;
 use class::register_toolbar_class;
@@ -88,10 +88,7 @@ impl<T> Toolbar<T> {
     /// contents.
     pub fn set_shows_baseline_separator(&self, shows: bool) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setShowsBaselineSeparator:match shows {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.objc, setShowsBaselineSeparator: shows];
         }
     }
 
@@ -116,10 +113,7 @@ impl<T> Toolbar<T> {
     /// Set whether the toolbar is visible or not.
     pub fn set_visible(&self, visibility: bool) {
         unsafe {
-            let _: () = msg_send![&*self.objc, setVisible:match visibility {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.objc, setVisible: visibility];
         }
     }
 

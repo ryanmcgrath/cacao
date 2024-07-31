@@ -50,7 +50,7 @@ use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel};
 
 use crate::color::Color;
-use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSString};
 use crate::layer::Layer;
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
@@ -82,10 +82,10 @@ fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
         let view: id = msg_send![registration_fn(), new];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: false];
 
         #[cfg(feature = "appkit")]
-        let _: () = msg_send![view, setWantsLayer: YES];
+        let _: () = msg_send![view, setWantsLayer: true];
 
         view
     }
@@ -221,7 +221,7 @@ where
     pub(crate) fn from_cached(view: id) -> ListViewRow<T> {
         // @TODO: Make this better.
         let delegate = unsafe {
-            let ptr: usize = *(&*view).get_ivar(LISTVIEW_ROW_DELEGATE_PTR);
+            let ptr: usize = *(&*view).ivar(LISTVIEW_ROW_DELEGATE_PTR);
             let obj = ptr as *mut T;
             Box::from_raw(obj)
             //&*obj

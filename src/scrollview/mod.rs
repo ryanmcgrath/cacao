@@ -42,14 +42,12 @@
 //!
 //! For more information on Autolayout, view the module or check out the examples folder.
 
-use core_foundation::base::TCFType;
-
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, sel};
 
 use crate::color::Color;
-use crate::foundation::{id, nil, NSArray, NSString, NO, YES};
+use crate::foundation::{id, nil, NSArray, NSString};
 use crate::layout::Layout;
 use crate::objc_access::ObjcAccess;
 use crate::utils::properties::ObjcProperty;
@@ -80,15 +78,15 @@ fn allocate_view(registration_fn: fn() -> &'static Class) -> id {
         let view: id = msg_send![registration_fn(), new];
 
         #[cfg(feature = "autolayout")]
-        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: NO];
+        let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints: false];
 
         #[cfg(feature = "appkit")]
         {
-            let _: () = msg_send![view, setDrawsBackground: NO];
-            let _: () = msg_send![view, setWantsLayer: YES];
+            let _: () = msg_send![view, setDrawsBackground: false];
+            let _: () = msg_send![view, setWantsLayer: true];
             let _: () = msg_send![view, setBorderType:0];
             let _: () = msg_send![view, setHorizontalScrollElasticity:1];
-            let _: () = msg_send![view, setHasVerticalScroller: YES];
+            let _: () = msg_send![view, setHasVerticalScroller: true];
         }
 
         view
@@ -298,7 +296,7 @@ impl<T> ScrollView<T> {
     pub fn set_background_color<C: AsRef<Color>>(&self, color: C) {
         // @TODO: This is wrong.
         self.objc.with_mut(|obj| unsafe {
-            let color = color.as_ref().cg_color().as_concrete_TypeRef();
+            let color = color.as_ref().cg_color();
             let layer: id = msg_send![obj, layer];
             let _: () = msg_send![layer, setBackgroundColor: color];
         });

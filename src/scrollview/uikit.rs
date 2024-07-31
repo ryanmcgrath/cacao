@@ -9,7 +9,7 @@
 
 use std::sync::Once;
 
-use objc::declare::ClassDecl;
+use objc::declare::ClassBuilder;
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, sel};
 
@@ -77,7 +77,7 @@ pub(crate) fn register_scrollview_class() -> &'static Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(UIScrollView);
-        let decl = ClassDecl::new("RSTScrollView", superclass).unwrap();
+        let decl = ClassBuilder::new("RSTScrollView", superclass).unwrap();
         VIEW_CLASS = Some(decl.register());
     });
 
@@ -92,7 +92,7 @@ pub(crate) fn register_scrollview_class_with_delegate<T: ScrollViewDelegate>() -
 
     INIT.call_once(|| unsafe {
         let superclass = class!(UIScrollView);
-        let mut decl = ClassDecl::new("RSTScrollViewWithDelegate", superclass).unwrap();
+        let mut decl = ClassBuilder::new("RSTScrollViewWithDelegate", superclass).unwrap();
 
         // A pointer to the "view controller" on the Rust side. It's expected that this doesn't
         // move.

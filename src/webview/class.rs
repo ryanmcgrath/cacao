@@ -8,7 +8,6 @@ use std::sync::Once;
 
 use block::Block;
 
-use objc::declare::ClassDecl;
 use objc::runtime::{Bool, Class, Object, Sel};
 use objc::{class, msg_send, msg_send_id, sel};
 
@@ -31,7 +30,7 @@ extern "C" fn alert<T: WebViewDelegate>(_: &Object, _: Sel, _: id, _: id, _: id,
     }
 
     /*unsafe {
-        let ptr: usize = *this.get_ivar(WEBVIEW_DELEGATE_PTR);
+        let ptr: usize = *this.ivar(WEBVIEW_DELEGATE_PTR);
         let delegate = ptr as *const T;
         (*webview).alert(alert);
     }*/
@@ -151,7 +150,7 @@ extern "C" fn run_open_panel<T: WebViewDelegate>(this: &Object, _: Sel, _: id, p
 extern "C" fn handle_download<T: WebViewDelegate>(this: &Object, _: Sel, download: id, suggested_filename: id, handler: usize) {
     let delegate = load::<T>(this, WEBVIEW_DELEGATE_PTR);
 
-    let handler = handler as *const Block<(objc::runtime::Bool, id), ()>;
+    let handler = handler as *const Block<(Bool, id), ()>;
     let filename = NSString::retain(suggested_filename);
 
     delegate.run_save_panel(filename.to_str(), move |can_overwrite, path| unsafe {

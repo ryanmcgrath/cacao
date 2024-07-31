@@ -2,7 +2,7 @@
 
 use objc::{msg_send, sel};
 
-use crate::foundation::{id, NSInteger, BOOL, NO, YES};
+use crate::foundation::{id, NSInteger};
 use crate::networking::URLRequest;
 use crate::webview::enums::NavigationType;
 
@@ -33,14 +33,7 @@ pub struct NavigationResponse {
 impl NavigationResponse {
     pub fn new(response: id) -> Self {
         NavigationResponse {
-            can_show_mime_type: unsafe {
-                let can_show: BOOL = msg_send![response, canShowMIMEType];
-                if can_show == YES {
-                    true
-                } else {
-                    false
-                }
-            }
+            can_show_mime_type: unsafe { msg_send![response, canShowMIMEType] }
         }
     }
 }
@@ -54,29 +47,9 @@ pub struct OpenPanelParameters {
 impl From<id> for OpenPanelParameters {
     fn from(params: id) -> Self {
         OpenPanelParameters {
-            allows_directories: unsafe {
-                match msg_send![params, allowsDirectories] {
-                    YES => true,
-                    NO => false,
+            allows_directories: unsafe { msg_send![params, allowsDirectories] },
 
-                    #[cfg(not(target_arch = "aarch64"))]
-                    _ => {
-                        panic!("Invalid value from WKOpenPanelParameters:allowsDirectories");
-                    }
-                }
-            },
-
-            allows_multiple_selection: unsafe {
-                match msg_send![params, allowsMultipleSelection] {
-                    YES => true,
-                    NO => false,
-
-                    #[cfg(not(target_arch = "aarch64"))]
-                    _ => {
-                        panic!("Invalid value from WKOpenPanelParameters:allowsMultipleSelection");
-                    }
-                }
-            }
+            allows_multiple_selection: unsafe { msg_send![params, allowsMultipleSelection] }
         }
     }
 }

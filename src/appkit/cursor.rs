@@ -1,6 +1,6 @@
 use objc::{class, msg_send, sel};
 
-use crate::foundation::{id, NO, YES};
+use crate::foundation::id;
 
 /// Represents a type of cursor that you can associate with mouse movement.
 /// @TODO: Loading?
@@ -163,10 +163,7 @@ impl Cursor {
     /// Trying to invert this with `unhide` will result in undefined system behavior.
     pub fn set_hidden_until_mouse_moves(status: bool) {
         unsafe {
-            let _: () = msg_send![class!(NSCursor), setHiddenUntilMouseMoves:match status {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![class!(NSCursor), setHiddenUntilMouseMoves: status];
         }
     }
 }

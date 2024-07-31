@@ -1,12 +1,12 @@
 //! Implements a Select-style dropdown. By default this uses NSPopupSelect on macOS.
 
-use core_graphics::geometry::CGRect;
+use objc::foundation::NSRect;
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
 use crate::control::Control;
-use crate::foundation::{id, load_or_register_class, nil, NSInteger, NSString, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSInteger, NSString};
 use crate::geometry::Rect;
 use crate::invoker::TargetActionHandler;
 use crate::layout::Layout;
@@ -85,14 +85,14 @@ impl Select {
     /// Creates a new `Select` instance, configures it appropriately,
     /// and retains the necessary Objective-C runtime pointer.
     pub fn new() -> Self {
-        let zero: CGRect = Rect::zero().into();
+        let zero: NSRect = Rect::zero().into();
 
         let view: id = unsafe {
             let alloc: id = msg_send![register_class(), alloc];
-            let select: id = msg_send![alloc, initWithFrame:zero pullsDown:NO];
+            let select: id = msg_send![alloc, initWithFrame:zero, pullsDown: false];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![select, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![select, setTranslatesAutoresizingMaskIntoConstraints: false];
 
             select
         };
@@ -150,10 +150,7 @@ impl Select {
     /// Sets whether this pulls down (dropdown) or pops up.
     pub fn set_pulls_down(&self, pulls_down: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setPullsDown:match pulls_down {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setPullsDown: pulls_down];
         });
     }
 

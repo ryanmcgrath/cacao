@@ -31,7 +31,7 @@ pub use enums::*;
 use crate::appkit::FocusRingType;
 use crate::color::Color;
 use crate::control::Control;
-use crate::foundation::{id, load_or_register_class, nil, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, load_or_register_class, nil, NSString, NSUInteger};
 use crate::image::Image;
 use crate::invoker::TargetActionHandler;
 use crate::keys::Key;
@@ -129,10 +129,10 @@ impl Button {
                 action:nil
             ];
 
-            let _: () = msg_send![button, setWantsLayer: YES];
+            let _: () = msg_send![button, setWantsLayer: true];
 
             #[cfg(feature = "autolayout")]
-            let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints: NO];
+            let _: () = msg_send![button, setTranslatesAutoresizingMaskIntoConstraints: false];
 
             button
         };
@@ -257,7 +257,7 @@ impl Button {
         #[cfg(feature = "appkit")]
         self.objc.with_mut(move |obj| unsafe {
             let text: id = msg_send![obj, attributedTitle];
-            let len: isize = msg_send![text, length];
+            let len: usize = msg_send![text, length];
 
             let mut attr_str = AttributedString::wrap(text);
             attr_str.set_text_color(color.as_ref(), 0..len);
@@ -271,10 +271,7 @@ impl Button {
     #[cfg(feature = "appkit")]
     pub fn set_bordered(&self, is_bordered: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, setBordered:match is_bordered {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, setBordered: is_bordered];
         });
     }
 
@@ -302,10 +299,7 @@ impl Button {
     /// Toggles the highlighted status of the button.
     pub fn set_highlighted(&self, highlight: bool) {
         self.objc.with_mut(|obj| unsafe {
-            let _: () = msg_send![obj, highlight:match highlight {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![obj, highlight: highlight];
         });
     }
 }

@@ -15,7 +15,7 @@ use objc::ffi;
 use objc::runtime::{Class, Imp, Object, Sel};
 use objc::{class, msg_send, sel, Encode, EncodeArguments, Encoding, Message};
 
-use crate::foundation::{id, nil, BOOL, YES, NSString};
+use crate::foundation::{id, nil, NSString};
 
 /// Types that can be used as the implementation of an Objective-C method.
 pub trait MethodImplementation {
@@ -56,8 +56,8 @@ extern "C" fn get_bundle_id(this: &Object, s: Sel, v: id) -> id {
     unsafe {
         let bundle = class!(NSBundle);
         let main_bundle: id = msg_send![bundle, mainBundle];
-        let e: BOOL = msg_send![this, isEqual:main_bundle];
-        if e == YES {
+        let e = msg_send![this, isEqual:main_bundle];
+        if e {
             let url: id = msg_send![main_bundle, bundleURL];
             let x: id = msg_send![url, absoluteString];
             println!("Got here? {:?}", x);

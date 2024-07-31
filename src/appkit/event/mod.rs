@@ -1,12 +1,13 @@
 use bitmask_enum::bitmask;
 use block::ConcreteBlock;
 
+use objc::foundation::NSPoint;
 use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::events::EventType;
-use crate::foundation::{id, nil, NSInteger, NSPoint, NSString};
+use crate::foundation::{id, nil, NSInteger, NSString};
 
 /// An EventMask describes the type of event.
 #[bitmask(u64)]

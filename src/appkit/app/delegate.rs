@@ -21,7 +21,7 @@ use crate::user_activity::UserActivity;
 /// standard `utils` version as this doesn't require `RefCell` backing.
 fn app<T>(this: &Object) -> &T {
     unsafe {
-        let app_ptr: usize = *this.get_ivar(APP_PTR);
+        let app_ptr: usize = *this.ivar(APP_PTR);
         let app = app_ptr as *const T;
         &*app
     }

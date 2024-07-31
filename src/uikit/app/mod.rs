@@ -40,7 +40,7 @@ use std::ffi::CString;
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};
 
-use crate::foundation::{id, nil, AutoReleasePool, NSString, NSUInteger, NO, YES};
+use crate::foundation::{id, nil, AutoReleasePool, NSString, NSUInteger};
 use crate::notification_center::Dispatcher;
 use crate::uikit::scene::{register_window_scene_delegate_class, WindowSceneDelegate};
 use crate::utils::activate_cocoa_multithreading;
@@ -115,9 +115,9 @@ where
         activate_cocoa_multithreading();
 
         let pool = AutoReleasePool::new();
-        let cls = register_app_class();
-        let dl = register_app_delegate_class::<T>();
-        let w = register_window_scene_delegate_class::<W, F>();
+        let _cls = register_app_class();
+        let _dl = register_app_delegate_class::<T>();
+        let _w = register_window_scene_delegate_class::<W, F>();
 
         let app_delegate = Box::new(delegate);
         let vendor = Box::new(scene_delegate_vendor);

@@ -294,7 +294,7 @@ impl MenuItem {
 /// need to do some extra logic to ensure release calls are properly sent.
 extern "C" fn dealloc_cacao_menuitem(this: &Object, _: Sel) {
     unsafe {
-        let ptr: usize = *this.get_ivar(BLOCK_PTR);
+        let ptr: usize = *this.ivar(BLOCK_PTR);
         let obj = ptr as *mut Action;
 
         if !obj.is_null() {

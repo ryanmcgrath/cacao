@@ -189,10 +189,13 @@ impl View {
     /// so on. It returns a generic `View<T>`, which the caller can then customize as needed.
     pub(crate) fn init<T>(view: id) -> View<T> {
         unsafe {
-            let _: () = msg_send![view, setTranslatesAutoresizingMaskIntoConstraints:NO];
+            let _: () = msg_send![
+                view,
+                setTranslatesAutoresizingMaskIntoConstraints: false,
+            ];
 
             #[cfg(target_os = "macos")]
-            let _: () = msg_send![view, setWantsLayer:YES];
+            let _: () = msg_send![view, setWantsLayer: true];
         }
 
         View {
@@ -357,7 +360,7 @@ pub(crate) fn register_view_class() -> &'static Class {
 
     INIT.call_once(|| unsafe {
         let superclass = class!(NSView);
-        let mut decl = ClassDecl::new("RSTView", superclass).unwrap();
+        let mut decl = ClassBuilder::new("RSTView", superclass).unwrap();
 
         decl.add_method(sel!(isFlipped), enforce_normalcy as extern "C" fn(_, _) -> _);
 

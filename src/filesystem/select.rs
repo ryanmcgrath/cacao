@@ -11,7 +11,7 @@ use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
 
 use crate::filesystem::enums::ModalResponse;
-use crate::foundation::{id, nil, NSInteger, NSString, NO, NSURL, YES};
+use crate::foundation::{id, nil, NSInteger, NSString, NSURL};
 
 #[cfg(feature = "appkit")]
 use crate::appkit::window::{Window, WindowDelegate};
@@ -71,10 +71,7 @@ impl FileSelectPanel {
     /// Sets whether files can be chosen by the user.
     pub fn set_can_choose_files(&mut self, can_choose: bool) {
         unsafe {
-            let _: () = msg_send![&*self.panel, setCanChooseFiles:match can_choose {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.panel, setCanChooseFiles: can_choose];
         }
 
         self.can_choose_files = can_choose;
@@ -91,10 +88,7 @@ impl FileSelectPanel {
     /// Sets whether the user can choose directories.
     pub fn set_can_choose_directories(&mut self, can_choose: bool) {
         unsafe {
-            let _: () = msg_send![&*self.panel, setCanChooseDirectories:match can_choose {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.panel, setCanChooseDirectories: can_choose];
         }
 
         self.can_choose_directories = can_choose;
@@ -103,10 +97,7 @@ impl FileSelectPanel {
     /// Sets whether the panel resolves aliases.
     pub fn set_resolves_aliases(&mut self, resolves: bool) {
         unsafe {
-            let _: () = msg_send![&*self.panel, setResolvesAliases:match resolves {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.panel, setResolvesAliases: resolves];
         }
 
         self.resolves_aliases = resolves;
@@ -115,10 +106,7 @@ impl FileSelectPanel {
     /// Sets whether the panel allows multiple selections.
     pub fn set_allows_multiple_selection(&mut self, allows: bool) {
         unsafe {
-            let _: () = msg_send![&*self.panel, setAllowsMultipleSelection:match allows {
-                true => YES,
-                false => NO
-            }];
+            let _: () = msg_send![&*self.panel, setAllowsMultipleSelection: allows];
         }
 
         self.allows_multiple_selection = allows;

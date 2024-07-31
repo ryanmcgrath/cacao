@@ -3,8 +3,7 @@
 //! This is required for things like having multiple instances of your app in the app switcher on
 //! iPad. In general, you probably won't need to tweak this though.
 
-use core_graphics::geometry::CGRect;
-
+use objc::foundation::NSRect;
 use objc::rc::{Id, Owned};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};
@@ -43,7 +42,7 @@ impl Scene {
     pub fn get_bounds(&self) -> Rect {
         unsafe {
             let coordinate_space: id = msg_send![&*self.0, coordinateSpace];
-            let rect: CGRect = msg_send![coordinate_space, bounds];
+            let rect: NSRect = msg_send![coordinate_space, bounds];
             rect
         }
         .into()
