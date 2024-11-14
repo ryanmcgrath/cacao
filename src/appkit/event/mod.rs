@@ -83,6 +83,18 @@ impl Event {
         characters.to_string()
     }
 
+    /// An integer bit field that indicates the pressed modifier keys
+    pub fn modifier_flags(&self) -> EventModifierBitFlag {
+        let flags: NSUInteger = unsafe { msg_send![&*self.0, modifierFlags] };
+
+        flags.into()
+    }
+
+    /// A raw integer bit field that indicates the pressed modifier keys
+    pub fn modifier_flags_raw(&self) -> NSUInteger {
+        unsafe { msg_send![&*self.0, modifierFlags] }
+    }
+
     /// The indices of the currently pressed mouse buttons.
     pub fn pressed_mouse_buttons() -> NSUInteger {
         unsafe { msg_send![class!(NSEvent), pressedMouseButtons] }
@@ -208,4 +220,33 @@ impl From<&EventModifierFlag> for NSUInteger {
             EventModifierFlag::DeviceIndependentFlagsMask => 0xffff0000
         }
     }
+}
+
+// #[cfg(target_pointer_width = "32")] //@TODO contitional compilation fails, so always use 64
+// #[bitmask(u32)]
+// #[cfg(target_pointer_width = "64")]
+/// Flags that indicate which modifier keys are in the mix for an event.
+#[bitmask(u64)]
+#[bitmask_config(inverted_flags)]
+pub enum EventModifierBitFlag {
+    CapsLock     = 1 << 16,
+    LeftShift    =(1 << 17) + (1 <<  1),
+    RightShift   =(1 << 17) + (1 <<  2),
+    LeftControl  =(1 << 18) + (1 <<  0),
+    RightControl =(1 << 18) + (1 << 13),
+    LeftOption   =(1 << 19) + (1 <<  5),
+    RightOption  =(1 << 19) + (1 <<  6),
+    LeftCommand  =(1 << 20) + (1 <<  3),
+    RightCommand =(1 << 20) + (1 <<  4),
+    Shift        = Self::LeftShift  .bits | Self::RightShift  .bits,
+    Control      = Self::LeftControl.bits | Self::RightControl.bits,
+    Option       = Self::LeftOption .bits | Self::RightOption .bits,
+    Command      = Self::LeftCommand.bits | Self::RightCommand.bits,
+    LeftModi     = Self::LeftShift  .bits | Self::LeftControl .bits | Self::LeftOption .bits | Self::LeftCommand .bits,
+    RightModi    = Self::RightShift .bits | Self::RightControl.bits | Self::RightOption.bits | Self::RightCommand.bits,
+    LRModi       = Self::LeftModi   .bits | Self::RightModi   .bits,
+    Numpad       = 1 << 21,
+    Help         = 1 << 22,
+    Function     = 1 << 23,
+    DeviceIndependentFlagsMask = 0xffff0000,
 }
