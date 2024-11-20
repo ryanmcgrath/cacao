@@ -184,6 +184,15 @@ impl Button {
         });
     }
 
+    /// Sets the attributed string to be the attributed string value on this button.
+    #[cfg(feature = "appkit")]
+    pub fn set_attributed_text(&self, text: AttributedString) {
+        self.objc.with_mut(|obj| unsafe {
+            #[cfg(feature = "appkit")]
+            let _: () = msg_send![obj, setTitle:&*text];
+        });
+    }
+
     /// Sets an image on the underlying button.
     pub fn set_image(&mut self, image: Image) {
         self.objc.with_mut(|obj| unsafe {
