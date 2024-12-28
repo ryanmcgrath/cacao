@@ -3,11 +3,11 @@
 use std::fmt;
 use std::sync::Once;
 
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 
 use objc::declare::ClassDecl;
-use objc::rc::{Id, Shared};
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, msg_send_id, sel};
 
@@ -293,12 +293,12 @@ impl SegmentedControl {
 }
 
 impl ObjcAccess for SegmentedControl {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 
@@ -306,12 +306,12 @@ impl Layout for SegmentedControl {}
 impl Control for SegmentedControl {}
 
 impl ObjcAccess for &SegmentedControl {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 

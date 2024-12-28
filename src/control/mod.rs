@@ -27,7 +27,7 @@ pub enum ControlSize {
 pub trait Control: ObjcAccess {
     /// Whether this control is enabled or not.
     fn set_enabled(&self, is_enabled: bool) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setEnabled:match is_enabled {
                 true => YES,
                 false => NO
@@ -48,7 +48,7 @@ pub trait Control: ObjcAccess {
             }
         };
 
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setControlSize: control_size];
         });
     }

@@ -81,7 +81,7 @@ impl<Content> Popover<Content> {
     pub fn show_popover<V: Layout>(&self, relative_to: Rect, view: &V, edge: Edge) {
         let rect: CGRect = relative_to.into();
         unsafe {
-            view.with_backing_obj_mut(|obj| {
+            view.with_backing_obj_mut(&|obj| {
                 let _: () = msg_send![&*self.objc, showRelativeToRect:rect ofView: &*obj preferredEdge: edge as u32];
             });
         }

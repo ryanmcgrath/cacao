@@ -3,7 +3,7 @@
 
 use cacao::color::Color;
 use cacao::geometry::Rect;
-use cacao::layout::Layout;
+use cacao::layout::{Frame, Layout};
 use cacao::view::View;
 
 use cacao::appkit::menu::{Menu, MenuItem};

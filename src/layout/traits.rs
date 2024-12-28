@@ -1,6 +1,8 @@
 //! Various traits related to controllers opting in to autolayout routines and support for view
 //! heirarchies.
 
+use objc::msg_send_id;
+
 use core_graphics::base::CGFloat;
 use core_graphics::geometry::{CGPoint, CGRect, CGSize};
 
@@ -15,6 +17,8 @@ use crate::objc_access::ObjcAccess;
 #[cfg(feature = "appkit")]
 use crate::pasteboard::PasteboardType;
 
+use super::{LayoutAnchorX, LayoutAnchorY};
+
 /// A trait that view wrappers must conform to. Enables managing the subview tree.
 #[allow(unused_variables)]
 pub trait Layout: ObjcAccess {
@@ -24,7 +28,7 @@ pub trait Layout: ObjcAccess {
     /// pass from the system will redraw it accordingly, and set the underlying value back to
     /// `false`.
     fn set_needs_display(&self, needs_display: bool) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setNeedsDisplay:match needs_display {
                 true => YES,
                 false => NO
@@ -33,9 +37,9 @@ pub trait Layout: ObjcAccess {
     }
 
     /// Adds another Layout-backed control or view as a subview of this view.
-    fn add_subview<V: Layout>(&self, view: &V) {
-        self.with_backing_obj_mut(|backing_node| {
-            view.with_backing_obj_mut(|subview_node| unsafe {
+    fn add_subview(&self, view: &dyn Layout) {
+        self.with_backing_obj_mut(&|backing_node| {
+            view.with_backing_obj_mut(&|subview_node| unsafe {
                 let _: () = msg_send![backing_node, addSubview: subview_node];
             });
         });
@@ -43,21 +47,8 @@ pub trait Layout: ObjcAccess {
 
     /// Removes a control or view from the superview.
     fn remove_from_superview(&self) {
-        self.with_backing_obj_mut(|backing_node| unsafe {
+        self.with_backing_obj_mut(&|backing_node| unsafe {
             let _: () = msg_send![backing_node, removeFromSuperview];
-        });
-    }
-
-    /// Sets the `frame` for the view this trait is applied to.
-    ///
-    /// Note that Cacao, by default, opts into autolayout - you need to call
-    /// `set_translates_autoresizing_mask_into_constraints` to enable frame-based layout calls (or
-    /// use an appropriate initializer for a given view type).
-    fn set_frame<R: Into<CGRect>>(&self, rect: R) {
-        let frame: CGRect = rect.into();
-
-        self.with_backing_obj_mut(move |backing_node| unsafe {
-            let _: () = msg_send![backing_node, setFrame: frame];
         });
     }
 
@@ -68,7 +59,7 @@ pub trait Layout: ObjcAccess {
     /// then you should set this to `true` (or use an appropriate initializer that does it for you).
     #[cfg(feature = "autolayout")]
     fn set_translates_autoresizing_mask_into_constraints(&self, translates: bool) {
-        self.with_backing_obj_mut(|backing_node| unsafe {
+        self.with_backing_obj_mut(&|backing_node| unsafe {
             let _: () = msg_send![backing_node, setTranslatesAutoresizingMaskIntoConstraints:match translates {
                 true => YES,
                 false => NO
@@ -80,7 +71,7 @@ pub trait Layout: ObjcAccess {
     ///
     /// When hidden, widgets don't receive events and is not visible.
     fn set_hidden(&self, hide: bool) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setHidden:match hide {
                 true => YES,
                 false => NO
@@ -93,13 +84,15 @@ pub trait Layout: ObjcAccess {
     /// Note that this can report `false` if an ancestor widget is hidden, thus hiding this - to check in
     /// that case, you may want `is_hidden_or_ancestor_is_hidden()`.
     fn is_hidden(&self) -> bool {
-        self.get_from_backing_obj(|obj| to_bool(unsafe { msg_send![obj, isHidden] }))
+        let obj = self.get_backing_obj();
+        to_bool(unsafe { msg_send![&**obj, isHidden] })
     }
 
     /// Returns whether this is hidden, *or* whether an ancestor view is hidden.
     #[cfg(feature = "appkit")]
     fn is_hidden_or_ancestor_is_hidden(&self) -> bool {
-        self.get_from_backing_obj(|obj| to_bool(unsafe { msg_send![obj, isHiddenOrHasHiddenAncestor] }))
+        let obj = self.get_backing_obj();
+        to_bool(unsafe { msg_send![&**obj, isHiddenOrHasHiddenAncestor] })
     }
 
     /// Register this view for drag and drop operations.
@@ -118,7 +111,7 @@ pub trait Layout: ObjcAccess {
             .collect::<Vec<id>>()
             .into();
 
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, registerForDraggedTypes:&*types];
         });
     }
@@ -129,7 +122,7 @@ pub trait Layout: ObjcAccess {
     /// currently to avoid compile issues.
     #[cfg(feature = "appkit")]
     fn unregister_dragged_types(&self) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, unregisterDraggedTypes];
         });
     }
@@ -140,7 +133,7 @@ pub trait Layout: ObjcAccess {
     /// can be helpful - but always test!
     #[cfg(feature = "appkit")]
     fn set_posts_frame_change_notifications(&self, posts: bool) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setPostsFrameChangedNotifications:match posts {
                 true => YES,
                 false => NO
@@ -154,7 +147,7 @@ pub trait Layout: ObjcAccess {
     /// can be helpful - but always test!
     #[cfg(feature = "appkit")]
     fn set_posts_bounds_change_notifications(&self, posts: bool) {
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setPostsBoundsChangedNotifications:match posts {
                 true => YES,
                 false => NO
@@ -168,8 +161,46 @@ pub trait Layout: ObjcAccess {
     fn set_alpha(&self, value: f64) {
         let value: CGFloat = value.into();
 
-        self.with_backing_obj_mut(|obj| unsafe {
+        self.with_backing_obj_mut(&|obj| unsafe {
             let _: () = msg_send![obj, setAlphaValue: value];
         });
     }
+
+    #[cfg(feature = "appkit")]
+    fn get_top(&self) -> LayoutAnchorY {
+        let id = self.get_backing_obj();
+        LayoutAnchorY::Top(unsafe { msg_send_id![&**id, topAnchor] })
+    }
+    #[cfg(feature = "appkit")]
+    fn get_bottom(&self) -> LayoutAnchorY {
+        let id = self.get_backing_obj();
+        LayoutAnchorY::Bottom(unsafe { msg_send_id![&**id, bottomAnchor] })
+    }
+    #[cfg(feature = "appkit")]
+    fn get_leading(&self) -> LayoutAnchorX {
+        let id = self.get_backing_obj();
+        LayoutAnchorX::Leading(unsafe { msg_send_id![&**id, leadingAnchor] })
+    }
+    #[cfg(feature = "appkit")]
+    fn get_trailing(&self) -> LayoutAnchorX {
+        let id = self.get_backing_obj();
+        LayoutAnchorX::Trailing(unsafe { msg_send_id![&**id, trailingAnchor] })
+    }
 }
+
+pub trait Frame: Layout {
+    /// Sets the `frame` for the view this trait is applied to.
+    ///
+    /// Note that Cacao, by default, opts into autolayout - you need to call
+    /// `set_translates_autoresizing_mask_into_constraints` to enable frame-based layout calls (or
+    /// use an appropriate initializer for a given view type).
+    fn set_frame<R: Into<CGRect>>(&self, rect: R) {
+        let frame: CGRect = rect.into();
+
+        self.with_backing_obj_mut(&move |backing_node| unsafe {
+            let _: () = msg_send![backing_node, setFrame: frame];
+        });
+    }
+}
+
+impl<T: Layout> Frame for T {}

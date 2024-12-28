@@ -1,7 +1,9 @@
 //! A wrapper for NSSwitch. Currently the epitome of jank - if you're poking around here, expect
 //! that this will change at some point.
 
-use objc::rc::{Id, Shared};
+use std::cell::Ref;
+
+use objc::rc::{Id, Owned, Shared};
 use objc::runtime::{Class, Object};
 use objc::{msg_send, msg_send_id, sel};
 
@@ -139,17 +141,17 @@ impl Switch {
 }
 
 impl ObjcAccess for Switch {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         self.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
-        self.objc.get(handler)
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.objc.get_ref()
     }
 }
 
 impl Layout for Switch {
-    fn add_subview<V: Layout>(&self, _view: &V) {
+    fn add_subview(&self, _view: &dyn Layout) {
         panic!(
             r#"
             Tried to add a subview to a Switch. This is not allowed in Cacao. If you think this should be supported,

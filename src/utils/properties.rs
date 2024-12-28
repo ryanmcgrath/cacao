@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 
 use objc::rc::{Id, Owned};
@@ -39,6 +39,10 @@ impl ObjcProperty {
     pub fn get<R, F: Fn(&Object) -> R>(&self, handler: F) -> R {
         let obj = self.0.borrow();
         handler(&**obj)
+    }
+
+    pub fn get_ref(&self) -> Ref<'_, Id<Object, Owned>> {
+        self.0.borrow()
     }
 }
 

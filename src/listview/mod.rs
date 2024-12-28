@@ -96,7 +96,7 @@ pub(crate) static LISTVIEW_DELEGATE_PTR: &str = "rstListViewDelegatePtr";
 use std::any::Any;
 use std::sync::{Arc, RwLock};
 
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 
 /// A helper method for instantiating view classes and applying default settings to them.
@@ -750,21 +750,21 @@ impl<T> ListView<T> {
 }
 
 impl<T> ObjcAccess for ListView<T> {
-    fn with_backing_obj_mut<F: Fn(id)>(&self, handler: F) {
+    fn with_backing_obj_mut(&self, handler: &dyn Fn(id)) {
         // In AppKit, we need to provide the scrollview for layout purposes - iOS and tvOS will know
         // what to do normally.
         #[cfg(feature = "appkit")]
         self.scrollview.objc.with_mut(handler);
     }
 
-    fn get_from_backing_obj<F: Fn(&Object) -> R, R>(&self, handler: F) -> R {
+    fn get_backing_obj(&self) -> Ref<'_, Id<Object, Owned>> {
         // In AppKit, we need to provide the scrollview for layout purposes - iOS and tvOS will know
         // what to do normally.
         //
         // @TODO: Review this, as property access isn't really used in the same place as layout
         // stuff... hmm...
         #[cfg(feature = "appkit")]
-        self.scrollview.objc.get(handler)
+        self.scrollview.objc.get_ref()
     }
 }
 
