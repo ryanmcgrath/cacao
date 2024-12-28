@@ -165,6 +165,30 @@ impl Image {
         })
     }
 
+    /// Given a name of an SF Symbol, will return an Image with that symbol
+    /// If said symbol doesn't exist, returns a blank Image
+    /// macOS 11.0+, (i/tv)OS 13.0+
+    pub fn with_system_symbol_name(system_name: &str) -> Self {
+        #[cfg(feature = "appkit")]
+        let image = Image(unsafe {
+            let icon = NSString::new(system_name);
+            let desc = NSString::new("");
+            msg_send_id![
+                Self::class(),
+                imageWithSystemSymbolName: &*icon.objc,
+                accessibilityDescription: &*desc.objc
+            ]
+        });
+
+        #[cfg(all(feature = "uikit", not(feature = "appkit")))]
+        let image = Image(unsafe {
+            let icon = NSString::new(system_name);
+            msg_send_id![Self::class(), systemImageNamed: &*icon.objc]
+        });
+
+        image
+    }
+
     // @TODO: for Airyx, unsure if this is supported - and it's somewhat modern macOS-specific, so
     // let's keep the os flag here for now.
     /// Returns a stock system icon. These are guaranteed to exist across all versions of macOS
