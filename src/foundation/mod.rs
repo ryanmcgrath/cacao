@@ -87,4 +87,6 @@ pub type NSInteger = libc::c_long;
 #[cfg(target_pointer_width = "64")]
 pub type NSUInteger = libc::c_ulong;
 
+pub type NSUInt16 = libc::c_ushort;
+
 pub type NSPoint = core_graphics::geometry::CGPoint;
