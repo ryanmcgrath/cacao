@@ -10,7 +10,7 @@
 //! that enables this functionality, we want to be able to provide this with some level of
 //! backwards compatibility for Mojave, as that's still a supported OS.
 
-use core_graphics::base::CGFloat;
+use objc::foundation::CGFloat;
 use objc::runtime::{Class, Object, Sel};
 use objc::{class, msg_send, sel};
 

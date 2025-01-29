@@ -106,8 +106,8 @@ The following are a list of [Cargo features][cargo-features] that can be enabled
 [cargo-features]: https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section
 
 ## General Notes
-**Why not extend the existing cocoa-rs crate?**  
-A good question. At the end of the day, that crate (I believe, and someone can correct me if I'm wrong) is somewhat tied to Servo, and I wanted to experiment with what the best approach for representing the Cocoa UI model in Rust was. This crate doesn't ignore their work entirely, either - `core_foundation` and `core_graphics` are used internally and re-exported for general use.
+**Why not extend the existing cocoa-rs crate?**
+A good question. At the end of the day, that crate (I believe, and someone can correct me if I'm wrong) is somewhat tied to Servo, and I wanted to experiment with what the best approach for representing the Cocoa UI model in Rust was.
 
 **Why should I write in Rust, rather than X language?**  
 In _my_ case, I want to be able to write native applications for my devices (and the platform I like to build products for) without being locked in to writing in Apple-specific languages... and without writing in C/C++ or JavaScript (note: the _toolchain_, not the language - ES6/Typescript are fine). I want to do this because I'm tired of hitting a mountain of work when I want to port my applications to other ecosystems. I think that Rust offers a (growing, but significant) viable model for sharing code across platforms and ecosystems without sacrificing performance.

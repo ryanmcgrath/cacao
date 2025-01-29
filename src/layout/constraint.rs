@@ -2,8 +2,7 @@
 //! escape hatch, if you need it (we use it for things like width and height, which aren't handled
 //! by an axis).
 
-use core_graphics::base::CGFloat;
-
+use objc::foundation::CGFloat;
 use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, sel};

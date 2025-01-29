@@ -13,8 +13,7 @@
 //! Apple does not ship `WKWebView` on tvOS, and as a result this control is not provided on that
 //! platform.
 
-use core_graphics::geometry::CGRect;
-
+use objc::foundation::NSRect;
 use objc::rc::{Id, Owned, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
@@ -75,7 +74,7 @@ fn allocate_webview(mut config: WebViewConfig, objc_delegate: Option<&Object>) -
             }
         }
 
-        let zero: CGRect = Rect::zero().into();
+        let zero: NSRect = Rect::zero().into();
         let webview_alloc: id = msg_send![register_webview_class(), alloc];
         let webview: id = msg_send![webview_alloc, initWithFrame:zero configuration: &*config.objc];
 

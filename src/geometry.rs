@@ -1,6 +1,6 @@
 //! Wrapper methods for various geometry types (rects, sizes, ec).
 
-use core_graphics::geometry::{CGPoint, CGRect, CGSize};
+use objc::foundation::{NSPoint, NSRect, NSSize};
 
 /// A struct that represents a box - top, left, width and height. You might use this for, say,
 /// setting the initial frame of a view.
@@ -49,19 +49,20 @@ pub enum Edge {
     MaxX = 2,
     MaxY = 3
 }
-impl From<Rect> for CGRect {
-    fn from(rect: Rect) -> CGRect {
-        CGRect::new(&CGPoint::new(rect.left, rect.top), &CGSize::new(rect.width, rect.height))
+
+impl From<Rect> for NSRect {
+    fn from(rect: Rect) -> NSRect {
+        NSRect::new(NSPoint::new(rect.left, rect.top), NSSize::new(rect.width, rect.height))
     }
 }
 
-impl From<CGRect> for Rect {
-    fn from(rect: CGRect) -> Rect {
+impl From<NSRect> for Rect {
+    fn from(rect: NSRect) -> Rect {
         Rect {
             top: rect.origin.y as f64,
             left: rect.origin.x as f64,
-            width: rect.size.width as f64,
-            height: rect.size.height as f64
+            width: rect.size.width() as f64,
+            height: rect.size.height() as f64
         }
     }
 }

@@ -30,11 +30,11 @@ extern "C" fn view_for_column<T: ListViewDelegate>(
     _table_column: id,
     item: NSInteger
 ) -> id {
-    /*use core_graphics::geometry::CGRect;
+    /*use objc::foundation::NSRect;
     unsafe {
         //let superview: id = msg_send![table_view, superview];
-        let frame: CGRect = msg_send![table_view, frame];
-        let _: () = msg_send![table_column, setWidth:frame.size.width];
+        let frame: NSRect = msg_send![table_view, frame];
+        let _: () = msg_send![table_column, setWidth:frame.size.width()];
     }*/
 
     let view = load::<T>(this, LISTVIEW_DELEGATE_PTR);

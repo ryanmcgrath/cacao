@@ -15,8 +15,7 @@
 //! my_view.add_subview(&indicator);
 //! ```
 
-use core_graphics::base::CGFloat;
-
+use objc::foundation::CGFloat;
 use objc::rc::{Id, Shared};
 use objc::runtime::{Class, Object};
 use objc::{class, msg_send, sel};
