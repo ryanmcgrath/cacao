@@ -216,6 +216,15 @@ where
     }
 }
 
+bitflags::bitflags! {
+    /// Flags for window activation
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct ApplicationActivationOptions: u8 {
+        const ActivateAllWindows = 1 << 0;
+        const ActivateIgnoringOtherApps = 1 << 1;
+    }
+}
+
 impl App {
     /// Registers for remote notifications from APNS.
     pub fn register_for_remote_notifications() {
@@ -294,13 +303,12 @@ impl App {
     /// For nib-less applications (which, if you're here, this is) need to call the activation
     /// routines after the NSMenu has been set, otherwise it won't be interact-able without
     /// switching away from the app and then coming back.
-    ///
-    /// @TODO: Accept an ActivationPolicy enum or something.
-    pub fn activate() {
+    pub fn activate(options: ApplicationActivationOptions) {
+        let options = options.bits();
         shared_application(|app| unsafe {
             let _: () = msg_send![app, setActivationPolicy:0];
             let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
-            let _: () = msg_send![current_app, activateWithOptions:1<<1];
+            let _: () = msg_send![current_app, activateWithOptions:options];
         });
     }
 
