@@ -18,6 +18,7 @@ use std::path::PathBuf;
 use objc::rc::{Id, Shared};
 use objc::runtime::Object;
 use objc::{class, msg_send, msg_send_id, sel};
+use percent_encoding::{percent_encode, AsciiSet};
 use url::Url;
 
 use crate::error::Error;
@@ -25,6 +26,8 @@ use crate::foundation::{id, nil, NSArray, NSString, NSURL};
 
 mod types;
 pub use types::{PasteboardName, PasteboardType};
+
+const ENCODE_SET: AsciiSet = percent_encoding::CONTROLS.add(b' ').add(b'-').add(b'%');
 
 /// Represents an `NSPasteboard`, enabling you to handle copy/paste/drag and drop.
 #[derive(Debug)]
@@ -106,9 +109,87 @@ impl Pasteboard {
                 }));
             }
 
-            let urls = NSArray::retain(contents).iter().map(|url| NSURL::retain(url)).collect();
+            let urls = NSArray::retain(contents).iter().map(NSURL::retain).collect();
 
             Ok(urls)
         }
+    }
+
+    pub fn get_text(&self) -> Result<String, Box<dyn std::error::Error>> {
+        unsafe {
+            let pb_type: NSString = NSString::from(PasteboardType::String);
+            let opt_nsstr: id = msg_send![&*self.0, stringForType: &*pb_type];
+
+            if opt_nsstr == nil {
+                return Err(Box::new(Error {
+                    code: 666,
+                    domain: "com.cacao-rs.pasteboard".to_string(),
+                    description: "Pasteboard server returned no data.".to_string()
+                }));
+            }
+
+            Ok(NSString::retain(opt_nsstr).to_string())
+        }
+    }
+
+    /// Write a list of path to the pasteboard
+    pub fn set_files(&self, mut paths: Vec<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
+        unsafe {
+            let url_arr: NSArray = paths
+                .iter_mut()
+                .map(|path| {
+                    let path = path.display().to_string();
+                    let encoded = percent_encode(path.as_bytes(), &ENCODE_SET).to_string();
+                    let url_str = format!("file://{}", encoded);
+                    let url = NSURL::with_str(&url_str);
+                    url.objc.autorelease_return()
+                })
+                .collect::<Vec<id>>()
+                .into();
+
+            let _: id = msg_send![&*self.0, clearContents];
+            let succ: bool = msg_send![&*self.0, writeObjects: &*url_arr];
+
+            if succ {
+                Ok(())
+            } else {
+                Err(Box::new(Error {
+                    code: 666,
+                    domain: "com.cacao-rs.pasteboard".to_string(),
+                    description: "Pasteboard server set urls fail.".to_string()
+                }))
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod pasteboard_test {
+    use std::path::PathBuf;
+
+    use super::Pasteboard;
+
+    #[test]
+    fn paste_text() {
+        let pb = Pasteboard::unique();
+        let txt = "hello, world!";
+
+        pb.copy_text(txt);
+        let txt_got = pb.get_text().unwrap();
+        assert_eq!(txt, txt_got);
+    }
+
+    #[test]
+    fn paste_files() {
+        let pb = Pasteboard::unique();
+        let paths: Vec<PathBuf> = vec!["/bin/ls", "/bin/cat", "/tmp/👋- 2023 10 29.txt"]
+            .into_iter()
+            .map(|s| s.parse().unwrap())
+            .collect();
+
+        pb.set_files(paths.clone()).unwrap();
+        let urls = pb.get_file_urls().unwrap();
+        let got: Vec<PathBuf> = urls.into_iter().map(|u| u.pathbuf()).collect();
+        assert_eq!(got, paths);
     }
 }
