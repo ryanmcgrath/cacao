@@ -297,8 +297,13 @@ impl App {
     ///
     /// @TODO: Accept an ActivationPolicy enum or something.
     pub fn activate() {
+        Self::activate_with_policy(ActivationPolicy::Regular);
+    }
+
+    pub fn activate_with_policy(activation_policy: ActivationPolicy) {
+        let policy = activation_policy as i32;
         shared_application(|app| unsafe {
-            let _: () = msg_send![app, setActivationPolicy:0];
+            let _: () = msg_send![app, setActivationPolicy:policy];
             let current_app: id = msg_send![class!(NSRunningApplication), currentApplication];
             let _: () = msg_send![current_app, activateWithOptions:1<<1];
         });
@@ -346,4 +351,12 @@ impl App {
             let _: () = msg_send![app, stopModalWithCode: response];
         });
     }
+}
+
+#[repr(i32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ActivationPolicy {
+    Regular = 0,
+    Accessory = 1,
+    Prohibited = 2,
 }
